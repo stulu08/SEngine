@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.h"
+#include "Log.h"
 
 namespace Stulu {
 	class STULU_API Application

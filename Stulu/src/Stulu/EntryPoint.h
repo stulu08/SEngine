@@ -5,10 +5,14 @@
 extern Stulu::Application* Stulu::CreateApplication();
 
 int main(int argc, char** argv) {
-
-	auto app = Stulu::CreateApplication();
-	app->run();
-	delete app;
+	Stulu::Log::init();
+	CORE_INFO("Logging was initilized");
+	CORE_INFO("Starting...");
+	auto application = Stulu::CreateApplication();
+	application->run();
+	delete application;
+	CORE_INFO("Ended");
+	return 0;
 }
 
 #endif
