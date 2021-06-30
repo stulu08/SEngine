@@ -1,5 +1,5 @@
 #include <Stulu.h>
-
+ 
 class TestProject : public Stulu::Application {
 public:
 	TestProject() {

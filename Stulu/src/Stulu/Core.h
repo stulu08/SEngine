@@ -10,3 +10,7 @@
 #else
 	#error Only Winodws is currently supported in Stulu
 #endif // ST_PLATFORM_WINDOWS
+
+
+
+#define ST_BIT(x) (1 << x)

@@ -147,9 +147,11 @@
     <ClInclude Include="src\Stulu\Application.h" />
     <ClInclude Include="src\Stulu\Core.h" />
     <ClInclude Include="src\Stulu\EntryPoint.h" />
+    <ClInclude Include="src\Stulu\Events\Event.h" />
     <ClInclude Include="src\Stulu\Log.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="KeyEvent.h" />
     <ClCompile Include="src\Stulu\Application.cpp" />
     <ClCompile Include="src\Stulu\Log.cpp" />
   </ItemGroup>

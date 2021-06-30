@@ -4,6 +4,9 @@
     <Filter Include="Stulu">
       <UniqueIdentifier>{028E1E0E-6EA2-46BF-3724-EA1EA3F742F0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Stulu\Events">
+      <UniqueIdentifier>{A6236C68-9286-FB0C-3B0C-34C3274EC78F}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Stulu.h" />
@@ -16,6 +19,9 @@
     <ClInclude Include="src\Stulu\EntryPoint.h">
       <Filter>Stulu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Events\Event.h">
+      <Filter>Stulu\Events</Filter>
+    </ClInclude>
     <ClInclude Include="src\Stulu\Log.h">
       <Filter>Stulu</Filter>
     </ClInclude>
@@ -26,6 +32,9 @@
     </ClCompile>
     <ClCompile Include="src\Stulu\Log.cpp">
       <Filter>Stulu</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyEvent.h">
+      <Filter>Stulu\Events</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
