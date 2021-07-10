@@ -143,6 +143,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Stulu\Events\ApplicationEvent.h" />
+    <ClInclude Include="src\Stulu\Events\MouseEvent.h" />
     <ClInclude Include="src\Stulu.h" />
     <ClInclude Include="src\Stulu\Application.h" />
     <ClInclude Include="src\Stulu\Core.h" />
