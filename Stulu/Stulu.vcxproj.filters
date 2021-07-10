@@ -22,6 +22,9 @@
     <ClInclude Include="src\Stulu\Events\Event.h">
       <Filter>Stulu\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Events\KeyEvent.h">
+      <Filter>Stulu\Events</Filter>
+    </ClInclude>
     <ClInclude Include="src\Stulu\Log.h">
       <Filter>Stulu</Filter>
     </ClInclude>
@@ -32,9 +35,6 @@
     </ClCompile>
     <ClCompile Include="src\Stulu\Log.cpp">
       <Filter>Stulu</Filter>
-    </ClCompile>
-    <ClCompile Include="KeyEvent.h">
-      <Filter>Stulu\Events</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include <Stulu.h>
+#include <Stulu/Events/KeyEvent.h>
  
 class TestProject : public Stulu::Application {
 public:

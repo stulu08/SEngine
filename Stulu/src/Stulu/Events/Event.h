@@ -13,7 +13,7 @@ namespace Stulu {
 		MouseEventCategrory = ST_BIT(3),
 		MouseButtonEventCategrory = ST_BIT(4),
 	};
-	enum class EvenType { none=0,
+	enum class EventType { none=0,
 		//input
 		KeyDown, KeyUp, MouseButtonDown, MouseButtonUp, MouseMove, MouseScroll,
 		//Application
@@ -21,18 +21,23 @@ namespace Stulu {
 		//Window
 		WindowMove, WindowResize, WindowFocus, WindowFocusLost, WindowClose
 	};
+#define EVENT_CLASS_TYPE(type) static EventType getStaticType() { return EventType::type; }\
+								virtual EventType getEventType() const override { return getStaticType(); }\
+								virtual const char* getName() const override { return #type; }
 
-	class STULU_API event
+#define EVENT_CLASS_CATEGORY(category) virtual int getCategoryFlags() const override { return category; }
+
+	class STULU_API Event
 	{
 		friend class EventDispatcher;
 	public:
-		virtual EvenType GetEventType() const = 0;
-		virtual const char* GetName() const = 0;
-		virtual int GetCategoryFlags() const = 0;
-		virtual std::string ToString() const { return GetName(); }
+		virtual EventType getEventType() const = 0;
+		virtual const char* getName() const = 0;
+		virtual int getCategoryFlags() const = 0;
+		virtual std::string toString() const { return getName(); }
 
 		inline bool isInCategory(EventCategory category) {
-			return GetCategoryFlags() & category;
+			return getCategoryFlags() & category;
 		}
 	protected:
 		bool m_Handled = false;

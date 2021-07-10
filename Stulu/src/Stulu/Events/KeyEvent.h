@@ -1,0 +1,33 @@
+#pragma once
+#include "Event.h"
+#include <sstream>
+
+namespace Stulu {
+	class STULU_API KeyEvent : public Event {
+	public:
+		inline int getKeyCode() const {
+			return m_keyCode;
+		}
+
+		EVENT_CLASS_CATEGORY(KeyboardEventCategrory | InputEventCategrory)
+	protected:
+		KeyEvent(int keycode)
+			: m_keyCode(keycode){}
+		int m_keyCode;
+	};
+
+	class STULU_API KeyDownEvent : public KeyEvent {
+	public:
+		KeyDownEvent(int keycode, int repeatCount)
+			: KeyEvent(keycode), m_repeatCount(repeatCount){}
+		inline int getRepeatCount() const { return m_repeatCount; }
+		std::string toString() const override {
+			std::stringstream s;
+			s << "KeyPressedEvent(" << m_keyCode << ":" << m_repeatCount << ")";
+			return s.str();
+		}
+		EVENT_CLASS_TYPE(KeyDown)
+	private:
+		int m_repeatCount;
+	};
+}
