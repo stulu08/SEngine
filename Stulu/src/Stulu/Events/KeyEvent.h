@@ -1,6 +1,5 @@
 #pragma once
 #include "Event.h"
-#include <sstream>
 
 namespace Stulu {
 	class STULU_API KeyEvent : public Event {

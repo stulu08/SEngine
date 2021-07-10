@@ -2,8 +2,6 @@
 
 #include "Stulu/Core.h"
 
-#include <string.h>
-#include <functional>
 
 namespace Stulu {
 	enum EventCategory { none=0,

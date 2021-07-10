@@ -17,6 +17,9 @@ project "Stulu"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
+	pchheader "st_pch.h"
+	pchsource "Stulu/src/st_pch.cpp"
+
 	files
 	{
 		"%{prj.name}/src/**.h",

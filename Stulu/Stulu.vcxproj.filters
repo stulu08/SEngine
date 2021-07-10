@@ -19,21 +19,22 @@
     <ClInclude Include="src\Stulu\EntryPoint.h">
       <Filter>Stulu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Events\ApplicationEvent.h">
+      <Filter>Stulu\Events</Filter>
+    </ClInclude>
     <ClInclude Include="src\Stulu\Events\Event.h">
       <Filter>Stulu\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Events\KeyEvent.h">
       <Filter>Stulu\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Log.h">
-      <Filter>Stulu</Filter>
-    </ClInclude>
     <ClInclude Include="src\Stulu\Events\MouseEvent.h">
       <Filter>Stulu\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Events\ApplicationEvent.h">
-      <Filter>Stulu\Events</Filter>
+    <ClInclude Include="src\Stulu\Log.h">
+      <Filter>Stulu</Filter>
     </ClInclude>
+    <ClInclude Include="src\st_pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Stulu\Application.cpp">
@@ -42,5 +43,6 @@
     <ClCompile Include="src\Stulu\Log.cpp">
       <Filter>Stulu</Filter>
     </ClCompile>
+    <ClCompile Include="src\st_pch.cpp" />
   </ItemGroup>
 </Project>
