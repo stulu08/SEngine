@@ -8,6 +8,10 @@ workspace "Stulu"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+IncludeDir = {}
+IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
+
+include "Stulu/vendor/GLFW"
 
 project "Stulu"
 	location "Stulu"
@@ -29,12 +33,19 @@ project "Stulu"
 	includedirs
 	{
 		"%{prj.name}/vendor/spdlog/include",
-		"%{prj.name}/src"
+		"%{prj.name}/src",
+		"%{IncludeDir.GLFW}"
+	}
+
+	links
+	{
+		"GLFW",
+		"opengl32.lib"
 	}
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "on"
+		staticruntime "off"
 		systemversion "latest"
 
 		defines
@@ -87,7 +98,7 @@ project "TestProject"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "on"
+		staticruntime "off"
 		systemversion "latest"
 
 		defines

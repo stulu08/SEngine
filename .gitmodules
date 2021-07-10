@@ -1,3 +1,6 @@
 [submodule "Stulu/vendor/spdlog"]
 	path = Stulu/vendor/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "Stulu/vendor/GLFW"]
+	path = Stulu/vendor/GLFW
+	url = https://github.com/TheCherno/glfw

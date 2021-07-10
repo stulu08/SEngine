@@ -13,6 +13,9 @@
 #include <unordered_set>
 
 
+#include "Stulu/Log.h"
+
+
 #ifdef ST_PLATFORM_WINDOWS
 	#include <Windows.h>
 #endif // ST_PLATFORM_WINDOWS

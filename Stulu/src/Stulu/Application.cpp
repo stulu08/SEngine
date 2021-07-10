@@ -5,19 +5,22 @@
 #include "Events/ApplicationEvent.h"
 #include "Log.h"
 
+#include <GLFW/glfw3.h>
+
 namespace Stulu {
 	Application::Application() {
-
+		m_window = std::unique_ptr<Window>(Window::create());
 	}
 	Application::~Application() {
 		
 	}
 	void Application::run() {
 
-		WindowResizeEvent e(1920, 1080);
-		ST_TRACE(e);
 
-		CORE_INFO("Starting run loop");
-		while (true);
+		while (m_runnig) {
+			glClearColor(0, 1, 1, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			m_window->onUpdate();
+		}
 	}
 }
