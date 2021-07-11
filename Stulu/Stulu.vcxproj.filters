@@ -40,6 +40,12 @@
     <ClInclude Include="src\Stulu\Events\MouseEvent.h">
       <Filter>Stulu\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Layer.h">
+      <Filter>Stulu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\LayerStack.h">
+      <Filter>Stulu</Filter>
+    </ClInclude>
     <ClInclude Include="src\Stulu\Log.h">
       <Filter>Stulu</Filter>
     </ClInclude>
@@ -53,6 +59,12 @@
       <Filter>Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Application.cpp">
+      <Filter>Stulu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Layer.cpp">
+      <Filter>Stulu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\LayerStack.cpp">
       <Filter>Stulu</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Log.cpp">

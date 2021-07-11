@@ -61,14 +61,17 @@ project "Stulu"
 		}
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
+		buildoptions "/MDd"
 		symbols "On"
 		
 	filter "configurations:Release"
 		defines "ST_RELEASE"
+		buildoptions "/MD"
 		optimize "On"
 		
 	filter "configurations:Dist"
 		defines "ST_DIST"
+		buildoptions "/MD"
 		optimize "On"
 
 project "TestProject"
@@ -109,12 +112,15 @@ project "TestProject"
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
+		buildoptions "/MDd"
 		symbols "On"
 		
 	filter "configurations:Release"
 		defines "ST_RELEASE"
+		buildoptions "/MD"
 		optimize "On"
 		
 	filter "configurations:Dist"
 		defines "ST_DIST"
+		buildoptions "/MD"
 		optimize "On"

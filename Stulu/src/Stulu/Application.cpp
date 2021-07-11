@@ -15,16 +15,27 @@ namespace Stulu {
 	Application::~Application() {
 		
 	}
+	void Application::pushLayer(Layer* layer) { m_layerStack.pushLayer(layer); }
+	void Application::pushOverlay(Layer* layer) { m_layerStack.pushOverlay(layer); }
+
 	void Application::onEvent(Event& e) {
 		EventDispatcher dispacther(e);
 		dispacther.dispacth<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
-		//CORE_TRACE("{0}",e);
+
+		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
+			(*--it)->onEvent(e);
+			if (e.handled)
+				break;
+		}
+
 	}
 	void Application::run() {
-		m_window->setVSysnc(true);
 		while (m_runnig) {
 			glClearColor(0, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
+
+			for (Layer* lay : m_layerStack)
+				lay->onUpdate();
 			m_window->onUpdate();
 		}
 	}

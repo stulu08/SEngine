@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Stulu/Application.h"
+#include "Stulu/Layer.h"
 #include "Stulu/Log.h"
 
 //Entry Point
