@@ -1,5 +1,6 @@
 #pragma once
 
+#include "st_pch.h"
 #include "Stulu/Core.h"
 
 
@@ -48,7 +49,7 @@ namespace Stulu {
 			: m_event(event){}
 
 		template<typename T>
-		bool dispacther(EventFn<T> func) {
+		bool dispacth(EventFn<T> func) {
 			if (m_event.getEventType() == T::getStaticType()) {
 				m_event.m_handled = func(*(T*)&m_event);
 				return true;
