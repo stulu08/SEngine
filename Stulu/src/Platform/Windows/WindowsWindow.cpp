@@ -1,8 +1,11 @@
 #include "st_pch.h"
 #include "WindowsWindow.h"
+
 #include <Stulu/Events/ApplicationEvent.h>
 #include <Stulu/Events/KeyEvent.h>
 #include <Stulu/Events/MouseEvent.h>
+
+#include <glad/glad.h>
 
 namespace Stulu {
 	static bool s_glfwInitilized = false;
@@ -37,6 +40,8 @@ namespace Stulu {
 
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_window);
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		CORE_ASSERT(status, "Failed glad initialization");
 		glfwSetWindowUserPointer(m_window, &m_data);
 		setVSysnc(true);
 

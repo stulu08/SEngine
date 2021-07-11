@@ -10,8 +10,10 @@ workspace "Stulu"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 IncludeDir = {}
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
+IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 
 include "Stulu/vendor/GLFW"
+include "Stulu/vendor/Glad"
 
 project "Stulu"
 	location "Stulu"
@@ -34,12 +36,14 @@ project "Stulu"
 	{
 		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/src",
-		"%{IncludeDir.GLFW}"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}"
 	}
 
 	links
 	{
 		"GLFW",
+		"Glad",
 		"opengl32.lib"
 	}
 
@@ -52,7 +56,8 @@ project "Stulu"
 		{
 			"ST_PLATFORM_WINDOWS",
 			"ST_DLL_BUILD",
-			"_WINDLL",
+			"GLFW_INCLUDE_NONE",
+			"_WINDLL"
 		}
 
 		postbuildcommands
