@@ -4,3 +4,6 @@
 [submodule "Stulu/vendor/GLFW"]
 	path = Stulu/vendor/GLFW
 	url = https://github.com/TheCherno/glfw
+[submodule "Stulu/vendor/imgui"]
+	path = Stulu/vendor/imgui
+	url = https://github.com/TheCherno/imgui

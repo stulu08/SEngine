@@ -21,5 +21,5 @@
 #endif // ST_ENABLE_ASSERT
 
 
-
+#define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 #define ST_BIT(x) (1 << x)

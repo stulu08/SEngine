@@ -48,4 +48,18 @@ namespace Stulu {
 
 		EVENT_CLASS_TYPE(KeyUp)
 	};
+	class STULU_API KeyTypedEvent : public KeyEvent {
+	public:
+		KeyTypedEvent(int keycode)
+			: KeyEvent(keycode) {}
+
+
+		std::string toString() const override {
+			std::stringstream s;
+			s << "KeyDownEvent(" << m_keyCode << ")";
+			return s.str();
+		}
+
+		EVENT_CLASS_TYPE(KeyTyped)
+	};
 }

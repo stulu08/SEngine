@@ -46,7 +46,7 @@ namespace Stulu {
 
 	class STULU_API MouseButtonEvent : public Event {
 	public:
-		inline float getButton() const { return m_button; }
+		inline int getButton() const { return m_button; }
 		EVENT_CLASS_CATEGORY(MouseEventCategrory | InputEventCategrory)
 
 	protected:

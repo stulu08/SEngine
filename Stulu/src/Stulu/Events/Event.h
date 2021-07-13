@@ -14,7 +14,7 @@ namespace Stulu {
 	};
 	enum class EventType { none=0,
 		//input
-		KeyDown, KeyUp, MouseButtonDown, MouseButtonUp, MouseMove, MouseScroll,
+		KeyTyped, KeyDown, KeyUp, MouseButtonDown, MouseButtonUp, MouseMove, MouseScroll,
 		//Application
 		ApplicationUpdate, ApplicationRender, ApplicationTick,
 		//Window

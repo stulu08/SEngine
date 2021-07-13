@@ -16,12 +16,16 @@ namespace Stulu {
 		void onEvent(Event& e);
 		void pushLayer(Layer* layer);
 		void pushOverlay(Layer* layer);
+		inline Window& getWindow(){ return *m_window; }
+		inline static Application& get(){ return *s_instance; }
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 
 		std::unique_ptr<Window> m_window;
 		bool m_runnig = true;
 		LayerStack m_layerStack;
+	private:
+		static Application* s_instance;
 	};
 
 	//defined in Client
