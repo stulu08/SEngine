@@ -34,8 +34,8 @@ namespace Stulu {
 			glClearColor(0, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			for (Layer* lay : m_layerStack)
-				lay->onUpdate();
+			for (Layer* layer : m_layerStack)
+				layer->onUpdate();
 			m_window->onUpdate();
 		}
 	}

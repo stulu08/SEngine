@@ -4,8 +4,8 @@
 namespace Stulu {
 	LayerStack::LayerStack() { m_layerInsert = m_layers.begin(); }
 	LayerStack::~LayerStack(){
-		for (Layer* lay : m_layers)
-			delete lay;
+		for (Layer* layer : m_layers)
+			delete layer;
 	}
 
 	void LayerStack::pushLayer(Layer* layer){
