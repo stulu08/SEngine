@@ -65,6 +65,8 @@
       <Filter>Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\st_pch.h" />
+    <ClInclude Include="src\Stulu\Input.h" />
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\ImGuiOpengGLRenderer.cpp">
@@ -89,5 +91,6 @@
       <Filter>Stulu</Filter>
     </ClCompile>
     <ClCompile Include="src\st_pch.cpp" />
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
   </ItemGroup>
 </Project>

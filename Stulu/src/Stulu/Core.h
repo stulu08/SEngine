@@ -12,6 +12,10 @@
 #endif // ST_PLATFORM_WINDOWS
 
 
+#ifdef ST_DEBUG
+	#define ST_ENABLE_ASSERTS
+#endif
+
 #ifdef ST_ENABLE_ASSERTS
 	#define ST_ASSERT(x, ...) {if(!(x)){ST_ERROR("Asserion failed: {0}", __VA_ARGS__); __debugbreak(); } }
 	#define CORE_ASSERT(x, ...) {if(!(x)){CORE_ERROR("Asserion failed: {0}", __VA_ARGS__); __debugbreak(); } }

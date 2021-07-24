@@ -13,14 +13,16 @@ IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/ImGui"
 
-include "Stulu/vendor/GLFW"
-include "Stulu/vendor/Glad"
-include "Stulu/vendor/ImGui"
-
+group "Dependencies"
+	include "Stulu/vendor/GLFW"
+	include "Stulu/vendor/Glad"
+	include "Stulu/vendor/ImGui"
+group ""
 project "Stulu"
 	location "Stulu"
 	kind "SharedLib"
 	language "C++"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -53,7 +55,6 @@ project "Stulu"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "off"
 		systemversion "latest"
 
 		defines
@@ -70,23 +71,24 @@ project "Stulu"
 		}
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
-		buildoptions "/MDd"
+		runtime "Debug"
 		symbols "On"
 		
 	filter "configurations:Release"
 		defines "ST_RELEASE"
-		buildoptions "/MD"
+		runtime "Release"
 		optimize "On"
 		
 	filter "configurations:Dist"
 		defines "ST_DIST"
-		buildoptions "/MD"
+		runtime "Release"
 		optimize "On"
 
 project "TestProject"
 	location "TestProject"
 	kind "ConsoleApp"
 	language "C++"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -121,15 +123,15 @@ project "TestProject"
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
-		buildoptions "/MDd"
+		runtime "Debug"
 		symbols "On"
 		
 	filter "configurations:Release"
 		defines "ST_RELEASE"
-		buildoptions "/MD"
+		runtime "Release"
 		optimize "On"
 		
 	filter "configurations:Dist"
 		defines "ST_DIST"
-		buildoptions "/MD"
+		runtime "Release"
 		optimize "On"

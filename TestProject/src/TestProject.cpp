@@ -1,4 +1,5 @@
 #include <Stulu.h>
+#include <Stulu/Input.h>
 
 class testLayer : public Stulu::Layer {
 public:
@@ -6,7 +7,10 @@ public:
 		:Layer("Test"){}
 
 	void onUpdate() override {
-
+		if (Stulu::Input::isMouseDown(0)) {
+			auto [x, y] = Stulu::Input::getMousePos();
+			ST_INFO("x: {0}, y: {1}", x, y);
+		}
 	}
 	void onEvent(Stulu::Event& e) override {
 		

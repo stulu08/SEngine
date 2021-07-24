@@ -20,6 +20,8 @@ namespace Stulu {
 		void setVSysnc(bool enabled) override;
 		bool isVSysnc() const override;
 
+		virtual void* getNativeWindow() const { return m_window; }
+
 	private:
 		virtual void init(const WindowProps& props);
 		virtual void shutDown();
