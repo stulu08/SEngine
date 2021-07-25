@@ -38,6 +38,24 @@ namespace Stulu {
 
 		unsigned int indicies[3]{ 0,1,2 };
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
+
+		std::string vertexSource = R"(
+		#version 460 core
+		layout(location = 0) in vec3 a_pos;
+		out vec3 v_pos;
+		void main(){
+			v_pos = a_pos;
+			gl_Position = vec4(a_pos, 1.0);
+		})";
+		std::string fragmentSource = R"(
+		#version 460 core
+		layout(location = 0) out vec4 color;
+		in vec3 v_pos;
+		void main(){
+			color = vec4(v_pos * 0.5 + 0.5, 1.0);
+		})";
+
+		m_shader.reset(new Shader(vertexSource, fragmentSource));
 	}
 	Application::~Application() {
 		
@@ -61,6 +79,7 @@ namespace Stulu {
 			glClearColor(0.15f, 0.15f, 0.15f, .3f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
+			m_shader->bind();
 			glBindVertexArray(m_vertexArray);
 			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 

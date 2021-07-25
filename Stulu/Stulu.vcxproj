@@ -159,6 +159,7 @@
     <ClInclude Include="src\Stulu\Log.h" />
     <ClInclude Include="src\Stulu\MouseButtonCodes.h" />
     <ClInclude Include="src\Stulu\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Stulu\Renderer\Shader.h" />
     <ClInclude Include="src\Stulu\Window.h" />
     <ClInclude Include="src\st_pch.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -587,6 +588,7 @@
     <ClCompile Include="src\Stulu\Layer.cpp" />
     <ClCompile Include="src\Stulu\LayerStack.cpp" />
     <ClCompile Include="src\Stulu\Log.cpp" />
+    <ClCompile Include="src\Stulu\Renderer\Shader.cpp" />
     <ClCompile Include="src\st_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

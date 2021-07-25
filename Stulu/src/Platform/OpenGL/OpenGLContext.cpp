@@ -16,7 +16,9 @@ namespace Stulu {
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		CORE_ASSERT(status, "Failed glad initialization");
 
-		CORE_INFO("OpenGL {0} Renderer: {1} Version {2}",glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+		CORE_INFO("OpenGL {0} Renderer: {1}",glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+		CORE_INFO("	version: {0}", glGetString(GL_VERSION));
+		CORE_INFO("	GLSL shading version: {0}", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	}
 
 	void OpenGLContext::swapBuffers() {

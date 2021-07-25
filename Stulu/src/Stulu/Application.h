@@ -6,6 +6,8 @@
 #include "Stulu/ImGui/ImGuiLayer.h"
 #include "Stulu/Events/ApplicationEvent.h"
 
+#include "Renderer/Shader.h"
+
 namespace Stulu {
 	class STULU_API Application
 	{
@@ -28,6 +30,8 @@ namespace Stulu {
 		LayerStack m_layerStack;
 		
 		unsigned int m_vertexArray, m_vertexBuffer, m_indexBuffer;
+		std::unique_ptr<Shader> m_shader;
+
 
 		static Application* s_instance;
 	};
