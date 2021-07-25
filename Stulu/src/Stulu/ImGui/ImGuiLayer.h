@@ -10,23 +10,15 @@ namespace Stulu {
 		ImGuiLayer();
 		~ImGuiLayer();
 
-		void onAttach();
-		void onDetach();
-		void onUpdate();
-		void onEvent(Event& e);
+		virtual void onAttach() override;
+		virtual void onDetach() override;
+		virtual void onImguiRender() override;
+
+		void Begin();
+		void End();
 	private:
+
 		float m_time = 0.0f;
-
-		bool onMouseButtonDownEvent(MouseButtonDownEvent& e);
-		bool onMouseButtonUpEvent(MouseButtonUpEvent& e);
-		bool onMouseMoveEvent(MouseMoveEvent& e);
-		bool onMouseScrollEvent(MouseScrollEvent& e);
-
-		bool onKeyTypedEvent(KeyTypedEvent& e);
-		bool onKeyDownEvent(KeyDownEvent& e);
-		bool onKeyUpEvent(KeyUpEvent& e);
-
-		bool onWindowResizeEvent(WindowResizeEvent& e);
 	};
 }
 

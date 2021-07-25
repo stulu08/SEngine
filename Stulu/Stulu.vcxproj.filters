@@ -7,9 +7,6 @@
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Platform\OpenGL">
-      <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
     </Filter>
@@ -45,9 +42,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Platform\OpenGL\ImGuiOpengGLRenderer.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
@@ -84,6 +78,9 @@
     <ClInclude Include="src\Stulu\Input.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Keycodes.h">
+      <Filter>src\Stulu</Filter>
+    </ClInclude>
     <ClInclude Include="src\Stulu\Layer.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
@@ -91,6 +88,9 @@
       <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Log.h">
+      <Filter>src\Stulu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\MouseButtonCodes.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Window.h">
@@ -1344,17 +1344,8 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Keycodes.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\MouseButtonCodes.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Platform\OpenGL\ImGuiOpengGLRenderer.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
@@ -1363,6 +1354,9 @@
     </ClCompile>
     <ClCompile Include="src\Stulu\Application.cpp">
       <Filter>src\Stulu</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\ImGui\ImGuiBuild.cpp">
+      <Filter>src\Stulu\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\ImGui\ImGuiLayer.cpp">
       <Filter>src\Stulu\ImGui</Filter>

@@ -1,5 +1,5 @@
 #include <Stulu.h>
-
+#include "imgui/imgui.h"
 
 class testLayer : public Stulu::Layer {
 public:
@@ -12,13 +12,16 @@ public:
 	void onEvent(Stulu::Event& e) override {
 		
 	}
+	void onImguiRender() override {
+		ImGui::Begin("Game");
+		ImGui::End();
+	}
 };
 
 class TestProject : public Stulu::Application {
 public:
 	TestProject() {
 		pushLayer(new testLayer());
-		pushOverlay(new Stulu::ImGuiLayer());
 	}
 	~TestProject() {
 

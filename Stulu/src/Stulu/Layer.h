@@ -12,6 +12,7 @@ namespace Stulu {
 		virtual void onAttach(){}
 		virtual void onDetach(){}
 		virtual void onUpdate(){}
+		virtual void onImguiRender() {}
 		virtual void onEvent(Event& e){}
 
 		inline const std::string& getName() const { return m_dName; }

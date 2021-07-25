@@ -1,5 +1,7 @@
 workspace "Stulu"
 	architecture "x64"
+	startproject "TestProject"
+
 	configurations
 	{
 		"Debug",
@@ -8,22 +10,24 @@ workspace "Stulu"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+-- Include directories relative to root folder (solution directory)
 IncludeDir = {}
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
-IncludeDir["ImGui"] = "Stulu/vendor/ImGui"
+IncludeDir["ImGui"] = "Stulu/vendor/imgui"
 IncludeDir["glm"] = "Stulu/vendor/glm"
 
-group "Dependencies"
-	include "Stulu/vendor/GLFW"
-	include "Stulu/vendor/Glad"
-	include "Stulu/vendor/ImGui"
-group ""
+include "Stulu/vendor/GLFW"
+include "Stulu/vendor/Glad"
+include "Stulu/vendor/imgui"
+
 project "Stulu"
 	location "Stulu"
-	kind "SharedLib"
+	kind "StaticLib"
 	language "C++"
-	staticruntime "off"
+	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -36,21 +40,26 @@ project "Stulu"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
-		"%{prj.name}/vendor/glm/glm/**.inl"
+		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
-	
+
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
 	includedirs
 	{
-		"%{prj.name}/vendor/spdlog/include",
 		"%{prj.name}/src",
+		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}"
 	}
 
-	links
-	{
+	links 
+	{ 
 		"GLFW",
 		"Glad",
 		"ImGui",
@@ -58,41 +67,36 @@ project "Stulu"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
 		systemversion "latest"
 
 		defines
 		{
 			"ST_PLATFORM_WINDOWS",
-			"ST_DLL_BUILD",
-			"GLFW_INCLUDE_NONE",
-			"_WINDLL"
+			"St_BUILD_DLL",
+			"GLFW_INCLUDE_NONE"
 		}
 
-		postbuildcommands
-		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/TestProject")
-		}
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
 		runtime "Debug"
-		symbols "On"
-		
+		symbols "on"
+
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
-		optimize "On"
-		
+		optimize "on"
+
 	filter "configurations:Dist"
 		defines "ST_DIST"
 		runtime "Release"
-		optimize "On"
+		optimize "on"
 
 project "TestProject"
 	location "TestProject"
 	kind "ConsoleApp"
 	language "C++"
-	staticruntime "off"
+	cppdialect "C++17"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -100,14 +104,15 @@ project "TestProject"
 	files
 	{
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/src/**.cpp"
 	}
-	
+
 	includedirs
 	{
 		"Stulu/vendor/spdlog/include",
 		"Stulu/src",
-		"%{IncludeDir.glm}",
+		"Stulu/vendor",
+		"%{IncludeDir.glm}"
 	}
 
 	links
@@ -116,27 +121,24 @@ project "TestProject"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "off"
 		systemversion "latest"
 
 		defines
 		{
-			"ST_PLATFORM_WINDOWS",
-			"_WINDLL",
+			"ST_PLATFORM_WINDOWS"
 		}
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
 		runtime "Debug"
-		symbols "On"
-		
+		symbols "on"
+
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
-		optimize "On"
-		
+		optimize "on"
+
 	filter "configurations:Dist"
 		defines "ST_DIST"
 		runtime "Release"
-		optimize "On"
+		optimize "on"

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Core.h"
-#include "Stulu/LayerStack.h"
-#include "Stulu/Events/ApplicationEvent.h"
 #include "Window.h"
+#include "Stulu/LayerStack.h"
+#include "Stulu/ImGui/ImGuiLayer.h"
+#include "Stulu/Events/ApplicationEvent.h"
 
 namespace Stulu {
 	class STULU_API Application
@@ -22,6 +23,7 @@ namespace Stulu {
 		bool onWindowClose(WindowCloseEvent& e);
 
 		std::unique_ptr<Window> m_window;
+		ImGuiLayer* m_imguiLayer;
 		bool m_runnig = true;
 		LayerStack m_layerStack;
 	private:
