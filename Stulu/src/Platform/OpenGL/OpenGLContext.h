@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Rendere/GraphicsContext.h"
+#include "Stulu/Renderer/GraphicsContext.h"
 
 struct GLFWwindow;
 

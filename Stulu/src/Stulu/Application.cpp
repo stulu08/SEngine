@@ -15,6 +15,29 @@ namespace Stulu {
 
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
+
+		glGenVertexArrays(1, &m_vertexArray);
+		glBindVertexArray(m_vertexArray);
+
+		glGenBuffers(1, &m_vertexBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+
+		float vertices[3 * 3] = {
+			-.5f, -.5f, .0f,
+			 .5f, -.5f, .0f,
+			 .0f,  .5f, .0f,
+		};
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+		glGenBuffers(1, &m_indexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+
+		unsigned int indicies[3]{ 0,1,2 };
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
 	}
 	Application::~Application() {
 		
@@ -35,9 +58,11 @@ namespace Stulu {
 	}
 	void Application::run() {
 		while (m_runnig) {
-			glClearColor(0, 0, 0, 1);
+			glClearColor(0.15f, 0.15f, 0.15f, .3f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
+			glBindVertexArray(m_vertexArray);
+			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
 			for (Layer* layer : m_layerStack)
 				layer->onUpdate();

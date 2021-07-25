@@ -3,7 +3,7 @@
 #include "Stulu/Window.h"
 
 #include <GLFW/glfw3.h>
-#include <Stulu/Rendere/GraphicsContext.h>
+#include <Stulu/Renderer/GraphicsContext.h>
 
 namespace Stulu {
 	class WindowsWindow : public Window {

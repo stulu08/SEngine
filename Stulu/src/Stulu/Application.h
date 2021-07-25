@@ -26,7 +26,9 @@ namespace Stulu {
 		ImGuiLayer* m_imguiLayer;
 		bool m_runnig = true;
 		LayerStack m_layerStack;
-	private:
+		
+		unsigned int m_vertexArray, m_vertexBuffer, m_indexBuffer;
+
 		static Application* s_instance;
 	};
 
