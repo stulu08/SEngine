@@ -1344,6 +1344,12 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Keycodes.h">
+      <Filter>src\Stulu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\MouseButtonCodes.h">
+      <Filter>src\Stulu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\ImGuiOpengGLRenderer.cpp">

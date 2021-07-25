@@ -12,7 +12,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/ImGui"
-IncludeDir["glm"] = "Stulu/vendor/glm/glm"
+IncludeDir["glm"] = "Stulu/vendor/glm"
 
 group "Dependencies"
 	include "Stulu/vendor/GLFW"
@@ -106,8 +106,8 @@ project "TestProject"
 	includedirs
 	{
 		"Stulu/vendor/spdlog/include",
+		"Stulu/src",
 		"%{IncludeDir.glm}",
-		"Stulu/src"
 	}
 
 	links
