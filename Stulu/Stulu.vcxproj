@@ -158,7 +158,7 @@
     <ClInclude Include="src\Stulu\LayerStack.h" />
     <ClInclude Include="src\Stulu\Log.h" />
     <ClInclude Include="src\Stulu\MouseButtonCodes.h" />
-    <ClInclude Include="src\Stulu\Rendere\GraphicsContext.h" />
+    <ClInclude Include="src\Stulu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Stulu\Window.h" />
     <ClInclude Include="src\st_pch.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
