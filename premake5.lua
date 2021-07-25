@@ -11,17 +11,17 @@ workspace "Stulu"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
--- Include directories relative to root folder (solution directory)
 IncludeDir = {}
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
 IncludeDir["glm"] = "Stulu/vendor/glm"
 
+group "Dependencies"
 include "Stulu/vendor/GLFW"
 include "Stulu/vendor/Glad"
 include "Stulu/vendor/imgui"
-
+group ""
 project "Stulu"
 	location "Stulu"
 	kind "StaticLib"

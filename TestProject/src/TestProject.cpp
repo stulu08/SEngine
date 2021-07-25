@@ -13,8 +13,7 @@ public:
 		
 	}
 	void onImguiRender() override {
-		ImGui::Begin("Game");
-		ImGui::End();
+		
 	}
 };
 
@@ -24,7 +23,7 @@ public:
 		pushLayer(new testLayer());
 	}
 	~TestProject() {
-
+		
 	}
 };
 

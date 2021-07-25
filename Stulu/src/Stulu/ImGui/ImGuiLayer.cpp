@@ -13,15 +13,10 @@
 
 namespace Stulu {
 	ImGuiLayer::ImGuiLayer()
-		:Layer("ImGuiLayer")
-	{
+		:Layer("ImGuiLayer"){}
 
-	}
+	ImGuiLayer::~ImGuiLayer(){}
 
-	ImGuiLayer::~ImGuiLayer()
-	{
-
-	}
 	void ImGuiLayer::onAttach()
 	{
 		IMGUI_CHECKVERSION();
@@ -82,8 +77,6 @@ namespace Stulu {
 	}
 	void ImGuiLayer::onImguiRender()
 	{
-		static bool show = true;
-		ImGui::ShowDemoWindow(&show);
 	}
 
 }

@@ -5,7 +5,7 @@
 #include <Stulu/Events/KeyEvent.h>
 #include <Stulu/Events/MouseEvent.h>
 
-#include <glad/glad.h>
+#include "Platform/OpenGL/OpenGLContext.h"
 
 namespace Stulu {
 	static bool s_glfwInitilized = false;
@@ -28,6 +28,7 @@ namespace Stulu {
 		m_data.width = props.width;
 		m_data.height = props.height;
 
+
 		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
 
 		if (!s_glfwInitilized) {
@@ -39,9 +40,10 @@ namespace Stulu {
 		}
 
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
-		glfwMakeContextCurrent(m_window);
-		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-		CORE_ASSERT(status, "Failed glad initialization");
+		m_graphicsContext = new OpenGLContext(m_window);
+
+		m_graphicsContext->init();
+
 		glfwSetWindowUserPointer(m_window, &m_data);
 		setVSysnc(true);
 		
@@ -120,7 +122,8 @@ namespace Stulu {
 	}
 	void WindowsWindow::onUpdate() {
 		glfwPollEvents();
-		glfwSwapBuffers(m_window);
+
+		m_graphicsContext->swapBuffers();
 	}
 
 	void WindowsWindow::setVSysnc(bool enabled) {

@@ -3,6 +3,7 @@
 #include "Stulu/Window.h"
 
 #include <GLFW/glfw3.h>
+#include <Stulu/Rendere/GraphicsContext.h>
 
 namespace Stulu {
 	class WindowsWindow : public Window {
@@ -27,6 +28,7 @@ namespace Stulu {
 		virtual void shutDown();
 	private:
 		GLFWwindow* m_window;
+		GraphicsContext* m_graphicsContext;
 
 		struct WindowData {
 			std::string title;
