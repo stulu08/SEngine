@@ -7,13 +7,13 @@ namespace Stulu {
 
 	Input* Input::s_instance = new WindowsInput();
 
-	bool WindowsInput::isKeyDownImpl(int keycode) {
+	bool WindowsInput::isKeyDownImpl(unsigned int keycode) {
 		auto *window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
 		auto state = glfwGetKey(window, keycode);
 
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
-	bool WindowsInput::isMouseDownImpl(int button) {
+	bool WindowsInput::isMouseDownImpl(unsigned int button) {
 		auto* window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
 		auto state = glfwGetMouseButton(window, button);
 		return state == GLFW_PRESS;

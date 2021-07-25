@@ -12,6 +12,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/ImGui"
+IncludeDir["glm"] = "Stulu/vendor/glm/glm"
 
 group "Dependencies"
 	include "Stulu/vendor/GLFW"
@@ -34,6 +35,8 @@ project "Stulu"
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/vendor/glm/glm/**.hpp",
+		"%{prj.name}/vendor/glm/glm/**.inl"
 	}
 	
 	includedirs
@@ -42,7 +45,8 @@ project "Stulu"
 		"%{prj.name}/src",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.glm}"
 	}
 
 	links
@@ -102,6 +106,7 @@ project "TestProject"
 	includedirs
 	{
 		"Stulu/vendor/spdlog/include",
+		"%{IncludeDir.glm}",
 		"Stulu/src"
 	}
 

@@ -7,7 +7,7 @@ public:
 		:Layer("Test"){}
 
 	void onUpdate() override {
-		if (Stulu::Input::isMouseDown(0)) {
+		if (Stulu::Input::isMouseDown(1)) {
 			auto [x, y] = Stulu::Input::getMousePos();
 			ST_INFO("x: {0}, y: {1}", x, y);
 		}
