@@ -4,3 +4,9 @@
 [submodule "Stulu/vendor/glm"]
 	path = Stulu/vendor/glm
 	url = https://github.com/g-truc/glm
+[submodule "Stulu/vendor/GLFW"]
+	path = Stulu/vendor/GLFW
+	url = https://github.com/stulu08/glfw
+[submodule "Stulu/vendor/imgui"]
+	path = Stulu/vendor/imgui
+	url = https://github.com/stulu08/imgui
