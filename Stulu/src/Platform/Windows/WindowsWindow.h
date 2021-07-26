@@ -26,7 +26,9 @@ namespace Stulu {
 	private:
 		virtual void init(const WindowProps& props);
 		virtual void shutDown();
-	private:
+
+
+
 		GLFWwindow* m_window;
 		GraphicsContext* m_graphicsContext;
 

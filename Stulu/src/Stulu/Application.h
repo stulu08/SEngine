@@ -9,6 +9,15 @@
 #include "Renderer/Shader.h"
 
 namespace Stulu {
+	struct GraphicDriverConstants {
+		std::string vendor;
+		std::string renderer;
+		std::string version;
+		std::string other;
+
+		GraphicDriverConstants(const std::string& _vendor = "no data", const std::string& _renderer = "no data", const std::string& _version = "no data", const std::string& _other = "no data")
+			: vendor(_vendor), renderer(_renderer), version(_version), other(_other) {}
+	};
 	class STULU_API Application
 	{
 	public:
@@ -21,6 +30,8 @@ namespace Stulu {
 		void pushOverlay(Layer* layer);
 		inline Window& getWindow(){ return *m_window; }
 		inline static Application& get(){ return *s_instance; }
+
+		GraphicDriverConstants graphicDriverConstants;
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 
