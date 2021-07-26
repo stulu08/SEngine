@@ -8,6 +8,7 @@
 
 #include "Renderer/Shader.h"
 #include "Renderer/Buffer.h"
+#include <Stulu/Renderer/VertexArray.h>
 
 namespace Stulu {
 	struct GraphicDriverConstants {
@@ -41,10 +42,14 @@ namespace Stulu {
 		bool m_runnig = true;
 		LayerStack m_layerStack;
 		
-		unsigned int m_vertexArray;
-		std::unique_ptr<Shader> m_shader;
-		std::unique_ptr<VertexBuffer> m_vertexBuffer;
-		std::unique_ptr<IndexBuffer> m_indexBuffer;
+
+
+		//rainbow triangle
+		std::shared_ptr<Shader> m_rainbowShader;
+		std::shared_ptr<VertexArray> m_vertexArray;
+		//blue bg square
+		std::shared_ptr<Shader> m_blueShader;
+		std::shared_ptr<VertexArray> m_squareVertexArray;
 
 
 		static Application* s_instance;

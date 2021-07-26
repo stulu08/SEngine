@@ -17,8 +17,8 @@ namespace Stulu {
 			glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
 			glDeleteShader(vertexShader);
 
+			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
 			CORE_ASSERT(false, "Vertex Shader compilation failed");
-			CORE_ERROR("{0}", infoLog.data());
 			return;
 		}
 
@@ -34,8 +34,8 @@ namespace Stulu {
 			glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
 			glDeleteShader(fragmentShader);
 
+			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
 			CORE_ASSERT(false, "Fragment Shader compilation failed");
-			CORE_ERROR("{0}", infoLog.data());
 			return;
 		}
 
@@ -56,8 +56,9 @@ namespace Stulu {
 			glDeleteShader(vertexShader);
 			glDeleteShader(fragmentShader);
 
-			CORE_ASSERT(false, "Could not link shader program");
+			CORE_ERROR("GLSL compilation error:");
 			CORE_ERROR("{0}", infoLog.data());
+			CORE_ASSERT(false, "Could not link shader program");
 			return;
 		}
 

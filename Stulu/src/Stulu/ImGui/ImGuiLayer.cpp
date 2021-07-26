@@ -9,7 +9,7 @@
 #include <Stulu/Application.h>
 
 #include <GLFW/glfw3.h>
-#include <glad/glad.h>
+
 
 namespace Stulu {
 	ImGuiLayer::ImGuiLayer()

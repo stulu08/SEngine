@@ -24,7 +24,6 @@ public:
 	}
 	void onImguiRender() override {
 		drawRendererInfos();
-
 	}
 private:
 	Stulu::Application* app;
