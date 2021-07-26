@@ -1,14 +1,10 @@
 #pragma once
 
-#include "Core.h"
-#include "Window.h"
+#include "Stulu/Core.h"
+#include "Stulu/Window.h"
 #include "Stulu/LayerStack.h"
 #include "Stulu/ImGui/ImGuiLayer.h"
 #include "Stulu/Events/ApplicationEvent.h"
-
-#include "Renderer/Shader.h"
-#include "Renderer/Buffer.h"
-#include <Stulu/Renderer/VertexArray.h>
 
 namespace Stulu {
 	struct GraphicDriverConstants {
@@ -41,16 +37,6 @@ namespace Stulu {
 		ImGuiLayer* m_imguiLayer;
 		bool m_runnig = true;
 		LayerStack m_layerStack;
-		
-
-
-		//rainbow triangle
-		std::shared_ptr<Shader> m_rainbowShader;
-		std::shared_ptr<VertexArray> m_vertexArray;
-		//blue bg square
-		std::shared_ptr<Shader> m_blueShader;
-		std::shared_ptr<VertexArray> m_squareVertexArray;
-
 
 		static Application* s_instance;
 	};

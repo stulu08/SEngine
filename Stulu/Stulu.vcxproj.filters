@@ -1374,6 +1374,15 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\RenderAPI.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\RenderCommand.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRenderAPI.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1429,6 +1438,15 @@
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Renderer\RenderAPI.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRenderAPI.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Renderer\RenderCommand.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

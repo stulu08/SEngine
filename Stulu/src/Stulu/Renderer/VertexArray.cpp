@@ -8,18 +8,18 @@ namespace Stulu {
 	VertexArray* VertexArray::create() {
 		switch (Renderer::getRendererAPI())
 		{
-			case RendererAPI::OpenGL:
+			case RenderAPI::API::OpenGL:
 				return new OpenGLVertexArray();
-			case RendererAPI::none:
-				CORE_ASSERT(false, "No renderAPI specified")
-					return nullptr;
+			case RenderAPI::API::none:
+				CORE_ASSERT(false, "No renderAPI specified");
+				return nullptr;
 			default:
-				CORE_ASSERT(false, "RenderAPI not suported")
-					return nullptr;
+				CORE_ASSERT(false, "RenderAPI not suported");
+				return nullptr;
 		}
 
-		CORE_ASSERT(false, "Unknown error in VertexArray creation")
-			return nullptr;
+		CORE_ASSERT(false, "Unknown error in VertexArray creation");
+		return nullptr;
 	}
 
 }

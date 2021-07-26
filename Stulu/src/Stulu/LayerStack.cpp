@@ -22,8 +22,9 @@ namespace Stulu {
 
 		if (it != m_layers.end()) {
 			m_layers.erase(it);
-			m_layerInsertIndex--;
 			layer->onDetach();
+			m_layerInsertIndex--;
+
 		}
 	}
 	void LayerStack::popOverlay(Layer* layer){

@@ -131,12 +131,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Layers\DefaultLayer.cpp" />
+    <ClCompile Include="src\Layers\GuiLayer.cpp" />
     <ClCompile Include="src\TestProject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stulu\Stulu.vcxproj">
       <Project>{028E1E0E-6EA2-46BF-3724-EA1EA3F742F0}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Layers\DefaultLayer.h" />
+    <ClInclude Include="src\Layers\GuiLayer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,5 @@
 #pragma once
-#include "Event.h"
+#include "Stulu/Events/Event.h"
 
 namespace Stulu {
 	class STULU_API WindowResizeEvent : public Event {

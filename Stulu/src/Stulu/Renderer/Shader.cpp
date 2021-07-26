@@ -7,9 +7,9 @@ namespace Stulu{
 	Shader* Shader::create(const std::string& vertex, const std::string& fragment) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RendererAPI::OpenGL:
+		case RenderAPI::API::OpenGL:
 			return new OpenGLShader(vertex, fragment);
-		case RendererAPI::none:
+		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
 		default:

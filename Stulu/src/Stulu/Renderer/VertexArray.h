@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Stulu/Renderer/Buffer.h"
 
 namespace Stulu {
