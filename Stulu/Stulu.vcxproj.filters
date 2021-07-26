@@ -7,6 +7,9 @@
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Platform\OpenGL">
+      <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
     </Filter>
@@ -18,6 +21,9 @@
     </Filter>
     <Filter Include="src\Stulu\ImGui">
       <UniqueIdentifier>{4330289F-AFBB-9563-B8CC-185824D7F163}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Stulu\Renderer">
+      <UniqueIdentifier>{1FD4E288-0BB8-A3DE-7418-9E31601B8E60}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -42,6 +48,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
@@ -92,6 +107,18 @@
     </ClInclude>
     <ClInclude Include="src\Stulu\MouseButtonCodes.h">
       <Filter>src\Stulu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\Buffer.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\GraphicsContext.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\Renderer.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\Shader.h">
+      <Filter>src\Stulu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Window.h">
       <Filter>src\Stulu</Filter>
@@ -1344,11 +1371,17 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
-    <ClInclude Include="src\Stulu\Renderer\Shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
@@ -1373,10 +1406,17 @@
     <ClCompile Include="src\Stulu\Log.cpp">
       <Filter>src\Stulu</Filter>
     </ClCompile>
+    <ClCompile Include="src\Stulu\Renderer\Buffer.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Renderer\Renderer.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Renderer\Shader.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\st_pch.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
-    <ClCompile Include="src\Stulu\Renderer\Shader.cpp" />
   </ItemGroup>
 </Project>

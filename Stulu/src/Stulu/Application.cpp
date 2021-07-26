@@ -3,6 +3,7 @@
 
 #include "Log.h"
 
+#include "Renderer/Buffer.h"
 #include <glad/glad.h>
 
 namespace Stulu {
@@ -19,8 +20,7 @@ namespace Stulu {
 		glGenVertexArrays(1, &m_vertexArray);
 		glBindVertexArray(m_vertexArray);
 
-		glGenBuffers(1, &m_vertexBuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+
 
 		float vertices[3 * 3] = {
 			-.5f, -.5f, .0f,
@@ -28,16 +28,16 @@ namespace Stulu {
 			 .0f,  .5f, .0f,
 		};
 
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		m_vertexBuffer.reset(VertexBuffer::create(sizeof(vertices), vertices));
+		//m_vertexBuffer->bind();
 
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
 
-		glGenBuffers(1, &m_indexBuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+		uint32_t indicies[3]{ 0,1,2 };
+		m_indexBuffer.reset(IndexBuffer::create(sizeof(indicies) / sizeof(uint32_t), indicies));
 
-		unsigned int indicies[3]{ 0,1,2 };
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW);
+
 
 		std::string vertexSource = R"(
 		#version 460 core
@@ -55,7 +55,7 @@ namespace Stulu {
 			color = vec4(v_pos * 0.5 + 0.5, 1.0);
 		})";
 
-		m_shader.reset(new Shader(vertexSource, fragmentSource));
+		m_shader.reset(Shader::create(vertexSource, fragmentSource));
 	}
 	Application::~Application() {
 		
@@ -81,7 +81,7 @@ namespace Stulu {
 
 			m_shader->bind();
 			glBindVertexArray(m_vertexArray);
-			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+			glDrawElements(GL_TRIANGLES, m_indexBuffer->getCount(), GL_UNSIGNED_INT, nullptr);
 
 			for (Layer* layer : m_layerStack)
 				layer->onUpdate();

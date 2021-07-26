@@ -7,6 +7,7 @@
 #include "Stulu/Events/ApplicationEvent.h"
 
 #include "Renderer/Shader.h"
+#include "Renderer/Buffer.h"
 
 namespace Stulu {
 	struct GraphicDriverConstants {
@@ -40,8 +41,10 @@ namespace Stulu {
 		bool m_runnig = true;
 		LayerStack m_layerStack;
 		
-		unsigned int m_vertexArray, m_vertexBuffer, m_indexBuffer;
+		unsigned int m_vertexArray;
 		std::unique_ptr<Shader> m_shader;
+		std::unique_ptr<VertexBuffer> m_vertexBuffer;
+		std::unique_ptr<IndexBuffer> m_indexBuffer;
 
 
 		static Application* s_instance;
