@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Log.h"
+#include "Stulu/Core/Log.h"
 namespace Stulu{
 
 	enum class ShaderDataType { none = 0,

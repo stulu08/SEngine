@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Stulu/Window.h"
+#include "Stulu/Core/Window.h"
 
 #include <GLFW/glfw3.h>
-#include <Stulu/Renderer/GraphicsContext.h>
+#include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu {
 	class WindowsWindow : public Window {

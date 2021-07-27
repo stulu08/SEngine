@@ -6,7 +6,7 @@
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
-#include <Stulu/Application.h>
+#include "Stulu/Core/Application.h"
 
 #include <GLFW/glfw3.h>
 
@@ -75,7 +75,7 @@ namespace Stulu {
 			glfwMakeContextCurrent(backup_current_context);
 		}
 	}
-	void ImGuiLayer::onImguiRender()
+	void ImGuiLayer::onImguiRender(Timestep timestep)
 	{
 	}
 

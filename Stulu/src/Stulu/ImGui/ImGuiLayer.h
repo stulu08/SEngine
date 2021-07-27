@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Layer.h"
+#include "Stulu/Core/Layer.h"
 namespace Stulu {
 	class ImGuiLayer : public Layer
 	{
@@ -9,7 +9,7 @@ namespace Stulu {
 
 		virtual void onAttach() override;
 		virtual void onDetach() override;
-		virtual void onImguiRender() override;
+		virtual void onImguiRender(Timestep timestep) override;
 
 		void Begin();
 		void End();

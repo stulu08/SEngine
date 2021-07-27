@@ -9,11 +9,13 @@ public:
 	}
 
 	void onAttach() override;
-	void onUpdate() override;
+	void onUpdate(Stulu::Timestep timestep) override;
 	void onEvent(Stulu::Event& e) override;
+	void onImguiRender(Stulu::Timestep timestep) override;
 	void drawRendererInfos();
 	void drawCameraInfos();
-	void onImguiRender() override;
+	void drawApplicationInfos(Stulu::Timestep timestep);
+
 	
 private:
 	Stulu::Application* app;

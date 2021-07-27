@@ -1,7 +1,7 @@
 #pragma once
 
 #include "st_pch.h"
-#include "Stulu/Core.h"
+#include "Stulu/Core/Core.h"
 
 
 namespace Stulu {

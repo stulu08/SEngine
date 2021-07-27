@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Stulu/Renderer/RenderCommand.h"
-#include <Stulu/Renderer/OrthographicCamera.h>
-#include <Stulu/Renderer/Shader.h>
+#include "Stulu/Renderer/OrthographicCamera.h"
+#include "Stulu/Renderer/Shader.h"
 
 namespace Stulu{
 	class Renderer {

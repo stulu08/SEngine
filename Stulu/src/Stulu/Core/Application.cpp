@@ -1,6 +1,9 @@
 #include "st_pch.h"
 #include "Application.h"
 
+#include "Stulu/Core/Platform.h"
+#include "Stulu/Core/Timestep.h"
+
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
@@ -32,11 +35,14 @@ namespace Stulu {
 	}
 	void Application::run() {
 		while (m_runnig) {
+			float time = Platform::getTime();
+			Timestep deltaTimestep = time - m_lastFrameTime;
+			m_lastFrameTime = time;
 			for (Layer* layer : m_layerStack)
-				layer->onUpdate();
+				layer->onUpdate(deltaTimestep);
 			m_imguiLayer->Begin();
 			for (Layer* layer : m_layerStack)
-				layer->onImguiRender();
+				layer->onImguiRender(deltaTimestep);
 			m_imguiLayer->End();
 			m_window->onUpdate();
 		}

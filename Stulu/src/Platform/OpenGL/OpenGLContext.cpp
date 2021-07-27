@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
-#include "Stulu/Application.h"
+#include "Stulu/Core/Application.h"
 
 namespace Stulu {
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Input.h"
+#include "Stulu/Core/Input.h"
 
 namespace Stulu {
 	class WindowsInput : public Input {

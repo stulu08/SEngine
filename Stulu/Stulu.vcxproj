@@ -140,6 +140,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\Windows\PlatformWindows.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRenderAPI.h" />
@@ -148,20 +149,22 @@
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\Stulu.h" />
-    <ClInclude Include="src\Stulu\Application.h" />
-    <ClInclude Include="src\Stulu\Core.h" />
-    <ClInclude Include="src\Stulu\EntryPoint.h" />
+    <ClInclude Include="src\Stulu\Core\Application.h" />
+    <ClInclude Include="src\Stulu\Core\Core.h" />
+    <ClInclude Include="src\Stulu\Core\Platform.h" />
+    <ClInclude Include="src\Stulu\Core\Timestep.h" />
+    <ClInclude Include="src\Stulu\Core\EntryPoint.h" />
     <ClInclude Include="src\Stulu\Events\ApplicationEvent.h" />
     <ClInclude Include="src\Stulu\Events\Event.h" />
     <ClInclude Include="src\Stulu\Events\KeyEvent.h" />
     <ClInclude Include="src\Stulu\Events\MouseEvent.h" />
     <ClInclude Include="src\Stulu\ImGui\ImGuiLayer.h" />
-    <ClInclude Include="src\Stulu\Input.h" />
-    <ClInclude Include="src\Stulu\Keycodes.h" />
-    <ClInclude Include="src\Stulu\Layer.h" />
-    <ClInclude Include="src\Stulu\LayerStack.h" />
-    <ClInclude Include="src\Stulu\Log.h" />
-    <ClInclude Include="src\Stulu\MouseButtonCodes.h" />
+    <ClInclude Include="src\Stulu\Core\Input.h" />
+    <ClInclude Include="src\Stulu\Core\Keycodes.h" />
+    <ClInclude Include="src\Stulu\Core\Layer.h" />
+    <ClInclude Include="src\Stulu\Core\LayerStack.h" />
+    <ClInclude Include="src\Stulu\Core\Log.h" />
+    <ClInclude Include="src\Stulu\Core\MouseButtonCodes.h" />
     <ClInclude Include="src\Stulu\Renderer\Buffer.h" />
     <ClInclude Include="src\Stulu\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\Stulu\Renderer\OrthographicCamera.h" />
@@ -170,7 +173,7 @@
     <ClInclude Include="src\Stulu\Renderer\Renderer.h" />
     <ClInclude Include="src\Stulu\Renderer\Shader.h" />
     <ClInclude Include="src\Stulu\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Stulu\Window.h" />
+    <ClInclude Include="src\Stulu\Core\Window.h" />
     <ClInclude Include="src\st_pch.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
     <ClInclude Include="vendor\glm\glm\detail\_features.hpp" />
@@ -589,6 +592,7 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\Windows\PlatformWindows.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRenderAPI.cpp" />
@@ -596,12 +600,12 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
-    <ClCompile Include="src\Stulu\Application.cpp" />
+    <ClCompile Include="src\Stulu\Core\Application.cpp" />
     <ClCompile Include="src\Stulu\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\Stulu\ImGui\ImGuiLayer.cpp" />
-    <ClCompile Include="src\Stulu\Layer.cpp" />
-    <ClCompile Include="src\Stulu\LayerStack.cpp" />
-    <ClCompile Include="src\Stulu\Log.cpp" />
+    <ClCompile Include="src\Stulu\Core\Layer.cpp" />
+    <ClCompile Include="src\Stulu\Core\LayerStack.cpp" />
+    <ClCompile Include="src\Stulu\Core\Log.cpp" />
     <ClCompile Include="src\Stulu\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Stulu\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="src\Stulu\Renderer\RenderAPI.cpp" />

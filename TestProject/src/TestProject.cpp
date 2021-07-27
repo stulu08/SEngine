@@ -1,5 +1,5 @@
 #include "TestProject.h"
-#include <Stulu/EntryPoint.h>
+#include <Stulu/Core/EntryPoint.h>
 
 
 Stulu::Application* Stulu::CreateApplication() {

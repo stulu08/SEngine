@@ -79,7 +79,9 @@ void DefaultLayer::onAttach() {
 void DefaultLayer::onEvent(Stulu::Event& e) {
 
 }
-void DefaultLayer::onUpdate() {
+float speed_move = 8;
+float speed_rotate = 64;
+void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	Stulu::RenderCommand::setClearColor({ 0.15f, 0.15f, 0.15f, 1.0f });
 	Stulu::RenderCommand::clear();
 
@@ -87,22 +89,24 @@ void DefaultLayer::onUpdate() {
 	float rotation = m_camera.getRotation();
 
 	if (Stulu::Input::isKeyDown(KEY_W))
-		pos.z+=0.1f;
-	if (Stulu::Input::isKeyDown(KEY_S))
-		pos.z -= 0.1f;
+		pos.z += speed_move * timestep;
+	else if (Stulu::Input::isKeyDown(KEY_S))
+		pos.z -= speed_move * timestep;
 	if (Stulu::Input::isKeyDown(KEY_A))
-		pos.x-= 0.1f;
-	if (Stulu::Input::isKeyDown(KEY_D))
-		pos.x+= 0.1f;
+		pos.x -= speed_move * timestep;
+	else if (Stulu::Input::isKeyDown(KEY_D))
+		pos.x+= speed_move * timestep;
 	if (Stulu::Input::isKeyDown(KEY_Q))
-		pos.y -= 0.1f;
-	if (Stulu::Input::isKeyDown(KEY_E))
-		pos.y += 0.1f;
+		pos.y -= speed_move * timestep;
+	else if (Stulu::Input::isKeyDown(KEY_E))
+		pos.y += speed_move * timestep;
 
 	if (Stulu::Input::isKeyDown(KEY_LEFT))
-		rotation--;
-	if (Stulu::Input::isKeyDown(KEY_RIGHT))
-		rotation++;
+		rotation += speed_rotate * timestep;
+	else if (Stulu::Input::isKeyDown(KEY_RIGHT))
+		rotation -= speed_rotate * timestep;;
+	if (rotation >= 360 || rotation <= -360)
+		rotation = 360 % (int)rotation;
 
 	m_camera.setPosition(pos);
 	m_camera.setRotation(rotation);
@@ -115,6 +119,15 @@ void DefaultLayer::onUpdate() {
 		Stulu::Renderer::submit(m_vertexArray, m_rainbowShader);
 	}
 	Stulu::Renderer::endScene();
+
+}
+
+void DefaultLayer::onImguiRender(Stulu::Timestep timestep) {
+
+
+	drawRendererInfos();
+	drawCameraInfos();
+	drawApplicationInfos(timestep);
 }
 
 void DefaultLayer::drawRendererInfos() {
@@ -132,12 +145,9 @@ void DefaultLayer::drawCameraInfos() {
 	ImGui::Text("Rotation: %.2f", m_camera.getRotation());
 	ImGui::End();
 }
-void DefaultLayer::onImguiRender() {
+void DefaultLayer::drawApplicationInfos(Stulu::Timestep timestep) {
 	ImGui::Begin("Application");
+	ImGui::Text("Deltatime: %.3fs(%dms)", (float)timestep, (int)timestep.getMilliseconds());
+	ImGui::Text("FPS: %.2f", 1.0f / timestep);
 	ImGui::End();
-
-	drawRendererInfos();
-	drawCameraInfos();
 }
-
-

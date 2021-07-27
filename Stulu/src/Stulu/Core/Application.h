@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Stulu/Window.h"
-#include "Stulu/LayerStack.h"
+#include "Stulu/Core/Window.h"
+#include "Stulu/Core/LayerStack.h"
 #include "Stulu/ImGui/ImGuiLayer.h"
 #include "Stulu/Events/ApplicationEvent.h"
 
@@ -36,6 +36,7 @@ namespace Stulu {
 		ImGuiLayer* m_imguiLayer;
 		bool m_runnig = true;
 		LayerStack m_layerStack;
+		float m_lastFrameTime;
 
 		static Application* s_instance;
 	};

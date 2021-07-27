@@ -46,6 +46,9 @@
     <Filter Include="vendor\glm\glm\gtx">
       <UniqueIdentifier>{B3A6A76B-9F8A-68C1-08EB-6214F4ED5243}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Stulu\Core">
+      <UniqueIdentifier>{52b85972-2c22-4d8a-bffe-4b0243844556}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h">
@@ -72,13 +75,13 @@
     <ClInclude Include="src\Stulu.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Application.h">
+    <ClInclude Include="src\Stulu\Core\Application.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Core.h">
+    <ClInclude Include="src\Stulu\Core\Core.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\EntryPoint.h">
+    <ClInclude Include="src\Stulu\Core\EntryPoint.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Events\ApplicationEvent.h">
@@ -96,22 +99,22 @@
     <ClInclude Include="src\Stulu\ImGui\ImGuiLayer.h">
       <Filter>src\Stulu\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Input.h">
+    <ClInclude Include="src\Stulu\Core\Input.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Keycodes.h">
+    <ClInclude Include="src\Stulu\Core\Keycodes.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Layer.h">
+    <ClInclude Include="src\Stulu\Core\Layer.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\LayerStack.h">
+    <ClInclude Include="src\Stulu\Core\LayerStack.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Log.h">
+    <ClInclude Include="src\Stulu\Core\Log.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\MouseButtonCodes.h">
+    <ClInclude Include="src\Stulu\Core\MouseButtonCodes.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Renderer\Buffer.h">
@@ -138,7 +141,7 @@
     <ClInclude Include="src\Stulu\Renderer\VertexArray.h">
       <Filter>src\Stulu\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Window.h">
+    <ClInclude Include="src\Stulu\Core\Window.h">
       <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\st_pch.h">
@@ -1389,6 +1392,9 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Timestep.h" />
+    <ClInclude Include="src\Stulu\Core\Platform.h" />
+    <ClInclude Include="src\Platform\Windows\PlatformWindows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1412,7 +1418,7 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\Stulu\Application.cpp">
+    <ClCompile Include="src\Stulu\Core\Application.cpp">
       <Filter>src\Stulu</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\ImGui\ImGuiBuild.cpp">
@@ -1421,13 +1427,13 @@
     <ClCompile Include="src\Stulu\ImGui\ImGuiLayer.cpp">
       <Filter>src\Stulu\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\Stulu\Layer.cpp">
+    <ClCompile Include="src\Stulu\Core\Layer.cpp">
       <Filter>src\Stulu</Filter>
     </ClCompile>
-    <ClCompile Include="src\Stulu\LayerStack.cpp">
+    <ClCompile Include="src\Stulu\Core\LayerStack.cpp">
       <Filter>src\Stulu</Filter>
     </ClCompile>
-    <ClCompile Include="src\Stulu\Log.cpp">
+    <ClCompile Include="src\Stulu\Core\Log.cpp">
       <Filter>src\Stulu</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Renderer\Buffer.cpp">
@@ -1454,5 +1460,6 @@
     <ClCompile Include="src\st_pch.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Windows\PlatformWindows.cpp" />
   </ItemGroup>
 </Project>

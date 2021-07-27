@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Events/Event.h"
+#include "Stulu/Core/Timestep.h"
 
 namespace Stulu {
 	class Layer
@@ -10,8 +11,8 @@ namespace Stulu {
 
 		virtual void onAttach(){}
 		virtual void onDetach(){}
-		virtual void onUpdate(){}
-		virtual void onImguiRender() {}
+		virtual void onUpdate(Timestep timestep){}
+		virtual void onImguiRender(Timestep timestep) {}
 		virtual void onEvent(Event& e){}
 
 		inline const std::string& getName() const { return m_dName; }
