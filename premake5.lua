@@ -16,6 +16,7 @@ IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
 IncludeDir["glm"] = "Stulu/vendor/glm"
+IncludeDir["stb_image"] = "Stulu/vendor/stb_image"
 
 group "Dependencies"
 include "Stulu/vendor/GLFW"
@@ -39,6 +40,8 @@ project "Stulu"
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/vendor/stb_image/**.cpp",
+		"%{prj.name}/vendor/stb_image/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
 	}
@@ -55,7 +58,8 @@ project "Stulu"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.stb_image}"
 	}
 
 	links 

@@ -1,7 +1,7 @@
 #include "st_pch.h"
 #include "OpenGLRenderAPI.h"
-
-#include "glad/glad.h"
+#include <stb_image.h>
+#include <glad/glad.h>
 
 namespace Stulu {
 

@@ -16,6 +16,9 @@
     <Filter Include="src\Stulu">
       <UniqueIdentifier>{599CDBB3-C506-902A-0E45-41D07AEE6D7F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Stulu\Core">
+      <UniqueIdentifier>{5160910C-3D2E-8512-26C2-F538122F6177}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Stulu\Events">
       <UniqueIdentifier>{1DCA8C7B-09C3-ABCD-32F5-90521E4D8BD9}</UniqueIdentifier>
     </Filter>
@@ -46,8 +49,8 @@
     <Filter Include="vendor\glm\glm\gtx">
       <UniqueIdentifier>{B3A6A76B-9F8A-68C1-08EB-6214F4ED5243}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Stulu\Core">
-      <UniqueIdentifier>{52b85972-2c22-4d8a-bffe-4b0243844556}</UniqueIdentifier>
+    <Filter Include="vendor\stb_image">
+      <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +69,9 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Windows\PlatformWindows.h">
+      <Filter>src\Platform\Windows</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
@@ -76,13 +82,40 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Core\Application.h">
-      <Filter>src\Stulu</Filter>
+      <Filter>src\Stulu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Core\Core.h">
-      <Filter>src\Stulu</Filter>
+      <Filter>src\Stulu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Core\EntryPoint.h">
-      <Filter>src\Stulu</Filter>
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Input.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Keycodes.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Layer.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\LayerStack.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Log.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\MouseButtonCodes.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Platform.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Timestep.h">
+      <Filter>src\Stulu\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Core\Window.h">
+      <Filter>src\Stulu\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Events\ApplicationEvent.h">
       <Filter>src\Stulu\Events</Filter>
@@ -98,24 +131,6 @@
     </ClInclude>
     <ClInclude Include="src\Stulu\ImGui\ImGuiLayer.h">
       <Filter>src\Stulu\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\Input.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\Keycodes.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\Layer.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\LayerStack.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\Log.h">
-      <Filter>src\Stulu</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\MouseButtonCodes.h">
-      <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Renderer\Buffer.h">
       <Filter>src\Stulu\Renderer</Filter>
@@ -140,9 +155,6 @@
     </ClInclude>
     <ClInclude Include="src\Stulu\Renderer\VertexArray.h">
       <Filter>src\Stulu\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Stulu\Core\Window.h">
-      <Filter>src\Stulu</Filter>
     </ClInclude>
     <ClInclude Include="src\st_pch.h">
       <Filter>src</Filter>
@@ -1392,9 +1404,9 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp">
       <Filter>vendor\glm\glm</Filter>
     </ClInclude>
-    <ClInclude Include="src\Stulu\Core\Timestep.h" />
-    <ClInclude Include="src\Stulu\Core\Platform.h" />
-    <ClInclude Include="src\Platform\Windows\PlatformWindows.h" />
+    <ClInclude Include="vendor\stb_image\stb_image.h">
+      <Filter>vendor\stb_image</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1412,6 +1424,9 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Windows\PlatformWindows.cpp">
+      <Filter>src\Platform\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
@@ -1419,22 +1434,22 @@
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Core\Application.cpp">
-      <Filter>src\Stulu</Filter>
+      <Filter>src\Stulu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Core\Layer.cpp">
+      <Filter>src\Stulu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Core\LayerStack.cpp">
+      <Filter>src\Stulu\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Core\Log.cpp">
+      <Filter>src\Stulu\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\ImGui\ImGuiBuild.cpp">
       <Filter>src\Stulu\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\ImGui\ImGuiLayer.cpp">
       <Filter>src\Stulu\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Stulu\Core\Layer.cpp">
-      <Filter>src\Stulu</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Stulu\Core\LayerStack.cpp">
-      <Filter>src\Stulu</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Stulu\Core\Log.cpp">
-      <Filter>src\Stulu</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Renderer\Buffer.cpp">
       <Filter>src\Stulu\Renderer</Filter>
@@ -1460,6 +1475,8 @@
     <ClCompile Include="src\st_pch.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Windows\PlatformWindows.cpp" />
+    <ClCompile Include="vendor\stb_image\stb_image.cpp">
+      <Filter>vendor\stb_image</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

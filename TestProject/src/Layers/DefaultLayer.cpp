@@ -75,6 +75,21 @@ void DefaultLayer::onAttach() {
 			color = vec4(0.58, 0.61, 0.66, 1.0);
 		})";
 	m_blueShader.reset(Stulu::Shader::create(blueVertexShaderSource, blueFragmentShaderSource));
+
+
+	//skybox
+
+	std::vector<std::string> faces
+	{
+		"right.jpg",
+		"left.jpg",
+		"top.jpg",
+		"bottom.jpg",
+		"front.jpg",
+		"back.jpg",
+	};
+	//unsigned int cubemapTexture = Stulu::RenderAPI::loadCubemap(faces);
+
 }
 void DefaultLayer::onEvent(Stulu::Event& e) {
 
@@ -106,7 +121,7 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	else if (Stulu::Input::isKeyDown(KEY_RIGHT))
 		rotation -= speed_rotate * timestep;;
 	if (rotation >= 360 || rotation <= -360)
-		rotation = 360 % (int)rotation;
+		rotation = (int)rotation % 360;
 
 	m_camera.setPosition(pos);
 	m_camera.setRotation(rotation);
