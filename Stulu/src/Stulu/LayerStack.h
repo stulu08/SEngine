@@ -1,11 +1,10 @@
 #pragma once
-#include "Stulu/Core.h"
 #include "Stulu/Layer.h"
 
 #include <vector>
 
 namespace Stulu {
-	class STULU_API LayerStack
+	class LayerStack
 	{
 	public:
 		LayerStack();

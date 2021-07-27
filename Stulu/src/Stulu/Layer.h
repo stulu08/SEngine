@@ -1,9 +1,8 @@
 #pragma once
-#include "Stulu/Core.h"
 #include "Stulu/Events/Event.h"
 
 namespace Stulu {
-	class STULU_API Layer
+	class Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");

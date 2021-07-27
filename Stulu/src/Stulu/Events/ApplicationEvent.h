@@ -2,7 +2,7 @@
 #include "Stulu/Events/Event.h"
 
 namespace Stulu {
-	class STULU_API WindowResizeEvent : public Event {
+	class WindowResizeEvent : public Event {
 	public:
 		WindowResizeEvent(unsigned int width, unsigned int height)
 			: m_width(width), m_height(height){}
@@ -23,7 +23,7 @@ namespace Stulu {
 		unsigned int m_width, m_height;
 	};
 
-	class STULU_API WindowCloseEvent : public Event {
+	class WindowCloseEvent : public Event {
 	public:
 		WindowCloseEvent(){}
 		EVENT_CLASS_TYPE(WindowClose)
@@ -32,21 +32,21 @@ namespace Stulu {
 
 
 
-	class STULU_API ApplicationUpdateEvent : public Event {
+	class ApplicationUpdateEvent : public Event {
 	public:
 		ApplicationUpdateEvent(){}
 		EVENT_CLASS_TYPE(ApplicationUpdate)
 		EVENT_CLASS_CATEGORY(ApplicationEventCategrory)
 	};	
 	
-	class STULU_API ApplicationRenderEvent : public Event {
+	class ApplicationRenderEvent : public Event {
 	public:
 		ApplicationRenderEvent(){}
 		EVENT_CLASS_TYPE(ApplicationRender)
 		EVENT_CLASS_CATEGORY(ApplicationEventCategrory)
 	};	
 	
-	class STULU_API ApplicationTickEvent : public Event {
+	class ApplicationTickEvent : public Event {
 	public:
 		ApplicationTickEvent() {}
 		EVENT_CLASS_TYPE(ApplicationTick)

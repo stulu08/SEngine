@@ -3,7 +3,7 @@
 
 
 namespace Stulu {
-	class STULU_API MouseMoveEvent : public Event {
+	class MouseMoveEvent : public Event {
 	public:
 		MouseMoveEvent(float x, float y)
 			: m_mouseX(x), m_mouseY(y){}
@@ -23,7 +23,7 @@ namespace Stulu {
 	private:
 		float m_mouseX, m_mouseY;
 	};
-	class STULU_API MouseScrollEvent : public Event {
+	class MouseScrollEvent : public Event {
 	public:
 		MouseScrollEvent(float xOff, float yOff)
 			: m_xOff(xOff), m_yOff(yOff){}
@@ -44,7 +44,7 @@ namespace Stulu {
 		float m_xOff, m_yOff;
 	};
 
-	class STULU_API MouseButtonEvent : public Event {
+	class MouseButtonEvent : public Event {
 	public:
 		inline int getButton() const { return m_button; }
 		EVENT_CLASS_CATEGORY(MouseEventCategrory | InputEventCategrory)
@@ -54,7 +54,7 @@ namespace Stulu {
 			: m_button(button){}
 		int m_button;
 	};
-	class STULU_API MouseButtonDownEvent : public MouseButtonEvent{
+	class MouseButtonDownEvent : public MouseButtonEvent{
 	public:
 		MouseButtonDownEvent(int button)
 			: MouseButtonEvent(button){}
@@ -66,7 +66,7 @@ namespace Stulu {
 		}
 		EVENT_CLASS_TYPE(MouseButtonDown)
 	};
-	class STULU_API MouseButtonUpEvent : public MouseButtonEvent {
+	class MouseButtonUpEvent : public MouseButtonEvent {
 	public:
 		MouseButtonUpEvent(int button)
 			: MouseButtonEvent(button) {}

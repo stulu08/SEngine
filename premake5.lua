@@ -109,6 +109,7 @@ project "TestProject"
 
 	includedirs
 	{
+		"%{prj.name}/src",
 		"Stulu/vendor/spdlog/include",
 		"Stulu/src",
 		"Stulu/vendor",

@@ -26,7 +26,7 @@ namespace Stulu {
 
 #define EVENT_CLASS_CATEGORY(category) virtual int getCategoryFlags() const override { return category; }
 
-	class STULU_API Event
+	class Event
 	{
 		friend class EventDispatcher;
 	public:

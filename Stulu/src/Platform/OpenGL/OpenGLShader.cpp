@@ -1,6 +1,7 @@
 #include "st_pch.h"
 #include "OpenGLShader.h"
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Stulu {
 	OpenGLShader::OpenGLShader(const std::string& vertex, const std::string& fragment) {
@@ -74,5 +75,10 @@ namespace Stulu {
 	}
 	void OpenGLShader::unbind() const {
 		glUseProgram(0);
+	}
+	void OpenGLShader::uploadMat4Uniform(const std::string& name,const glm::mat4& matrix)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 }

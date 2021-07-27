@@ -1,7 +1,6 @@
 #pragma once
 #include "st_pch.h"
 
-#include "Stulu/Core.h"
 #include "Stulu/Events/Event.h"
 
 namespace Stulu{
@@ -15,7 +14,7 @@ namespace Stulu{
 			: title(_title), width(_width),height(_height){}
 	};
 
-	class STULU_API Window{
+	class Window{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;
 

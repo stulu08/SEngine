@@ -7,7 +7,7 @@
 
 
 namespace Stulu {
-	class STULU_API Log
+	class Log
 	{
 	public:
 		static void init();

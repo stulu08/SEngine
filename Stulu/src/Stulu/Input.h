@@ -2,7 +2,7 @@
 #include "Stulu/Core.h"
 
 namespace Stulu {
-	class STULU_API Input {
+	class Input {
 	public:
 		inline static bool isKeyDown(unsigned int keycode) { return s_instance->isKeyDownImpl(keycode); }
 

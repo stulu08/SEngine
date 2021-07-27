@@ -1,10 +1,7 @@
 #pragma once
 #include "Stulu/Layer.h"
-#include "Stulu/Events/MouseEvent.h"
-#include "Stulu/Events/ApplicationEvent.h"
-#include "Stulu/Events/KeyEvent.h"
 namespace Stulu {
-	class STULU_API ImGuiLayer : public Layer
+	class ImGuiLayer : public Layer
 	{
 	public:
 		ImGuiLayer();

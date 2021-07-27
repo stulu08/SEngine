@@ -1,4 +1,5 @@
 #include "DefaultLayer.h"
+#include <imgui/imgui.cpp>
 
 void DefaultLayer::onAttach() {
 	std::shared_ptr<Stulu::VertexBuffer> vertexBuffer;
@@ -7,9 +8,9 @@ void DefaultLayer::onAttach() {
 	//triangle
 	uint32_t indicies[3]{ 0,1,2 };
 	float vertices[3 * 7] = {
-		-.5f, -.5f, .0f,		0.6f, 0.2f, 0.8f, 1.0f,
-		 .5f, -.5f, .0f,		0.2f, 0.4f, 0.7f, 1.0f,
-		 .0f,  .5f, .0f,		0.8f, 0.7f, 0.3f, 1.0f
+		-.5f, -.5f, .0f,		0.0f, 0.0f, 1.0f, 1.0f,
+		 .5f, -.5f, .0f,		1.0f, 0.0f, 0.0f, 1.0f,
+		 .0f,  .5f, .0f,		0.0f, 1.0f, 0.0f, 1.0f
 	};
 	m_vertexArray.reset(Stulu::VertexArray::create());
 	vertexBuffer.reset(Stulu::VertexBuffer::create(sizeof(vertices), vertices));
@@ -25,10 +26,11 @@ void DefaultLayer::onAttach() {
 		#version 460 core
 		layout(location = 0) in vec3 a_pos;
 		layout(location = 1) in vec4 a_color;
+		uniform mat4 u_viewProjection;
 		out vec4 v_color;
 		void main(){
 			v_color = a_color;
-			gl_Position = vec4(a_pos, 1.0);
+			gl_Position = u_viewProjection * vec4(a_pos, 1.0);
 		})";
 	std::string rainbowFragmentShaderSource = R"(
 		#version 460 core
@@ -62,14 +64,15 @@ void DefaultLayer::onAttach() {
 	std::string blueVertexShaderSource = R"(
 		#version 460 core
 		layout(location = 0) in vec3 a_pos;
+		uniform mat4 u_viewProjection;
 		void main(){
-			gl_Position = vec4(a_pos, 1.0);
+			gl_Position = u_viewProjection * vec4(a_pos, 1.0);
 		})";
 	std::string blueFragmentShaderSource = R"(
 		#version 460 core
 		layout(location = 0) out vec4 color;
 		void main(){
-			color = vec4(0.1, 0.2, 0.7, 1.0);
+			color = vec4(0.58, 0.61, 0.66, 1.0);
 		})";
 	m_blueShader.reset(Stulu::Shader::create(blueVertexShaderSource, blueFragmentShaderSource));
 }
@@ -80,15 +83,61 @@ void DefaultLayer::onUpdate() {
 	Stulu::RenderCommand::setClearColor({ 0.15f, 0.15f, 0.15f, 1.0f });
 	Stulu::RenderCommand::clear();
 
-	Stulu::Renderer::beginScene();
-	{
-		m_blueShader->bind();
-		Stulu::Renderer::submit(m_squareVertexArray);
+	glm::vec3 pos = m_camera.getPosition();
+	float rotation = m_camera.getRotation();
 
-		m_rainbowShader->bind();
-		Stulu::Renderer::submit(m_vertexArray);
+	if (Stulu::Input::isKeyDown(KEY_W))
+		pos.z+=0.1f;
+	if (Stulu::Input::isKeyDown(KEY_S))
+		pos.z -= 0.1f;
+	if (Stulu::Input::isKeyDown(KEY_A))
+		pos.x-= 0.1f;
+	if (Stulu::Input::isKeyDown(KEY_D))
+		pos.x+= 0.1f;
+	if (Stulu::Input::isKeyDown(KEY_Q))
+		pos.y -= 0.1f;
+	if (Stulu::Input::isKeyDown(KEY_E))
+		pos.y += 0.1f;
+
+	if (Stulu::Input::isKeyDown(KEY_LEFT))
+		rotation--;
+	if (Stulu::Input::isKeyDown(KEY_RIGHT))
+		rotation++;
+
+	m_camera.setPosition(pos);
+	m_camera.setRotation(rotation);
+
+
+	Stulu::Renderer::beginScene(m_camera);
+	{
+		Stulu::Renderer::submit(m_squareVertexArray, m_blueShader);
+
+		Stulu::Renderer::submit(m_vertexArray, m_rainbowShader);
 	}
 	Stulu::Renderer::endScene();
+}
+
+void DefaultLayer::drawRendererInfos() {
+	ImGui::Begin(std::string(app->graphicDriverConstants.vendor + " Renderer").c_str(), NULL, ImGuiWindowFlags_NoResize);
+	ImGui::Text(app->graphicDriverConstants.renderer.c_str());
+	ImGui::Text("Version %s", app->graphicDriverConstants.version.c_str());
+	ImGui::Text("GLSL version %s", app->graphicDriverConstants.other.c_str());
+	ImGui::End();
+
+}
+void DefaultLayer::drawCameraInfos() {
+	ImGui::Begin("Camera", NULL, ImGuiWindowFlags_NoResize);
+	ImGui::Text("Position:");
+	ImGui::Text("x:%.2f y:%.2f z:%.2f ", m_camera.getPosition().x, m_camera.getPosition().y, m_camera.getPosition().z);
+	ImGui::Text("Rotation: %.2f", m_camera.getRotation());
+	ImGui::End();
+}
+void DefaultLayer::onImguiRender() {
+	ImGui::Begin("Application");
+	ImGui::End();
+
+	drawRendererInfos();
+	drawCameraInfos();
 }
 
 

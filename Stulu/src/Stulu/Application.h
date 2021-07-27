@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Stulu/Core.h"
 #include "Stulu/Window.h"
 #include "Stulu/LayerStack.h"
 #include "Stulu/ImGui/ImGuiLayer.h"
@@ -16,7 +15,7 @@ namespace Stulu {
 		GraphicDriverConstants(const std::string& _vendor = "no data", const std::string& _renderer = "no data", const std::string& _version = "no data", const std::string& _other = "no data")
 			: vendor(_vendor), renderer(_renderer), version(_version), other(_other) {}
 	};
-	class STULU_API Application
+	class Application
 	{
 	public:
 		Application();

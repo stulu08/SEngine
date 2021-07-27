@@ -12,5 +12,4 @@ int main(int argc, char** argv) {
 	CORE_INFO("Ended");
 	return 0;
 }
-
 #endif

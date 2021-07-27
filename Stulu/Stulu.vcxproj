@@ -140,13 +140,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Platform\OpenGL\OpenGLRenderAPI.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLRenderAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
-    <ClInclude Include="src\Stulu\Renderer\RenderAPI.h" />
-    <ClInclude Include="src\Stulu\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\Stulu.h" />
@@ -166,8 +164,12 @@
     <ClInclude Include="src\Stulu\MouseButtonCodes.h" />
     <ClInclude Include="src\Stulu\Renderer\Buffer.h" />
     <ClInclude Include="src\Stulu\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Stulu\Renderer\OrthographicCamera.h" />
+    <ClInclude Include="src\Stulu\Renderer\RenderAPI.h" />
+    <ClInclude Include="src\Stulu\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Stulu\Renderer\Renderer.h" />
     <ClInclude Include="src\Stulu\Renderer\Shader.h" />
+    <ClInclude Include="src\Stulu\Renderer\VertexArray.h" />
     <ClInclude Include="src\Stulu\Window.h" />
     <ClInclude Include="src\st_pch.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
@@ -587,12 +589,11 @@
     <ClInclude Include="vendor\glm\glm\vector_relational.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Platform\OpenGL\OpenGLRenderAPI.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLRenderAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
-    <ClCompile Include="src\Stulu\Renderer\RenderAPI.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\Stulu\Application.cpp" />
@@ -602,14 +603,15 @@
     <ClCompile Include="src\Stulu\LayerStack.cpp" />
     <ClCompile Include="src\Stulu\Log.cpp" />
     <ClCompile Include="src\Stulu\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Stulu\Renderer\OrthographicCamera.cpp" />
+    <ClCompile Include="src\Stulu\Renderer\RenderAPI.cpp" />
     <ClCompile Include="src\Stulu\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Stulu\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Stulu\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Stulu\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\st_pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Stulu\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Stulu\Renderer\VertexArray.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
