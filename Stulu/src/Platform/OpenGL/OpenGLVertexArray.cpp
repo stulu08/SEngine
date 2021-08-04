@@ -36,18 +36,16 @@ namespace Stulu {
 		glBindVertexArray(m_rendererID);
 		vBuffer->bind();
 
-
-		uint32_t index = 0;
 		const auto& layout = vBuffer->getLayout();
 		for (const auto& element : layout) {
-			glEnableVertexAttribArray(index);
+			glEnableVertexAttribArray(m_vertexbufferIndex);
 			glVertexAttribPointer(
-				index, element.getComponentCount(),
+				m_vertexbufferIndex, element.getComponentCount(),
 				ShaderDataTypeToOpenGLBaseType(element.type),
 				element.normalized ? GL_TRUE : GL_FALSE,
-				layout.getStride(), (const void*)element.offset
+				layout.getStride(), (const void*)(intptr_t)element.offset
 			);
-			index++;
+			m_vertexbufferIndex++;
 		}
 
 		m_vertexBufffers.push_back(vBuffer);

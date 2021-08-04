@@ -25,7 +25,7 @@ namespace Stulu {
 
 	void Application::onEvent(Event& e) {
 		EventDispatcher dispacther(e);
-		dispacther.dispacth<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
+		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
 			(*--it)->onEvent(e);

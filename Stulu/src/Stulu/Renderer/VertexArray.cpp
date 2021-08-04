@@ -5,11 +5,11 @@
 #include "Platform/OpenGL/OpenGLVertexArray.h"
 
 namespace Stulu {
-	VertexArray* VertexArray::create() {
+	Ref<VertexArray> VertexArray::create() {
 		switch (Renderer::getRendererAPI())
 		{
 			case RenderAPI::API::OpenGL:
-				return new OpenGLVertexArray();
+				return std::make_shared<OpenGLVertexArray>();
 			case RenderAPI::API::none:
 				CORE_ASSERT(false, "No renderAPI specified");
 				return nullptr;

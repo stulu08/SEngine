@@ -16,6 +16,6 @@ namespace Stulu {
 		virtual void unbind() const = 0;
 
 
-		static VertexArray* create();
+		static Ref<VertexArray> create();
 	};
 }

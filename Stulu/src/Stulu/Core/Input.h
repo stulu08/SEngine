@@ -3,7 +3,11 @@
 
 namespace Stulu {
 	class Input {
+	protected:
+		Input() = default;
 	public:
+		Input(const Input&) = delete;
+		Input& operator=(const Input&) = delete;
 		inline static bool isKeyDown(unsigned int keycode) { return s_instance->isKeyDownImpl(keycode); }
 
 		inline static bool isMouseDown(unsigned int button) { return s_instance->isMouseDownImpl(button); }

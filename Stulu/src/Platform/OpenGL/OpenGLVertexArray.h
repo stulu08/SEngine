@@ -19,6 +19,7 @@ namespace Stulu {
 		virtual void unbind() const override;
 	private:
 		uint32_t m_rendererID;
+		uint32_t m_vertexbufferIndex = 0;
 		std::vector<Ref<VertexBuffer>> m_vertexBufffers;
 		Ref<IndexBuffer> m_indexBuffer;
 	};

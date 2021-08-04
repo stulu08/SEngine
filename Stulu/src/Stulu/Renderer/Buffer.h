@@ -107,7 +107,7 @@ namespace Stulu{
 		virtual void unbind() const = 0;
 
 
-		static VertexBuffer* create(uint32_t size, float* vertices);
+		static Ref<VertexBuffer> create(uint32_t size, float* vertices);
 	};
 	class IndexBuffer {
 	public:
@@ -118,6 +118,6 @@ namespace Stulu{
 
 		virtual uint32_t getCount() const = 0;
 
-		static IndexBuffer* create(uint32_t size, uint32_t* vertices);
+		static Ref<IndexBuffer> create(uint32_t size, uint32_t* vertices);
 	};
 }

@@ -18,15 +18,15 @@ void DefaultLayer::onAttach() {
 		 0.5f,  0.5f, .0f, 1.0f, 1.0f,
 		-0.5f,  0.5f, .0f, 0.0f, 1.0f
 	};
-	m_squareVertexArray.reset(Stulu::VertexArray::create());
-	vertexBuffer.reset(Stulu::VertexBuffer::create(sizeof(squareVertices), squareVertices));
+	m_squareVertexArray = Stulu::VertexArray::create();
+	vertexBuffer = Stulu::VertexBuffer::create(sizeof(squareVertices), squareVertices);
 	Stulu::BufferLayout squareLayout = {
 		{ Stulu::ShaderDataType::Float3, "a_pos" },
 		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
 	};
 	vertexBuffer->setLayout(squareLayout);
 	m_squareVertexArray->addVertexBuffer(vertexBuffer);
-	indexBuffer.reset(Stulu::IndexBuffer::create(sizeof(squareIndicies) / sizeof(uint32_t), squareIndicies));
+	indexBuffer= Stulu::IndexBuffer::create(sizeof(squareIndicies) / sizeof(uint32_t), squareIndicies);
 	m_squareVertexArray->setIndexBuffer(indexBuffer);
 
 	m_texture = Stulu::Texture2D::create("assets/Logo/engine-logo.png");
@@ -62,8 +62,6 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 			m_camerarotation += speed_rotate * timestep;
 		else if (Stulu::Input::isKeyDown(KEY_RIGHT))
 			m_camerarotation -= speed_rotate * timestep;;
-		if (m_camerarotation >= 360 || m_camerarotation <= -360)
-			m_camerarotation = (int)m_camerarotation % 360;
 
 		m_camera.setPosition(m_camerpos);
 		m_camera.setRotation(m_camerarotation);

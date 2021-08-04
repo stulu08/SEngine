@@ -5,11 +5,11 @@
 #include "Platform/OpenGL/OpenGLBuffer.h"
 
 namespace Stulu{
-	VertexBuffer* VertexBuffer::create(uint32_t size, float* vertices) {
+	Ref<VertexBuffer> VertexBuffer::create(uint32_t size, float* vertices) {
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return new OpenGLVertexBuffer(size, vertices);
+			return std::make_shared<OpenGLVertexBuffer>(size, vertices);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
@@ -22,11 +22,11 @@ namespace Stulu{
 		return nullptr;
 	}
 
-	IndexBuffer* IndexBuffer::create(uint32_t size, uint32_t* indices) {
+	Ref<IndexBuffer> IndexBuffer::create(uint32_t size, uint32_t* indices) {
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return new OpenGLIndexBuffer(size, indices);
+			return std::make_shared<OpenGLIndexBuffer>(size, indices);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 				return nullptr;
