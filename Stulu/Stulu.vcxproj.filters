@@ -66,6 +66,9 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -151,6 +154,9 @@
       <Filter>src\Stulu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Renderer\Shader.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stulu\Renderer\Texture.h">
       <Filter>src\Stulu\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Stulu\Renderer\VertexArray.h">
@@ -1421,6 +1427,9 @@
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -1467,6 +1476,9 @@
       <Filter>src\Stulu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Renderer\Shader.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Renderer\Texture.cpp">
       <Filter>src\Stulu\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Stulu\Renderer\VertexArray.cpp">

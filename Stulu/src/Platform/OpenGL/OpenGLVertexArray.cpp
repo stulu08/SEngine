@@ -31,7 +31,7 @@ namespace Stulu {
 		glDeleteVertexArrays(1, &m_rendererID);
 	}
 
-	void OpenGLVertexArray::addVertexBuffer(const std::shared_ptr<VertexBuffer>& vBuffer) {
+	void OpenGLVertexArray::addVertexBuffer(const Ref<VertexBuffer>& vBuffer) {
 		CORE_ASSERT(vBuffer->getLayout().getElements().size(), "Vertexbuffer has no layout");
 		glBindVertexArray(m_rendererID);
 		vBuffer->bind();
@@ -53,7 +53,7 @@ namespace Stulu {
 		m_vertexBufffers.push_back(vBuffer);
 	}
 
-	void OpenGLVertexArray::setIndexBuffer(const std::shared_ptr<IndexBuffer>& iBuffer) {
+	void OpenGLVertexArray::setIndexBuffer(const Ref<IndexBuffer>& iBuffer) {
 		glBindVertexArray(m_rendererID);
 		iBuffer->bind();
 		m_indexBuffer = iBuffer;

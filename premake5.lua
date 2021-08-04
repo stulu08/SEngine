@@ -108,7 +108,9 @@ project "TestProject"
 	files
 	{
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/**.glsl",
+		"%{prj.name}/**.sshader"
 	}
 
 	includedirs

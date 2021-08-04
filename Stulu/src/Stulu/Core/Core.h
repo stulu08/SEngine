@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 
 #ifdef ST_PLATFORM_WINDOWS
 #if ST_DYNAMIC_LINK
@@ -31,3 +32,9 @@
 
 #define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 #define ST_BIT(x) (1 << x)
+namespace Stulu {
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+}

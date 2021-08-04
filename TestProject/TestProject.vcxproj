@@ -139,6 +139,12 @@
     <ClCompile Include="src\TestProject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\Shaders\color.glsl" />
+    <None Include="assets\Shaders\texture-source\fragment.glsl" />
+    <None Include="assets\Shaders\texture-source\vertex.glsl" />
+    <None Include="assets\Shaders\texture.sshader" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Stulu\Stulu.vcxproj">
       <Project>{028E1E0E-6EA2-46BF-3724-EA1EA3F742F0}</Project>
     </ProjectReference>

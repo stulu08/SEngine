@@ -8,10 +8,12 @@ namespace Stulu{
 	class Renderer {
 
 	public:
+		static void init();
+
 		static void beginScene(OrthographicCamera& cam);
 		static void endScene();
 
-		static void submit(const std::shared_ptr<VertexArray>& vertexArray, const std::shared_ptr<Shader>& shader);
+		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform);
 
 		inline static RenderAPI::API getRendererAPI() { return RenderAPI::getAPI(); }
 	private:

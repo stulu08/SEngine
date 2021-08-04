@@ -9,8 +9,8 @@ namespace Stulu {
 
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
-		virtual void uploadMat4Uniform(const std::string& name, const glm::mat4& matrix) = 0;
 
+		static Shader* create(const std::string& path, bool multiFile = false);
 		static Shader* create(const std::string& vertex, const std::string& fragment);
 	};
 }

@@ -1,69 +1,160 @@
 #include "st_pch.h"
 #include "OpenGLShader.h"
+
+#include <fstream>
+#include <sstream>
+
 #include <glad/glad.h>
+
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Stulu {
-	OpenGLShader::OpenGLShader(const std::string& vertex, const std::string& fragment) {
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		const GLchar* source = vertex.c_str();
-		glShaderSource(vertexShader, 1, &source, 0);
-		glCompileShader(vertexShader);
-		GLint isCompiled = 0;
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
-		if (isCompiled == GL_FALSE) {
-			GLint maxLength = 0;
-			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
-			glDeleteShader(vertexShader);
+	static GLenum shaderTypeFromString(const std::string& type) {
+		if (type == "vertex" || type == "vert")
+			return GL_VERTEX_SHADER;
+		else if (type == "fragment" || type == "frag" || type == "pixel")
+			return GL_FRAGMENT_SHADER;
+		CORE_ASSERT(false, "Unknown Shadertype: {0}", type);
+		return 0;
+	}
+	static std::string stringFromShaderType(GLenum type) {
+		switch (type) {
+		case GL_VERTEX_SHADER:
+			return "vertex";
+			break;
+		case GL_FRAGMENT_SHADER:
+			return "fragment";
+			break;
+		}
+		CORE_ASSERT(false, "Unknown Shadertype: {0}", type);
+		return 0;
+	}
 
-			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
-			CORE_ASSERT(false, "Vertex Shader compilation failed");
-			return;
+	OpenGLShader::OpenGLShader(const std::string& path, bool multiFile)
+	{
+		std::string sShaderFile = readFile(path);
+		auto sources = preProcess(sShaderFile, multiFile);
+		compile(sources);
+		
+	}
+	OpenGLShader::OpenGLShader(const std::string& vertex, const std::string& fragment){
+		std::unordered_map<GLenum, std::string> sources;
+		sources[GL_VERTEX_SHADER] = vertex;
+		sources[GL_FRAGMENT_SHADER] = fragment;
+		compile(sources);
+	}
+
+	std::string OpenGLShader::readFile(const std::string& path){
+		std::string result;
+		std::ifstream inStream(path, std::ios::in, std::ios::binary);
+
+		if (inStream) {
+			inStream.seekg(0, std::ios::end);
+			result.resize(inStream.tellg());
+			inStream.seekg(0, std::ios::beg);
+			inStream.read(&result[0], result.size());
+			inStream.close();
+		}
+		else
+			CORE_ERROR("Could not open File: {0}", path);
+
+		return result;
+	}
+	std::unordered_map<GLenum, std::string> OpenGLShader::preProcess(const std::string src, bool multiFile) {
+		std::unordered_map<GLenum, std::string> shaderSources;
+		if (multiFile) {
+			const char* typeToken = "#include";
+			size_t typeTokenLength = strlen(typeToken);
+			size_t pos = src.find(typeToken, 0);
+			while (pos != std::string::npos)
+			{
+				size_t eol = src.find_first_of("\r\n", pos);
+				size_t typeEnder = src.find_first_of("|", pos);
+				//CORE_ASSERT(eol != std::string::npos, "Syntax error");
+				size_t begin = pos + typeTokenLength + 1;
+				std::string type = src.substr(begin, typeEnder - begin);
+				begin += type.length() + 1;
+				std::string path = src.substr(begin, eol - begin);
+
+				std::string shaderSrc = readFile(path);
+
+				CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
+
+				size_t nextLinePos = src.find_first_not_of("\r\n", eol);
+				pos = src.find(typeToken, nextLinePos);
+				shaderSources[shaderTypeFromString(type)] = shaderSrc;
+			}
+			return shaderSources;
+		}
+		const char* typeToken = "##type";
+		size_t typeTokenLength = strlen(typeToken);
+		size_t pos = src.find(typeToken, 0);
+		while (pos != std::string::npos)
+		{
+			size_t eol = src.find_first_of("\r\n", pos);
+			CORE_ASSERT(eol != std::string::npos, "Syntax error");
+			size_t begin = pos + typeTokenLength + 1;
+			std::string type = src.substr(begin, eol - begin);
+			CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
+
+			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
+			pos = src.find(typeToken, nextLinePos);
+			shaderSources[shaderTypeFromString(type)] = src.substr(nextLinePos, pos - (nextLinePos == std::string::npos ? src.size() - 1 : nextLinePos));
 		}
 
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		source = fragment.c_str();
-		glShaderSource(fragmentShader, 1, &source, 0);
-		glCompileShader(fragmentShader);
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
-		if (isCompiled == GL_FALSE) {
-			GLint maxLength = 0;
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
-			glDeleteShader(fragmentShader);
+		return shaderSources;
+	}
+	void OpenGLShader::compile(const std::unordered_map<GLenum, std::string>& shaderSrcs){
 
-			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
-			CORE_ASSERT(false, "Fragment Shader compilation failed");
-			return;
+		GLuint rendererID = glCreateProgram();
+		std::vector<GLenum> glShaderIds(shaderSrcs.size());
+		for (auto& kv : shaderSrcs) {
+			GLenum type = kv.first;
+			const std::string& src = kv.second;
+
+			GLuint shader = glCreateShader(type);
+			const GLchar* source = src.c_str();
+			glShaderSource(shader, 1, &source, 0);
+			glCompileShader(shader);
+			GLint isCompiled = 0;
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+			if (isCompiled == GL_FALSE) {
+				GLint maxLength = 0;
+				glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
+				glDeleteShader(shader);
+
+				CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
+				CORE_ASSERT(false, "{0} Shader compilation failed", stringFromShaderType(type));
+				break;
+			}
+			glAttachShader(rendererID, shader);
+			glShaderIds.push_back(shader);
 		}
-
-		m_rendererID = glCreateProgram();
-
-		glAttachShader(m_rendererID, vertexShader);
-		glAttachShader(m_rendererID, fragmentShader);
-		glLinkProgram(m_rendererID);
+		glLinkProgram(rendererID);
 
 		GLint isLinked = 0;
-		glGetProgramiv(m_rendererID, GL_LINK_STATUS, (int*)&isLinked);
+		glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
 		if (isLinked == GL_FALSE) {
 			GLint maxLength = 0;
-			glGetProgramiv(m_rendererID, GL_INFO_LOG_LENGTH, &maxLength);
+			glGetProgramiv(rendererID, GL_INFO_LOG_LENGTH, &maxLength);
 			std::vector<GLchar> infoLog(maxLength);
-			glGetProgramInfoLog(m_rendererID, maxLength, &maxLength, &infoLog[0]);
-			glDeleteProgram(m_rendererID);
-			glDeleteShader(vertexShader);
-			glDeleteShader(fragmentShader);
+			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
+			glDeleteProgram(rendererID);
+			for(auto id : glShaderIds)
+				glDeleteShader(id);
 
 			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
 			CORE_ASSERT(false, "Could not link shader program");
 			return;
 		}
 
-		glDetachShader(m_rendererID, vertexShader);
-		glDetachShader(m_rendererID, fragmentShader);
+		for (auto id : glShaderIds)
+			glDetachShader(rendererID, id);
+
+		m_rendererID = rendererID;
+
 	}
 
 	OpenGLShader::~OpenGLShader() {
@@ -71,7 +162,10 @@ namespace Stulu {
 	}
 
 	void OpenGLShader::bind() const {
-		glUseProgram(m_rendererID);
+		int32_t active_id = 0;
+		glGetIntegerv(GL_CURRENT_PROGRAM, &active_id);
+		if(active_id != m_rendererID)
+			glUseProgram(m_rendererID);
 	}
 	void OpenGLShader::unbind() const {
 		glUseProgram(0);
@@ -80,5 +174,35 @@ namespace Stulu {
 	{
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
+	}
+	void OpenGLShader::uploadMat3Uniform(const std::string& name, const glm::mat3& matrix)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
+	}
+	void OpenGLShader::uploadFloat4Uniform(const std::string& name, const glm::vec4& float4)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform4f(loc, float4.x, float4.y, float4.z, float4.w);
+	}
+	void OpenGLShader::uploadFloat3Uniform(const std::string& name, const glm::vec3& float3)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform3f(loc, float3.x, float3.y, float3.z);
+	}
+	void OpenGLShader::uploadFloat2Uniform(const std::string& name, const glm::vec2& float2)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform2f(loc, float2.x, float2.y);
+	}
+	void OpenGLShader::uploadIntUniform(const std::string& name, const int _int)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1i(loc, _int);
+	}
+	void OpenGLShader::uploadFloatUniform(const std::string& name, const float _float)
+	{
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1f(loc, _float);
 	}
 }

@@ -6,6 +6,7 @@
 
 //////////////////rendering//////////////////
 #include "Stulu/Renderer/Renderer.h"
+#include "Stulu/Renderer/Texture.h"
 
 ////////////////////input////////////////////
 #include "Stulu/Core/Input.h"

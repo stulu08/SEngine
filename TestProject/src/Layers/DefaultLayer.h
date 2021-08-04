@@ -4,7 +4,7 @@ class DefaultLayer : public Stulu::Layer
 {
 public:
 	DefaultLayer()
-		:Layer("Default"), m_camera(-1.6f,1.6f,-0.9f,0.9f) {
+		:Layer("Default"), m_camera(-1.6f,1.6f,-.9f,.9f), m_gridPos(-.5f, -0.5f, .0f), m_squarePos(.0f, .0f, .0f) {
 		app = &Stulu::Application::get();
 	}
 
@@ -15,6 +15,8 @@ public:
 	void drawRendererInfos();
 	void drawCameraInfos();
 	void drawApplicationInfos(Stulu::Timestep timestep);
+	void drawGridMoveWindow();
+	void drawSquareMoveWindow();
 
 	
 private:
@@ -23,11 +25,21 @@ private:
 	//cam
 	Stulu::OrthographicCamera m_camera;
 
-	//rainbow triangle
-	std::shared_ptr<Stulu::Shader> m_rainbowShader;
-	std::shared_ptr<Stulu::VertexArray> m_vertexArray;
 	//blue bg square
-	std::shared_ptr<Stulu::Shader> m_blueShader;
-	std::shared_ptr<Stulu::VertexArray> m_squareVertexArray;
+	Stulu::Ref<Stulu::Shader> m_colorShader;
+	Stulu::Ref<Stulu::Shader> m_textureShader;
+	Stulu::Ref<Stulu::VertexArray> m_squareVertexArray;
+	Stulu::Ref<Stulu::Texture2D> m_texture;
+
+	glm::vec3 m_camerpos = m_camera.getPosition();
+	float m_camerarotation = m_camera.getRotation();
+
+	glm::vec3 m_gridPos;
+	glm::vec3 m_squarePos;
+
+	glm::vec4 m_colorOne = glm::vec4(0.8, 0.2, 0.3, 1.0);
+	glm::vec4 m_colorTwo = glm::vec4(0.2, 0.3, 0.8, 1.0);
+	glm::vec4 m_clearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+
 };
 

@@ -3,6 +3,7 @@
 
 #include "Stulu/Core/Platform.h"
 #include "Stulu/Core/Timestep.h"
+#include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -12,7 +13,7 @@ namespace Stulu {
 		s_instance = this;
 		m_window = std::unique_ptr<Window>(Window::create());
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-
+		Renderer::init();
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 	}

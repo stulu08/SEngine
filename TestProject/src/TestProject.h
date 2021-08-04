@@ -6,7 +6,6 @@ class TestProject : public Stulu::Application {
 public:
 	TestProject() {
 		pushLayer(defaultLayer);
-		getWindow().setVSysnc(false);
 	}
 	~TestProject() {
 
