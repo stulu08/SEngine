@@ -13,4 +13,7 @@ namespace Stulu{
 	private:
 		float m_time;
 	};
+	inline std::ostream& operator<<(std::ostream& os, const Timestep& e) {
+		return os << e.getSeconds();
+	}
 }

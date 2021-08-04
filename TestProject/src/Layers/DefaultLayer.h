@@ -26,8 +26,7 @@ private:
 	Stulu::OrthographicCamera m_camera;
 
 	//blue bg square
-	Stulu::Ref<Stulu::Shader> m_colorShader;
-	Stulu::Ref<Stulu::Shader> m_textureShader;
+	Stulu::ShaderLibary m_shaderLib;
 	Stulu::Ref<Stulu::VertexArray> m_squareVertexArray;
 	Stulu::Ref<Stulu::Texture2D> m_texture;
 

@@ -6,6 +6,8 @@ class TestProject : public Stulu::Application {
 public:
 	TestProject() {
 		pushLayer(defaultLayer);
+
+		getWindow().setWindowIcon("assets/Logo/engine-icon-bg.png");
 	}
 	~TestProject() {
 

@@ -2,7 +2,6 @@
 #include "OpenGLShader.h"
 
 #include <fstream>
-#include <sstream>
 
 #include <glad/glad.h>
 
@@ -30,14 +29,20 @@ namespace Stulu {
 		return 0;
 	}
 
-	OpenGLShader::OpenGLShader(const std::string& path, bool multiFile)
+	OpenGLShader::OpenGLShader(const std::string& path)
 	{
 		std::string sShaderFile = readFile(path);
-		auto sources = preProcess(sShaderFile, multiFile);
+		auto sources = preProcess(sShaderFile, isMultiFile(sShaderFile));
 		compile(sources);
-		
+
+		size_t lastS = path.find_last_of("/\\");
+		lastS = lastS == std::string::npos ? 0 : lastS + 1;
+		size_t lastD = path.rfind('.');
+		m_name = path.substr(lastS, lastD == std::string::npos ? path.size() - lastS : lastD - lastS);
+
 	}
-	OpenGLShader::OpenGLShader(const std::string& vertex, const std::string& fragment){
+	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment)
+		: m_name(name) {
 		std::unordered_map<GLenum, std::string> sources;
 		sources[GL_VERTEX_SHADER] = vertex;
 		sources[GL_FRAGMENT_SHADER] = fragment;
@@ -46,7 +51,7 @@ namespace Stulu {
 
 	std::string OpenGLShader::readFile(const std::string& path){
 		std::string result;
-		std::ifstream inStream(path, std::ios::in, std::ios::binary);
+		std::ifstream inStream(path, std::ios::in | std::ios::binary);
 
 		if (inStream) {
 			inStream.seekg(0, std::ios::end);
@@ -107,7 +112,9 @@ namespace Stulu {
 	void OpenGLShader::compile(const std::unordered_map<GLenum, std::string>& shaderSrcs){
 
 		GLuint rendererID = glCreateProgram();
-		std::vector<GLenum> glShaderIds(shaderSrcs.size());
+		CORE_ASSERT(shaderSrcs.size() <= 2,"Only 2 shaders are currently supported");
+		int shaderIndex = 0;
+		std::array<GLenum, 2> shaderIds;
 		for (auto& kv : shaderSrcs) {
 			GLenum type = kv.first;
 			const std::string& src = kv.second;
@@ -130,7 +137,7 @@ namespace Stulu {
 				break;
 			}
 			glAttachShader(rendererID, shader);
-			glShaderIds.push_back(shader);
+			shaderIds[shaderIndex++] = shader;
 		}
 		glLinkProgram(rendererID);
 
@@ -142,7 +149,7 @@ namespace Stulu {
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
 			glDeleteProgram(rendererID);
-			for(auto id : glShaderIds)
+			for(auto id : shaderIds)
 				glDeleteShader(id);
 
 			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
@@ -150,13 +157,15 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto id : glShaderIds)
+		for (auto id : shaderIds)
 			glDetachShader(rendererID, id);
 
 		m_rendererID = rendererID;
 
 	}
-
+	bool OpenGLShader::isMultiFile(const std::string src) {
+		return src.rfind("#multifile", 0) == 0;
+	}
 	OpenGLShader::~OpenGLShader() {
 		glDeleteProgram(m_rendererID);
 	}

@@ -1,16 +1,13 @@
 #include "DefaultLayer.h"
-#include <imgui/imgui.cpp>
+
+#include <glm/glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <Platform/OpenGL/OpenGLShader.h>
-#include <glm/glm/gtc/type_ptr.hpp>
-
 
 void DefaultLayer::onAttach() {
 	Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
 	Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-
-	//square
 	uint32_t squareIndicies[6]{
 		0,1,2,
 		2,3,0
@@ -32,12 +29,11 @@ void DefaultLayer::onAttach() {
 	indexBuffer.reset(Stulu::IndexBuffer::create(sizeof(squareIndicies) / sizeof(uint32_t), squareIndicies));
 	m_squareVertexArray->setIndexBuffer(indexBuffer);
 
-	m_colorShader.reset(Stulu::Shader::create("assets/Shaders/color.glsl"));
-	m_texture = Stulu::Texture2D::create("assets/logo.png");
-	m_textureShader.reset(Stulu::Shader::create("assets/Shaders/texture.sshader", true));
+	m_texture = Stulu::Texture2D::create("assets/Logo/engine-logo.png");
+	m_shaderLib.load("assets/Shaders/color.glsl");
+	m_shaderLib.load("assets/Shaders/texture.sshader");
 
-	std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_textureShader)->bind();
-	std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_textureShader)->uploadIntUniform("u_color", 0);
+	//std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_textureShader)->bind();
 
 }
 void DefaultLayer::onEvent(Stulu::Event& e) {
@@ -82,10 +78,10 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 					glm::vec3 gridPos = glm::vec3(x * 0.11f, y * 0.11f, 0.0f) + m_gridPos;
 					glm::mat4 gridTransform = glm::translate(glm::mat4(1.0f), gridPos) * gridScale;
 					if (y % 2 == 0 ? x % 2 == 0 : x % 2 != 0)
-						std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_colorShader)->uploadFloat4Uniform("u_color", m_colorOne);
+						std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("color"))->uploadFloat4Uniform("u_color", m_colorOne);
 					else
-						std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_colorShader)->uploadFloat4Uniform("u_color", m_colorTwo);
-					Stulu::Renderer::submit(m_squareVertexArray, m_colorShader, gridTransform);
+						std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("color"))->uploadFloat4Uniform("u_color", m_colorTwo);
+					Stulu::Renderer::submit(m_squareVertexArray, m_shaderLib.get("color"), gridTransform);
 				}
 
 			}
@@ -93,13 +89,14 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 		{
 			glm::mat4 squaretransform = glm::translate(glm::mat4(1.0f), m_squarePos) * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 			m_texture->bind();
-			Stulu::Renderer::submit(m_squareVertexArray, m_textureShader, squaretransform);
+			Stulu::Renderer::submit(m_squareVertexArray, m_shaderLib.get("texture"), squaretransform);
 		}
 	}
 	Stulu::Renderer::endScene();
 
 }
-
+//imgui
+#include <imgui/imgui.cpp>
 void DefaultLayer::onImguiRender(Stulu::Timestep timestep) {
 	drawRendererInfos();
 	drawCameraInfos();
@@ -128,18 +125,10 @@ void DefaultLayer::drawCameraInfos() {
 		
 	ImGui::End();
 }
-float totalfpscountrpausetime;
-float deltaTimeForFpsCounter;
 void DefaultLayer::drawApplicationInfos(Stulu::Timestep timestep) {
-	totalfpscountrpausetime += timestep;
-	if (totalfpscountrpausetime > .25f) {
-		deltaTimeForFpsCounter = timestep;
-		totalfpscountrpausetime = 0.0f;
-	}
-
 	ImGui::Begin("Application");
-	ImGui::Text("Deltatime: %.3fs(%dms)", deltaTimeForFpsCounter, (int)deltaTimeForFpsCounter*1000);
-	ImGui::Text("FPS: %.2f", 1.0f / deltaTimeForFpsCounter);
+	ImGui::Text("Deltatime: %.3fs(%dms)", (float)timestep, (int)timestep.getMilliseconds());
+	ImGui::Text("FPS: %.2f", 1.0f / timestep);
 	ImGui::End();
 }
 void DefaultLayer::drawSquareMoveWindow() {

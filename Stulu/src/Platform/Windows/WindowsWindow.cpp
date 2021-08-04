@@ -1,6 +1,8 @@
 #include "st_pch.h"
 #include "WindowsWindow.h"
 
+#include <stb_image.h>
+
 #include <Stulu/Events/ApplicationEvent.h>
 #include <Stulu/Events/KeyEvent.h>
 #include <Stulu/Events/MouseEvent.h>
@@ -27,7 +29,6 @@ namespace Stulu {
 		m_data.title = props.title;
 		m_data.width = props.width;
 		m_data.height = props.height;
-
 
 		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
 
@@ -126,6 +127,19 @@ namespace Stulu {
 		m_graphicsContext->swapBuffers();
 	}
 
+	void WindowsWindow::setWindowIcon(const std::string& path) {
+		int width, height, channels;
+		stbi_set_flip_vertically_on_load(0);
+		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		CORE_ASSERT(textureData, "Icon failed to load: {0}", path);
+		GLFWimage images[1];
+		images[0] = GLFWimage();
+		images[0].height = height;
+		images[0].width = width;
+		images[0].pixels = textureData;
+
+		glfwSetWindowIcon(m_window, 1, images);
+	}
 	void WindowsWindow::setVSysnc(bool enabled) {
 		if (enabled)
 			glfwSwapInterval(1);
