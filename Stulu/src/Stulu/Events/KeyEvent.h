@@ -56,7 +56,7 @@ namespace Stulu {
 
 		std::string toString() const override {
 			std::stringstream s;
-			s << "KeyDownEvent(" << m_keyCode << ")";
+			s << "KeyTypedEvent(" << m_keyCode << ")";
 			return s.str();
 		}
 
