@@ -1,10 +1,10 @@
 # Directoies
 .vs/
-**/bin/
+bin/
 bin-int/
 
 #Files
-**.sln
-**.vcxproj
-**.vcxproj.filters
-**.vcxproj.user 
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user 
