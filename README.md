@@ -1,8 +1,9 @@
-# Stulu Engine License [![License](https://img.shields.io/github/license/TheCherno/Hazel.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
+# Stulu Engine [![License](https://img.shields.io/github/license/TheCherno/Hazel.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
+<p align="center">
+  <img width="600" height="600" src="https://raw.githubusercontent.com/stulu08/SEngine/main/TestProject/assets/Logo/engine-logo.png">
+</p>
 
-![Stulu](/TestProject/assets/Logo/engine-logo.png?raw=true "Stulu")
-
-The Stulu Engine is an 3D and 2D Game Engine which I write with the tutorial series by The Cherno on Youtube.
+The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial series by The Cherno on Youtube. It runs currently only on windows with opengl and not very much is implemented.
 
 ***
 
