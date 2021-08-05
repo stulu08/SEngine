@@ -1,6 +1,6 @@
 # Directoies
 .vs/
-bin/
+**/bin/
 bin-int/
 
 #Files
