@@ -34,6 +34,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\Shaders\color.glsl">
+      <Filter>assets\Shaders</Filter>
+    </None>
     <None Include="assets\Shaders\texture-source\fragment.glsl">
       <Filter>assets\Shaders\texture-source</Filter>
     </None>
@@ -41,9 +44,6 @@
       <Filter>assets\Shaders\texture-source</Filter>
     </None>
     <None Include="assets\Shaders\texture.sshader">
-      <Filter>assets\Shaders</Filter>
-    </None>
-    <None Include="assets\Shaders\color.glsl">
       <Filter>assets\Shaders</Filter>
     </None>
   </ItemGroup>

@@ -4,7 +4,7 @@ class DefaultLayer : public Stulu::Layer
 {
 public:
 	DefaultLayer()
-		:Layer("Default"), m_camera(-1.6f,1.6f,-.9f,.9f), m_gridPos(-.5f, -0.5f, .0f), m_squarePos(.0f, .0f, .0f) {
+		:Layer("Default"), m_cameraController(1280.0f / 720.0f, true), m_gridPos(-.5f, -0.5f, .0f), m_squarePos(.0f, .0f, .0f) {
 		app = &Stulu::Application::get();
 	}
 
@@ -21,17 +21,11 @@ public:
 	
 private:
 	Stulu::Application* app;
+	Stulu::OrthographicCameraController m_cameraController;
 
-	//cam
-	Stulu::OrthographicCamera m_camera;
-
-	//blue bg square
 	Stulu::ShaderLibary m_shaderLib;
 	Stulu::Ref<Stulu::VertexArray> m_squareVertexArray;
 	Stulu::Ref<Stulu::Texture2D> m_texture;
-
-	glm::vec3 m_camerpos = m_camera.getPosition();
-	float m_camerarotation = m_camera.getRotation();
 
 	glm::vec3 m_gridPos;
 	glm::vec3 m_squarePos;

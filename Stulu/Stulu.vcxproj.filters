@@ -1413,6 +1413,9 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="src\Stulu\Core\OrthographicCameraController.h">
+      <Filter>src\Stulu\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp">
@@ -1489,6 +1492,9 @@
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Stulu\Core\OrthographicCameraController.cpp">
+      <Filter>src\Stulu\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

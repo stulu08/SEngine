@@ -37,39 +37,19 @@ void DefaultLayer::onAttach() {
 
 }
 void DefaultLayer::onEvent(Stulu::Event& e) {
-
+	m_cameraController.onEvent(e);
 }
-float speed_move = 8;
-float speed_rotate = 64;
 void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
+	//update
+	m_cameraController.onUpdate(timestep);
+
+	//render
 	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
-	//camera movement
-	{
-		if (Stulu::Input::isKeyDown(KEY_W))
-			m_camerpos.y += speed_move * timestep;
-		else if (Stulu::Input::isKeyDown(KEY_S))
-			m_camerpos.y -= speed_move * timestep;
-		if (Stulu::Input::isKeyDown(KEY_A))
-			m_camerpos.x -= speed_move * timestep;
-		else if (Stulu::Input::isKeyDown(KEY_D))
-			m_camerpos.x += speed_move * timestep;
-		if (Stulu::Input::isKeyDown(KEY_Q))
-			m_camerpos.z -= speed_move * timestep;
-		else if (Stulu::Input::isKeyDown(KEY_E))
-			m_camerpos.z += speed_move * timestep;
-		if (Stulu::Input::isKeyDown(KEY_LEFT))
-			m_camerarotation += speed_rotate * timestep;
-		else if (Stulu::Input::isKeyDown(KEY_RIGHT))
-			m_camerarotation -= speed_rotate * timestep;;
 
-		m_camera.setPosition(m_camerpos);
-		m_camera.setRotation(m_camerarotation);
-	}
-
-	Stulu::Renderer::beginScene(m_camera);
+	Stulu::Renderer::beginScene(m_cameraController.getCamera());
 	{
-		{
+		if(false){
 			glm::mat4 gridScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 			for (int x = 0; x < 10; x++) {
 				for (int y = 0; y < 10; y++) {
@@ -111,13 +91,9 @@ void DefaultLayer::drawRendererInfos() {
 
 }
 void DefaultLayer::drawCameraInfos() {
-	ImGui::Begin("Camera", NULL, ImGuiWindowFlags_NoResize);
-	ImGui::DragFloat3("Position", glm::value_ptr(m_camerpos), .1f);
-	ImGui::DragFloat("Rotation", &m_camerarotation, .1f);
+	ImGui::Begin("Enviroment", NULL, ImGuiWindowFlags_NoResize);
 	ImGui::ColorEdit4("Clear Color", glm::value_ptr(m_clearColor));
-	if (ImGui::Button("Reset Color and Position")) {
-		m_camerpos = glm::vec3(0.0f);
-		m_camerarotation = 0.0f;
+	if (ImGui::Button("Reset Color")) {
 		m_clearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 	}
 		
