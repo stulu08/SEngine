@@ -38,6 +38,11 @@ void DefaultLayer::onAttach() {
 }
 void DefaultLayer::onEvent(Stulu::Event& e) {
 	m_cameraController.onEvent(e);
+	if (e.getEventType() == Stulu::EventType::WindowResize) {
+		Stulu::WindowResizeEvent& resizeEvent = ((Stulu::WindowResizeEvent&)e);
+		resizeEvent.getWidth();
+		12 + 4;
+	}
 }
 void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	//update
@@ -46,10 +51,10 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	//render
 	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
-
+	
 	Stulu::Renderer::beginScene(m_cameraController.getCamera());
 	{
-		if(false){
+		if(!false){
 			glm::mat4 gridScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 			for (int x = 0; x < 10; x++) {
 				for (int y = 0; y < 10; y++) {

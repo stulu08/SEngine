@@ -4,5 +4,5 @@
 #include "Platform/OpenGL/OpenGLRenderAPI.h"
 
 namespace Stulu {
-	RenderAPI* RenderCommand::s_renderAPI = new OpenGLRenderAPI();
+	Scope<RenderAPI> RenderCommand::s_renderAPI = createScope<OpenGLRenderAPI>();
 }

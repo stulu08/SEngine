@@ -7,6 +7,6 @@ namespace Stulu {
 	protected:
 		virtual float impl_getTime() = 0;
 	private:
-		static Platform* s_instance;
+		static Scope<Platform> s_instance;
 	};
 }

@@ -3,12 +3,14 @@
 #include "Stulu/Renderer/RenderCommand.h"
 #include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/Shader.h"
+#include <Stulu/Events/ApplicationEvent.h>
 
 namespace Stulu{
 	class Renderer {
 
 	public:
 		static void init();
+		static void onWinndowResize(WindowResizeEvent& e);
 
 		static void beginScene(OrthographicCamera& cam);
 		static void endScene();
@@ -21,7 +23,7 @@ namespace Stulu{
 			glm::mat4 viewProjectionMatrix;
 		};
 
-		static SceneData* m_sceneData;
+		static Scope<SceneData> m_sceneData;
 	};
 
 }

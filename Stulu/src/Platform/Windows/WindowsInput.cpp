@@ -5,7 +5,7 @@
 
 namespace Stulu {
 
-	Input* Input::s_instance = new WindowsInput();
+	Scope<Input> Input::s_instance = createScope<WindowsInput>();
 
 	bool WindowsInput::isKeyDownImpl(unsigned int keycode) {
 		auto *window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());

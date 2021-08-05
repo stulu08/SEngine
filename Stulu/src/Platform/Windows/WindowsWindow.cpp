@@ -16,8 +16,8 @@ namespace Stulu {
 		CORE_ERROR("GLFW error {0}: {1}" , error , msg)
 	}
 
-	Window* Window::create(const WindowProps& props) {
-		return new WindowsWindow(props);
+	Scope<Window> Window::create(const WindowProps& props) {
+		return createScope<WindowsWindow>(props);
 	}
 
 	WindowsWindow::WindowsWindow(const WindowProps& props) {
@@ -41,7 +41,7 @@ namespace Stulu {
 		}
 
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
-		m_graphicsContext = new OpenGLContext(m_window);
+		m_graphicsContext = createScope<OpenGLContext>(m_window);
 
 		m_graphicsContext->init();
 

@@ -103,8 +103,9 @@ namespace Stulu {
 			CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
 
 			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
+			CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
 			pos = src.find(typeToken, nextLinePos);
-			shaderSources[shaderTypeFromString(type)] = src.substr(nextLinePos, pos - (nextLinePos == std::string::npos ? src.size() - 1 : nextLinePos));
+			shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? src.substr(nextLinePos) : src.substr(nextLinePos, pos - nextLinePos);
 		}
 
 		return shaderSources;
@@ -157,9 +158,10 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto id : shaderIds)
+		for (auto id : shaderIds) {
 			glDetachShader(rendererID, id);
-
+			glDeleteShader(id);
+		}
 		m_rendererID = rendererID;
 
 	}

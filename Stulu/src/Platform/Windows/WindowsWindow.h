@@ -31,7 +31,7 @@ namespace Stulu {
 
 
 		GLFWwindow* m_window;
-		GraphicsContext* m_graphicsContext;
+		Scope<GraphicsContext> m_graphicsContext;
 
 		struct WindowData {
 			std::string title;

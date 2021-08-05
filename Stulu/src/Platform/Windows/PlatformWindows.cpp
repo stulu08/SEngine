@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 namespace Stulu {
-    Platform* Platform::s_instance = new PlatformWindows();
+    Scope<Platform> Platform::s_instance = createScope<PlatformWindows>();
     float PlatformWindows::impl_getTime()
     {
         return (float)glfwGetTime();

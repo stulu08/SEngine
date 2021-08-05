@@ -79,7 +79,6 @@ project "Stulu"
 
 		defines
 		{
-			"ST_PLATFORM_WINDOWS",
 			"St_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
@@ -133,11 +132,6 @@ project "TestProject"
 
 	filter "system:windows"
 		systemversion "latest"
-
-		defines
-		{
-			"ST_PLATFORM_WINDOWS"
-		}
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"

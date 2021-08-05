@@ -26,6 +26,7 @@ namespace Stulu {
 	void Application::onEvent(Event& e) {
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
+		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
 
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
 			(*--it)->onEvent(e);
@@ -39,8 +40,10 @@ namespace Stulu {
 			float time = Platform::getTime();
 			Timestep deltaTimestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
-			for (Layer* layer : m_layerStack)
-				layer->onUpdate(deltaTimestep);
+			if (!m_minimized) {
+				for (Layer* layer : m_layerStack)
+					layer->onUpdate(deltaTimestep);
+			}
 			m_imguiLayer->Begin();
 			for (Layer* layer : m_layerStack)
 				layer->onImguiRender(deltaTimestep);
@@ -51,5 +54,11 @@ namespace Stulu {
 	bool Application::onWindowClose(WindowCloseEvent& e) {
 		m_runnig = false;
 		return m_runnig;
+	}
+	bool Application::onWindowResize(WindowResizeEvent& e)
+	{
+		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
+		m_minimized ? 0 : Renderer::onWinndowResize(e);
+		return false;
 	}
 }

@@ -44,8 +44,8 @@ private:
 class TestProject : public Stulu::Application {
 public:
 	TestProject() {
-		//pushLayer(defaultLayer);
-		pushLayer(new ExampleLayer());
+		pushLayer(defaultLayer);
+		//pushLayer(new ExampleLayer());
 		getWindow().setWindowIcon("assets/Logo/engine-icon-bg.png");
 	}
 	~TestProject() {

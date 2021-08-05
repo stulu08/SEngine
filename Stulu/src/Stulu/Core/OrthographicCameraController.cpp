@@ -11,21 +11,29 @@ namespace Stulu {
 	}
 	void OrthographicCameraController::onUpdate(Timestep timestep) {
 
-		if (Input::isKeyDown(KEY_W))
-			m_camerPos.y += m_cameraMoveSpeed * timestep;
-		if (Input::isKeyDown(KEY_S))
-			m_camerPos.y -= m_cameraMoveSpeed * timestep;
+		if (Input::isKeyDown(KEY_W)) {
+			m_camerPos.x += -sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+			m_camerPos.y += cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+		}
+		if (Input::isKeyDown(KEY_S)) {
+			m_camerPos.x -= -sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+			m_camerPos.y -= cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+		}
 
-		if (Input::isKeyDown(KEY_A))
-			m_camerPos.x -= m_cameraMoveSpeed * timestep;
-		if (Input::isKeyDown(KEY_D))
-			m_camerPos.x += m_cameraMoveSpeed * timestep;
+		if (Input::isKeyDown(KEY_A)) {
+			m_camerPos.x -= cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+			m_camerPos.y -= sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+		}
+		if (Input::isKeyDown(KEY_D)) {
+			m_camerPos.x += cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+			m_camerPos.y += sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+		}
 
 		if (m_rotation) {
 			if (Input::isKeyDown(KEY_LEFT))
-				m_cameraRotation += m_cameraRotationSpeed * timestep;
+				m_cameraRotation += m_cameraRotationSpeed * timestep * m_zoomLevel;
 			if (Input::isKeyDown(KEY_RIGHT))
-				m_cameraRotation -= m_cameraRotationSpeed * timestep;;
+				m_cameraRotation -= m_cameraRotationSpeed * timestep * m_zoomLevel;
 
 			m_cam.setRotation(m_cameraRotation);
 		}
