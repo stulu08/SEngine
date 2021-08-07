@@ -33,7 +33,7 @@ namespace Stulu {
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
 
-		std::unique_ptr<Window> m_window;
+		Scope<Window> m_window;
 		ImGuiLayer* m_imguiLayer;
 		bool m_runnig = true;
 		bool m_minimized = false;

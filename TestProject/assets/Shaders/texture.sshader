@@ -1,3 +1,0 @@
-#multifile
-#include vert|assets/Shaders/texture-source/vertex.glsl
-#include frag|assets/Shaders/texture-source/fragment.glsl

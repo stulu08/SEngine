@@ -11,7 +11,7 @@ namespace Stulu {
 
 	Application::Application() {
 		s_instance = this;
-		m_window = std::unique_ptr<Window>(Window::create());
+		m_window = Window::create();
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		Renderer::init();
 		m_imguiLayer = new ImGuiLayer();

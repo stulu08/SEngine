@@ -6,10 +6,10 @@
 #include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu {
-	class WindowsWindow : public Window {
+	class GLwindowsWindow : public Window {
 	public:
-		WindowsWindow(const WindowProps& props);
-		virtual ~WindowsWindow();
+		GLwindowsWindow(const WindowProps& props);
+		virtual ~GLwindowsWindow();
 
 		void onUpdate() override;
 

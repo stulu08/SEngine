@@ -1,5 +1,5 @@
 #include "st_pch.h"
-#include "WindowsWindow.h"
+#include "GLwindowsWindow.h"
 
 #include <stb_image.h>
 
@@ -16,16 +16,12 @@ namespace Stulu {
 		CORE_ERROR("GLFW error {0}: {1}" , error , msg)
 	}
 
-	Scope<Window> Window::create(const WindowProps& props) {
-		return createScope<WindowsWindow>(props);
-	}
-
-	WindowsWindow::WindowsWindow(const WindowProps& props) {
+	GLwindowsWindow::GLwindowsWindow(const WindowProps& props) {
 		init(props);
 	}
-	WindowsWindow::~WindowsWindow() { shutDown(); }
+	GLwindowsWindow::~GLwindowsWindow() { shutDown(); }
 
-	void WindowsWindow::init(const WindowProps& props) {
+	void GLwindowsWindow::init(const WindowProps& props) {
 		m_data.title = props.title;
 		m_data.width = props.width;
 		m_data.height = props.height;
@@ -118,16 +114,16 @@ namespace Stulu {
 			data.eventCallback(event);
 		});
 	}
-	void WindowsWindow::shutDown() {
+	void GLwindowsWindow::shutDown() {
 		glfwDestroyWindow(m_window);
 	}
-	void WindowsWindow::onUpdate() {
+	void GLwindowsWindow::onUpdate() {
 		glfwPollEvents();
 
 		m_graphicsContext->swapBuffers();
 	}
 
-	void WindowsWindow::setWindowIcon(const std::string& path) {
+	void GLwindowsWindow::setWindowIcon(const std::string& path) {
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -140,7 +136,7 @@ namespace Stulu {
 
 		glfwSetWindowIcon(m_window, 1, images);
 	}
-	void WindowsWindow::setVSysnc(bool enabled) {
+	void GLwindowsWindow::setVSysnc(bool enabled) {
 		if (enabled)
 			glfwSwapInterval(1);
 		else
@@ -148,5 +144,5 @@ namespace Stulu {
 		m_data.VSync = enabled;
 	}
 
-	bool WindowsWindow::isVSysnc() const { return m_data.VSync; }
+	bool GLwindowsWindow::isVSysnc() const { return m_data.VSync; }
 }
