@@ -20,7 +20,7 @@ namespace Stulu {
 		inline glm::vec3& getPos() { return m_pos; }
 		inline glm::vec3& getRotation() { return m_rotation; }
 		inline glm::vec3& getScale() { return m_scale; }
-		const glm::mat4& getMat4();
+		const glm::mat4 toMat4();
 
 		void reset();
 

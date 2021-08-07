@@ -6,13 +6,12 @@
 #include <imgui.h>
 
 namespace Stulu {
-	const glm::mat4& Transform::getMat4() {
-		glm::mat4 transform = glm::translate(glm::mat4(1.0f), m_pos)
+	const glm::mat4 Transform::toMat4() {
+		return glm::translate(glm::mat4(1.0f), m_pos)
 			* glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f))
 			* glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f))
 			* glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f))
 			* glm::scale(glm::mat4(1.0f), m_scale);
-		return transform;
 	}
 	void Transform::reset() {
 		m_pos = glm::vec3(0.0f);

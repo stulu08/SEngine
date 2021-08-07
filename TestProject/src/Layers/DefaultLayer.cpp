@@ -90,7 +90,7 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	
 	Stulu::Renderer::beginScene(m_cameraController.getCamera());
 	{
-		glm::mat4 transform = m_cubeTransform.getMat4();
+		glm::mat4 transform = m_cubeTransform.toMat4();
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("basiclight"))->uploadFloat3Uniform("u_color", glm::vec4(1.0f));
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("basiclight"))->uploadFloat3Uniform("u_lightColor", lightColor);
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("basiclight"))->uploadFloat3Uniform("u_lightPos", lightPos);

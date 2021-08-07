@@ -81,7 +81,7 @@ namespace Stulu {
 	}
 	void Renderer2D::drawQuad(Transform& transform, const glm::vec4& color) {
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_transform", transform.getMat4());
+		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_transform", transform.toMat4());
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadFloat4Uniform("u_color", color);
 		s_renderer2Ddata->m_quadVertexArray->bind();
 		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
@@ -95,7 +95,7 @@ namespace Stulu {
 	void Renderer2D::drawTexture2D(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform) {
 		texture->bind();
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->uploadMat4Uniform("u_transform", transform.getMat4());
+		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->uploadMat4Uniform("u_transform", transform.toMat4());
 		s_renderer2Ddata->m_quadVertexArray->bind();
 		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
 	}
@@ -107,7 +107,7 @@ namespace Stulu {
 	}
 	void Renderer2D::drawTriangle(Transform& transform, const glm::vec4& color) {
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_transform", transform.getMat4());
+		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_transform", transform.toMat4());
 		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadFloat4Uniform("u_color", color);
 		s_renderer2Ddata->m_triangleVertexArray->bind();
 		RenderCommand::drawIndex(s_renderer2Ddata->m_triangleVertexArray);
