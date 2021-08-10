@@ -8,7 +8,7 @@
 const uint32_t Chunk::s_size = 16;
 const int Chunk::s_viewDistance = 6;
 const int Chunk::s_deleteDistance = 32;
-const float Chunk::s_heightScale = 7.5f;
+const float Chunk::s_heightScale = 3.5f;
 
 Chunk::Chunk() {
 	hidden = true;
@@ -19,13 +19,12 @@ Chunk::Chunk(glm::vec2 chunkCoords) {
 	Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
 
 	glm::vec2 offset(chunkCoords * (float)s_size);
-
 	float verices [(s_size + 1) * (s_size + 1) * 3];
 	for (int i = 0, z = 0; z <= s_size; z++)
 	{
 		for (int x = 0; x <= s_size; x++)
 		{
-			float y = Stulu::Math::perlinAccumalatedNosie(x + offset.x, z + offset.y, 8, 1.0f, s_size, s_size, true);
+			float y = Stulu::Math::perlinAccumalatedNosie(x + offset.x, z + offset.y, 64, .75f, s_size, s_size, false);
 			verices[i] = x + .0f;
 			verices[i + 1] = y * s_heightScale;
 			verices[i + 2] = z + .0f;
@@ -94,7 +93,7 @@ void TerrainLayer::genChunks(glm::vec3& pos) {
 	for (int i = 0, x = pos.x / Chunk::s_size - Chunk::s_viewDistance; x < pos.x / Chunk::s_size + Chunk::s_viewDistance; x++)
 	{
 		for (int y = pos.z / Chunk::s_size - Chunk::s_viewDistance; y < pos.z / Chunk::s_size + Chunk::s_viewDistance; y++) {
-			glm::vec2 ck(x, y);
+			glm::vec2 ck((float)x, (float)y);
 			if (!containsChunk(ck))
 				chunks.push_back(Chunk(ck));
 		}

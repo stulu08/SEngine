@@ -80,31 +80,40 @@ namespace Stulu {
 	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
 		drawQuad(Transform(pos,rotation,glm::vec3(size.x,size.y,.0f)), color);
 	}
+	void Renderer2D::drawQuad(Transform& transform, const glm::vec4& color) {
+		drawQuad(transform.toMat4(), color);
+	}
 	void Renderer2D::drawTriangle(const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
 		drawTriangle(Transform(pos, rotation, size), color);
 	}
 	void Renderer2D::drawTriangle(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
 		drawTriangle(Transform(pos, rotation, glm::vec3(size.x, size.y, .0f)), color);
 	}
+	void Renderer2D::drawTriangle(Transform& transform, const glm::vec4& color) {
+		drawTriangle(transform.toMat4(), color);
+	}
 	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
 		drawTexture2DQuad(texture, Transform(pos, rotation, size), color);
 	}
 	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawTexture2DQuad(texture, Transform(pos, rotation, glm::vec3(size.x, size.y, .0f)), color);
+		drawTexture2DQuad(texture, Transform(pos, rotation, size), color);
+	}
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform, const glm::vec4& color) {
+		drawTexture2DQuad(texture, transform.toMat4(), color);
 	}
 
-	void Renderer2D::drawQuad(Transform& transform, const glm::vec4& color) {
+	void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
 
-		s_renderer2Ddata->m_shader->setMat4("u_transform", transform.toMat4());
+		s_renderer2Ddata->m_shader->setMat4("u_transform", transform);
 		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
 		s_renderer2Ddata->m_texture->bind();
 
 		s_renderer2Ddata->m_quadVertexArray->bind();
 		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
 	}
-	void Renderer2D::drawTriangle(Transform& transform, const glm::vec4& color) {
+	void Renderer2D::drawTriangle(const glm::mat4& transform, const glm::vec4& color) {
 
-		s_renderer2Ddata->m_shader->setMat4("u_transform", transform.toMat4());
+		s_renderer2Ddata->m_shader->setMat4("u_transform", transform);
 		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
 		s_renderer2Ddata->m_texture->bind();
 
@@ -112,9 +121,9 @@ namespace Stulu {
 		RenderCommand::drawIndex(s_renderer2Ddata->m_triangleVertexArray);
 	}
 
-	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform, const glm::vec4& color) {
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::mat4& transform, const glm::vec4& color) {
 
-		s_renderer2Ddata->m_shader->setMat4("u_transform", transform.toMat4());
+		s_renderer2Ddata->m_shader->setMat4("u_transform", transform);
 		s_renderer2Ddata->m_shader->setFloat2("u_textureTiling", texture->tiling);
 		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
 		texture->bind();

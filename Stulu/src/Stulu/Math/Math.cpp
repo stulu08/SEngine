@@ -19,7 +19,7 @@ namespace Stulu {
 		return glm::radians(angle);
 	}
 	glm::vec3 Math::QuaternionToEuler(glm::quat q) {
-		return glm::eulerAngles(q) * 3.14159f / 180.f;;
+		return glm::eulerAngles(q) * 180.f / PI;
 	}
 	glm::quat Math::EulerToQuaternion(glm::vec3 euler) {
 		return glm::quat(glm::radians(euler));
