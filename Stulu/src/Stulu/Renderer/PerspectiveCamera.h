@@ -1,0 +1,33 @@
+#pragma once
+#pragma once
+#include <glm/glm.hpp>
+#include "Stulu/Renderer/Camera.h"
+#include <Stulu/Renderer/Transform.h>
+
+namespace Stulu {
+	class PerspectiveCamera : public Camera{
+	public:
+		PerspectiveCamera(float fov, float aspect, float z_near, float z_far);
+
+		void setProjection(float fov, float aspect, float z_near, float z_far);
+
+		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
+		const glm::mat4& getViewMatrix() const override { return m_viewMatrix; }
+		const glm::mat4& getViewProjectionMatrix() const override { return m_viewProjcetionMatrix; }
+
+		Transform& getTransform() { return m_transform; recalculateViewMatrix();}
+		void setTransform(const Transform& transform) { m_transform = transform; recalculateViewMatrix(); }
+
+	private:
+		void recalculateViewMatrix();
+
+
+		glm::mat4 m_projcetionMatrix;
+		glm::mat4 m_viewMatrix;
+		glm::mat4 m_viewProjcetionMatrix;
+
+		Transform m_transform;
+	};
+}
+
+

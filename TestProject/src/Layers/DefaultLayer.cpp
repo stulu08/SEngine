@@ -2,7 +2,6 @@
 
 #include <glm/glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <Platform/OpenGL/OpenGLShader.h>
 
 void DefaultLayer::onAttach() {
 	Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
@@ -71,15 +70,21 @@ void DefaultLayer::onAttach() {
 	m_cubeVertexArray->setIndexBuffer(indexBuffer);
 
 	m_shaderLib.load("assets/Shaders/basiclight.glsl");
+	m_shaderLib.load("assets/Shaders/color.glsl");
+	
+	m_lightIconTexture = Stulu::Texture2D::create("assets/light.png");
 
-	m_cameraController.getCamera().setPosition(glm::vec3(0.0f, 0.0f, 1.0f));
-
+	for (int i = 0 ,x = 0; x != 10; x++) {
+		for (int y = 0; y != 10; y++) {
+			map[i] = Cube(Stulu::Transform(glm::vec3(x,sin(x) + cos(y),y)));
+			i++;
+		}
+	}
+	m_cameraController.setTransform(Stulu::Transform(glm::vec3(-3.6f, 4.5f, 8.7f), glm::vec3(-23.0f, -64.0f, .0f)));
 }
 void DefaultLayer::onEvent(Stulu::Event& e) {
 	m_cameraController.onEvent(e);
 }
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-glm::vec3 lightColor(1.0f);
 void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	//update
 	m_cameraController.onUpdate(timestep);
@@ -89,19 +94,26 @@ void DefaultLayer::onUpdate(Stulu::Timestep timestep) {
 	Stulu::RenderCommand::clear();
 	
 	Stulu::Renderer::beginScene(m_cameraController.getCamera());
-	{
-		glm::mat4 transform = m_cubeTransform.toMat4();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("basiclight"))->uploadFloat3Uniform("u_color", glm::vec4(1.0f));
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("basiclight"))->uploadFloat3Uniform("u_lightColor", lightColor);
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(m_shaderLib.get("basiclight"))->uploadFloat3Uniform("u_lightPos", lightPos);
-		Stulu::Renderer::submit(m_cubeVertexArray, m_shaderLib.get("basiclight"), transform);
+	m_shaderLib.get("basiclight")->bind();
+	m_shaderLib.get("basiclight")->setFloat3("u_color", glm::vec4(1.0f));
+	m_shaderLib.get("basiclight")->setFloat3("u_lightColor", lightColor);
+	m_shaderLib.get("basiclight")->setFloat3("u_lightPos", lightPos);
+	m_shaderLib.get("basiclight")->setFloat("u_lightStrength", lightStrength);
+	for (int i = 0, x = 0; x != 10; x++) {
+		for (int y = 0; y != 10; y++) {
+			Stulu::Renderer::submit(m_cubeVertexArray, m_shaderLib.get("basiclight"), map[i].transform);
+			i++;
+		}
 	}
+	Stulu::Renderer2D::beginScene(m_cameraController.getCamera());
+	Stulu::Renderer2D::drawTexture2DQuad(m_lightIconTexture, Stulu::Transform(lightPos, glm::vec3(.0f), glm::vec3(.5f, .5f, 1.0f)), glm::vec4(lightColor, 1.0f));
+	Stulu::Renderer2D::endScene();
 	Stulu::Renderer::endScene();
 }
 //imgui
-#include <imgui/imgui.cpp>
+#include <imgui/imgui.h>
 void DefaultLayer::onImguiRender(Stulu::Timestep timestep) {
-	Stulu::Transform::ImGuiTransformEdit(m_cubeTransform, "Cube");
+	Stulu::Transform::ImGuiTransformEdit(m_cameraController.getTransform(), "Camera");
 	drawRendererInfos();
 	drawCameraInfos();
 	drawApplicationInfos(timestep);
@@ -119,6 +131,7 @@ void DefaultLayer::drawCameraInfos() {
 	ImGui::ColorEdit4("Clear Color", glm::value_ptr(m_clearColor));
 	ImGui::ColorEdit3("Light Color", glm::value_ptr(lightColor));
 	ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos));
+	ImGui::DragFloat("Light Strength", &lightStrength,.01f,.0f,1.0f);
 		
 	ImGui::End();
 }

@@ -25,13 +25,12 @@ in vec3 FragPos;
 
 uniform vec3 u_lightPos; 
 uniform vec3 u_lightColor;
+uniform float u_lightStrength;
 uniform vec3 u_color;
 
 void main()
 {
-    // ambient
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * u_lightColor;
+    vec3 ambient = u_lightStrength * u_lightColor;
   	
     // diffuse 
     vec3 norm = normalize(Normal);

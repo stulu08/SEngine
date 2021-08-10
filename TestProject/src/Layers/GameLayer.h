@@ -4,7 +4,7 @@
 class GameLayer : public Stulu::Layer {
 public:
 	GameLayer()
-		: Layer("Game"), m_cameraController(1280.0f / 720.0f, true){}
+		: Layer("Game"), m_cameraController(1280.0f / 720.0f,true, true, true){}
 
 	virtual void onAttach() override;
 	virtual void onDetach() override;
@@ -16,7 +16,7 @@ private:
 	Stulu::Ref<Stulu::Texture2D> m_texture;
 	Stulu::OrthographicCameraController m_cameraController;
 
-	glm::vec4 m_clearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+	glm::vec4 m_clearColor = glm::vec4(COLOR_GRAY_VEC4);
 	Stulu::Transform quadTransform;
 	Stulu::Transform triangleTransform;
 	Stulu::Transform textureTransform;

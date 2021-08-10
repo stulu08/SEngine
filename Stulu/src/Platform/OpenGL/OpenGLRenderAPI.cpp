@@ -9,10 +9,22 @@ namespace Stulu {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 		glViewport(x, y, width, height);
+	}
+	void OpenGLRenderAPI::setDepthMask(bool value) {
+		glDepthMask(value);
+	}
+	void OpenGLRenderAPI::setWireFrame(bool value) {
+		if(value)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		else
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	void OpenGLRenderAPI::setClearColor(const glm::vec4& color) {

@@ -22,4 +22,21 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Texture2D creation");
 		return nullptr;
 	}
+	Ref<CubeMap> CubeMap::create(const std::vector<std::string>& faces)
+	{
+		switch (Renderer::getRendererAPI())
+		{
+		case RenderAPI::API::OpenGL:
+			return createRef<OpenGLCubeMap>(faces);
+		case RenderAPI::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
+		return nullptr;
+	}
 }

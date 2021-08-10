@@ -1,19 +1,20 @@
 #pragma once
 #include <glm/glm.hpp>
+#include "Stulu/Renderer/Camera.h"
 
 namespace Stulu {
-	class OrthographicCamera
+	class OrthographicCamera : public Camera
 	{
 	public:
 		OrthographicCamera(float left, float right, float bottom, float top);
 
 		void setProjection(float left, float right, float bottom, float top);
 
-		const glm::mat4& getProjectionMatrix() const { return m_projcetionMatrix; }
-		const glm::mat4& getViewMatrix() const { return m_viewMatrix; }
-		const glm::mat4& getViewProjectionMatrix() const { return m_viewProjcetionMatrix; }
+		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
+		const glm::mat4& getViewMatrix() const override { return m_viewMatrix; }
+		const glm::mat4& getViewProjectionMatrix() const override { return m_viewProjcetionMatrix; }
 
-		const glm::vec3& getPosition() const { return m_position; }
+		glm::vec3& getPosition() { return m_position; }
 		void setPosition(const glm::vec3& position) { m_position = position; recalculateViewMatrix(); }
 
 		float getRotation() const { return m_rotation; }

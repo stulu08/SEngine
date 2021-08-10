@@ -16,8 +16,9 @@ namespace Stulu {
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
 
-	void Renderer::beginScene(OrthographicCamera& cam) {
+	void Renderer::beginScene(Camera& cam) {
 		m_sceneData->viewProjectionMatrix = cam.getViewProjectionMatrix();
+
 	}
 	void Renderer::endScene() {
 

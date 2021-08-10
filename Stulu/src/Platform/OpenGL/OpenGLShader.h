@@ -14,6 +14,12 @@ namespace Stulu {
 		virtual void bind() const override;
 		virtual void unbind() const override;
 		virtual const std::string& getName() const override { return m_name; }
+		virtual void setMat4(const std::string& name, const glm::mat4& mat) override;
+		virtual void setFloat4(const std::string& name, const glm::vec4& vec) override;
+		virtual void setFloat3(const std::string& name, const glm::vec3& vec) override;
+		virtual void setFloat2(const std::string& name, const glm::vec2& vec) override;
+		virtual void setFloat(const std::string& name, const float Float) override;
+		virtual void setInt(const std::string& name, const int Int) override;
 		virtual void uploadMat4Uniform(const std::string& name,const glm::mat4& matrix);
 		virtual void uploadMat3Uniform(const std::string& name,const glm::mat3& matrix);
 		virtual void uploadFloat4Uniform(const std::string& name, const glm::vec4& float4);

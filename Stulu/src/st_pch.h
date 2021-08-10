@@ -10,6 +10,7 @@
 #include <sstream>
 #include <array>
 #include <vector>
+#include <future>
 #include <unordered_map>
 #include <unordered_set>
 

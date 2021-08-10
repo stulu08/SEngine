@@ -22,12 +22,15 @@ namespace Stulu {
 	}
 	void Application::pushLayer(Layer* layer) { m_layerStack.pushLayer(layer); }
 	void Application::pushOverlay(Layer* layer) { m_layerStack.pushOverlay(layer); }
+	void Application::popLayer(Layer* layer) { m_layerStack.popLayer(layer); }
+	void Application::popOverlay(Layer* layer) { m_layerStack.popOverlay(layer); }
 
 	void Application::onEvent(Event& e) {
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
 
+		_onEvent(e);
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
 			(*--it)->onEvent(e);
 			if (e.handled)
@@ -41,6 +44,7 @@ namespace Stulu {
 			Timestep deltaTimestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
 			if (!m_minimized) {
+				_onUpdate(deltaTimestep);
 				for (Layer* layer : m_layerStack)
 					layer->onUpdate(deltaTimestep);
 			}

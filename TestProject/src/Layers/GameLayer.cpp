@@ -5,6 +5,7 @@
 void GameLayer::onAttach() {
 	m_cameraController.getCamera().setPosition(glm::vec3(0.0f,0.0f,30.0f));
 	m_texture = Stulu::Texture2D::create("assets/Logo/engine-logo.png");
+	//m_texture = Stulu::Texture2D::create("assets/light.png");
 }
 void GameLayer::onDetach() {
 	
@@ -18,9 +19,9 @@ void GameLayer::onUpdate(Stulu::Timestep timestep) {
 	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
 	Stulu::Renderer2D::beginScene(m_cameraController.getCamera());
-	Stulu::Renderer2D::drawQuad(quadTransform, { .2f,.8f,.3f, 1.0f });
-	Stulu::Renderer2D::drawTriangle(triangleTransform, { .2f,.3f,.8f, 1.0f });
-	Stulu::Renderer2D::drawTexture2D(m_texture,textureTransform);
+	Stulu::Renderer2D::drawQuad(quadTransform, COLOR_PLASTIC_GREEN_VEC4);
+	Stulu::Renderer2D::drawTriangle(triangleTransform, COLOR_PLASTIC_CYAN_VEC4);
+	Stulu::Renderer2D::drawTexture2DQuad(m_texture,textureTransform);
 	Stulu::Renderer2D::endScene();
 }
 void GameLayer::onImguiRender(Stulu::Timestep timestep) {

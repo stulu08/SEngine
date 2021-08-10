@@ -6,7 +6,8 @@
 namespace Stulu {
 	class OrthographicCameraController {
 	public:
-		OrthographicCameraController(float aspectRatio, bool rotation = false);
+		OrthographicCameraController(float aspectRatio, bool zoom = false, bool move = false, bool rotation = false);
+		OrthographicCameraController(float aspectRatio, bool zoom, bool moveVerical, bool m_moveHorizontal, bool rotation);
 
 		void onUpdate(Timestep timestep);
 		void onEvent(Event& e);
@@ -16,6 +17,9 @@ namespace Stulu {
 	private:
 		float m_aspectRatio;
 		float m_zoomLevel = 1.0f;
+		bool m_zoom;
+		bool m_moveVertical;
+		bool m_moveHorizontal;
 		bool m_rotation;
 
 		OrthographicCamera m_cam;
@@ -23,7 +27,7 @@ namespace Stulu {
 		float m_cameraMoveSpeed = 8.0f;
 		float m_cameraRotationSpeed = 64.0f;
 
-		glm::vec3 m_camerPos = {0.0f,0.0f,0.0f};
+		glm::vec3 m_cameraPos = {0.0f,0.0f,0.0f};
 		float m_cameraRotation = 0.0f;
 
 

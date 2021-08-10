@@ -12,6 +12,13 @@ namespace Stulu {
 		virtual const std::string& getName() const = 0;
 		static Ref<Shader> create(const std::string& path);
 		static Ref<Shader> create(const std::string& name, const std::string& vertex, const std::string& fragment);
+
+		virtual void setMat4(const std::string& name, const glm::mat4& mat) = 0;
+		virtual void setFloat4(const std::string& name, const glm::vec4& vec) = 0;
+		virtual void setFloat3(const std::string& name, const glm::vec3& vec) = 0;
+		virtual void setFloat2(const std::string& name, const glm::vec2& vec) = 0;
+		virtual void setFloat(const std::string& name, const float Float) = 0;
+		virtual void setInt(const std::string& name, const int Int) = 0;
 	};
 	class ShaderLibary {
 	public:

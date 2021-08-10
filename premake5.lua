@@ -21,6 +21,7 @@ IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
 IncludeDir["glm"] = "Stulu/vendor/glm"
 IncludeDir["stb_image"] = "Stulu/vendor/stb_image"
+IncludeDir["noise"] = "Stulu/vendor/ReputelessPerlinNoise"
 
 group "Dependencies"
 include "Stulu/vendor/GLFW"
@@ -48,6 +49,7 @@ project "Stulu"
 		"%{prj.name}/vendor/stb_image/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
+		"%{prj.name}/vendor/ReputelessPerlinNoise/**.h"
 	}
 
 	defines
@@ -63,7 +65,8 @@ project "Stulu"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.stb_image}"
+		"%{IncludeDir.stb_image}",
+		"%{IncludeDir.noise}"
 	}
 
 	links 

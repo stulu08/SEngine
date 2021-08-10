@@ -1,13 +1,14 @@
 #include "st_pch.h"
 #include "Renderer2D.h"
 #include "Stulu/Renderer/RenderCommand.h"
-#include "Platform/OpenGL/OpenGLShader.h"
+#include "Stulu/Renderer/Shader.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Stulu {
 	struct Renderer2DStorage {
-		ShaderLibary m_shaderLib;
+		Ref<Shader> m_shader;
+		Ref<Texture2D> m_texture;
 		Ref<VertexArray> m_quadVertexArray;
 		Ref<VertexArray> m_triangleVertexArray;
 	};
@@ -58,58 +59,68 @@ namespace Stulu {
 		s_renderer2Ddata->m_triangleVertexArray->setIndexBuffer(indexBuffer);
 
 
-		s_renderer2Ddata->m_shaderLib.load("assets/Shaders/color.glsl");
-		s_renderer2Ddata->m_shaderLib.load("assets/Shaders/texture.glsl");
+		s_renderer2Ddata->m_texture = Texture2D::create("assets/quad.png");
+		s_renderer2Ddata->m_shader = Shader::create("assets/Shaders/default2D.glsl");
+		s_renderer2Ddata->m_shader->bind();
+		s_renderer2Ddata->m_shader->setInt("u_texture", 0);
+
 	}
 	void Renderer2D::shutdown() {
 		delete s_renderer2Ddata.get();
 	}
-	void Renderer2D::beginScene(const OrthographicCamera& cam) {
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_viewProjection", cam.getViewProjectionMatrix());
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->uploadMat4Uniform("u_viewProjection", cam.getViewProjectionMatrix());
+	void Renderer2D::beginScene(const Camera& cam) {
+		s_renderer2Ddata->m_shader->bind();
+		s_renderer2Ddata->m_shader->setMat4("u_viewProjection", cam.getViewProjectionMatrix());
 	}
 	void Renderer2D::endScene() {
-		
 	}
 	void Renderer2D::drawQuad(const glm::vec2& pos, const glm::vec2& size,  const glm::vec3& rotation, const glm::vec4& color) {
 		drawQuad(Transform(pos, rotation, size), color);
 	}
 	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawQuad(Transform(pos,rotation,size), color);
-	}
-	void Renderer2D::drawQuad(Transform& transform, const glm::vec4& color) {
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_transform", transform.toMat4());
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadFloat4Uniform("u_color", color);
-		s_renderer2Ddata->m_quadVertexArray->bind();
-		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
-	}
-	void Renderer2D::drawTexture2D(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation) {
-		drawTexture2D(texture, Transform(pos,rotation,size));
-	}
-	void Renderer2D::drawTexture2D(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation) {
-		drawTexture2D(texture, Transform(pos, rotation, size));
-	}
-	void Renderer2D::drawTexture2D(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform) {
-		texture->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("texture"))->uploadMat4Uniform("u_transform", transform.toMat4());
-		s_renderer2Ddata->m_quadVertexArray->bind();
-		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
+		drawQuad(Transform(pos,rotation,glm::vec3(size.x,size.y,.0f)), color);
 	}
 	void Renderer2D::drawTriangle(const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
 		drawTriangle(Transform(pos, rotation, size), color);
 	}
 	void Renderer2D::drawTriangle(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawTriangle(Transform(pos,rotation,size), color);
+		drawTriangle(Transform(pos, rotation, glm::vec3(size.x, size.y, .0f)), color);
+	}
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
+		drawTexture2DQuad(texture, Transform(pos, rotation, size), color);
+	}
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
+		drawTexture2DQuad(texture, Transform(pos, rotation, glm::vec3(size.x, size.y, .0f)), color);
+	}
+
+	void Renderer2D::drawQuad(Transform& transform, const glm::vec4& color) {
+
+		s_renderer2Ddata->m_shader->setMat4("u_transform", transform.toMat4());
+		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
+		s_renderer2Ddata->m_texture->bind();
+
+		s_renderer2Ddata->m_quadVertexArray->bind();
+		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
 	}
 	void Renderer2D::drawTriangle(Transform& transform, const glm::vec4& color) {
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->bind();
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadMat4Uniform("u_transform", transform.toMat4());
-		std::dynamic_pointer_cast<Stulu::OpenGLShader>(s_renderer2Ddata->m_shaderLib.get("color"))->uploadFloat4Uniform("u_color", color);
+
+		s_renderer2Ddata->m_shader->setMat4("u_transform", transform.toMat4());
+		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
+		s_renderer2Ddata->m_texture->bind();
+
 		s_renderer2Ddata->m_triangleVertexArray->bind();
 		RenderCommand::drawIndex(s_renderer2Ddata->m_triangleVertexArray);
 	}
+
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform, const glm::vec4& color) {
+
+		s_renderer2Ddata->m_shader->setMat4("u_transform", transform.toMat4());
+		s_renderer2Ddata->m_shader->setFloat2("u_textureTiling", texture->tiling);
+		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
+		texture->bind();
+
+		s_renderer2Ddata->m_quadVertexArray->bind();
+		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
+	}
+
 }

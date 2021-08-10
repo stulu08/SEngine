@@ -25,10 +25,15 @@ namespace Stulu {
 		void onEvent(Event& e);
 		void pushLayer(Layer* layer);
 		void pushOverlay(Layer* layer);
+		void popLayer(Layer* layer);
+		void popOverlay(Layer* layer);
 		inline Window& getWindow(){ return *m_window; }
 		inline static Application& get(){ return *s_instance; }
 
 		GraphicDriverConstants graphicDriverConstants;
+
+		virtual void _onUpdate(Timestep timetsep) {}
+		virtual void _onEvent(Event& e) {}
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
