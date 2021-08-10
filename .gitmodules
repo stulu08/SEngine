@@ -10,3 +10,6 @@
 [submodule "Stulu/vendor/imgui"]
 	path = Stulu/vendor/imgui
 	url = https://github.com/stulu08/imgui
+[submodule "Stulu/vendor/assimp"]
+	path = Stulu/vendor/assimp
+	url = https://github.com/stulu08/assimp
