@@ -2,6 +2,8 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 namespace Stulu {
 	class Transform {
 	public:
@@ -29,7 +31,7 @@ namespace Stulu {
 
 		void reset();
 
-		static void ImGuiTransformEdit(Transform& transform, const char* name, bool _2D = false);
+		static void ImGuiTransformEdit(Transform& transform, const char* name, bool _2D = false, bool end = true, bool begin = true);
 
 		operator const glm::mat4() { return toMat4(); }
 	private:

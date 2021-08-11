@@ -18,9 +18,15 @@ namespace Stulu {
 		Transform& getTransform() { return m_transform; recalculateViewMatrix();}
 		void setTransform(const Transform& transform) { m_transform = transform; recalculateViewMatrix(); }
 
-	private:
-		void recalculateViewMatrix();
+		const float& getZFar() { return m_zFar; }
+		const float& getZNear() { return m_zNear; }
 
+		void recalculateViewMatrix();
+		glm::vec3 getUpDirection();
+		glm::vec3 getRightDirection();
+		glm::vec3 getForwardDirection();
+	private:
+		float m_zNear, m_zFar;
 
 		glm::mat4 m_projcetionMatrix;
 		glm::mat4 m_viewMatrix;

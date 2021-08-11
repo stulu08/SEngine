@@ -19,6 +19,7 @@ namespace Stulu {
 		Ref<IndexBuffer> indexBuffer;
 		BufferLayout layout = {
 			{ ShaderDataType::Float3, "a_pos" },
+			{ ShaderDataType::Float3, "a_normals" },
 			{ ShaderDataType::Float2, "a_texCoord" },
 		};
 
@@ -27,11 +28,11 @@ namespace Stulu {
 			0,1,2,
 			2,3,0
 		};
-		float quadVertices[5 * 4] = {
-			-0.5f, -0.5f, .0f, 0, 0,
-			 0.5f, -0.5f, .0f, 1, 0,
-			 0.5f,  0.5f, .0f, 1, 1,
-			-0.5f,  0.5f, .0f, 0, 1
+		float quadVertices[8 * 4] = {
+			-0.5f, -0.5f, .0f, -0.5f, -0.5f, .0f, 0, 0,
+			 0.5f, -0.5f, .0f,  0.5f, -0.5f, .0f, 1, 0,
+			 0.5f,  0.5f, .0f,  0.5f,  0.5f, .0f, 1, 1,
+			-0.5f,  0.5f, .0f, -0.5f,  0.5f, .0f, 0, 1
 		};
 		s_renderer2Ddata->m_quadVertexArray = VertexArray::create();
 		vertexBuffer = VertexBuffer::create(sizeof(quadVertices), quadVertices);
@@ -43,13 +44,13 @@ namespace Stulu {
 		uint32_t triangleIndicies[3]{
 			0,1,2,
 		};
-		float triangleVertices[5 * 5] = {
-			-0.5f, -0.5f, .0f, 0, 0,
-			 0.5f, -0.5f, .0f, 1, 0,
-			  .0f,  0.5f, .0f, 0.5, 1,
+		float triangleVertices[8 * 5] = {
+			-0.5f, -0.5f, .0f, -0.5f, -0.5f, .0f, 0, 0,
+			 0.5f, -0.5f, .0f,  0.5f, -0.5f, .0f, 1, 0,
+			  .0f,  0.5f, .0f,  .0f,   0.5f, .0f, 0.5, 1,
 			//for texture coords
-			 0.5f,  0.5f, .0f, 1, 1,
-			-0.5f,  0.5f, .0f, 0, 1
+			 0.5f,  0.5f, .0f, 0.5f,  0.5f, .0f, 1, 1,
+			-0.5f,  0.5f, .0f,-0.5f,  0.5f, .0f, 0, 1
 		};
 		s_renderer2Ddata->m_triangleVertexArray = VertexArray::create();
 		vertexBuffer = VertexBuffer::create(sizeof(triangleVertices), triangleVertices);

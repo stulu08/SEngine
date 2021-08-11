@@ -19,6 +19,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
+IncludeDir["assimp"] = "Stulu/vendor/assimp/include"
 IncludeDir["glm"] = "Stulu/vendor/glm"
 IncludeDir["stb_image"] = "Stulu/vendor/stb_image"
 IncludeDir["noise"] = "Stulu/vendor/ReputelessPerlinNoise"
@@ -27,6 +28,7 @@ group "Dependencies"
 include "Stulu/vendor/GLFW"
 include "Stulu/vendor/Glad"
 include "Stulu/vendor/imgui"
+include "Stulu/vendor/assimp"
 group ""
 project "Stulu"
 	location "Stulu"
@@ -64,6 +66,7 @@ project "Stulu"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.assimp}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.noise}"
@@ -74,6 +77,7 @@ project "Stulu"
 		"GLFW",
 		"Glad",
 		"ImGui",
+		"assimp",
 		"opengl32.lib"
 	}
 

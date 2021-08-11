@@ -108,6 +108,7 @@ namespace Stulu{
 
 
 		static Ref<VertexBuffer> create(uint32_t size, float* vertices);
+		static Ref<VertexBuffer> create(uint32_t size, const void* data);
 	};
 	class IndexBuffer {
 	public:

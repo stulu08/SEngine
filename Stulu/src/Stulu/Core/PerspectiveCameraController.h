@@ -3,6 +3,7 @@
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Events/MouseEvent.h"
+#include <Stulu/Events/KeyEvent.h>
 namespace Stulu {
 	class PerspectiveCameraController {
 	public:
@@ -17,12 +18,15 @@ namespace Stulu {
 		float cameraBaseMoveSpeed = 8.0f;
 		float cameraSensitivity = .8f;
 
+		uint32_t wireFrameSwitchKey = 70;
+
 		Transform& getTransform() { return m_transform; }
 		void setTransform(const Transform& transform) { m_transform = transform; }
 
 	private:
 		float m_aspectRatio, m_fov, m_zNear, m_zFar;
 		float m_pitch = 0, m_yaw = 0;
+		bool wireFrame = false;
 		PerspectiveCamera m_cam;
 
 		Transform m_transform;
@@ -30,9 +34,8 @@ namespace Stulu {
 		float m_cameraMoveSpeed = 8.0f;
 
 		bool onResizeEvent(WindowResizeEvent& e);
+		bool onKeyPressed(KeyDownEvent& e);
 
-		glm::vec3 getUpDirection();
-		glm::vec3 getRightDirection();
-		glm::vec3 getForwardDirection();
+
 	};
 }

@@ -25,8 +25,10 @@ namespace Stulu {
 		m_scale = glm::vec3(1.0f);
 	}
 
-	void Transform::ImGuiTransformEdit(Transform& transform, const char* name, bool _2D) {
-		ImGui::Begin(name);
+	void Transform::ImGuiTransformEdit(Transform& transform, const char* name, bool _2D, bool end, bool begin) {
+		if(begin)
+			ImGui::Begin(name);
+		ImGui::Text("Transform");
 		if (_2D) {
 			ImGui::DragFloat2("Position", glm::value_ptr(transform.getPos()), .1f);
 			ImGui::DragFloat2("Size", glm::value_ptr(transform.getScale()), .1f);
@@ -37,8 +39,9 @@ namespace Stulu {
 			ImGui::DragFloat3("Rotation", glm::value_ptr(transform.getRotation()));
 			ImGui::DragFloat3("Scale", glm::value_ptr(transform.getScale()), .1f);
 		}
-		if (ImGui::Button("Reset"))
+		if (ImGui::Button("Reset Transform"))
 			transform.reset();
-		ImGui::End();
+		if(end)
+			ImGui::End();
 	}
 }

@@ -4,6 +4,7 @@ namespace Stulu {
 
 /* Printable keys */
 #ifdef ST_PLATFORM_WINDOWS
+	#define KEY_NONE				0
 	#define KEY_SPACE              32
 	#define KEY_APOSTROPHE         39  /* ' */
 	#define KEY_COMMA              44  /* , */

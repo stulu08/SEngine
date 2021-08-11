@@ -71,7 +71,16 @@ void TerrainLayer::onAttach() {
 	Stulu::Math::setPerlinSeed(Stulu::Random::getInt(0, 9999999));
 	genChunks(m_cameraController.getTransform().getPos());
 
-
+	std::vector<std::string> faces =
+	{
+		"assets/SkyBox/default/right.jpg",
+		"assets/SkyBox/default/left.jpg",
+		"assets/SkyBox/default/top.jpg",
+		"assets/SkyBox/default/bottom.jpg",
+		"assets/SkyBox/default/front.jpg",
+		"assets/SkyBox/default/back.jpg"
+	};
+	Stulu::Renderer::setSkyBox(Stulu::CubeMap::create(faces));
 }
 void TerrainLayer::onEvent(Stulu::Event& e) {
 	m_cameraController.onEvent(e);
@@ -112,9 +121,9 @@ void TerrainLayer::onUpdate(Stulu::Timestep timestep) {
 	//render
 	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
-	Stulu::Renderer::beginScene(m_cameraController.getCamera());
+	Stulu::Renderer::beginScene(m_cameraController.getCamera(), true);
 
-
+	m_shaderLib.get("heightColor")->setFloat3("u_camPos", m_cameraController.getTransform().getPos());
 
 
 

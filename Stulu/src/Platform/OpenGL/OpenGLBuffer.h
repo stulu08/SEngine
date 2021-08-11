@@ -5,6 +5,7 @@ namespace Stulu {
 	class OpenGLVertexBuffer : public VertexBuffer {
 	public:
 		OpenGLVertexBuffer(uint32_t size, float* vertices);
+		OpenGLVertexBuffer(uint32_t size, const void* data);
 
 		virtual ~OpenGLVertexBuffer();
 

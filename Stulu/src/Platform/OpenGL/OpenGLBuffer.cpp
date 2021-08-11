@@ -10,6 +10,12 @@ namespace Stulu {
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 	}
+	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size, const void* data) 
+	{
+		glCreateBuffers(1, &m_rendererID);
+		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
+		glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	}
 	OpenGLVertexBuffer::~OpenGLVertexBuffer() {
 		glDeleteBuffers(1, &m_rendererID);
 	}

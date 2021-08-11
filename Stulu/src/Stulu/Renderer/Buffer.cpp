@@ -21,6 +21,22 @@ namespace Stulu{
 		CORE_ASSERT(false, "Unknown error in VertexBuffer creation");
 		return nullptr;
 	}
+	Ref<VertexBuffer> VertexBuffer::create(uint32_t size, const void* data) {
+		switch (Renderer::getRendererAPI())
+		{
+		case RenderAPI::API::OpenGL:
+			return std::make_shared<OpenGLVertexBuffer>(size, data);
+		case RenderAPI::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in VertexBuffer creation");
+		return nullptr;
+	}
 
 	Ref<IndexBuffer> IndexBuffer::create(uint32_t size, uint32_t* indices) {
 		switch (Renderer::getRendererAPI())

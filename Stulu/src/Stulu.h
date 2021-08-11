@@ -24,6 +24,7 @@
 #include "Stulu/Core/MouseButtonCodes.h"
 
 //////////////////Rendering//////////////////
+#include "Stulu/Renderer/Model.h"
 #include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Renderer/Renderer2D.h"
 //#include "Stulu/Renderer/Buffer.h"

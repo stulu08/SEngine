@@ -1,7 +1,8 @@
 ##type vertex
 #version 460 core
 layout(location = 0) in vec3 a_pos;
-layout(location = 1) in vec2 a_texCoord;
+layout(location = 1) in vec2 a_normals;
+layout(location = 2) in vec2 a_texCoord;
 uniform mat4 u_viewProjection;
 uniform mat4 u_transform;
 out vec2 v_texCoord;

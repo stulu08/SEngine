@@ -17,6 +17,9 @@ namespace Stulu {
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 		glViewport(x, y, width, height);
 	}
+	void OpenGLRenderAPI::setDepthFunc(bool lequalLess) {
+		glDepthFunc(lequalLess ? GL_LEQUAL : GL_LESS);
+	}
 	void OpenGLRenderAPI::setDepthMask(bool value) {
 		glDepthMask(value);
 	}
@@ -36,5 +39,8 @@ namespace Stulu {
 
 	void OpenGLRenderAPI::drawIndex(const Ref<VertexArray>& vertexArray) {
 		glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
+	}
+	void OpenGLRenderAPI::drawPrimitiveArray(const uint32_t size) {
+		glDrawArrays(GL_TRIANGLES, 0, size);
 	}
 }

@@ -50,26 +50,29 @@ namespace Stulu {
 
 
 	OpenGLCubeMap::OpenGLCubeMap(const std::vector<std::string>& faces) {
-		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_rendererID);
+		glGenTextures(1, &m_rendererID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_rendererID);
 		int width, height, channels;
-		stbi_set_flip_vertically_on_load(1);
+		stbi_set_flip_vertically_on_load(false);
 		for (uint32_t i = 0; i < faces.size(); i++) {
+			GLenum type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
 			stbi_uc* textureData = stbi_load(faces[i].c_str(), &width, &height, &channels, 0);
 			CORE_ASSERT(textureData, "Texture failed to load: {0}", faces[i].c_str());
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+
+			glTexImage2D(type, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
 			stbi_image_free(textureData);
 		}
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	}
 	OpenGLCubeMap::~OpenGLCubeMap() {
 		glDeleteTextures(1, &m_rendererID);
 	}
 	void OpenGLCubeMap::bind(uint32_t slot) const {
+		glActiveTexture(GL_TEXTURE0);
 		glBindTextureUnit(slot, m_rendererID);
 	}
 }
