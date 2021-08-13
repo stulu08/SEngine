@@ -8,9 +8,8 @@ void ModelLayer::onAttach() {
 	m_shaderLib.load("assets/Shaders/Reflective.glsl");
 	m_lightIconTexture = Stulu::Texture2D::create("assets/light.png");
 	m_cameraController.setTransform(Stulu::Transform(glm::vec3(-3.6f, 4.5f, 8.7f), glm::vec3(-23.0f, -64.0f, .0f)));
-	m_modelSphere = Stulu::Model("assets/girl.obj");
+	m_modelSphere = Stulu::Model("assets/sphere.obj");
 	m_modelCar = Stulu::Model("assets/mclaren.obj");
-
 	std::vector<std::string> faces =
 	{
 		"assets/SkyBox/yokoham/right.jpg",
@@ -39,12 +38,11 @@ void ModelLayer::onUpdate(Stulu::Timestep timestep) {
 	//update
 	m_cameraController.onUpdate(timestep);
 	//render	
+
 	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
-
 	Stulu::Renderer::beginScene(m_cameraController.getCamera(), true);
 	m_shaderLib.get("pbr")->bind();
-
 
 	m_shaderLib.get("pbr")->setFloat3("u_lightPosition", m_sphereTransform.getPos());
 	m_shaderLib.get("pbr")->setFloat3("u_lightColor", lightData.lightColor);
@@ -52,20 +50,15 @@ void ModelLayer::onUpdate(Stulu::Timestep timestep) {
 	m_shaderLib.get("pbr")->setFloat3("u_camPos", m_cameraController.getTransform().getPos());
 	m_modelCar.submitToRenderer(m_shaderLib.get("pbr"), m_carTransform);
 
-
-	m_shaderLib.get("Reflective")->bind();
-	m_shaderLib.get("Reflective")->setFloat("u_metallic", 1.0f);
-	m_shaderLib.get("Reflective")->setFloat3("u_camPos", m_cameraController.getTransform().getPos());
 	m_modelSphere.submitToRenderer(m_shaderLib.get("Reflective"), m_sphereTransform);
-
 	Stulu::Renderer::endScene();
 }
 //imgui
 #include <imgui/imgui.h>
 void ModelLayer::onImguiRender(Stulu::Timestep timestep) {
-	Stulu::Transform::ImGuiTransformEdit(m_cameraController.getTransform(), "Camera");
+	Stulu::imGui::Transform(m_cameraController.getTransform(), "Camera");
 
-	Stulu::Transform::ImGuiTransformEdit(m_carTransform, "Weapon");
+	Stulu::imGui::Transform(m_carTransform, "Weapon");
 	drawRendererInfos();
 	drawCameraInfos();
 	drawApplicationInfos(timestep);
@@ -81,7 +74,7 @@ void ModelLayer::drawRendererInfos() {
 void ModelLayer::drawCameraInfos() {
 	ImGui::Begin("Enviroment", NULL, ImGuiWindowFlags_NoResize);
 	ImGui::ColorEdit4("Clear Color", glm::value_ptr(m_clearColor));
-	Stulu::Transform::ImGuiTransformEdit(m_sphereTransform, "Light", false, false, false);
+	Stulu::imGui::Transform(m_sphereTransform, "Light", false, false, false);
 	ImGui::ColorEdit3("Light Color", glm::value_ptr(lightData.lightColor));
 	ImGui::DragFloat("Light Strength", &lightData.lightStrength);
 	ImGui::End();

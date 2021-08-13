@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "CoreConfig.h"
+
 #ifdef _WIN32
 	#ifdef _WIN64
 		#define ST_PLATFORM_WINDOWS
@@ -44,10 +46,6 @@
 #else
 	#error Only Winodws is currently supported in Stulu
 #endif // ST_PLATFORM_WINDOWS
-
-#ifdef ST_DEBUG
-	#define ST_ENABLE_ASSERTS
-#endif
 
 #ifdef ST_ENABLE_ASSERTS
 	#define ST_ASSERT(x, ...) {if(!(x)){ST_ERROR("Asserion failed: {0}", __VA_ARGS__); __debugbreak(); } }

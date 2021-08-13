@@ -14,6 +14,7 @@ namespace Stulu {
 
 	}
 	void OrthographicCameraController::onUpdate(Timestep timestep) {
+		ST_PROFILING_FUNCTION();
 		if (m_moveVertical) {
 			if (Input::isKeyDown(KEY_W)) {
 				m_cameraPos.x += -sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
@@ -46,11 +47,13 @@ namespace Stulu {
 		}
 	}
 	void OrthographicCameraController::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(OrthographicCameraController::onMouseScroll));
 		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(OrthographicCameraController::onResizeEvent));
 	}
 	bool OrthographicCameraController::onMouseScroll(MouseScrollEvent& e) {
+		ST_PROFILING_FUNCTION();
 		if (m_zoom) {
 			m_zoomLevel -= e.getYOff() * .25f;
 			m_zoomLevel = std::max(m_zoomLevel, .25f);
@@ -59,6 +62,7 @@ namespace Stulu {
 		return false;
 	}
 	bool OrthographicCameraController::onResizeEvent(WindowResizeEvent& e) {
+		ST_PROFILING_FUNCTION();
 		m_aspectRatio = (float)e.getWidth() / (float)e.getHeight();
 		m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
 		return false;

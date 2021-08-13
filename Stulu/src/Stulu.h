@@ -40,4 +40,5 @@
 #include "Stulu/Math/Math.h"
 
 ////////////////////ImGui////////////////////
+#include "Stulu/ImGui/StuluImGui.h"
 //#include "Stulu/ImGui/ImGuiLayer.h"

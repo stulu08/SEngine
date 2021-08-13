@@ -7,10 +7,14 @@ namespace Stulu {
 	Scope<Renderer::SceneData> Renderer::m_sceneData = createScope<Renderer::SceneData>();
 
 	void Renderer::init() {
+		ST_PROFILING_FUNCTION();
 		RenderCommand::init();
 		Renderer2D::init();
-
-		m_sceneData->skybox.shader = Shader::create("assets/Shaders/SkyBox.glsl");
+		setUpSkyBox();
+	}
+	void Renderer::setUpSkyBox() {
+		ST_PROFILING_FUNCTION();
+		m_sceneData->skybox.shader = Shader::create("Stulu/assets/Shaders/SkyBox.glsl");
 		m_sceneData->skybox.shader->bind();
 		m_sceneData->skybox.shader->setInt("u_skyBox", 0);
 		float skyboxVertices[6 * 3 * 6] = {
@@ -65,41 +69,45 @@ namespace Stulu {
 		vertexBuffer->setLayout(layout);
 		m_sceneData->skybox.vertexArray->addVertexBuffer(vertexBuffer);
 	}
-
 	void Renderer::onWinndowResize(WindowResizeEvent& e)
 	{
+		ST_PROFILING_FUNCTION();
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
 
 	void Renderer::beginScene(Camera& cam, bool skybox) {
+		ST_PROFILING_FUNCTION();
 		m_sceneData->viewProjectionMatrix = cam.getViewProjectionMatrix();
 		m_sceneData->skyBoxClear = skybox;
 		m_sceneData->view = cam.getViewMatrix();
 		m_sceneData->proj = cam.getProjectionMatrix();
+		m_sceneData->camPos = cam.getPos();
 	}
 	void Renderer::endScene() {
+
+		ST_PROFILING_FUNCTION();
 		//draw Skybox
 		if (!m_sceneData->skyBoxClear)
 			return;
 		RenderCommand::setDepthFunc(true);
 		m_sceneData->skybox.shader->bind();
 		glm::mat4 _view = glm::mat4(glm::mat3(m_sceneData->view));
-		m_sceneData->skybox.shader->setMat4("u_view", _view);
-		m_sceneData->skybox.shader->setMat4("u_projection", m_sceneData->proj);
+		m_sceneData->skybox.shader->setMat4("u_viewProjection", m_sceneData->proj * _view);
 		m_sceneData->skybox.shader->setMat4("u_transform", glm::mat4(1.0f));
 		m_sceneData->skybox.vertexArray->bind();
 		m_sceneData->skybox.texture->bind();
-		RenderCommand::drawPrimitiveArray(m_sceneData->skybox.size);
+		RenderCommand::drawPrimitiveArray(m_sceneData->skybox.count);
 		RenderCommand::setDepthFunc(false);
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform) {
+		ST_PROFILING_FUNCTION();
 		shader->bind();
-		std::dynamic_pointer_cast<OpenGLShader>(shader)->uploadMat4Uniform("u_viewProjection", m_sceneData->viewProjectionMatrix);
-		std::dynamic_pointer_cast<OpenGLShader>(shader)->uploadMat4Uniform("u_transform", transform);
+		shader->setMat4("u_viewProjection", m_sceneData->viewProjectionMatrix);
+		shader->setMat4("u_transform", transform);
+		shader->setFloat3("u_camPos", m_sceneData->camPos);
 		vertexArray->bind();
-		if(m_sceneData->skyBoxClear)
-			m_sceneData->skybox.texture->bind();
-		RenderCommand::drawIndex(vertexArray);
+		
+		RenderCommand::drawIndexed(vertexArray);
 	}
 	void Renderer::submit(Mesh& mesh, const Ref<Shader>& shader, const glm::mat4& transform) {
 		submit(mesh.getVertexArray(), shader, transform);

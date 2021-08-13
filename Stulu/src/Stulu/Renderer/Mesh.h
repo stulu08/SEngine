@@ -4,16 +4,10 @@
 #include "glm/glm.hpp"
 
 namespace Stulu {
-	struct vertex {
+	struct Vertex {
 		glm::vec3 pos;
 		glm::vec3 normal;
 		glm::vec2 texCoords;
-		vertex(float posX, float posY, float posZ, float normalX, float normalY, float normalZ, float texCoordX, float texCoordY)
-			: pos(posX,posY,posZ),normal(normalX,normalY,normalZ),texCoords(texCoordX,texCoordY){}
-		vertex(glm::vec3 pos, glm::vec3 normal, glm::vec2 texCoords)
-			:pos(pos),normal(normal),texCoords(texCoords){}
-		vertex()
-			:pos(.0f),normal(.0f),texCoords(.0f){}
 	};
 	class Mesh {
 	public:
@@ -23,7 +17,7 @@ namespace Stulu {
 			{ Stulu::ShaderDataType::Float3, "a_normal" },
 			{ Stulu::ShaderDataType::Float2, "a_texCoord" },
 			});
-		Mesh(std::vector<vertex> vertices, std::vector<uint32_t> indices, BufferLayout layout = {
+		Mesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices, BufferLayout layout = {
 			{ Stulu::ShaderDataType::Float3, "a_pos" },
 			{ Stulu::ShaderDataType::Float3, "a_normal" },
 			{ Stulu::ShaderDataType::Float2, "a_texCoord" },

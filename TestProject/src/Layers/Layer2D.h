@@ -1,5 +1,7 @@
 #include <Stulu.h>
 
+
+
 class Layer2D : public Stulu::Layer
 {
 public:
@@ -14,16 +16,17 @@ public:
 
 
 private:
-	struct ProfileResult {
-		const char* name;
-		float time;
-	};
-	std::vector<ProfileResult> profileResults;
 
 	Stulu::OrthographicCameraController m_cameraController;
 
-	Stulu::Transform m_transform;
-	glm::vec4 m_color = COLOR_PLASTIC_BLUE_VEC4;
+	Stulu::Transform m_transformOne;
+	Stulu::Transform m_transformTwo;
+	glm::vec4 m_colorOne = COLOR_PLASTIC_BLUE_VEC4;
+	glm::vec4 m_colorTwo = COLOR_PLASTIC_BLUE_VEC4;
+
+	Stulu::Ref<Stulu::Texture2D> m_texture;
+	glm::vec2 texTilling = glm::vec2(1.0f);
+
 
 	glm::vec4 m_clearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 };

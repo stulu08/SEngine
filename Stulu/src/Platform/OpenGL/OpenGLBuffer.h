@@ -4,17 +4,20 @@
 namespace Stulu {
 	class OpenGLVertexBuffer : public VertexBuffer {
 	public:
+		OpenGLVertexBuffer(uint32_t size);
 		OpenGLVertexBuffer(uint32_t size, float* vertices);
 		OpenGLVertexBuffer(uint32_t size, const void* data);
 
 		virtual ~OpenGLVertexBuffer();
 
+		virtual void setLayout(const BufferLayout& layout) override { m_layout = layout; }
+		virtual const BufferLayout& getLayout() const override { return m_layout; }
+		virtual void setData(const void* data, uint32_t size) override;
+
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
 
-		virtual void setLayout(const BufferLayout& layout) override { m_layout = layout; }
-		virtual const BufferLayout& getLayout() const override { return m_layout; }
 	private:
 		uint32_t m_rendererID;
 		BufferLayout m_layout;
@@ -23,7 +26,7 @@ namespace Stulu {
 
 	class OpenGLIndexBuffer : public IndexBuffer {
 	public:
-		OpenGLIndexBuffer(uint32_t size, uint32_t* indices);
+		OpenGLIndexBuffer(uint32_t count, uint32_t* indices);
 		virtual ~OpenGLIndexBuffer();
 
 

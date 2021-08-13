@@ -13,6 +13,7 @@ namespace Stulu {
 	{CORE_ASSERT(windowHandle,"Window handle is null") }
 
 	void OpenGLContext::init() {
+		ST_PROFILING_FUNCTION();
 		glfwMakeContextCurrent(m_windowHandle);
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		CORE_ASSERT(status, "Failed glad initialization");

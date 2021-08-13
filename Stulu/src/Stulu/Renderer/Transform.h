@@ -20,7 +20,7 @@ namespace Stulu {
 
 		inline void setPos(glm::vec3 pos) { m_pos = pos; }
 		inline void setRotation(glm::vec3 rotation) { m_rotation = rotation; }
-		inline void setRotation(float pitch, float yaw, float roll) { m_rotation = glm::degrees(glm::vec3(pitch,yaw,roll)); }
+		inline void setRotation(float x, float y, float z) { m_rotation = glm::degrees(glm::vec3(x,y,z)); }
 		inline void setScale(glm::vec3 scale) { m_scale = scale; }
 
 		inline glm::vec3& getPos() { return m_pos; }
@@ -31,6 +31,7 @@ namespace Stulu {
 
 		void reset();
 
+		[[deprecated]]
 		static void ImGuiTransformEdit(Transform& transform, const char* name, bool _2D = false, bool end = true, bool begin = true);
 
 		operator const glm::mat4() { return toMat4(); }

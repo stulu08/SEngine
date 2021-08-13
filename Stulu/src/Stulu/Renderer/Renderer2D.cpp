@@ -6,131 +6,180 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Stulu {
-	struct Renderer2DStorage {
+	struct QuadVertex {
+		glm::vec3 pos;
+		glm::vec2 texCoords;
+		glm::vec4 color;
+	};
+	struct Renderer2DData {
+		const uint32_t maxQuads = 10000;
+		const uint32_t maxIndices = maxQuads * 6;
+		const uint32_t maxVertices = maxQuads * 4;
 		Ref<Shader> m_shader;
 		Ref<Texture2D> m_texture;
 		Ref<VertexArray> m_quadVertexArray;
-		Ref<VertexArray> m_triangleVertexArray;
+		Ref<VertexBuffer> m_quadVertexBuffer;
+
+		uint32_t quadIndexCount = 0;
+		QuadVertex* quadVertexBufferBase = nullptr;
+		QuadVertex* quadVertexBufferPtr = nullptr;
 	};
-	static Scope<Renderer2DStorage> s_renderer2Ddata;
+
+	static Renderer2DData s_renderer2Ddata;
 	void Renderer2D::init() {
-		s_renderer2Ddata = createScope<Renderer2DStorage>();
-		Ref<VertexBuffer> vertexBuffer;
-		Ref<IndexBuffer> indexBuffer;
-		BufferLayout layout = {
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_quadVertexArray = VertexArray::create();
+
+		s_renderer2Ddata.m_quadVertexBuffer = VertexBuffer::create(s_renderer2Ddata.maxVertices * sizeof(QuadVertex));
+
+		s_renderer2Ddata.m_quadVertexBuffer->setLayout({
 			{ ShaderDataType::Float3, "a_pos" },
-			{ ShaderDataType::Float3, "a_normals" },
 			{ ShaderDataType::Float2, "a_texCoord" },
-		};
+			{ ShaderDataType::Float4, "a_color" },
+		});
+		s_renderer2Ddata.m_quadVertexArray->addVertexBuffer(s_renderer2Ddata.m_quadVertexBuffer);
 
-		//quad
-		uint32_t quadIndicies[6]{
-			0,1,2,
-			2,3,0
-		};
-		float quadVertices[8 * 4] = {
-			-0.5f, -0.5f, .0f, -0.5f, -0.5f, .0f, 0, 0,
-			 0.5f, -0.5f, .0f,  0.5f, -0.5f, .0f, 1, 0,
-			 0.5f,  0.5f, .0f,  0.5f,  0.5f, .0f, 1, 1,
-			-0.5f,  0.5f, .0f, -0.5f,  0.5f, .0f, 0, 1
-		};
-		s_renderer2Ddata->m_quadVertexArray = VertexArray::create();
-		vertexBuffer = VertexBuffer::create(sizeof(quadVertices), quadVertices);
-		vertexBuffer->setLayout(layout);
-		s_renderer2Ddata->m_quadVertexArray->addVertexBuffer(vertexBuffer);
-		indexBuffer = IndexBuffer::create(sizeof(quadIndicies) / sizeof(uint32_t), quadIndicies);
-		s_renderer2Ddata->m_quadVertexArray->setIndexBuffer(indexBuffer);
+		s_renderer2Ddata.quadVertexBufferBase = new QuadVertex[s_renderer2Ddata.maxVertices];
 
-		uint32_t triangleIndicies[3]{
-			0,1,2,
-		};
-		float triangleVertices[8 * 5] = {
-			-0.5f, -0.5f, .0f, -0.5f, -0.5f, .0f, 0, 0,
-			 0.5f, -0.5f, .0f,  0.5f, -0.5f, .0f, 1, 0,
-			  .0f,  0.5f, .0f,  .0f,   0.5f, .0f, 0.5, 1,
-			//for texture coords
-			 0.5f,  0.5f, .0f, 0.5f,  0.5f, .0f, 1, 1,
-			-0.5f,  0.5f, .0f,-0.5f,  0.5f, .0f, 0, 1
-		};
-		s_renderer2Ddata->m_triangleVertexArray = VertexArray::create();
-		vertexBuffer = VertexBuffer::create(sizeof(triangleVertices), triangleVertices);
-		vertexBuffer->setLayout(layout);
-		s_renderer2Ddata->m_triangleVertexArray->addVertexBuffer(vertexBuffer);
-		indexBuffer = IndexBuffer::create(sizeof(triangleIndicies) / sizeof(uint32_t), triangleIndicies);
-		s_renderer2Ddata->m_triangleVertexArray->setIndexBuffer(indexBuffer);
+		uint32_t* quadIndices = new uint32_t[s_renderer2Ddata.maxIndices];
+		uint32_t offset = 0;
+		for(uint32_t i = 0; i < s_renderer2Ddata.maxIndices; i+=6){
+			quadIndices[i + 0] = offset + 0;
+			quadIndices[i + 1] = offset + 1;
+			quadIndices[i + 2] = offset + 2;
 
+			quadIndices[i + 3] = offset + 2;
+			quadIndices[i + 4] = offset + 3;
+			quadIndices[i + 5] = offset + 0;
+			offset += 4;
+		}
 
-		s_renderer2Ddata->m_texture = Texture2D::create("assets/quad.png");
-		s_renderer2Ddata->m_shader = Shader::create("assets/Shaders/default2D.glsl");
-		s_renderer2Ddata->m_shader->bind();
-		s_renderer2Ddata->m_shader->setInt("u_texture", 0);
+		Ref<IndexBuffer> indexBuffer = IndexBuffer::create(s_renderer2Ddata.maxIndices, quadIndices);
+		s_renderer2Ddata.m_quadVertexArray->setIndexBuffer(indexBuffer);
+		delete[] quadIndices;
+
+		s_renderer2Ddata.m_texture = Texture2D::create("Stulu/assets/Textures/quad.png");
+		s_renderer2Ddata.m_shader = Shader::create("Stulu/assets/Shaders/default2D.glsl");
+		s_renderer2Ddata.m_shader->bind();
+		s_renderer2Ddata.m_shader->setInt("u_texture", 0);
 
 	}
 	void Renderer2D::shutdown() {
-		delete s_renderer2Ddata.get();
+		ST_PROFILING_FUNCTION();
 	}
 	void Renderer2D::beginScene(const Camera& cam) {
-		s_renderer2Ddata->m_shader->bind();
-		s_renderer2Ddata->m_shader->setMat4("u_viewProjection", cam.getViewProjectionMatrix());
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_shader->bind();
+		s_renderer2Ddata.m_shader->setMat4("u_viewProjection", cam.getViewProjectionMatrix());
+		s_renderer2Ddata.quadIndexCount = 0;
+		s_renderer2Ddata.quadVertexBufferPtr = s_renderer2Ddata.quadVertexBufferBase;
+
 	}
 	void Renderer2D::endScene() {
+		ST_PROFILING_FUNCTION();
+		uint32_t dataSize = (uint8_t*)s_renderer2Ddata.quadVertexBufferPtr - (uint8_t*)s_renderer2Ddata.quadVertexBufferBase;
+		s_renderer2Ddata.m_quadVertexBuffer->setData(s_renderer2Ddata.quadVertexBufferBase, dataSize);
+		flush();
 	}
-	void Renderer2D::drawQuad(const glm::vec2& pos, const glm::vec2& size,  const glm::vec3& rotation, const glm::vec4& color) {
-		drawQuad(Transform(pos, rotation, size), color);
+	void Renderer2D::flush() {
+		ST_PROFILING_FUNCTION(); 
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray, s_renderer2Ddata.quadIndexCount);
+	}
+	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
+		ST_PROFILING_FUNCTION();
+		glm::vec3 bottomLeftPos = { pos.x - size.x / 2, pos.y - size.y / 2, pos.z };
+		s_renderer2Ddata.quadVertexBufferPtr->pos = bottomLeftPos;
+		s_renderer2Ddata.quadVertexBufferPtr->texCoords = {0.0f,0.0f};
+		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr++;
+
+		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x + size.x, bottomLeftPos.y, bottomLeftPos.z };
+		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 1.0f,0.0f };
+		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr++;
+
+		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x + size.x, bottomLeftPos.y + size.y, bottomLeftPos.z };
+		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 1.0f,1.0f };
+		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr++;
+
+		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x, bottomLeftPos.y + size.x, bottomLeftPos.z };
+		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 0.0f,1.0f };
+		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr++;
+
+		s_renderer2Ddata.quadIndexCount += 6;
 	}
 	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawQuad(Transform(pos,rotation,glm::vec3(size.x,size.y,.0f)), color);
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_shader->setMat4("u_transform", 
+			glm::translate(glm::mat4(1.0f), pos)
+			* glm::toMat4(glm::quat(glm::radians(rotation)))
+			* glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f))
+			);
+		s_renderer2Ddata.m_shader->setFloat4("u_color", color);
+		s_renderer2Ddata.m_texture->bind();
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray);
 	}
-	void Renderer2D::drawQuad(Transform& transform, const glm::vec4& color) {
-		drawQuad(transform.toMat4(), color);
-	}
-	void Renderer2D::drawTriangle(const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawTriangle(Transform(pos, rotation, size), color);
-	}
-	void Renderer2D::drawTriangle(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawTriangle(Transform(pos, rotation, glm::vec3(size.x, size.y, .0f)), color);
-	}
-	void Renderer2D::drawTriangle(Transform& transform, const glm::vec4& color) {
-		drawTriangle(transform.toMat4(), color);
-	}
-	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawTexture2DQuad(texture, Transform(pos, rotation, size), color);
-	}
-	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
-		drawTexture2DQuad(texture, Transform(pos, rotation, size), color);
-	}
-	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform, const glm::vec4& color) {
-		drawTexture2DQuad(texture, transform.toMat4(), color);
-	}
-
 	void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
+		ST_PROFILING_FUNCTION();
 
-		s_renderer2Ddata->m_shader->setMat4("u_transform", transform);
-		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
-		s_renderer2Ddata->m_texture->bind();
+		/*
+		s_renderer2Ddata.m_shader->setMat4("u_transform", transform);
+		s_renderer2Ddata.m_shader->setFloat4("u_color", color);
+		s_renderer2Ddata.m_texture->bind();
 
-		s_renderer2Ddata->m_quadVertexArray->bind();
-		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndex(s_renderer2Ddata.m_quadVertexArray);
+		*/
+
+		s_renderer2Ddata.m_shader->setMat4("u_transform", transform);
+		s_renderer2Ddata.m_shader->setFloat4("u_color", color);
+		s_renderer2Ddata.m_texture->bind();
+
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray);
 	}
-	void Renderer2D::drawTriangle(const glm::mat4& transform, const glm::vec4& color) {
 
-		s_renderer2Ddata->m_shader->setMat4("u_transform", transform);
-		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
-		s_renderer2Ddata->m_texture->bind();
-
-		s_renderer2Ddata->m_triangleVertexArray->bind();
-		RenderCommand::drawIndex(s_renderer2Ddata->m_triangleVertexArray);
-	}
-
-	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::mat4& transform, const glm::vec4& color) {
-
-		s_renderer2Ddata->m_shader->setMat4("u_transform", transform);
-		s_renderer2Ddata->m_shader->setFloat2("u_textureTiling", texture->tiling);
-		s_renderer2Ddata->m_shader->setFloat4("u_color", color);
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_shader->setMat4("u_transform",
+			glm::translate(glm::mat4(1.0f), pos)
+			* glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f))
+		);
+		s_renderer2Ddata.m_shader->setFloat2("u_textureTiling", texture->tiling);
+		s_renderer2Ddata.m_shader->setFloat4("u_color", color);
 		texture->bind();
 
-		s_renderer2Ddata->m_quadVertexArray->bind();
-		RenderCommand::drawIndex(s_renderer2Ddata->m_quadVertexArray);
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray);
+	}
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_shader->setMat4("u_transform",
+			glm::translate(glm::mat4(1.0f), pos)
+			* glm::toMat4(glm::quat(glm::radians(rotation)))
+			* glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f))
+		);
+		s_renderer2Ddata.m_shader->setFloat2("u_textureTiling", texture->tiling);
+		s_renderer2Ddata.m_shader->setFloat4("u_color", color);
+		texture->bind();
+
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray);
+	}
+	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::mat4& transform, const glm::vec4& color) {
+
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_shader->setMat4("u_transform", transform);
+		s_renderer2Ddata.m_shader->setFloat2("u_textureTiling", texture->tiling);
+		s_renderer2Ddata.m_shader->setFloat4("u_color", color);
+		texture->bind();
+
+		s_renderer2Ddata.m_quadVertexArray->bind();
+		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray);
 	}
 
 }

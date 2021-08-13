@@ -6,6 +6,7 @@
 namespace Stulu {
 
 	void OpenGLRenderAPI::init() {
+		ST_PROFILING_FUNCTION();
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
@@ -15,15 +16,19 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+		ST_PROFILING_FUNCTION();
 		glViewport(x, y, width, height);
 	}
 	void OpenGLRenderAPI::setDepthFunc(bool lequalLess) {
+		ST_PROFILING_FUNCTION();
 		glDepthFunc(lequalLess ? GL_LEQUAL : GL_LESS);
 	}
 	void OpenGLRenderAPI::setDepthMask(bool value) {
+		ST_PROFILING_FUNCTION();
 		glDepthMask(value);
 	}
 	void OpenGLRenderAPI::setWireFrame(bool value) {
+		ST_PROFILING_FUNCTION();
 		if(value)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		else
@@ -31,16 +36,25 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setClearColor(const glm::vec4& color) {
+		ST_PROFILING_FUNCTION();
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 	void OpenGLRenderAPI::clear() {
+		ST_PROFILING_FUNCTION();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void OpenGLRenderAPI::drawIndex(const Ref<VertexArray>& vertexArray) {
-		glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
+	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count) {
+		ST_PROFILING_FUNCTION();
+
+		if(count == 0)
+			glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
+		else
+			glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	void OpenGLRenderAPI::drawPrimitiveArray(const uint32_t size) {
-		glDrawArrays(GL_TRIANGLES, 0, size);
+	void OpenGLRenderAPI::drawPrimitiveArray(const uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		glDrawArrays(GL_TRIANGLES, 0, count);
 	}
 }

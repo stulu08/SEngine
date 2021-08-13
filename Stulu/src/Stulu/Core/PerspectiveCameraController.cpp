@@ -14,6 +14,7 @@ namespace Stulu {
 	float lastMouseYPos = 0;
 	glm::vec2 mouseDelta = glm::vec2(0.0f);
 	void PerspectiveCameraController::onUpdate(Timestep timestep) {
+		ST_PROFILING_FUNCTION();
 		if (Input::isKeyDown(KEY_W))
 			m_transform.getPos() += m_cam.getForwardDirection() * m_cameraMoveSpeed * (float)timestep;
 		if (Input::isKeyDown(KEY_S))
@@ -40,16 +41,19 @@ namespace Stulu {
 		m_cam.recalculateViewMatrix();
 	}
 	void PerspectiveCameraController::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(PerspectiveCameraController::onResizeEvent));
 		dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(PerspectiveCameraController::onKeyPressed));
 	}
 	bool PerspectiveCameraController::onResizeEvent(WindowResizeEvent& e) {
+		ST_PROFILING_FUNCTION();
 		m_aspectRatio = (float)e.getWidth() / (float)e.getHeight();
 		m_cam.setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
 		return false;
 	}
 	bool PerspectiveCameraController::onKeyPressed(KeyDownEvent& e) {
+		ST_PROFILING_FUNCTION();
 		if (e.getKeyCode() == wireFrameSwitchKey) {
 			wireFrame = !wireFrame;
 			RenderCommand::setWireFrame(wireFrame);

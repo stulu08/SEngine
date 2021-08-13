@@ -11,6 +11,7 @@ namespace Stulu {
 
 	void PerspectiveCamera::setProjection(float fov, float aspect, float z_near, float z_far)
 	{
+		ST_PROFILING_FUNCTION();
 		m_projcetionMatrix = glm::perspective(glm::radians(fov), aspect, z_near, z_far);
 		m_viewProjcetionMatrix = m_projcetionMatrix * m_viewMatrix;
 		m_zFar = z_far;
@@ -19,6 +20,7 @@ namespace Stulu {
 
 	void PerspectiveCamera::recalculateViewMatrix()
 	{
+		ST_PROFILING_FUNCTION();
 		glm::quat orientation = m_transform.getOrientation();
 		m_viewMatrix = glm::translate(glm::mat4(1.0f), m_transform.getPos()) * glm::toMat4(orientation);
 		m_viewMatrix = glm::inverse(m_viewMatrix);

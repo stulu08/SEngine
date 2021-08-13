@@ -154,3 +154,56 @@ project "TestProject"
 		defines "ST_DIST"
 		runtime "Release"
 		optimize "on"
+
+project "Editor"
+	location "Editor"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	defines
+	{
+		"ST_EDITOR"
+	}
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/Stulu/**.h",
+		"%{prj.name}/Stulu/**.cpp"
+	}
+
+	includedirs
+	{
+		"%{prj.name}/src",
+		"Stulu/vendor/spdlog/include",
+		"Stulu/src",
+		"Stulu/vendor",
+		"%{IncludeDir.glm}"
+	}
+
+	links
+	{
+		"Stulu"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "ST_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "ST_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "ST_DIST"
+		runtime "Release"
+		optimize "on"

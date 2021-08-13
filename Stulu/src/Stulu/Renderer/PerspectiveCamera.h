@@ -14,6 +14,7 @@ namespace Stulu {
 		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
 		const glm::mat4& getViewMatrix() const override { return m_viewMatrix; }
 		const glm::mat4& getViewProjectionMatrix() const override { return m_viewProjcetionMatrix; }
+		const glm::vec3& getPos() override { return m_transform.getPos(); }
 
 		Transform& getTransform() { return m_transform; recalculateViewMatrix();}
 		void setTransform(const Transform& transform) { m_transform = transform; recalculateViewMatrix(); }

@@ -16,6 +16,7 @@
 
 
 #include "Stulu/Core/Log.h"
+#include "Stulu/Debug/Instrumentor.h"
 
 
 #ifdef ST_PLATFORM_WINDOWS

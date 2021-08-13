@@ -12,8 +12,8 @@ namespace Stulu {
 		virtual void setClearColor(const glm::vec4& color) override;
 		virtual void clear() override;
 
-		virtual void drawIndex(const Ref<VertexArray>& vertexArray) override;
-		virtual void drawPrimitiveArray(const uint32_t size) override;
+		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) override;
+		virtual void drawPrimitiveArray(const uint32_t count) override;
 	private:
 
 	};

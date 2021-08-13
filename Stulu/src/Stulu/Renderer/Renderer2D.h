@@ -11,20 +11,14 @@ namespace Stulu {
 		static void shutdown();
 		static void beginScene(const Camera& cam);
 		static void endScene();
+		static void flush();
 
-		static void drawQuad(const glm::vec2& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec3& rotation = { 0.0f,0.0f,0.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawQuad(const glm::vec3& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec3& rotation = { 0.0f,0.0f,0.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawQuad(Transform& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		                
-		static void drawTriangle(const glm::vec2& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec3& rotation = { 0.0f,0.0f,0.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTriangle(const glm::vec3& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec3& rotation = { 0.0f,0.0f,0.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTriangle(Transform& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTriangle(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 
-		static void drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec2& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec3& rotation = { 0.0f,0.0f,0.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size = { 1.0f,1.0f }, const glm::vec3& rotation = { 0.0f,0.0f,0.0f }, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, Transform& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 
 	private:

@@ -25,11 +25,11 @@ namespace Stulu{
 		inline static void clear() {
 			s_renderAPI->clear();
 		}
-		inline static void drawIndex(const Ref<VertexArray>& vertexArray) {
-			s_renderAPI->drawIndex(vertexArray);
+		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
+			s_renderAPI->drawIndexed(vertexArray, count);
 		}
-		inline static void drawPrimitiveArray(const uint32_t size) {
-			s_renderAPI->drawPrimitiveArray(size);
+		inline static void drawPrimitiveArray(const uint32_t count) {
+			s_renderAPI->drawPrimitiveArray(count);
 		}
 	private:
 		static Scope<RenderAPI> s_renderAPI;

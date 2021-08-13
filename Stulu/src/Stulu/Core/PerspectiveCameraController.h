@@ -18,6 +18,8 @@ namespace Stulu {
 		float cameraBaseMoveSpeed = 8.0f;
 		float cameraSensitivity = .8f;
 
+		float getAspectRatio() { return m_aspectRatio; }
+
 		uint32_t wireFrameSwitchKey = 70;
 
 		Transform& getTransform() { return m_transform; }

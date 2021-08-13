@@ -13,6 +13,7 @@ namespace Stulu {
 		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
 		const glm::mat4& getViewMatrix() const override { return m_viewMatrix; }
 		const glm::mat4& getViewProjectionMatrix() const override { return m_viewProjcetionMatrix; }
+		const glm::vec3& getPos() override { return m_position; }
 
 		glm::vec3& getPosition() { return m_position; }
 		void setPosition(const glm::vec3& position) { m_position = position; recalculateViewMatrix(); }
@@ -21,7 +22,6 @@ namespace Stulu {
 		void setRotation(float rotation) { m_rotation = rotation; recalculateViewMatrix(); }
 	private:
 		void recalculateViewMatrix();
-
 
 		glm::mat4 m_projcetionMatrix;
 		glm::mat4 m_viewMatrix;

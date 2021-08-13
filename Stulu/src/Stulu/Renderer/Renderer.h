@@ -12,12 +12,14 @@ namespace Stulu{
 
 	public:
 		static void init();
+		static void setUpSkyBox();
 		static void onWinndowResize(WindowResizeEvent& e);
 
 		static void beginScene(Camera& cam, bool skybox = false);
 		static void endScene();
 
-		static void setSkyBox(const Ref<CubeMap> texture) { m_sceneData->skybox.texture = texture; }
+		static void setSkyBox(Ref<CubeMap> texture) {
+			m_sceneData->skybox.texture = texture; }
 
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform);
 		static void submit(Stulu::Mesh& mesh, const Ref<Shader>& shader, const glm::mat4& transform);
@@ -28,12 +30,13 @@ namespace Stulu{
 			Ref<VertexArray> vertexArray;
 			Ref<Shader> shader;
 			Ref<CubeMap> texture;
-			uint32_t size = 36;
+			uint32_t count = 36;
 		};
 		struct SceneData {
 			glm::mat4 viewProjectionMatrix;
 			glm::mat4 view;
 			glm::mat4 proj;
+			glm::vec3 camPos;
 			bool skyBoxClear;
 			SkyBox skybox;
 		};

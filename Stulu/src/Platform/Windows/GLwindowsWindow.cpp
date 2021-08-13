@@ -17,11 +17,13 @@ namespace Stulu {
 	}
 
 	GLwindowsWindow::GLwindowsWindow(const WindowProps& props) {
+		ST_PROFILING_FUNCTION();
 		init(props);
 	}
 	GLwindowsWindow::~GLwindowsWindow() { shutDown(); }
 
 	void GLwindowsWindow::init(const WindowProps& props) {
+		ST_PROFILING_FUNCTION();
 		m_data.title = props.title;
 		m_data.width = props.width;
 		m_data.height = props.height;
@@ -115,15 +117,18 @@ namespace Stulu {
 		});
 	}
 	void GLwindowsWindow::shutDown() {
+		ST_PROFILING_FUNCTION();
 		glfwDestroyWindow(m_window);
 	}
 	void GLwindowsWindow::onUpdate() {
+		ST_PROFILING_FUNCTION();
 		glfwPollEvents();
 
 		m_graphicsContext->swapBuffers();
 	}
 
 	void GLwindowsWindow::setWindowIcon(const std::string& path) {
+		ST_PROFILING_FUNCTION();
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -137,6 +142,7 @@ namespace Stulu {
 		glfwSetWindowIcon(m_window, 1, images);
 	}
 	void GLwindowsWindow::setVSysnc(bool enabled) {
+		ST_PROFILING_FUNCTION();
 		if (enabled)
 			glfwSwapInterval(1);
 		else
