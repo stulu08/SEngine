@@ -61,11 +61,7 @@ namespace Stulu {
 	}
 
 	void OpenGLVertexArray::bind() const {
-		int32_t active_id = 0;
-		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &active_id);
-		if (active_id != m_rendererID) {
-			glBindVertexArray(m_rendererID);
-		}
+		glBindVertexArray(m_rendererID);
 	}
 
 	void OpenGLVertexArray::unbind() const {

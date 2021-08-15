@@ -15,8 +15,8 @@ void Layer2D::onUpdate(Stulu::Timestep timestep) {
 	Stulu::Renderer2D::beginScene(m_cameraController.getCamera());
 
 	//Stulu::Renderer2D::drawTexture2DQuad(m_texture,m_transform, m_color);
-	Stulu::Renderer2D::drawQuad(glm::vec3(0.0f,.0f,-5.0f),glm::vec2(1.0f,1.0f), m_colorOne);
-	Stulu::Renderer2D::drawQuad(glm::vec3(-1.0f,-1.0f,-3.0f),glm::vec2(1.0f,1.0f), m_colorTwo);
+	Stulu::Renderer2D::drawQuad(m_transformOne, m_colorOne);
+	Stulu::Renderer2D::drawQuad(m_transformTwo, m_colorTwo);
 	Stulu::Renderer2D::endScene();
 
 }

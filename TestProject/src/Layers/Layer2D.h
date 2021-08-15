@@ -21,8 +21,8 @@ private:
 
 	Stulu::Transform m_transformOne;
 	Stulu::Transform m_transformTwo;
-	glm::vec4 m_colorOne = COLOR_PLASTIC_BLUE_VEC4;
-	glm::vec4 m_colorTwo = COLOR_PLASTIC_BLUE_VEC4;
+	glm::vec4 m_colorOne = COLOR_PLASTIC_CYAN_VEC4;
+	glm::vec4 m_colorTwo = COLOR_PLASTIC_RED_VEC4;
 
 	Stulu::Ref<Stulu::Texture2D> m_texture;
 	glm::vec2 texTilling = glm::vec2(1.0f);
