@@ -123,33 +123,33 @@ namespace Stulu {
 
 			ImGui::Text("Position");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Position_2d_" + header).c_str(), glm::value_ptr(transform.getPos()), 2, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloat(std::string("Position_2d_" + header).c_str(), glm::value_ptr(transform.position), 2, .1f, 0, 0, "%.3f");
 			
 
 			ImGui::Text("Size    ");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Size_2d_" + header).c_str(), glm::value_ptr(transform.getScale()), 2, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloat(std::string("Size_2d_" + header).c_str(), glm::value_ptr(transform.scale), 2, .1f, 0, 0, "%.3f");
 			
 
 			ImGui::Text("Rotation");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Rotation_2d_" + header).c_str(), &transform.getRotation().z, 1, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloat(std::string("Rotation_2d_" + header).c_str(), &transform.rotation.z, 1, .1f, 0, 0, "%.3f");
 		}
 		else{
 
 			ImGui::Text("Position");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Position_3d_" + header).c_str(), glm::value_ptr(transform.getPos()), 3, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloat(std::string("Position_3d_" + header).c_str(), glm::value_ptr(transform.position), 3, .1f, 0, 0, "%.3f");
 
 
 			ImGui::Text("Rotation");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Rotation_3d_" + header).c_str(), glm::value_ptr(transform.getRotation()), 3, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloat(std::string("Rotation_3d_" + header).c_str(), glm::value_ptr(transform.rotation), 3, .1f, 0, 0, "%.3f");
 
 
 			ImGui::Text("Scale   ");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Scale_3d_" + header).c_str(), glm::value_ptr(transform.getScale()), 3, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloat(std::string("Scale_3d_" + header).c_str(), glm::value_ptr(transform.scale), 3, .1f, 0, 0, "%.3f");
 		}
 		if (ImGui::Button(std::string("Reset Transform " + header).c_str())) {
 			transform.reset();

@@ -16,13 +16,13 @@ namespace Stulu {
 	void PerspectiveCameraController::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (Input::isKeyDown(KEY_W))
-			m_transform.getPos() += m_cam.getForwardDirection() * m_cameraMoveSpeed * (float)timestep;
+			m_transform.position += m_cam.getForwardDirection() * m_cameraMoveSpeed * (float)timestep;
 		if (Input::isKeyDown(KEY_S))
-			m_transform.getPos() -= m_cam.getForwardDirection() * m_cameraMoveSpeed * (float)timestep;;
+			m_transform.position -= m_cam.getForwardDirection() * m_cameraMoveSpeed * (float)timestep;;
 		if (Input::isKeyDown(KEY_A))
-			m_transform.getPos() -= m_cam.getRightDirection() * m_cameraMoveSpeed * (float)timestep;
+			m_transform.position -= m_cam.getRightDirection() * m_cameraMoveSpeed * (float)timestep;
 		if (Input::isKeyDown(KEY_D))
-			m_transform.getPos() += m_cam.getRightDirection() * m_cameraMoveSpeed * (float)timestep;
+			m_transform.position += m_cam.getRightDirection() * m_cameraMoveSpeed * (float)timestep;
 		if (Input::isMouseDown(MOUSE_BUTTON_2)) {
 			float yawSign = m_cam.getUpDirection().y < 0 ? -1.0f : 1.0f;
 			m_yaw += yawSign * mouseDelta.x * cameraSensitivity;

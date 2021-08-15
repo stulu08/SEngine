@@ -22,7 +22,7 @@ namespace Stulu {
 	{
 		ST_PROFILING_FUNCTION();
 		glm::quat orientation = m_transform.getOrientation();
-		m_viewMatrix = glm::translate(glm::mat4(1.0f), m_transform.getPos()) * glm::toMat4(orientation);
+		m_viewMatrix = glm::translate(glm::mat4(1.0f), m_transform.position) * glm::toMat4(orientation);
 		m_viewMatrix = glm::inverse(m_viewMatrix);
 		m_viewProjcetionMatrix = m_projcetionMatrix * m_viewMatrix;
 	}

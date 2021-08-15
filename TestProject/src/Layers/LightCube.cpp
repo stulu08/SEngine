@@ -113,7 +113,7 @@ void LightCube::onUpdate(Stulu::Timestep timestep) {
 //imgui
 #include <imgui/imgui.h>
 void LightCube::onImguiRender(Stulu::Timestep timestep) {
-	Stulu::Transform::ImGuiTransformEdit(m_cameraController.getTransform(), "Camera");
+	Stulu::imGui::Transform(m_cameraController.getTransform(), "Camera");
 	drawRendererInfos();
 	drawCameraInfos();
 	drawApplicationInfos(timestep);

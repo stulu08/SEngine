@@ -57,19 +57,19 @@ Chunk::Chunk(glm::vec2 chunkCoords) {
 	vertexArray->addVertexBuffer(vertexBuffer);
 	indexBuffer = Stulu::IndexBuffer::create(sizeof(indices) / sizeof(uint32_t), indices);
 	vertexArray->setIndexBuffer(indexBuffer);
-	transform.setPos(glm::vec3(chunkCoords.x * s_size, .0f, chunkCoords.y * s_size));
+	transform.position = glm::vec3(chunkCoords.x * s_size, .0f, chunkCoords.y * s_size);
 	generated = true;
 	coords = chunkCoords;
 }
 void Chunk::update(glm::vec3 player) {
-	hidden = glm::distance(transform.getPos(), player) > s_viewDistance * s_size;
+	hidden = glm::distance(transform.position, player) > s_viewDistance * s_size;
 }
 void TerrainLayer::onAttach() {
 	m_shaderLib.load("assets/Shaders/heightColor.glsl");
 	m_shaderLib.get("heightColor")->bind();
 	m_shaderLib.get("heightColor")->setFloat("u_maxHeight", Chunk::s_heightScale);
 	Stulu::Math::setPerlinSeed(Stulu::Random::getInt(0, 9999999));
-	genChunks(m_cameraController.getTransform().getPos());
+	genChunks(m_cameraController.getTransform().position);
 
 	std::vector<std::string> faces =
 	{
@@ -99,9 +99,9 @@ bool TerrainLayer::containsChunk(glm::vec2& Ck) {
 	return false;
 }
 void TerrainLayer::genChunks(glm::vec3& pos) {
-	for (int i = 0, x = pos.x / Chunk::s_size - Chunk::s_viewDistance; x < pos.x / Chunk::s_size + Chunk::s_viewDistance; x++)
+	for (int i = 0, x = (int)pos.x / Chunk::s_size - Chunk::s_viewDistance; x < pos.x / Chunk::s_size + Chunk::s_viewDistance; x++)
 	{
-		for (int y = pos.z / Chunk::s_size - Chunk::s_viewDistance; y < pos.z / Chunk::s_size + Chunk::s_viewDistance; y++) {
+		for (int y = (int)pos.z / Chunk::s_size - Chunk::s_viewDistance; y < pos.z / Chunk::s_size + Chunk::s_viewDistance; y++) {
 			glm::vec2 ck((float)x, (float)y);
 			if (!containsChunk(ck))
 				chunks.push_back(Chunk(ck));
@@ -111,10 +111,10 @@ void TerrainLayer::genChunks(glm::vec3& pos) {
 void TerrainLayer::onUpdate(Stulu::Timestep timestep) {
 	//update
 	m_cameraController.onUpdate(timestep);
-	genChunks(m_cameraController.getTransform().getPos());
+	genChunks(m_cameraController.getTransform().position);
 	for (int i = 0; i < chunks.size(); i++) {
-		chunks[i].update(m_cameraController.getTransform().getPos());
-		if (chunks[i].hidden && glm::distance(chunks[i].transform.getPos(), m_cameraController.getTransform().getPos()) > Chunk::s_deleteDistance * Chunk::s_size)
+		chunks[i].update(m_cameraController.getTransform().position);
+		if (chunks[i].hidden && glm::distance(chunks[i].transform.position, m_cameraController.getTransform().position) > Chunk::s_deleteDistance * Chunk::s_size)
 			chunks.erase(chunks.begin() + i);
 		
 	}
@@ -123,7 +123,7 @@ void TerrainLayer::onUpdate(Stulu::Timestep timestep) {
 	Stulu::RenderCommand::clear();
 	Stulu::Renderer::beginScene(m_cameraController.getCamera(), true);
 
-	m_shaderLib.get("heightColor")->setFloat3("u_camPos", m_cameraController.getTransform().getPos());
+	m_shaderLib.get("heightColor")->setFloat3("u_camPos", m_cameraController.getTransform().position);
 
 
 

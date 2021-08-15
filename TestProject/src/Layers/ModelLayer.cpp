@@ -44,10 +44,10 @@ void ModelLayer::onUpdate(Stulu::Timestep timestep) {
 	Stulu::Renderer::beginScene(m_cameraController.getCamera(), true);
 	m_shaderLib.get("pbr")->bind();
 
-	m_shaderLib.get("pbr")->setFloat3("u_lightPosition", m_sphereTransform.getPos());
+	m_shaderLib.get("pbr")->setFloat3("u_lightPosition", m_sphereTransform.position);
 	m_shaderLib.get("pbr")->setFloat3("u_lightColor", lightData.lightColor);
 	m_shaderLib.get("pbr")->setFloat("u_lightStrength", lightData.lightStrength);
-	m_shaderLib.get("pbr")->setFloat3("u_camPos", m_cameraController.getTransform().getPos());
+	m_shaderLib.get("pbr")->setFloat3("u_camPos", m_cameraController.getTransform().position);
 	m_modelCar.submitToRenderer(m_shaderLib.get("pbr"), m_carTransform);
 
 	m_modelSphere.submitToRenderer(m_shaderLib.get("Reflective"), m_sphereTransform);
