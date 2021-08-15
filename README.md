@@ -21,5 +21,6 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 - 2D Rendering
 - Scripting
 - Editor
+- PBR 
 
 Created with the tutorial series by [The Cherno](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) ([License](https://github.com/TheCherno/Hazel/blob/master/LICENSE))
