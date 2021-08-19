@@ -24,14 +24,18 @@ namespace Stulu {
 		Renderer2D::shutdown();
 		m_window.reset();
 	}
-	void Application::pushLayer(Layer* layer) { 
-		m_layerStack.pushLayer(layer); }
-	void Application::pushOverlay(Layer* layer) { 
-		m_layerStack.pushOverlay(layer); }
-	void Application::popLayer(Layer* layer) { 
-		m_layerStack.popLayer(layer); }
-	void Application::popOverlay(Layer* layer) { 
-		m_layerStack.popOverlay(layer); }
+	void Application::pushLayer(Layer* layer) {
+		m_layerStack.pushLayer(layer);
+	}
+	void Application::pushOverlay(Layer* layer) {
+		m_layerStack.pushOverlay(layer);
+	}
+	void Application::popLayer(Layer* layer) {
+		m_layerStack.popLayer(layer);
+	}
+	void Application::popOverlay(Layer* layer) {
+		m_layerStack.popOverlay(layer);
+	}
 
 	void Application::onEvent(Event& e) {
 		EventDispatcher dispacther(e);

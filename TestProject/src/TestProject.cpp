@@ -14,11 +14,12 @@ TestProject::TestProject() {
 
 	getWindow().setWindowIcon("Stulu/assets/Textures/Logo/engine-icon-bg.png");
 	getWindow().setVSysnc(false);
+	Stulu::RenderCommand::setClearColor(COLOR_GRAY);
 
 	//pushLayer(new LightCube());
 	//pushLayer(new ModelLayer());
 	//pushLayer(new TerrainLayer());
-	pushLayer(new Layer2D());
+	//pushLayer(new Layer2D());
 }
 
 TestProject::~TestProject() {

@@ -17,6 +17,8 @@ void Layer2D::onUpdate(Stulu::Timestep timestep) {
 	//Stulu::Renderer2D::drawTexture2DQuad(m_texture,m_transform, m_color);
 	Stulu::Renderer2D::drawQuad(m_transformOne, m_colorOne);
 	Stulu::Renderer2D::drawQuad(m_transformTwo, m_colorTwo);
+
+
 	Stulu::Renderer2D::endScene();
 
 }

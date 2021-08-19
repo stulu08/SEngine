@@ -25,7 +25,5 @@ uniform sampler2D u_texture;
 uniform vec2 u_textureTiling = vec2(1.0f,1.0f);
 
 void main() {
-
-	//color = texture(u_texture, v_texCoord * u_textureTiling) * v_color;
-	color = v_color;
+	color = texture(u_texture, v_texCoord * u_textureTiling) * v_color;
 }

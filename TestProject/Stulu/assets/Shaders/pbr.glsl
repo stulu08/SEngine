@@ -24,15 +24,15 @@ in vec3 WorldPos;
 in vec3 Normal;
 
 // material parameters
-uniform vec3  u_albedo;
+uniform vec3  u_albedo = vec3(1.0f,1.0f,1.0f);
 uniform float u_metallic = .5f;
 uniform float u_roughness = .5f;
 uniform float u_ao = .2f;
 
 // lights
-uniform vec3 u_lightPosition;
-uniform vec3 u_lightColor;
-uniform float u_lightStrength;
+uniform vec3 u_lightPosition = vec3(0.0f,5.0f,0.0f);
+uniform vec3 u_lightColor = vec3(1.0f,1.0f,1.0f);
+uniform float u_lightStrength = 100.0f;
 
 
 uniform vec3 u_camPos;

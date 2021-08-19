@@ -12,6 +12,10 @@ namespace Stulu {
 		void onUpdate(Timestep timestep);
 		void onEvent(Event& e);
 
+		const float getAspectRatio() const{
+			return m_aspectRatio;
+		}
+
 		OrthographicCamera& getCamera() { return m_cam; }
 		const OrthographicCamera& getCamera() const { return m_cam; }
 	private:

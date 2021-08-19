@@ -18,10 +18,10 @@ namespace Stulu {
 	float Math::degreeToRadians(float angle) {
 		return glm::radians(angle);
 	}
-	glm::vec3 Math::QuaternionToEuler(glm::quat q) {
+	glm::vec3 Math::QuaternionToEuler(glm::quat& q) {
 		return glm::eulerAngles(q) * 180.f / PI;
 	}
-	glm::quat Math::EulerToQuaternion(glm::vec3 euler) {
+	glm::quat Math::EulerToQuaternion(glm::vec3& euler) {
 		return glm::quat(glm::radians(euler));
 	}
 	float Math::clamp(float& v, float min, float max) {
@@ -60,5 +60,21 @@ namespace Stulu {
 			return (float)noise.normalizedOctaveNoise2D_0_1(x / freqX, y / freqY, octaves);
 		else
 			return (float)noise.normalizedOctaveNoise2D(x / freqX, y / freqY, octaves);
+	}
+	bool Math::isPosOverQuad(Quad& quad, glm::vec2& pos) {
+		return (
+			pos.x > quad.pos.x && 
+			pos.y > quad.pos.y && 
+			pos.x < quad.pos.x + quad.width && 
+			pos.y < quad.pos.y + quad.height
+			);
+	}
+	bool Math::isQuadOverQuad(Quad& quad1, Quad& quad2) {
+		return (
+			quad1.pos.x < quad2.pos.x + quad2.width &&
+			quad1.pos.x + quad1.width > quad2.pos.x &&
+			quad1.pos.y < quad2.pos.y + quad2.height &&
+			quad1.pos.y + quad1.height > quad2.pos.y
+			);
 	}
 }

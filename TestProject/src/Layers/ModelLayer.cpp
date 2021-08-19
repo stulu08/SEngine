@@ -2,7 +2,6 @@
 
 #include <glm/glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <TestProject.h>
 void ModelLayer::onAttach() {
 	m_shaderLib.load("assets/Shaders/pbr.glsl");
 	m_shaderLib.load("assets/Shaders/Reflective.glsl");
@@ -12,12 +11,12 @@ void ModelLayer::onAttach() {
 	m_modelCar = Stulu::Model("assets/mclaren.obj");
 	std::vector<std::string> faces =
 	{
-		"assets/SkyBox/yokoham/right.jpg",
-		"assets/SkyBox/yokoham/left.jpg",
-		"assets/SkyBox/yokoham/top.jpg",
-		"assets/SkyBox/yokoham/bottom.jpg",
-		"assets/SkyBox/yokoham/front.jpg",
-		"assets/SkyBox/yokoham/back.jpg"
+		"assets/SkyBox/city/right.jpg",
+		"assets/SkyBox/city/left.jpg",
+		"assets/SkyBox/city/top.jpg",
+		"assets/SkyBox/city/bottom.jpg",
+		"assets/SkyBox/city/front.jpg",
+		"assets/SkyBox/city/back.jpg"
 	};
 	/*std::vector<std::string> faces =
 	{

@@ -11,6 +11,7 @@ namespace Stulu {
 		glm::vec3 pos;
 		glm::vec2 texCoords;
 		glm::vec4 color;
+		glm::int32 texture;
 	};
 	struct Renderer2DData {
 		const uint32_t maxQuads = 10000;
@@ -37,6 +38,7 @@ namespace Stulu {
 			{ ShaderDataType::Float3, "a_pos" },
 			{ ShaderDataType::Float2, "a_texCoord" },
 			{ ShaderDataType::Float4, "a_color" },
+			{ ShaderDataType::Int, "a_texture" },
 		});
 		s_renderer2Ddata.m_quadVertexArray->addVertexBuffer(s_renderer2Ddata.m_quadVertexBuffer);
 
@@ -62,7 +64,7 @@ namespace Stulu {
 		s_renderer2Ddata.m_texture = Texture2D::create("Stulu/assets/Textures/quad.png");
 		s_renderer2Ddata.m_shader = Shader::create("Stulu/assets/Shaders/default2D.glsl");
 		s_renderer2Ddata.m_shader->bind();
-		s_renderer2Ddata.m_shader->setInt("u_texture", 0);
+		s_renderer2Ddata.m_shader->setInt("u_texture", 1);
 
 	}
 	void Renderer2D::shutdown() {
@@ -78,6 +80,7 @@ namespace Stulu {
 	}
 	void Renderer2D::endScene() {
 		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.m_texture->bind(1);
 		uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.quadVertexBufferPtr - (uint8_t*)s_renderer2Ddata.quadVertexBufferBase);
 		s_renderer2Ddata.m_quadVertexBuffer->setData(s_renderer2Ddata.quadVertexBufferBase, dataSize);
 		flush();
@@ -87,27 +90,35 @@ namespace Stulu {
 		s_renderer2Ddata.m_quadVertexArray->bind();
 		RenderCommand::drawIndexed(s_renderer2Ddata.m_quadVertexArray, s_renderer2Ddata.quadIndexCount);
 	}
+	void Renderer2D::drawQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color) {
+		drawQuad(glm::vec3(pos, 0.0f), size, color);
+	}
 	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
-		glm::vec3 bottomLeftPos = { pos.x - size.x / 2, pos.y - size.y / 2, pos.z };
+		//glm::vec3 bottomLeftPos = { pos.x - size.x / 2, pos.y - size.y / 2, pos.z };
+		glm::vec3 bottomLeftPos = pos;
 		s_renderer2Ddata.quadVertexBufferPtr->pos = bottomLeftPos;
 		s_renderer2Ddata.quadVertexBufferPtr->texCoords = {0.0f,0.0f};
 		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr->texture = 1;
 		s_renderer2Ddata.quadVertexBufferPtr++;
 
 		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x + size.x, bottomLeftPos.y, bottomLeftPos.z };
 		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 1.0f,0.0f };
 		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr->texture = 1;
 		s_renderer2Ddata.quadVertexBufferPtr++;
 
 		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x + size.x, bottomLeftPos.y + size.y, bottomLeftPos.z };
 		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 1.0f,1.0f };
 		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr->texture = 1;
 		s_renderer2Ddata.quadVertexBufferPtr++;
 
 		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x, bottomLeftPos.y + size.y, bottomLeftPos.z };
 		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 0.0f,1.0f };
 		s_renderer2Ddata.quadVertexBufferPtr->color = color;
+		s_renderer2Ddata.quadVertexBufferPtr->texture = 1;
 		s_renderer2Ddata.quadVertexBufferPtr++;
 
 		s_renderer2Ddata.quadIndexCount += 6;
@@ -115,7 +126,8 @@ namespace Stulu {
 	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& rotation, const glm::vec4& color) {
 
 		ST_PROFILING_FUNCTION();
-		glm::vec3 bottomLeftPos = { pos.x - size.x / 2, pos.y - size.y / 2, pos.z };
+		//glm::vec3 bottomLeftPos = { pos.x - size.x / 2, pos.y - size.y / 2, pos.z };
+		glm::vec3 bottomLeftPos = pos;
 		s_renderer2Ddata.quadVertexBufferPtr->pos = glm::rotate(glm::quat(glm::radians(rotation)), bottomLeftPos);
 		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 0.0f,0.0f };
 		s_renderer2Ddata.quadVertexBufferPtr->color = color;
@@ -139,32 +151,10 @@ namespace Stulu {
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
 	void Renderer2D::drawQuad(const Transform& transform, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
-
-		glm::vec3 bottomLeftPos = { transform.position.x - transform.scale.x / 2, transform.position.y - transform.scale.y / 2, transform.position.z };
-		s_renderer2Ddata.quadVertexBufferPtr->pos = bottomLeftPos;
-		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 0.0f,0.0f };
-		s_renderer2Ddata.quadVertexBufferPtr->color = color;
-		s_renderer2Ddata.quadVertexBufferPtr++;
-
-		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x + transform.scale.x, bottomLeftPos.y, bottomLeftPos.z };
-		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 1.0f,0.0f };
-		s_renderer2Ddata.quadVertexBufferPtr->color = color;
-		s_renderer2Ddata.quadVertexBufferPtr++;
-
-		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x + transform.scale.x, bottomLeftPos.y + transform.scale.y, bottomLeftPos.z };
-		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 1.0f,1.0f };
-		s_renderer2Ddata.quadVertexBufferPtr->color = color;
-		s_renderer2Ddata.quadVertexBufferPtr++;
-
-		s_renderer2Ddata.quadVertexBufferPtr->pos = { bottomLeftPos.x, bottomLeftPos.y + transform.scale.y, bottomLeftPos.z };
-		s_renderer2Ddata.quadVertexBufferPtr->texCoords = { 0.0f,1.0f };
-		s_renderer2Ddata.quadVertexBufferPtr->color = color;
-		s_renderer2Ddata.quadVertexBufferPtr++;
-
-		s_renderer2Ddata.quadIndexCount += 6;
-
-		s_renderer2Ddata.quadIndexCount += 6;
+		if(transform.rotation != glm::vec3(0.0f,0.0f,0.0f))
+			drawQuad(transform.position, glm::vec2(transform.scale.x, transform.scale.y), transform.rotation, color);
+		else
+			drawQuad(transform.position, glm::vec2(transform.scale.x, transform.scale.y), color);
 	}
 
 	void Renderer2D::drawTexture2DQuad(const Stulu::Ref<Stulu::Texture2D> texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color) {

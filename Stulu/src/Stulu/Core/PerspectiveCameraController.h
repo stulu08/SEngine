@@ -7,7 +7,7 @@
 namespace Stulu {
 	class PerspectiveCameraController {
 	public:
-		PerspectiveCameraController(float aspectRatio, float fov, float zNear, float zFar);
+		PerspectiveCameraController(float aspectRatio, float fov, float zNear, float zFar, bool move = true, bool look = true);
 
 		void onUpdate(Timestep timestep);
 		void onEvent(Event& e);
@@ -28,7 +28,7 @@ namespace Stulu {
 	private:
 		float m_aspectRatio, m_fov, m_zNear, m_zFar;
 		float m_pitch = 0, m_yaw = 0;
-		bool wireFrame = false;
+		bool wireFrame = false, m_move, m_look;
 		PerspectiveCamera m_cam;
 
 		Transform m_transform;
