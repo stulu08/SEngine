@@ -10,5 +10,11 @@ namespace Stulu {
         float distance = max - min;
         return min + distance * random;
     }
+    glm::vec2 Random::getVector2(glm::vec2 min, glm::vec2 max) {
+        return glm::vec2(getFloat(min.x,max.x), getFloat(min.y, max.y));
+    }
+    glm::vec3 Random::getVector3(glm::vec3 min, glm::vec3 max) {
+        return glm::vec3(getFloat(min.x, max.x), getFloat(min.y, max.y), getFloat(min.z, max.z));
+    }
 }
 

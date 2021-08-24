@@ -37,7 +37,6 @@ namespace Stulu {
 			glfwSetErrorCallback(glfwErrorCallback);
 			s_glfwInitilized = true;
 		}
-		glfwWindowHint(GLFW_SAMPLES, 4);
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr);
 		m_graphicsContext = createScope<OpenGLContext>(m_window);
 

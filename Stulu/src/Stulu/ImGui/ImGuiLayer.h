@@ -1,5 +1,7 @@
 #pragma once
 #include "Stulu/Core/Layer.h"
+struct ImGuiStyle;
+struct ImVec4;
 namespace Stulu {
 	class ImGuiLayer : public Layer
 	{
@@ -13,8 +15,10 @@ namespace Stulu {
 
 		void Begin();
 		void End();
-	private:
+		void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);
+		void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
 
+	private:
 		float m_time = 0.0f;
 	};
 }

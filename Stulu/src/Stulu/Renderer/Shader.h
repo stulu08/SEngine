@@ -19,6 +19,7 @@ namespace Stulu {
 		virtual void setFloat2(const std::string& name, const glm::vec2& vec) = 0;
 		virtual void setFloat(const std::string& name, const float Float) = 0;
 		virtual void setInt(const std::string& name, const int Int) = 0;
+		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) = 0;
 	};
 	class ShaderLibary {
 	public:

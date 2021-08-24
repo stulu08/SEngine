@@ -208,6 +208,9 @@ namespace Stulu {
 	void OpenGLShader::setInt(const std::string& name, const int Int) {
 		uploadIntUniform(name, Int);
 	}
+	void OpenGLShader::setIntArray(const std::string& name, const int* values, uint32_t count) {
+		uploadIntArrayUniform(name, values, count);
+	}
 	void OpenGLShader::uploadMat4Uniform(const std::string& name,const glm::mat4& matrix) {
 		ST_PROFILING_FUNCTION();
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
@@ -237,6 +240,11 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1i(loc, _int);
+	}
+	void OpenGLShader::uploadIntArrayUniform(const std::string& name, const int* values, uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1iv(loc, count, values);
 	}
 	void OpenGLShader::uploadFloatUniform(const std::string& name, const float _float) {
 		ST_PROFILING_FUNCTION();

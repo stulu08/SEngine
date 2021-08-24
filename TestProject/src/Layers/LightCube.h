@@ -4,7 +4,7 @@ class LightCube : public Stulu::Layer
 {
 	struct Cube {
 		Stulu::Transform transform;
-		Cube(Stulu::Transform trans = Stulu::Transform())
+		Cube(Stulu::Transform trans = {})
 			:transform(trans){}
 	};
 public:

@@ -24,13 +24,14 @@ uniform samplerCube skybox;
 void main(){
 	vec3 col = vec3(0.0f,0.0f,0.7f);
 	if(v_height < 1.0f) {
-		vec3 N = normalize(Normal);
+		/*vec3 N = normalize(Normal);
 		vec3 view = normalize(WorldPos.xyz - u_camPos);
 		vec3 refelcted = reflect(view, N);
 		vec3 relectedColor = texture(skybox, refelcted).xyz;
 		
-		color = vec4(mix(vec3(0.0f,0.0f,v_height), relectedColor, .5f),1.0f);
-		//color = vec4(vec3(0.0f,0.0f,v_height),1.0f);
+		color = vec4(mix(vec3(0.0f,0.0f,v_height), relectedColor, .5f),1.0f);*/
+
+		color = vec4(vec3(0.0f,0.0f,v_height),1.0f);
 	}else{
 		if(v_height > 1.0f)
 			col = vec3(0.9f,0.9f,0.04f);

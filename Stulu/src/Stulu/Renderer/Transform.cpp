@@ -9,9 +9,13 @@ namespace Stulu {
 	const glm::quat Transform::getOrientation() {
 		return glm::quat(glm::radians(rotation));
 	}
-	const glm::mat4 Transform::toMat4() {
-		return glm::translate(glm::mat4(1.0f), position)
+	Transform::operator const glm::mat4() {
+		if (rotation != glm::vec3(0.0f, 0.0f, 0.0f))
+			return glm::translate(glm::mat4(1.0f), position)
 			* glm::toMat4(getOrientation())
+			* glm::scale(glm::mat4(1.0f), scale);
+
+		return glm::translate(glm::mat4(1.0f), position)
 			* glm::scale(glm::mat4(1.0f), scale);
 	}
 	void Transform::reset() {

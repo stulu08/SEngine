@@ -123,33 +123,33 @@ namespace Stulu {
 
 			ImGui::Text("Position");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Position_2d_" + header).c_str(), glm::value_ptr(transform.position), 2, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloatNoLabel(std::string("Position_2d_" + header).c_str(), glm::value_ptr(transform.position), 2, .1f, 0, 0, "%.3f");
 			
 
 			ImGui::Text("Size    ");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Size_2d_" + header).c_str(), glm::value_ptr(transform.scale), 2, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloatNoLabel(std::string("Size_2d_" + header).c_str(), glm::value_ptr(transform.scale), 2, .1f, 0, 0, "%.3f");
 			
 
 			ImGui::Text("Rotation");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Rotation_2d_" + header).c_str(), &transform.rotation.z, 1, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloatNoLabel(std::string("Rotation_2d_" + header).c_str(), &transform.rotation.z, 1, .1f, 0, 0, "%.3f");
 		}
 		else{
 
 			ImGui::Text("Position");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Position_3d_" + header).c_str(), glm::value_ptr(transform.position), 3, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloatNoLabel(std::string("Position_3d_" + header).c_str(), glm::value_ptr(transform.position), 3, .1f, 0, 0, "%.3f");
 
 
 			ImGui::Text("Rotation");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Rotation_3d_" + header).c_str(), glm::value_ptr(transform.rotation), 3, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloatNoLabel(std::string("Rotation_3d_" + header).c_str(), glm::value_ptr(transform.rotation), 3, .1f, 0, 0, "%.3f");
 
 
 			ImGui::Text("Scale   ");
 			ImGui::SameLine();
-			returnValue = DragScalarFloat(std::string("Scale_3d_" + header).c_str(), glm::value_ptr(transform.scale), 3, .1f, 0, 0, "%.3f");
+			returnValue = DragScalarFloatNoLabel(std::string("Scale_3d_" + header).c_str(), glm::value_ptr(transform.scale), 3, .1f, 0, 0, "%.3f");
 		}
 		if (ImGui::Button(std::string("Reset Transform " + header).c_str())) {
 			transform.reset();
@@ -164,9 +164,34 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
 		ImGui::SameLine();
-		return SliderScalarFloat(header, v, 1, &min, &max, format, scaleFactor, minWidth);
+		return SliderScalarFloatNoLabel(header, v, 1, &min, &max, format, scaleFactor, minWidth);
 	}
-	bool imGui::DragScalarFloat(const char* label, void* p_data, int components, float v_speed, const void* p_min, const void* p_max, const char* format, float scaleFactor, float minWidth)
+	bool imGui::Float(const char* header, float& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
+		ST_PROFILING_FUNCTION();
+		ImGui::Text(header);
+		ImGui::SameLine();
+		return DragScalarFloatNoLabel(header, &v, 1,speed, &min, &max, format, scaleFactor, minWidth);
+	}
+	bool imGui::vec2(const char* header, glm::vec2& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
+		ST_PROFILING_FUNCTION();
+		ImGui::Text(header);
+		ImGui::SameLine();
+		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 2, speed, &min, &max, format, scaleFactor, minWidth);
+	}
+	bool imGui::vec3(const char* header, glm::vec3& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
+		ST_PROFILING_FUNCTION();
+		ImGui::Text(header);
+		ImGui::SameLine();
+		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 3, speed, &min, &max, format, scaleFactor, minWidth);
+	}
+	bool imGui::vec4(const char* header, glm::vec4& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
+		ST_PROFILING_FUNCTION();
+		ImGui::Text(header);
+		ImGui::SameLine();
+		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 4, speed, &min, &max, format, scaleFactor, minWidth);
+	}
+
+	bool imGui::DragScalarFloatNoLabel(const char* id, void* p_data, int components, float v_speed, const void* p_min, const void* p_max, const char* format, float scaleFactor, float minWidth)
 	{
 		ST_PROFILING_FUNCTION();
 		ImGuiWindow* window = GetCurrentWindow();
@@ -175,7 +200,7 @@ namespace Stulu {
 		ImGuiContext& g = *GImGui;
 		bool value_changed = false;
 		BeginGroup();
-		PushID(label);
+		PushID(id);
 		PushMultiItemsWidths(components, std::max(CalcItemWidth() / scaleFactor, minWidth));
 		size_t type_size = GDataTypeInfo[ImGuiDataType_Float].Size;
 		for (int i = 0; i < components; i++)
@@ -195,7 +220,7 @@ namespace Stulu {
 		EndGroup();
 		return value_changed;
 	}
-	bool imGui::SliderScalarFloat(const char* label, void* v, int components, const void* v_min, const void* v_max, const char* format, float scaleFactor, float minWidth)
+	bool imGui::SliderScalarFloatNoLabel(const char* id, void* v, int components, const void* v_min, const void* v_max, const char* format, float scaleFactor, float minWidth)
 	{
 		ST_PROFILING_FUNCTION();
 		ImGuiWindow* window = GetCurrentWindow();
@@ -205,7 +230,7 @@ namespace Stulu {
 		ImGuiContext& g = *GImGui;
 		bool value_changed = false;
 		BeginGroup();
-		PushID(label);
+		PushID(id);
 		PushMultiItemsWidths(components, std::max(CalcItemWidth() / scaleFactor, minWidth));
 		size_t type_size = GDataTypeInfo[ImGuiDataType_Float].Size;
 		for (int i = 0; i < components; i++)

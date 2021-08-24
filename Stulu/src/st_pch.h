@@ -13,6 +13,7 @@
 #include <future>
 #include <unordered_map>
 #include <unordered_set>
+#include <iomanip>
 
 #include "Stulu/Core/Log.h"
 #include "Stulu/Debug/Instrumentor.h"

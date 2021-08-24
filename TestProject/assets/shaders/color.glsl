@@ -9,7 +9,7 @@ void main(){
 ##type fragment
 #version 460 core
 layout(location = 0) out vec4 color;
-uniform vec4 u_color;
+uniform vec4 u_color = vec4(1.0f,1.0f,1.0f,1.0f);
 void main(){
 	color = u_color;
 }

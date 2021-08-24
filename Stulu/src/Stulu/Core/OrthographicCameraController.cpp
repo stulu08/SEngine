@@ -65,6 +65,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		m_aspectRatio = (float)e.getWidth() / (float)e.getHeight();
 		m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+		m_screenSize = glm::vec2((float)e.getWidth(), (float)e.getHeight());
 		return false;
 	}
 }

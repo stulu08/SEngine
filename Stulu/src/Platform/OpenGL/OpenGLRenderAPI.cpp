@@ -10,7 +10,6 @@ namespace Stulu {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
@@ -47,10 +46,8 @@ namespace Stulu {
 	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count) {
 		ST_PROFILING_FUNCTION();
 
-		if(count == 0)
-			glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
-		else
-			glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
+		glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	void OpenGLRenderAPI::drawPrimitiveArray(const uint32_t count) {

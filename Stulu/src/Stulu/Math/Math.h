@@ -1,10 +1,11 @@
 #pragma once
 #include "Stulu/Math/Random.h"
-
+#include "Stulu/Renderer/Camera.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <iomanip>
+#include <glm/gtx/compatibility.hpp>
 
 namespace Stulu {
 	struct Quad {
@@ -21,8 +22,8 @@ namespace Stulu {
 	public:
 		static float radiansToDegree(float radians);
 		static float degreeToRadians(float angle);
-		static glm::vec3 QuaternionToEuler(glm::quat& q);
-		static glm::quat EulerToQuaternion(glm::vec3& euler);
+		const static glm::vec3 QuaternionToEuler(const glm::quat& q);
+		const static glm::quat EulerToQuaternion(const glm::vec3& euler);
 		static float clamp(float& v, float min, float max);
 
 		static void setPerlinSeed(uint32_t seed);
@@ -32,5 +33,8 @@ namespace Stulu {
 	
 		static bool isPosOverQuad(Quad& quad, glm::vec2& pos);
 		static bool isQuadOverQuad(Quad& quad, Quad& quad2);
+
+		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale);
+		static const glm::vec3 screenToWorld(const glm::vec2& pos, const Camera& cam, glm::vec2& windowSize);
 	};
 }

@@ -19,7 +19,7 @@ TestProject::TestProject() {
 	//pushLayer(new LightCube());
 	//pushLayer(new ModelLayer());
 	//pushLayer(new TerrainLayer());
-	//pushLayer(new Layer2D());
+	pushLayer(new Layer2D());
 }
 
 TestProject::~TestProject() {

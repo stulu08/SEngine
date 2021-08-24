@@ -6,28 +6,9 @@ void ModelLayer::onAttach() {
 	m_shaderLib.load("assets/Shaders/pbr.glsl");
 	m_shaderLib.load("assets/Shaders/Reflective.glsl");
 	m_lightIconTexture = Stulu::Texture2D::create("assets/light.png");
-	m_cameraController.setTransform(Stulu::Transform(glm::vec3(-3.6f, 4.5f, 8.7f), glm::vec3(-23.0f, -64.0f, .0f)));
+	m_cameraController.setTransform(Stulu::Transform(glm::vec3(-3.6f, 4.5f, 8.7f), glm::vec3(-23.0f, -64.0f, .0f),glm::vec3(1.0f)));
 	m_modelSphere = Stulu::Model("assets/sphere.obj");
-	m_modelCar = Stulu::Model("assets/mclaren.obj");
-	std::vector<std::string> faces =
-	{
-		"assets/SkyBox/city/right.jpg",
-		"assets/SkyBox/city/left.jpg",
-		"assets/SkyBox/city/top.jpg",
-		"assets/SkyBox/city/bottom.jpg",
-		"assets/SkyBox/city/front.jpg",
-		"assets/SkyBox/city/back.jpg"
-	};
-	/*std::vector<std::string> faces =
-	{
-		"assets/SkyBox/default/right.jpg",
-		"assets/SkyBox/default/left.jpg",
-		"assets/SkyBox/default/top.jpg",
-		"assets/SkyBox/default/bottom.jpg",
-		"assets/SkyBox/default/front.jpg",
-		"assets/SkyBox/default/back.jpg"
-	};*/
-	Stulu::Renderer::setSkyBox(Stulu::CubeMap::create(faces));
+	m_modelCar = Stulu::Model("assets/mclaren.obj"); // to large to submit
 
 }
 void ModelLayer::onEvent(Stulu::Event& e) {
@@ -40,7 +21,7 @@ void ModelLayer::onUpdate(Stulu::Timestep timestep) {
 
 	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
-	Stulu::Renderer::beginScene(m_cameraController.getCamera(), true);
+	Stulu::Renderer::beginScene(m_cameraController.getCamera());
 	m_shaderLib.get("pbr")->bind();
 
 	m_shaderLib.get("pbr")->setFloat3("u_lightPosition", m_sphereTransform.position);

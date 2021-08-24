@@ -72,15 +72,14 @@ void LightCube::onAttach() {
 	m_shaderLib.load("assets/Shaders/basiclight.glsl");
 	m_shaderLib.load("assets/Shaders/color.glsl");
 	
-	m_lightIconTexture = Stulu::Texture2D::create("assets/light.png");
 
 	for (int i = 0 ,x = 0; x != 10; x++) {
 		for (int y = 0; y != 10; y++) {
-			map[i] = Cube(Stulu::Transform(glm::vec3(x,sin(x) + cos(y),y)));
+			map[i] = Cube(Stulu::Transform(glm::vec3(x,sin(x) + cos(y),y),glm::vec3(.0f),glm::vec3(1.0f)));
 			i++;
 		}
 	}
-	m_cameraController.setTransform(Stulu::Transform(glm::vec3(-3.6f, 4.5f, 8.7f), glm::vec3(-23.0f, -64.0f, .0f)));
+	m_cameraController.setTransform(Stulu::Transform(glm::vec3(-3.6f, 4.5f, 8.7f), glm::vec3(-23.0f, -64.0f, .0f),glm::vec3(1.0f)));
 }
 void LightCube::onEvent(Stulu::Event& e) {
 	m_cameraController.onEvent(e);
@@ -90,7 +89,6 @@ void LightCube::onUpdate(Stulu::Timestep timestep) {
 	m_cameraController.onUpdate(timestep);
 
 	//render
-	Stulu::RenderCommand::setClearColor(m_clearColor);
 	Stulu::RenderCommand::clear();
 	
 	Stulu::Renderer::beginScene(m_cameraController.getCamera());
@@ -105,9 +103,6 @@ void LightCube::onUpdate(Stulu::Timestep timestep) {
 			i++;
 		}
 	}
-	Stulu::Renderer2D::beginScene(m_cameraController.getCamera());
-	Stulu::Renderer2D::drawTexture2DQuad(m_lightIconTexture, Stulu::Transform(lightPos, glm::vec3(.0f), glm::vec3(.5f, .5f, 1.0f)), glm::vec4(lightColor, 1.0f));
-	Stulu::Renderer2D::endScene();
 	Stulu::Renderer::endScene();
 }
 //imgui
