@@ -46,18 +46,18 @@ public:
 	ParticleSystem(ParticleSystemData* data)
 		:data(data){}
 
-	void emit(glm::vec3& pos, int count = 1);
+	void emit(glm::vec3& pos, size_t count = 1);
 	void draw(Stulu::Timestep ts);
 
 	void clear();
 
-	void setMaxParticleCount(int maxParticle) { m_maxParticle = maxParticle; }
-	int &getMaxParticleCount() { return m_maxParticle; }
-	const int &getActiveParticleCount() const { return m_particles.size(); }
+	void setMaxParticleCount(size_t maxParticle) { m_maxParticle = maxParticle; }
+	size_t& getMaxParticleCount() { return m_maxParticle; }
+	const size_t getActiveParticleCount() const { return m_particles.size(); }
 
 	ParticleSystemData* data;
 
 private:
-	int m_maxParticle = 1000;
+	size_t m_maxParticle = 1000;
 	std::vector<Particle*> m_particles;
 };

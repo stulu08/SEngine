@@ -17,7 +17,7 @@ void Layer2D::onUpdate(Stulu::Timestep timestep) {
 
 	Stulu::Renderer2D::drawQuad(m_transformOne, m_colorOne);
 	Stulu::Renderer2D::drawQuad(m_transformTwo, m_colorTwo);
-	Stulu::Renderer2D::drawTexturedQuad(m_transformThree, m_texture, m_colorThree);
+	Stulu::Renderer2D::drawTexturedQuad(m_transformThree, m_texture, glm::vec2(1.0f), m_colorThree);
 
 	particleSystem.draw(timestep);
 

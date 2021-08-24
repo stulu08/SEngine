@@ -1,7 +1,7 @@
 #include "ParticleSystem.h"
 
-void ParticleSystem::emit(glm::vec3& pos, int count) {
-	for (int i = 0; i < count; i++) {
+void ParticleSystem::emit(glm::vec3& pos, size_t count) {
+	for (size_t i = 0; i < count; i++) {
 		if (m_maxParticle > m_particles.size()) {
 			Particle* part = new Particle();
 			if (data->randomLifeTime)
@@ -45,7 +45,7 @@ void ParticleSystem::draw(Stulu::Timestep ts) {
 			float life = p->lifeTime / p->dieTime;
 
 			if (data->moving) {
-				if(data->randomVelcity)
+				if (data->randomVelcity)
 					p->pos += Stulu::Random::getVector3(data->minVelocity, data->maxVelocity) * data->speed * ts.getSeconds();
 				else
 					p->pos += data->velocity * data->speed * ts.getSeconds();
@@ -67,14 +67,14 @@ void ParticleSystem::draw(Stulu::Timestep ts) {
 
 		m_particles.erase(m_particles.begin() + i);
 	}
-	
+
 }
 void ParticleSystem::clear() {
 	m_particles.clear();
 }
 #include <imgui/imgui.h>
 void ParticleSystemData::imGuiDraw(const char* title, ParticleSystemData& data, bool begin, bool end) {
-	if(begin)
+	if (begin)
 		ImGui::Begin(title);
 	ImGui::Checkbox("Moving", &data.moving);
 	if (data.moving) {
@@ -127,6 +127,6 @@ void ParticleSystemData::imGuiDraw(const char* title, ParticleSystemData& data, 
 	ImGui::ColorEdit4("Begin Color", glm::value_ptr(data.beginColor));
 	ImGui::ColorEdit4("End Color", glm::value_ptr(data.endColor));
 
-	if(end)
+	if (end)
 		ImGui::End();
 }

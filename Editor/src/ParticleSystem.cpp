@@ -1,7 +1,7 @@
 #include "ParticleSystem.h"
 
-void ParticleSystem::emit(glm::vec3& pos, int count) {
-	for (int i = 0; i < count; i++) {
+void ParticleSystem::emit(glm::vec3& pos, size_t count) {
+	for (size_t i = 0; i < count; i++) {
 		if (m_maxParticle > m_particles.size()) {
 			Particle* part = new Particle();
 			if (data->randomLifeTime)
