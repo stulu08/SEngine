@@ -20,7 +20,7 @@ namespace Stulu {
 		static void drawTexturedQuad(const glm::mat4& transform, Ref<Texture2D>& texture,  glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const float& rotation, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 
 	private:
 		static void flush();

@@ -169,7 +169,7 @@ namespace Stulu {
 		drawQuad(Math::createMat4(pos,glm::vec3(.0f,.0f,rotation),glm::vec3(size,1.0f)), color);
 	}
 
-	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, Ref<Texture2D>& texture, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, Ref<Texture2D>& texture, glm::vec2 tiling, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			FlushReset();
@@ -218,13 +218,13 @@ namespace Stulu {
 
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
-	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, glm::vec2 tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(.0f), glm::vec3(size, 1.0f)),texture, tiling, color);
 	}
-	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), texture, tiling, color);
 	}
-	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const float& rotation, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, glm::vec2 tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f,rotation), glm::vec3(size, 1.0f)), texture, tiling, color);
 	}
 }
