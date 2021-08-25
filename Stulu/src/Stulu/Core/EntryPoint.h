@@ -6,6 +6,13 @@
 
 	int main(int argc, char** argv) {
 
+#ifndef ST_SHOWCONSOLE
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
+#else
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+#endif // ST_SHOWCONSOLE
+
+
 		ST_PROFILING_BEGIN("Startup", "Profiling-Startup.json");
 		Stulu::Log::init();
 		auto application = Stulu::CreateApplication();

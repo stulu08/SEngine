@@ -25,6 +25,12 @@ namespace Stulu {
 		Transform& getTransform() { return m_transform; }
 		void setTransform(const Transform& transform) { m_transform = transform; }
 
+		void setZoomLevel(float level) {
+			ST_PROFILING_FUNCTION();
+			m_zoomLevel = level;
+			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+		}
+
 		float maxZoom = 9.0f, minZoom = .5f;
 	private:
 		float m_aspectRatio, m_zoomLevel = 1.0f, m_cameraMoveSpeed = 8.0f, m_cameraRotationSpeed = 64.0f;
