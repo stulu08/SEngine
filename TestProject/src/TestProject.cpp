@@ -1,8 +1,5 @@
 #include "TestProject.h"
 #include <Stulu/Core/EntryPoint.h>
-#include "Layers/LightCube.h"
-#include "Layers/Terrain.h"
-#include "Layers/ModelLayer.h"
 #include "Layers/Layer2D.h"
 
 
@@ -16,9 +13,6 @@ TestProject::TestProject() {
 	getWindow().setVSysnc(false);
 	Stulu::RenderCommand::setClearColor(COLOR_GRAY);
 
-	//pushLayer(new LightCube());
-	//pushLayer(new ModelLayer());
-	//pushLayer(new TerrainLayer());
 	pushLayer(new Layer2D());
 }
 

@@ -5,11 +5,6 @@
 
 namespace Stulu {
 
-#define PI		3.141592653f
-#define PI_2	1.570796326f
-#define LOG_2E	1.442695040f
-#define E		2.718281828f
-
 	siv::PerlinNoise noise = siv::PerlinNoise(0);
 
 	float Math::radiansToDegree(float radians) {
@@ -90,11 +85,46 @@ namespace Stulu {
 	{
 		double x = 2.0 * pos.x / windowSize.x - 1;
 		double y = 2.0 * pos.y / windowSize.y - 1;
-		// HOMOGENEOUS SPACE
 		glm::vec4 screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
-		// Projection/Eye Space
 		glm::mat4 viewProjectionInverse = inverse(cam.getViewProjectionMatrix());
 		glm::vec4 worldPos = viewProjectionInverse * screenPos;
 		return glm::vec3(worldPos);
+	}
+	const float Math::lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
+		glm::vec3 diff = glm::normalize(destPoint - sourcePoint);
+
+		float rot_z = std::atan2f(diff.y, diff.x) * RAD2DEG;
+		return rot_z - 90.0f;
+	}
+	const glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint)
+	{
+		glm::vec3 forwardVector = glm::normalize(destPoint - sourcePoint);
+
+		float dot = glm::dot(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
+
+		if (std::abs(dot - (-1.0f)) < 0.000001f)
+		{
+			return glm::quat(TRANSFORM_UP_DIRECTION.x, TRANSFORM_UP_DIRECTION.y, TRANSFORM_UP_DIRECTION.z, 3.1415926535897932f);
+		}
+		if (std::abs(dot - (1.0f)) < 0.000001f)
+		{
+			return glm::quat(0.0f,0.0f,0.0f,1.0f);
+		}
+
+		float rotAngle = (float)std::acos(dot);
+		glm::vec3 rotAxis = glm::cross(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
+		rotAxis = glm::normalize(rotAxis);
+		return quaternionFromEulerAngle(rotAxis, rotAngle);
+	}
+	const glm::quat Math::quaternionFromEulerAngle(const glm::vec3& axis, float angle)
+	{
+		float halfAngle = angle * .5f;
+		float s = (float)std::sin(halfAngle);
+		glm::quat q;
+		q.x = axis.x * s;
+		q.y = axis.y * s;
+		q.z = axis.z * s;
+		q.w = (float)std::cos(halfAngle);
+		return q;
 	}
 }

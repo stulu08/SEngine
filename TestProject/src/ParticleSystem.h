@@ -34,9 +34,8 @@ struct ParticleSystemData {
 struct Particle {
 	glm::vec3 pos;
 	glm::vec3 velocity;
-	glm::vec3 endSize, beginSize, cSize;
-	glm::vec4 beginColor, endColor, cColor;
-	float rotation;
+	glm::vec3 endSize, beginSize;
+	float rotation = .0f;
 	float lifeTime = .0f;
 	float dieTime = .0f;
 	bool alive = true;
@@ -51,13 +50,13 @@ public:
 
 	void clear();
 
-	void setMaxParticleCount(size_t maxParticle) { m_maxParticle = maxParticle; }
-	size_t& getMaxParticleCount() { return m_maxParticle; }
-	const size_t getActiveParticleCount() const { return m_particles.size(); }
+	void setMaxParticleCount(int maxParticle) { m_maxParticle = maxParticle; }
+	int& getMaxParticleCount() { return m_maxParticle; }
+	const size_t getActiveParticleCount() const { return (size_t)m_particles.size(); }
 
 	ParticleSystemData* data;
 
 private:
-	size_t m_maxParticle = 1000;
+	int m_maxParticle = 1000;
 	std::vector<Particle*> m_particles;
 };

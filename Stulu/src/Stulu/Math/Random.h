@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <random>
 
 namespace Stulu {
 	class Random {

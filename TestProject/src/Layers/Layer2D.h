@@ -1,10 +1,25 @@
 #include <Stulu.h>
 #include "ParticleSystem.h"
+
+struct GameObject {
+	Stulu::Transform transform;
+	Stulu::Ref<Stulu::Texture2D> texture;
+	glm::vec4 color = COLOR_WHITE;
+	Stulu::Quad hitbox = {glm::vec2(transform.position.x - transform.scale.x/2.0f, transform.position.y - transform.scale.y/2.0f), transform.scale.x, transform.scale.y};
+};
+struct Bullet{
+	Stulu::Transform transform;
+	Stulu::Ref<Stulu::Texture2D> texture;
+	glm::vec4 color = COLOR_WHITE;
+	glm::vec3 velocity;
+	float speed;
+};
+enum GameState{Menu,Running,Over};
 class Layer2D : public Stulu::Layer
 {
 public:
 	Layer2D()
-		:Layer("2D"), m_cameraController(1280.0f / 720.0f, true,true,true), particleSystem(&particleSystemData){
+		:Layer("2D"), cameraController(1280.0f / 720.0f, true){
 	}
 
 	void onAttach() override;
@@ -12,24 +27,40 @@ public:
 	void onEvent(Stulu::Event& e) override;
 	void onImguiRender(Stulu::Timestep timestep) override;
 
-
 private:
-	int m_pSpawnCount = 2;
-	ParticleSystemData particleSystemData;
-	ParticleSystem particleSystem;
+	int viewDistance = 20;
+	int mapSize = 500;
+	int shootsPerSecond = 10;
+	bool canShoot = true;
 
-	Stulu::OrthographicCameraController m_cameraController;
-	glm::vec3 m_particlePos = glm::vec3(.0f,-.5f,.1f);
-	bool m_particleMouseControl = false;
+	char** map;
 
-	Stulu::Transform m_transformOne;
-	Stulu::Transform m_transformTwo;
-	Stulu::Transform m_transformThree;
-	glm::vec4 m_colorOne = COLOR_PLASTIC_CYAN_VEC4;
-	glm::vec4 m_colorTwo = COLOR_PLASTIC_RED_VEC4;
-	glm::vec4 m_colorThree = COLOR_WHITE_VEC4;
+	uint32_t seed = 0;
 
-	Stulu::Ref<Stulu::Texture2D> m_texture;
-	glm::vec4 m_clearColor = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+	Stulu::OrthographicCameraController cameraController;
+	Stulu::Ref<Stulu::Texture2D> m_textures[10];
+
+	GameState state = GameState::Running;
+	std::vector<Bullet*> bullets;
+	std::vector<GameObject*> enemys;
+	GameObject player;
+
+	void drawMenu();
+	void drawGame(float timestep);
+	void drawGameOver();
+	void drawMenuGUI();
+	void drawGameGUI(float timestep);
+	void drawGameOverGUI();
+
+	char generateTile(glm::vec2 pos);
+	void newMap();
+	bool canWalkOn(glm::vec2 pos);
+	bool inMap(glm::vec2 pos);
+	void findPlayerSpawn(int dist);
+	void handlePlayer(float timestep);
+	void shoot();
+	void handleEnemys(float timestep);
+	void drawMap();
+	void drawPlayerAndBullets(float timestep);
 };
 

@@ -17,34 +17,33 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (m_moveVertical) {
 			if (Input::isKeyDown(KEY_W)) {
-				m_cameraPos.x += -sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
-				m_cameraPos.y += cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.x += -sin(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.y += cos(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
 			}
 			if (Input::isKeyDown(KEY_S)) {
-				m_cameraPos.x -= -sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
-				m_cameraPos.y -= cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.x -= -sin(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.y -= cos(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
 			}
 		}
 		if(m_moveHorizontal) {
 			if (Input::isKeyDown(KEY_A)) {
-				m_cameraPos.x -= cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
-				m_cameraPos.y -= sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.x -= cos(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.y -= sin(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
 			}
 			if (Input::isKeyDown(KEY_D)) {
-				m_cameraPos.x += cos(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
-				m_cameraPos.y += sin(glm::radians(m_cameraRotation)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.x += cos(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
+				m_transform.position.y += sin(glm::radians(m_transform.rotation.z)) * m_cameraMoveSpeed * timestep;
 			}
 		}
-		m_cam.setPosition(m_cameraPos);
-
+		m_cam.setPosition(m_transform.position);
 		if (m_rotation) {
 			if (Input::isKeyDown(KEY_LEFT))
-				m_cameraRotation += m_cameraRotationSpeed * timestep * m_zoomLevel;
+				m_transform.rotation.z += m_cameraRotationSpeed * timestep * m_zoomLevel;
 			if (Input::isKeyDown(KEY_RIGHT))
-				m_cameraRotation -= m_cameraRotationSpeed * timestep * m_zoomLevel;
+				m_transform.rotation.z -= m_cameraRotationSpeed * timestep * m_zoomLevel;
 
-			m_cam.setRotation(m_cameraRotation);
 		}
+		m_cam.setRotation(m_transform.rotation.z);
 	}
 	void OrthographicCameraController::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
@@ -56,7 +55,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (m_zoom) {
 			m_zoomLevel -= e.getYOff() * .25f;
-			m_zoomLevel = std::max(m_zoomLevel, .25f);
+			m_zoomLevel = std::clamp(m_zoomLevel, minZoom, maxZoom);
 			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
 		}
 		return false;

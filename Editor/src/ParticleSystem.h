@@ -6,8 +6,8 @@ struct ParticleSystemData {
 	float speed = 1.0f;
 	float gravity = -.0f;
 	bool randomVelcity = true;
-	glm::vec3 velocity = glm::vec3(.0f,1.0f,.0f);
-	glm::vec3 minVelocity = glm::vec3(-0.2f, .3f,-.2f), maxVelocity = glm::vec3(0.2f, 1.0f, 0.2f);
+	glm::vec3 velocity = glm::vec3(.0f, 1.0f, .0f);
+	glm::vec3 minVelocity = glm::vec3(-0.2f, .3f, -.2f), maxVelocity = glm::vec3(0.2f, 1.0f, 0.2f);
 
 	bool dying = true;
 	float lifeTime = 2.0f;
@@ -18,7 +18,7 @@ struct ParticleSystemData {
 	float startRotation = .0f;
 	bool randomStartRotation = true;//random
 	bool randomRotationSpeed = true;//random
-	glm::vec2 randomRotationRange = glm::vec2(-30.0f,30.0f);
+	glm::vec2 randomRotationRange = glm::vec2(-30.0f, 30.0f);
 	float rotationSpeed = 50.0f;
 
 
@@ -44,20 +44,20 @@ struct Particle {
 class ParticleSystem {
 public:
 	ParticleSystem(ParticleSystemData* data)
-		:data(data){}
+		:data(data) {}
 
 	void emit(glm::vec3& pos, size_t count = 1);
 	void draw(Stulu::Timestep ts);
 
 	void clear();
 
-	void setMaxParticleCount(size_t maxParticle) { m_maxParticle = maxParticle; }
-	size_t& getMaxParticleCount() { return m_maxParticle; }
-	const size_t getActiveParticleCount() const { return m_particles.size(); }
+	void setMaxParticleCount(int maxParticle) { m_maxParticle = maxParticle; }
+	int& getMaxParticleCount() { return m_maxParticle; }
+	const size_t getActiveParticleCount() const { return (size_t)m_particles.size(); }
 
 	ParticleSystemData* data;
 
 private:
-	size_t m_maxParticle = 1000;
+	int m_maxParticle = 1000;
 	std::vector<Particle*> m_particles;
 };

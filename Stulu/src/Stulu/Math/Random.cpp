@@ -2,10 +2,15 @@
 #include "Random.h"
 
 namespace Stulu {
+
     int Random::getInt(int min, int max) {
+        srand(std::random_device()());
+
         return min + rand() % (max + 1 - min);
     }
     float Random::getFloat(float min, float max) {
+        srand(std::random_device()());
+
         float random = ((float)(rand()) / (float)(RAND_MAX));
         float distance = max - min;
         return min + distance * random;

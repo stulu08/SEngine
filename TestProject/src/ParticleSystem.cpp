@@ -19,11 +19,6 @@ void ParticleSystem::emit(glm::vec3& pos, size_t count) {
 			if (data->randomVelcity)
 				part->velocity = Stulu::Random::getVector3(data->minVelocity, data->maxVelocity);
 
-			part->beginColor = data->beginColor;
-			part->endColor = data->endColor;
-
-			part->lifeTime = .0f;
-
 			part->pos = pos;
 			if (data->randomStartRotation)
 				part->rotation = Stulu::Random::getFloat(.0f, 360.0f);
@@ -58,10 +53,8 @@ void ParticleSystem::draw(Stulu::Timestep ts) {
 					p->rotation += data->rotationSpeed * ts;
 			}
 
-			p->cColor = glm::lerp(p->beginColor, p->endColor, life);
-			p->cSize = glm::lerp(p->beginSize, p->endSize, life);
 
-			Stulu::Renderer2D::drawQuad(p->pos, p->cSize, p->rotation, p->cColor);
+			Stulu::Renderer2D::drawQuad(p->pos, glm::lerp(p->beginSize, p->endSize, life), p->rotation, glm::lerp(data->beginColor, data->endColor, life));
 			continue;
 		}
 

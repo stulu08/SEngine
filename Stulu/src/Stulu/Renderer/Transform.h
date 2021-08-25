@@ -1,9 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "Stulu/Math/Math.h"
 namespace Stulu {
 	struct Transform {
 		glm::vec3 position = glm::vec3(0.0f);
@@ -21,5 +17,9 @@ namespace Stulu {
 		operator const glm::mat4();
 
 		void reset();
+
+		glm::vec3 upDirection();
+		glm::vec3 rightDirection();
+		glm::vec3 forwardDirection();
 	};
 }

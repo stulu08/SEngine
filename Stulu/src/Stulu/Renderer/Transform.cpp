@@ -1,10 +1,6 @@
 #include "st_pch.h"
 #include "Transform.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <imgui.h>
-
 namespace Stulu {
 	const glm::quat Transform::getOrientation() {
 		return glm::quat(glm::radians(rotation));
@@ -22,5 +18,16 @@ namespace Stulu {
 		position = glm::vec3(0.0f);
 		rotation = glm::vec3(0.0f);
 		scale = glm::vec3(1.0f);
+	}
+	glm::vec3 Transform::upDirection() {
+		return glm::rotate(getOrientation(), TRANSFORM_UP_DIRECTION);
+	}
+
+	glm::vec3 Transform::rightDirection() {
+		return glm::rotate(getOrientation(), TRANSFORM_RIGHT_DIRECTION);
+	}
+
+	glm::vec3 Transform::forwardDirection() {
+		return glm::rotate(getOrientation(), TRANSFORM_FOREWARD_DIRECTION);
 	}
 }

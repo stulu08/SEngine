@@ -108,7 +108,7 @@ namespace Stulu {
 		if (s_renderer2Ddata.quadIndexCount <= 0) {
 			return;
 		}
-		uint32_t dataSize = (uint8_t*)s_renderer2Ddata.vertexBufferPtr - (uint8_t*)s_renderer2Ddata.vertexBufferBase;
+		uint32_t dataSize = uint32_t((uint8_t*)s_renderer2Ddata.vertexBufferPtr - (uint8_t*)s_renderer2Ddata.vertexBufferBase);
 		s_renderer2Ddata.vertexBuffer->setData(s_renderer2Ddata.vertexBufferBase, dataSize);
 
 		for (uint32_t i = 0; i < s_renderer2Ddata.slotIndex; i++)

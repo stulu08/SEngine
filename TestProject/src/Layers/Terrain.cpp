@@ -68,7 +68,7 @@ void TerrainLayer::onAttach() {
 	m_shaderLib.load("assets/Shaders/heightColor.glsl");
 	m_shaderLib.get("heightColor")->bind();
 	m_shaderLib.get("heightColor")->setFloat("u_maxHeight", Chunk::s_heightScale);
-	Stulu::Math::setPerlinSeed(Stulu::Random::getInt(0, 9999999));
+	Stulu::Math::setPerlinSeed(Stulu::Random::getInt(0, 99999));
 	genChunks(m_cameraController.getTransform().position);
 }
 void TerrainLayer::onEvent(Stulu::Event& e) {
