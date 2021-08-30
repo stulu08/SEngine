@@ -40,12 +40,12 @@ namespace Stulu {
 			}
 		}
 
-		m_cam.setTransform(m_transform);
+		m_cam.setRotation(m_transform.rotation);
+		m_cam.setPosition(m_transform.position);
 
 		mouseDelta = glm::vec2(Input::getMouseX() - lastMouseXPos, Input::getMouseY() - lastMouseYPos) * 0.003f;
 		lastMouseXPos = Input::getMouseX();
 		lastMouseYPos = Input::getMouseY();
-		m_cam.recalculateViewMatrix();
 	}
 	void PerspectiveCameraController::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
@@ -53,10 +53,14 @@ namespace Stulu {
 		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(PerspectiveCameraController::onResizeEvent));
 		dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(PerspectiveCameraController::onKeyPressed));
 	}
-	bool PerspectiveCameraController::onResizeEvent(WindowResizeEvent& e) {
+	void PerspectiveCameraController::onResize(float width, float height) {
 		ST_PROFILING_FUNCTION();
-		m_aspectRatio = (float)e.getWidth() / (float)e.getHeight();
+		m_aspectRatio = width / height;
 		m_cam.setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
+		m_screenSize = glm::vec2(width, height);
+	}
+	bool PerspectiveCameraController::onResizeEvent(WindowResizeEvent& e) {
+		onResize((float)e.getWidth() , (float)e.getHeight());
 		return false;
 	}
 	bool PerspectiveCameraController::onKeyPressed(KeyDownEvent& e) {

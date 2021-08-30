@@ -3,7 +3,9 @@
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Events/MouseEvent.h"
-#include <Stulu/Renderer/Transform.h>
+#include "Stulu/Scene/Components.h"
+#include "Stulu/Core/Application.h"
+
 namespace Stulu {
 	class OrthographicCameraController {
 	public:
@@ -12,6 +14,7 @@ namespace Stulu {
 
 		void onUpdate(Timestep timestep);
 		void onEvent(Event& e);
+		void onResize(float width, float height);
 
 		const float getAspectRatio() const{
 			return m_aspectRatio;
@@ -28,17 +31,28 @@ namespace Stulu {
 		void setZoomLevel(float level) {
 			ST_PROFILING_FUNCTION();
 			m_zoomLevel = level;
-			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f);
 		}
-
-		float maxZoom = 9.0f, minZoom = .5f;
+		void setMinZoomLevel(float level) {
+			ST_PROFILING_FUNCTION();
+			minZoom = level;
+			m_zoomLevel = std::clamp(m_zoomLevel, minZoom, maxZoom);
+			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f);
+		}
+		void setMaxZoomLevel(float level) {
+			ST_PROFILING_FUNCTION();
+			maxZoom = level;
+			m_zoomLevel = std::clamp(m_zoomLevel, minZoom, maxZoom);
+			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f);
+		}
 	private:
 		float m_aspectRatio, m_zoomLevel = 1.0f, m_cameraMoveSpeed = 8.0f, m_cameraRotationSpeed = 64.0f;
+		float maxZoom = 9.0f, minZoom = .5f;
 		bool m_zoom, m_moveVertical, m_moveHorizontal, m_rotation;
 
 		Transform m_transform;
 
-		glm::vec2 m_screenSize = glm::vec2(1280.0f,720.0f);
+		glm::vec2 m_screenSize = glm::vec2(Stulu::Application::get().getWindow().getWidth(), Stulu::Application::get().getWindow().getHeight());
 
 		OrthographicCamera m_cam;
 

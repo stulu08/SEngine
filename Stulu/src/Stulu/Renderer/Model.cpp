@@ -6,7 +6,7 @@
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
-    void Stulu::Model::submitToRenderer(const Ref<Shader>& shader, Transform& transform) {
+    void Stulu::Model::submitToRenderer(const Ref<Shader>& shader, const glm::mat4& transform) {
         for (auto i : meshes) {
             Renderer::submit(i, shader, transform);
         }

@@ -13,17 +13,15 @@ namespace Stulu {
 	void SceneCamera::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		mouseTranslateMove(timestep);
+		m_cam.setPosition(m_transform.position);
 		mouseLookMove();
-		m_cam.recalculateViewMatrix();
+		m_cam.setRotation(m_transform.rotation);
 		
 	}
 	void SceneCamera::mouseTranslateMove(Timestep timestep) {
 		if (Input::isMouseDown(MOUSE_BUTTON_1)) {
 			m_transform.position += m_cam.getRightDirection() * -m_mouseDelta.x * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
 			m_transform.position += m_cam.getUpDirection() * m_mouseDelta.y * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
-
-
-			m_cam.setTransform(m_transform);
 		}
 	}
 	void SceneCamera::mouseLookMove() {
@@ -34,24 +32,32 @@ namespace Stulu {
 			m_transform.setRotation(-m_pitch, -m_yaw, .0f);
 		}
 
-		m_cam.setTransform(m_transform);
 
 
 		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos) * 0.003f;
 		m_lastMouseXPos = Input::getMouseX();
 		m_lastMouseYPos = Input::getMouseY();
 	}
+	void SceneCamera::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
+		EventDispatcher dispatcher(e);
+		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseScrolledEvent));
+		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(SceneCamera::onResizeEvent));
+		dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(SceneCamera::onKeyPressed));
+	}
+	void SceneCamera::onResize(float width, float height) {
+		ST_PROFILING_FUNCTION();
+		m_aspectRatio = width / height;
+		m_cam.setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
+	}
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
 		ST_PROFILING_FUNCTION();
 		m_transform.position += m_cam.getForwardDirection() * e.getYOff();
-		m_cam.setTransform(m_transform);
-		m_cam.recalculateViewMatrix();
+		m_cam.setPosition(m_transform.position);
 		return false;
 	}
 	bool SceneCamera::onResizeEvent(WindowResizeEvent& e) {
-		ST_PROFILING_FUNCTION();
-		m_aspectRatio = (float)e.getWidth() / (float)e.getHeight();
-		m_cam.setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
+		onResize((float)e.getWidth(), (float)e.getHeight());
 		return false;
 	}
 	bool SceneCamera::onKeyPressed(KeyDownEvent& e) {
@@ -61,12 +67,5 @@ namespace Stulu {
 			RenderCommand::setWireFrame(wireFrame);
 		}
 		return false;
-	}
-	void SceneCamera::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
-		EventDispatcher dispatcher(e);
-		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseScrolledEvent));
-		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(SceneCamera::onResizeEvent));
-		dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(SceneCamera::onKeyPressed));
 	}
 }

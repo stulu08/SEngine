@@ -35,11 +35,13 @@ namespace Stulu {
 		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
 
 		//io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 16.0f);
+		//io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 16.0f);
+		//io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 18.0f);
 		//ImGui::StyleColorsDark();
 		//ImGui::StyleColorsClassic();
 		//ImGui::StyleColorsLight();
-		//StyleColorsOceanDark();
-		StyleColorsAmoledDark();
+		StyleColorsOceanDark();
+		//StyleColorsAmoledDark();
 		ImGuiStyle& style = ImGui::GetStyle();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

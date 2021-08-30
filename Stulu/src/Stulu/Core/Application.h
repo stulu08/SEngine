@@ -18,7 +18,7 @@ namespace Stulu {
 	class Application
 	{
 	public:
-		Application();
+		Application(std::string title = "Stulu Engine");
 		virtual ~Application();
 
 		void run();
@@ -32,8 +32,7 @@ namespace Stulu {
 
 		GraphicDriverConstants graphicDriverConstants;
 
-		virtual void _onUpdate(Timestep timetsep) {}
-		virtual void _onEvent(Event& e) {}
+		static void exit(int code = 0);
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);

@@ -1,11 +1,12 @@
 #pragma once
 #include <Stulu.h>
+#ifdef ST_DIST
 //Splash Screen
-class Intro : public Stulu::Layer {
+class Splash : public Stulu::Layer {
 public:
-	Intro(std::function<void(Stulu::Application*)> callback, Stulu::Application* app, float duration = 3.0f)
-		: Layer("StuluEngine Intro"), dura(duration/2.0f), onFinish(callback), cam(1280.0f / 720.0f), app(app){
-		cam.setZoomLevel(cam.minZoom);
+	Splash(std::function<void(Stulu::Application*)> callback, Stulu::Application* app, float duration = 3.0f)
+		: Layer("StuluEngine Intro"), dura(duration/2.0f), onFinish(callback), cam(Stulu::Application::get().getWindow().getWidth() / Stulu::Application::get().getWindow().getHeight()), app(app){
+		cam.setZoomLevel(.5f);
 
 		texture = Stulu::Texture2D::create("Stulu/assets/Textures/Logo/engine-logo-white.png");
 	}
@@ -30,6 +31,7 @@ public:
 		if (cDura > dura && passedHalf) {
 			finish = true;
 			onFinish(app);
+			app->popLayer(this);
 			return;
 		}
 		
@@ -59,3 +61,4 @@ private:
 	Stulu::Application* app;
 	std::function<void(Stulu::Application*)> onFinish;
 };
+#endif // ST_DIST

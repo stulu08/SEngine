@@ -30,14 +30,12 @@ uniform vec3 u_camPos;
 uniform samplerCube skybox;
 uniform float u_metallic = 1.0f;
 
-
 void main()
 {		
     vec3 view = normalize(WorldPos.xyz - u_camPos);
     vec3 refelcted = reflect(view, normalize(Normal));
     vec4 relectedColor = texture(skybox, refelcted);
-   
-
+ 
 
     FragColor = relectedColor * u_metallic;
 }  

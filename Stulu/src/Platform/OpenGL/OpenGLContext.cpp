@@ -17,18 +17,23 @@ namespace Stulu {
 		glfwMakeContextCurrent(m_windowHandle);
 		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		CORE_ASSERT(status, "Failed glad initialization");
-
 		Application::get().graphicDriverConstants = GraphicDriverConstants(
 			(const char*)glGetString(GL_VENDOR),
 			(const char*)glGetString(GL_RENDERER), 
 			(const char*)glGetString(GL_VERSION), 
 			(const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)
 		);
+		int maxTextureUnits = 0;
+		int maxTextureUnitsshader = 0;
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnitsshader);
+		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+		CORE_INFO("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: {0}", maxTextureUnits);
+		CORE_INFO("GL_MAX_TEXTURE_IMAGE_UNITS: {0}", maxTextureUnitsshader);
 
 	}
 
 	void OpenGLContext::swapBuffers() {
-
+		
 		glfwSwapBuffers(m_windowHandle);
 	}
 }

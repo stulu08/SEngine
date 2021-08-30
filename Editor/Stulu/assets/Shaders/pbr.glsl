@@ -13,8 +13,8 @@ uniform mat4 u_transform;
 void main()
 {
     WorldPos = vec3(u_transform * vec4(a_pos, 1.0));
-    Normal = a_normal;  
-    //Normal = mat3(transpose(inverse(u_transform))) * a_normal;
+    //Normal = a_normal;  
+    Normal = mat3(transpose(inverse(u_transform))) * a_normal;
     gl_Position =  u_viewProjection * u_transform * vec4(a_pos, 1.0);
 }
 ##type fragment
@@ -24,7 +24,7 @@ in vec3 WorldPos;
 in vec3 Normal;
 
 // material parameters
-uniform vec3  u_albedo;
+uniform vec3  u_albedo = vec3(1.0f);
 uniform float u_metallic = .5f;
 uniform float u_roughness = .5f;
 uniform float u_ao = .2f;
@@ -36,7 +36,6 @@ uniform float u_lightStrength;
 
 
 uniform vec3 u_camPos;
-uniform samplerCube skybox;
 
 const float PI = 3.14159265359;
   
@@ -97,11 +96,7 @@ void main()
     float distance    = length(u_lightPosition - WorldPos);
     float attenuation = u_lightStrength / (distance * distance);
 
-    vec3 view = normalize(WorldPos.xyz - u_camPos);
-    vec3 refelcted = reflect(view, N);
-    vec3 relectedColor = texture(skybox, refelcted).xyz;
-
-    vec3 radiance     = u_lightColor * attenuation * relectedColor;        
+    vec3 radiance     = u_lightColor * attenuation;        
     
     // cook-torrance brdf
     float NDF = DistributionGGX(N, H, u_roughness);        

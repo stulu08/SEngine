@@ -111,83 +111,40 @@ IM_STATIC_ASSERT(IM_ARRAYSIZE(GDataTypeInfo) == ImGuiDataType_COUNT);
 
 using namespace ImGui;
 namespace Stulu {
-	bool imGui::Transform(Stulu::Transform& transform, std::string header, bool _2D, bool end, bool begin) {
-		ST_PROFILING_FUNCTION();
-		bool returnValue = false;
-
-		if (begin)
-			ImGui::Begin(header.c_str());
-
-		ImGui::Text(header.c_str());
-		if (_2D) {
-
-			ImGui::Text("Position");
-			ImGui::SameLine();
-			returnValue = DragScalarFloatNoLabel(std::string("Position_2d_" + header).c_str(), glm::value_ptr(transform.position), 2, .1f, 0, 0, "%.3f");
-			
-
-			ImGui::Text("Size    ");
-			ImGui::SameLine();
-			returnValue = DragScalarFloatNoLabel(std::string("Size_2d_" + header).c_str(), glm::value_ptr(transform.scale), 2, .1f, 0, 0, "%.3f");
-			
-
-			ImGui::Text("Rotation");
-			ImGui::SameLine();
-			returnValue = DragScalarFloatNoLabel(std::string("Rotation_2d_" + header).c_str(), &transform.rotation.z, 1, .1f, 0, 0, "%.3f");
-		}
-		else{
-
-			ImGui::Text("Position");
-			ImGui::SameLine();
-			returnValue = DragScalarFloatNoLabel(std::string("Position_3d_" + header).c_str(), glm::value_ptr(transform.position), 3, .1f, 0, 0, "%.3f");
-
-
-			ImGui::Text("Rotation");
-			ImGui::SameLine();
-			returnValue = DragScalarFloatNoLabel(std::string("Rotation_3d_" + header).c_str(), glm::value_ptr(transform.rotation), 3, .1f, 0, 0, "%.3f");
-
-
-			ImGui::Text("Scale   ");
-			ImGui::SameLine();
-			returnValue = DragScalarFloatNoLabel(std::string("Scale_3d_" + header).c_str(), glm::value_ptr(transform.scale), 3, .1f, 0, 0, "%.3f");
-		}
-		if (ImGui::Button(std::string("Reset Transform " + header).c_str())) {
-			transform.reset();
-			returnValue = true;
-		}
-		if (end)
-			ImGui::End();
-		return returnValue;
-	}
 	bool imGui::SliderFloat(const char* header, float* v, float min, float max, const char* format, float scaleFactor, float minWidth)
 	{
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
 		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
 		return SliderScalarFloatNoLabel(header, v, 1, &min, &max, format, scaleFactor, minWidth);
 	}
 	bool imGui::Float(const char* header, float& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
 		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
 		return DragScalarFloatNoLabel(header, &v, 1,speed, &min, &max, format, scaleFactor, minWidth);
 	}
 	bool imGui::vec2(const char* header, glm::vec2& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
 		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
 		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 2, speed, &min, &max, format, scaleFactor, minWidth);
 	}
 	bool imGui::vec3(const char* header, glm::vec3& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
 		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
 		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 3, speed, &min, &max, format, scaleFactor, minWidth);
 	}
 	bool imGui::vec4(const char* header, glm::vec4& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
 		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
 		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 4, speed, &min, &max, format, scaleFactor, minWidth);
 	}
 

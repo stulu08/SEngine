@@ -1,6 +1,6 @@
 workspace "Stulu"
 	architecture "x64"
-	startproject "TestProject"
+	startproject "Editor"
 
 	configurations
 	{

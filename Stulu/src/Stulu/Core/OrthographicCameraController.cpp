@@ -6,11 +6,11 @@
 
 namespace Stulu {
 	OrthographicCameraController::OrthographicCameraController(float aspectRatio,bool zoom, bool move, bool rotation)
-		:m_aspectRatio(aspectRatio), m_cam(-m_aspectRatio*m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel), m_zoom(zoom), m_moveVertical(move), m_moveHorizontal(move), m_rotation(rotation) {
+		:m_aspectRatio(aspectRatio), m_cam(-m_aspectRatio*m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f), m_zoom(zoom), m_moveVertical(move), m_moveHorizontal(move), m_rotation(rotation) {
 
 	}
 	OrthographicCameraController::OrthographicCameraController(float aspectRatio,bool zoom, bool moveVerical, bool m_moveHorizontal, bool rotation)
-		:m_aspectRatio(aspectRatio), m_cam(-m_aspectRatio*m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel), m_zoom(zoom), m_moveVertical(moveVerical), m_moveHorizontal(m_moveHorizontal), m_rotation(rotation) {
+		:m_aspectRatio(aspectRatio), m_cam(-m_aspectRatio*m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f), m_zoom(zoom), m_moveVertical(moveVerical), m_moveHorizontal(m_moveHorizontal), m_rotation(rotation) {
 
 	}
 	void OrthographicCameraController::onUpdate(Timestep timestep) {
@@ -43,7 +43,7 @@ namespace Stulu {
 				m_transform.rotation.z -= m_cameraRotationSpeed * timestep * m_zoomLevel;
 
 		}
-		m_cam.setRotation(m_transform.rotation.z);
+		m_cam.setRotation(m_transform.rotation);
 	}
 	void OrthographicCameraController::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
@@ -51,20 +51,24 @@ namespace Stulu {
 		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(OrthographicCameraController::onMouseScroll));
 		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(OrthographicCameraController::onResizeEvent));
 	}
+	void OrthographicCameraController::onResize(float width, float height) {
+		ST_PROFILING_FUNCTION();
+		m_aspectRatio = width / height;
+		m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f);
+		m_screenSize = glm::vec2(width , height);
+	}
 	bool OrthographicCameraController::onMouseScroll(MouseScrollEvent& e) {
 		ST_PROFILING_FUNCTION();
 		if (m_zoom) {
 			m_zoomLevel -= e.getYOff() * .25f;
 			m_zoomLevel = std::clamp(m_zoomLevel, minZoom, maxZoom);
-			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+			m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel, -1.0f, 100.0f);
 		}
 		return false;
 	}
 	bool OrthographicCameraController::onResizeEvent(WindowResizeEvent& e) {
 		ST_PROFILING_FUNCTION();
-		m_aspectRatio = (float)e.getWidth() / (float)e.getHeight();
-		m_cam.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
-		m_screenSize = glm::vec2((float)e.getWidth(), (float)e.getHeight());
+		onResize((float)e.getWidth() , (float)e.getHeight());
 		return false;
 	}
 }

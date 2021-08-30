@@ -4,34 +4,42 @@
 #include <imgui/imgui.h>
 
 void Layer2D::onAttach() {
+	cameraController.setZoomLevel(.5f);
 	seed = (uint32_t)Stulu::Random::getInt(0, 99999);
+	atlas = Stulu::Texture2D::create("assets/game/atlas.png");
+	ui = Stulu::Texture2D::create("assets/game/ui-atlas.png");
+	m_textures[0]  = Stulu::SubTexture2D::fromCoords(glm::vec2(1,2), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[1]  = Stulu::SubTexture2D::fromCoords(glm::vec2(0,0), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[2]  = Stulu::SubTexture2D::fromCoords(glm::vec2(0,1), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[3]  = Stulu::SubTexture2D::fromCoords(glm::vec2(3,2), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[4]  = Stulu::SubTexture2D::fromCoords(glm::vec2(2,1), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[5]  = Stulu::SubTexture2D::fromCoords(glm::vec2(3,0), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[6]  = Stulu::SubTexture2D::fromCoords(glm::vec2(3,1), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[7] = Stulu::SubTexture2D::fromCoords(glm::vec2(4, 1), glm::vec2(128.0f, 128.0f), atlas, {1,2});
+	//m_textures[7]  = Stulu::SubTexture2D::fromPosition(glm::vec2(512.0f,128.0f), glm::vec2(128.0f,256.0f), atlas);
+	m_textures[8]  = Stulu::SubTexture2D::fromCoords(glm::vec2(2,2), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[9]  = Stulu::SubTexture2D::fromCoords(glm::vec2(2,0), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[15] = Stulu::SubTexture2D::fromCoords(glm::vec2(1,1), glm::vec2(128.0f,128.0f), atlas);
+	m_textures[16] = Stulu::SubTexture2D::fromCoords(glm::vec2(1,0), glm::vec2(128.0f,128.0f), atlas);
 
-	m_textures[0] = Stulu::Texture2D::create("assets/game/textures/world/grass.png");
-	m_textures[1] = Stulu::Texture2D::create("assets/game/textures/world/water.png");
-	m_textures[2] = Stulu::Texture2D::create("assets/game/textures/world/bright-grass.png");
-	m_textures[3] = Stulu::Texture2D::create("assets/game/textures/world/stone.png");
-	m_textures[4] = Stulu::Texture2D::create("assets/game/textures/world/sand.png");
-	m_textures[5] = Stulu::Texture2D::create("assets/game/textures/world/tree.png");
+	m_textures[10] = Stulu::SubTexture2D::fromPosition(glm::vec2(.0f), glm::vec2(32.0f,32.0f), ui);
+	m_textures[11] = Stulu::SubTexture2D::fromPosition(glm::vec2(32.0f,.0f), glm::vec2(32.0f,32.0f), ui);
+	m_textures[12] = Stulu::SubTexture2D::fromPosition(glm::vec2(.0f,32.0f), glm::vec2(48.0f,32.0f), ui);
+	m_textures[14] = Stulu::SubTexture2D::fromPosition(glm::vec2(48.0f,32.0f), glm::vec2(88.0f,32.0f), ui);
 
-	m_textures[6] = Stulu::Texture2D::create("assets/game/textures/player/player-idle.png");
-	m_textures[7] = Stulu::Texture2D::create("assets/game/textures/player/player-shoot.png");
-	m_textures[8] = Stulu::Texture2D::create("assets/game/textures/player/player-walk.png");
-	m_textures[9] = Stulu::Texture2D::create("assets/game/textures/player/bullet.png");
-	m_textures[15] = Stulu::Texture2D::create("assets/game/textures/player/knife.png");
-	m_textures[16] = Stulu::Texture2D::create("assets/game/textures/player/knifeAttack.png");
-
-	m_textures[10] = Stulu::Texture2D::create("assets/game/textures/ui/cursor.png");
-	m_textures[11] = Stulu::Texture2D::create("assets/game/textures/ui/cursor-2.png");
-	m_textures[12] = Stulu::Texture2D::create("assets/game/textures/ui/start.png");
-	m_textures[14] = Stulu::Texture2D::create("assets/game/textures/ui/gameover.png");
-
-	m_textures[13] = Stulu::Texture2D::create("assets/game/textures/enemy/enemy.png");
-
+	m_textures[13] = Stulu::SubTexture2D::fromCoords(glm::vec2(0,2), glm::vec2(128.0f,128.0f), atlas);
+	system.data->minVelocity = glm::vec3(-1.0f, -1.0f, .0f);
+	system.data->maxVelocity = glm::vec3( 1.0f,  1.0f, .0f);
+	system.data->speed = .2f;
+	system.data->lifeTime = .25f;
+	system.data->beginColor = glm::vec4(1.0,.0f,.0f,1.0f);
+	system.data->endColor = glm::vec4(1.0,.0f,.0f,0.0f);
+	system.setMaxParticleCount(5000);
 }
 float shootTimer = .0f;
 void Layer2D::onUpdate(Stulu::Timestep timestep) {
 	cameraController.onUpdate(timestep);
-
+	Stulu::RenderCommand::setClearColor(COLOR_BLACK);
 
 	Stulu::RenderCommand::clear();
 	Stulu::Renderer2D::beginScene(cameraController.getCamera());
@@ -54,6 +62,15 @@ void Layer2D::onUpdate(Stulu::Timestep timestep) {
 }
 void Layer2D::onEvent(Stulu::Event& e) {
 	cameraController.onEvent(e);
+
+	if (state == GameState::Running) {
+		if (e.getEventType() == Stulu::EventType::KeyDown) {
+			Stulu::KeyDownEvent& ev = (Stulu::KeyDownEvent&)e;
+
+			if (ev.getKeyCode() == KEY_ESCAPE)
+				paused = !paused;
+		}
+	}
 }
 void Layer2D::onImguiRender(Stulu::Timestep timestep) {
 
@@ -76,33 +93,38 @@ Stulu::Quad StartbuttonQuad = { glm::vec2(-.92f / 2.0f, -.36f / 2.0f), .92f, .36
 bool gameOverMouseDown = false;
 void Layer2D::drawMenu(float timestep){
 
-	cameraController.setZoomLevel(cameraController.minZoom);
 	glm::vec3 mPos = Stulu::Math::screenToWorld(glm::vec2((float)Stulu::Input::getMouseX(), (float)Stulu::Input::getMouseY()), cameraController.getCamera(), cameraController.getScreenSize());
 	if ((Stulu::Math::isPosOverQuad(StartbuttonQuad, glm::vec2(mPos)) || Stulu::Input::isKeyDown(KEY_ENTER))) {
 
 		if (Stulu::Input::isMouseDown(MOUSE_BUTTON_1) && !gameOverMouseDown)
 			startGame();
 
-		Stulu::Renderer2D::drawTexturedQuad(m_textures[12], glm::vec2(.0f), glm::vec2(.92f, .36f), glm::vec2(1.0f), glm::vec4(.85f));
+		Stulu::Renderer2D::drawFromSpriteSheet(m_textures[14], glm::vec2(.0f), glm::vec2(.92f, .36f), glm::vec2(1.0f), glm::vec4(.85f));
 	}
 	else
-		Stulu::Renderer2D::drawTexturedQuad(m_textures[12], glm::vec2(.0f), glm::vec2(.92f, .36f));
+		Stulu::Renderer2D::drawFromSpriteSheet(m_textures[14], glm::vec2(.0f), glm::vec2(.92f, .36f));
 
 	if (gameOverMouseDown)
 		gameOverMouseDown = Stulu::Input::isMouseDown(MOUSE_BUTTON_1);
 
 }
 void Layer2D::drawGame(float timestep){
+	if (paused) {
+		drawMap();
+		Stulu::Renderer2D::drawQuad(player.transform.position, glm::vec2(40.0f,40.0f),glm::vec4(.15f, .15f, .15f, .5f));
+		return;
+	}
+
 	cameraController.getTransform().position = player.transform.position;
 	handlePlayer(timestep);
 	drawMap();
 	handleEnemys(timestep);
+	system.draw(timestep);
 	if(state == GameState::Running)
 		drawPlayerAndBullets(timestep);
 }
 Stulu::Quad GameOverbuttonQuad = { glm::vec2(-1.0f / 2.0f, -.71 / 2.0f), 1.0f, .71f };
 void Layer2D::drawGameOver() {
-	cameraController.setZoomLevel(cameraController.minZoom);
 	glm::vec3 mPos = Stulu::Math::screenToWorld(glm::vec2((float)Stulu::Input::getMouseX(), (float)Stulu::Input::getMouseY()), cameraController.getCamera(), cameraController.getScreenSize());
 	if (Stulu::Math::isPosOverQuad(GameOverbuttonQuad, glm::vec2(mPos)) || Stulu::Input::isKeyDown(KEY_ENTER)) {
 
@@ -111,10 +133,10 @@ void Layer2D::drawGameOver() {
 			state = GameState::Menu;
 		}
 
-		Stulu::Renderer2D::drawTexturedQuad(m_textures[14], glm::vec2(.0f), glm::vec2(1.0f, .71f), glm::vec2(1.0f), glm::vec4(.85f));
+		Stulu::Renderer2D::drawFromSpriteSheet(m_textures[12], glm::vec2(.0f), glm::vec2(1.0f, .71f), glm::vec2(1.0f), glm::vec4(.85f));
 	}
 	else
-		Stulu::Renderer2D::drawTexturedQuad(m_textures[14], glm::vec2(.0f), glm::vec2(1.0f, .71f));
+		Stulu::Renderer2D::drawFromSpriteSheet(m_textures[12], glm::vec2(.0f), glm::vec2(1.0f, .71f));
 }
 
 void Layer2D::drawMenuGUI() {
@@ -133,10 +155,11 @@ void Layer2D::drawGameGUI(float timestep) {
 	drawText(ImVec2(wpos.x, wpos.y + 60.0f), COLOR_WHITE, std::string("Difficulty: ") + std::to_string(difficulty));
 	ImGui::SetMouseCursor(ImGuiMouseCursor_None);
 	ImVec2 cursorPos = ImGui::GetMousePos();
-	if (Stulu::Input::isMouseDown(MOUSE_BUTTON_1))
-		ImGui::GetForegroundDrawList()->AddImage((void*)m_textures[11]->getRendererID(), ImVec2(cursorPos.x - 15.0f, cursorPos.y - 15.0f), ImVec2(cursorPos.x + 15.0f, cursorPos.y + 15.0f));
+	if (Stulu::Input::isMouseDown(MOUSE_BUTTON_1)) {
+		ImGui::GetForegroundDrawList()->AddImage((void*)m_textures[11]->getTexture()->getRendererID(), ImVec2(cursorPos.x - 15.0f, cursorPos.y - 15.0f), ImVec2(cursorPos.x + 15.0f, cursorPos.y + 15.0f), ImVec2(m_textures[11]->getTexCoords()[0].x, m_textures[11]->getTexCoords()[0].y), ImVec2(m_textures[11]->getTexCoords()[2].x, m_textures[11]->getTexCoords()[2].y));
+	}
 	else
-		ImGui::GetForegroundDrawList()->AddImage((void*)m_textures[10]->getRendererID(), ImVec2(cursorPos.x - 15.0f, cursorPos.y - 15.0f), ImVec2(cursorPos.x + 15.0f, cursorPos.y + 15.0f));
+		ImGui::GetForegroundDrawList()->AddImage((void*)m_textures[10]->getTexture()->getRendererID(), ImVec2(cursorPos.x - 15.0f, cursorPos.y - 15.0f), ImVec2(cursorPos.x + 15.0f, cursorPos.y + 15.0f), ImVec2(m_textures[10]->getTexCoords()[0].x, m_textures[10]->getTexCoords()[0].y), ImVec2(m_textures[10]->getTexCoords()[2].x, m_textures[10]->getTexCoords()[2].y));
 }
 void Layer2D::drawGameOverGUI() {
 
@@ -155,33 +178,30 @@ void Layer2D::startGame() {
 }
 
 char Layer2D::generateTile(glm::vec2 pos) {
-	char m;
 	float y = Stulu::Math::perlinAccumalatedNosie((float)pos.x, (float)pos.y, 16, 5.0f, (float)mapSize, (float)mapSize);
 	float z = Stulu::Random::getFloat();
 	if (y < .4f) {
-		m = 'W';
+		return 'W';
 	}
 	else if (y < .42) {
-		m = 'B';
+		return 'B';
 	}
 	else if (y < .5) {
-		m = 'G';
+		return 'G';
 	}
 	else if (y < .7) {
-		m = (z >= treeDensity ? ' ' : 'T');
+		return (z >= treeDensity ? ' ' : 'T');
 	}
 	else if (y < .8) {
-		m = 'S';
+		return 'S';
 	}
 	else {
-		m = (z >= treeDensity ? ' ' : 'T');
+		return (z >= treeDensity ? ' ' : 'T');
 	}
-	return m;
 }
 void Layer2D::newMap() {
 	Stulu::Math::setPerlinSeed(seed);
 
-	char** map;
 
 	map = new char* [mapSize];
 
@@ -191,7 +211,6 @@ void Layer2D::newMap() {
 			map[i][j] = generateTile(glm::vec2(i, j));
 		}
 	}
-	this->map = map;
 }
 bool Layer2D::canWalkOn(glm::vec2 pos) {
 	if (!inMap(pos))
@@ -228,59 +247,11 @@ void Layer2D::handlePlayer(float timestep) {
 	player.transform.rotation.z = Stulu::Math::lookAt2D(player.transform.position, mPos);
 	knife = ammo < 1;
 	player.transform.scale = glm::vec3(1.0f);
-	player.texture = m_textures[8];
+	player.texture = m_textures[6];
 
 
+	player.transform.position += getPlayerMove(timestep);
 
-	if (Stulu::Input::isKeyDown(KEY_W)) {
-		glm::vec3 direction = player.transform.upDirection();
-		if (canWalkOn(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * 6.0f * timestep;
-		}
-		else if (inMap(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * 1.0f * timestep;
-		}
-		player.transform.scale = glm::vec3(1.0f);
-		player.texture = m_textures[8];
-
-	}
-	else if (Stulu::Input::isKeyDown(KEY_S)) {
-		glm::vec3 direction = -player.transform.upDirection();
-		if (canWalkOn(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * 2.0f * timestep;
-		}
-		else if (inMap(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * .35f * timestep;
-		}
-		player.transform.scale = glm::vec3(1.0f);
-		player.texture = m_textures[8];
-
-	}
-	if (Stulu::Input::isKeyDown(KEY_A)) {
-		glm::vec3 direction = -player.transform.rightDirection();
-		if (canWalkOn(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * 3.0f * timestep;
-		}
-		else if (inMap(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * .5f * timestep;
-		}
-		player.transform.scale = glm::vec3(1.0f);
-		player.texture = m_textures[8];
-
-
-	}
-	else if (Stulu::Input::isKeyDown(KEY_D)) {
-		glm::vec3 direction = player.transform.rightDirection();
-		if (canWalkOn(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * 3.0f * timestep;
-		}
-		else if (inMap(glm::vec2(player.transform.position + direction))) {
-			player.transform.position += direction * .5f * timestep;
-		}
-
-		player.transform.scale = glm::vec3(1.0f);
-		player.texture = m_textures[8];
-	}
 	if (Stulu::Input::isMouseDown(MOUSE_BUTTON_1)) {
 		shoot();
 	};
@@ -296,6 +267,59 @@ void Layer2D::handlePlayer(float timestep) {
 
 	}
 }
+glm::vec3 Layer2D::getPlayerMove(float timestep) {
+	glm::vec3 move(.0f);
+
+	if (Stulu::Input::isKeyDown(KEY_W)) {
+		glm::vec3 direction = player.transform.upDirection() * timestep;
+		if (canWalkOn(glm::vec2(player.transform.position + move * 6.0f))) {
+			move += direction * 6.0f;
+		}
+		else if (inMap(glm::vec2(player.transform.position + move * 1.0f))) {
+			move += direction * 1.0f;
+		}
+		player.transform.scale = glm::vec3(1.0f);
+		player.texture = m_textures[8];
+
+	}
+	else if (Stulu::Input::isKeyDown(KEY_S)) {
+		glm::vec3 direction = -player.transform.upDirection() * timestep;
+		if (canWalkOn(glm::vec2(player.transform.position + direction * 2.0f))) {
+			move += direction * 2.0f;
+		}
+		else if (inMap(glm::vec2(player.transform.position + direction * .35f))) {
+			move += direction * .35f;
+		}
+		player.transform.scale = glm::vec3(1.0f);
+		player.texture = m_textures[8];
+
+	}
+	if (Stulu::Input::isKeyDown(KEY_A)) {
+		glm::vec3 direction = -player.transform.rightDirection() * timestep;
+		if (canWalkOn(glm::vec2(player.transform.position + move * 3.0f))) {
+			move += direction * 3.0f;
+		}
+		else if (inMap(glm::vec2(player.transform.position + move * .5f))) {
+			move += direction * .5f;
+		}
+		player.transform.scale = glm::vec3(1.0f);
+		player.texture = m_textures[8];
+
+	}
+	else if (Stulu::Input::isKeyDown(KEY_D)) {
+		glm::vec3 direction = player.transform.rightDirection() * timestep;
+		if (canWalkOn(glm::vec2(player.transform.position + direction * 3.0f))) {
+			move += direction * 3.0f;
+		}
+		else if (inMap(glm::vec2(player.transform.position + direction * .5f))) {
+			move += direction * .5f;
+		}
+		player.transform.scale = glm::vec3(1.0f);
+		player.texture = m_textures[8];
+
+	}
+	return move;
+}
 void Layer2D::shoot() {
 	if (ammo < 1) {
 		return;
@@ -309,7 +333,7 @@ void Layer2D::shoot() {
 	Bullet* bullet = new Bullet();
 	bullet->speed = 15.0f;
 	bullet->texture = m_textures[9];
-	bullet->transform = Stulu::Transform(glm::vec3(player.transform.position.x ,player.transform.position.y, -.1f) + glm::rotate(player.transform.getOrientation() ,glm::vec3(.15f,.3f,1.0f) / 1.5f), player.transform.rotation, glm::vec3(.07f,.25f,1.0f) / 1.5f);
+	bullet->transform = Stulu::Transform(glm::vec3(player.transform.position.x ,player.transform.position.y, -.1f) + glm::rotate(player.transform.getOrientation() ,glm::vec3(.15f,.3f,1.0f) / 1.5f), player.transform.rotation, glm::vec3(.25f,.25f,1.0f) / 1.5f);
 	bullet->velocity = player.transform.upDirection();
 	bullets.push_back(bullet);
 	canShoot = false;
@@ -332,7 +356,7 @@ void Layer2D::handleEnemys(float timestep) {
 		}
 		glm::vec3 direction = enemys[i]->transform.upDirection();
 		enemys[i]->transform.rotation.z = Stulu::Math::lookAt2D(enemys[i]->transform.position, player.transform.position);
-		if (canWalkOn(glm::vec2(enemys[i]->transform.position + direction))) {
+		if (canWalkOn(glm::vec2(enemys[i]->transform.position + direction *.75f * timestep))) {
 			enemys[i]->transform.position += direction * .75f * timestep;
 		}
 		else {
@@ -341,6 +365,7 @@ void Layer2D::handleEnemys(float timestep) {
 		bool killed = false;
 		for (int b = 0; b < bullets.size(); b++) {
 			if (Stulu::Math::isPosOverQuad(enemys[i]->hitbox(), glm::vec2(bullets[b]->transform.position))) {
+				system.emit(enemys[i]->transform.position ,50);
 				enemys.erase(enemys.begin() + i);
 				bullets.erase(bullets.begin() + b);
 				ammo += 2;
@@ -363,37 +388,41 @@ void Layer2D::handleEnemys(float timestep) {
 			return;
 		}
 		
-		Stulu::Renderer2D::drawTexturedQuad(enemy->transform, enemy->texture);
+		Stulu::Renderer2D::drawFromSpriteSheet(enemy->transform, enemy->texture);
 
 	}
 	difficulty += timestep/5.0f;
 }
 void Layer2D::drawMap() {
-	Stulu::Renderer2D::drawTexturedQuad(m_textures[0], glm::vec3(((float)(mapSize) / 2.0f) - .5f, ((float)(mapSize) / 2.0f) - .5f, -1.1f), glm::vec2((float)mapSize), glm::vec2((float)mapSize));
 	for (int x = (int)player.transform.position.x - viewDistance; x < player.transform.position.x + viewDistance; x++) {
 
 		for (int y = (int)player.transform.position.y - viewDistance; y < player.transform.position.y + viewDistance; y++) {
 			if (glm::distance(player.transform.position, glm::vec3(x, y, -1.0f)) > (float)viewDistance || !inMap(glm::vec2(x, y))) {
 				continue;
 			}
-
-
 			switch (map[x][y])
 			{
 			case 'W'://water
-				Stulu::Renderer2D::drawTexturedQuad(m_textures[1], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[1], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
 				break;
 			case 'G'://Bright Grass
-				Stulu::Renderer2D::drawTexturedQuad(m_textures[2], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[2], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
 				break;
 			case 'S'://Stone
-				Stulu::Renderer2D::drawTexturedQuad(m_textures[3], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[3], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
 				break;
 			case 'B'://Beach Sand
-				Stulu::Renderer2D::drawTexturedQuad(m_textures[4], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[4], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
 				break;
 			case 'T'://tree
-				Stulu::Renderer2D::drawTexturedQuad(m_textures[5], glm::vec3(x, y, -.3f), glm::vec2(.73f, 1.0f));
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[0], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
+				if (tileOffset.find((x + y)) == tileOffset.end())
+					tileOffset[x + y] = { Stulu::Random::getVector3(glm::vec3(-.2f, -.2f, 0.0f), glm::vec3(.2f, .2f, .0f)), Stulu::Random::getFloat(-.2f,.2f) };
+
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[5], glm::vec3(x, y , -0.3f) + glm::vec3(tileOffset[x + y].pos), glm::vec2(1.0f) + glm::vec2(tileOffset[x + y].size));
+				break;
+			default:
+				Stulu::Renderer2D::drawFromSpriteSheet(m_textures[0], glm::vec3(x, y, -1.0f), glm::vec2(1.0f));
 				break;
 			}
 		}
@@ -406,7 +435,7 @@ void Layer2D::drawPlayerAndBullets(float timestep) {
 			continue;
 		}
 		bullets[i]->transform.position += bullets[i]->velocity * bullets[i]->speed * timestep;
-		Stulu::Renderer2D::drawTexturedQuad(bullets[i]->transform, bullets[i]->texture);
+		Stulu::Renderer2D::drawFromSpriteSheet(bullets[i]->transform, bullets[i]->texture);
 	}
 	if (knife)
 		if(Stulu::Input::isMouseDown(MOUSE_BUTTON_1))
@@ -415,7 +444,7 @@ void Layer2D::drawPlayerAndBullets(float timestep) {
 			player.texture = m_textures[15];
 
 	player.transform.scale /= 1.5f;
-	Stulu::Renderer2D::drawTexturedQuad(player.transform, player.texture);
+	Stulu::Renderer2D::drawFromSpriteSheet(player.transform, player.texture);
 	alive += timestep;
 }
 
@@ -423,11 +452,12 @@ void Layer2D::onGameOver() {
 	state = GameState::Over;
 	player.transform.reset();
 	cameraController.getTransform().reset();
+	cameraController.setZoomLevel(.5f);
 	seed = (uint32_t)Stulu::Random::getInt(0, 99999);
 	delete(map);
 	enemys.clear();
 	bullets.clear();
-
+	system.clear();
 
 	FILE* scores = fopen("scores.txt","a");
 	if (scores != NULL)

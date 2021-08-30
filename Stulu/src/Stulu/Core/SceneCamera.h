@@ -4,6 +4,8 @@
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Events/MouseEvent.h"
 #include "Stulu/Events/KeyEvent.h"
+#include "Stulu/Scene/Components.h"
+
 namespace Stulu {
 	class SceneCamera {
 	public:
@@ -11,6 +13,7 @@ namespace Stulu {
 
 		void onUpdate(Timestep timestep);
 		void onEvent(Event& e);
+		void onResize(float width, float height);
 
 		PerspectiveCamera& getCamera() { return m_cam; }
 		const PerspectiveCamera& getCamera() const { return m_cam; }

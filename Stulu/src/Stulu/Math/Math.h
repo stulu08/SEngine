@@ -26,19 +26,19 @@ namespace Stulu {
 #define RAD2DEG		360.0f / (PI * 2.0f)
 	class Math {
 	public:
-		static float radiansToDegree(float radians);
-		static float degreeToRadians(float angle);
-		const static glm::vec3 QuaternionToEuler(const glm::quat& q);
-		const static glm::quat EulerToQuaternion(const glm::vec3& euler);
-		static float clamp(float& v, float min, float max);
+		static const float radiansToDegree(float radians);
+		static const float degreeToRadians(float angle);
+		static const glm::vec3 QuaternionToEuler(const glm::quat& q);
+		static const glm::quat EulerToQuaternion(const glm::vec3& euler);
+		static const float clamp(float& v, float min, float max);
 
 		static void setPerlinSeed(uint32_t seed);
 		static float perlinNosie(float x, float y, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 		static float perlinAccumalatedNosie(float x, float y, uint32_t octaves = 1, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 		static float perlinNormalizedNosie(float x, float y, uint32_t octaves = 1, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 	
-		static bool isPosOverQuad(Quad& quad, glm::vec2& pos);
-		static bool isQuadOverQuad(Quad& quad, Quad& quad2);
+		static const bool isPosOverQuad(Quad& quad, glm::vec2& pos);
+		static const bool isQuadOverQuad(Quad& quad, Quad& quad2);
 
 		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale);
 		static const glm::vec3 screenToWorld(const glm::vec2& pos, const Camera& cam, glm::vec2& windowSize);

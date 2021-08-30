@@ -24,7 +24,7 @@ namespace Stulu {
 		m_sceneData->viewProjectionMatrix = cam.getViewProjectionMatrix();
 		m_sceneData->view = cam.getViewMatrix();
 		m_sceneData->proj = cam.getProjectionMatrix();
-		m_sceneData->camPos = cam.getPos();
+		m_sceneData->camPos = cam.getPosition();
 	}
 	void Renderer::endScene() {
 

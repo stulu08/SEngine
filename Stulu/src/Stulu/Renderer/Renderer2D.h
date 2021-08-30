@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Stulu/Renderer/OrthographicCamera.h"
-#include "Stulu/Renderer/Texture.h"
-#include "Stulu/Renderer/Transform.h"
+#include "Stulu/Renderer/SubTexture2D.h"
 
 namespace Stulu {
 	class Renderer2D {
@@ -17,10 +16,16 @@ namespace Stulu {
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec4& color);
 
-		static void drawTexturedQuad(const glm::mat4& transform, Ref<Texture2D>& texture,  glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
-		static void drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, glm::vec2 tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+
+
+		static void drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 
 	private:
 		static void flush();

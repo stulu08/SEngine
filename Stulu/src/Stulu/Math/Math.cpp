@@ -7,10 +7,10 @@ namespace Stulu {
 
 	siv::PerlinNoise noise = siv::PerlinNoise(0);
 
-	float Math::radiansToDegree(float radians) {
+	const float Math::radiansToDegree(float radians) {
 		return glm::degrees(radians);
 	}
-	float Math::degreeToRadians(float angle) {
+	const float Math::degreeToRadians(float angle) {
 		return glm::radians(angle);
 	}
 	const glm::vec3 Math::QuaternionToEuler(const glm::quat& q) {
@@ -19,7 +19,7 @@ namespace Stulu {
 	const glm::quat Math::EulerToQuaternion(const glm::vec3& euler) {
 		return glm::quat(glm::radians(euler));
 	}
-	float Math::clamp(float& v, float min, float max) {
+	const float Math::clamp(float& v, float min, float max) {
 		if (v < min)
 			v = min;
 		else if (v > max)
@@ -56,7 +56,7 @@ namespace Stulu {
 		else
 			return (float)noise.normalizedOctaveNoise2D(x / freqX, y / freqY, octaves);
 	}
-	bool Math::isPosOverQuad(Quad& quad, glm::vec2& pos) {
+	const bool Math::isPosOverQuad(Quad& quad, glm::vec2& pos) {
 		return (
 			pos.x > quad.pos.x && 
 			pos.y > quad.pos.y && 
@@ -64,7 +64,7 @@ namespace Stulu {
 			pos.y < quad.pos.y + quad.height
 			);
 	}
-	bool Math::isQuadOverQuad(Quad& quad1, Quad& quad2) {
+	const bool Math::isQuadOverQuad(Quad& quad1, Quad& quad2) {
 		return (
 			quad1.pos.x < quad2.pos.x + quad2.width &&
 			quad1.pos.x + quad1.width > quad2.pos.x &&
@@ -81,8 +81,7 @@ namespace Stulu {
 		return glm::translate(glm::mat4(1.0f), pos)
 			* glm::scale(glm::mat4(1.0f), scale);
 	}
-	const glm::vec3 Math::screenToWorld(const glm::vec2& pos, const Camera& cam, glm::vec2& windowSize)
-	{
+	const glm::vec3 Math::screenToWorld(const glm::vec2& pos, const Camera& cam, glm::vec2& windowSize) {
 		double x = 2.0 * pos.x / windowSize.x - 1;
 		double y = 2.0 * pos.y / windowSize.y - 1;
 		glm::vec4 screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
@@ -96,18 +95,15 @@ namespace Stulu {
 		float rot_z = std::atan2f(diff.y, diff.x) * RAD2DEG;
 		return rot_z - 90.0f;
 	}
-	const glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint)
-	{
+	const glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
 		glm::vec3 forwardVector = glm::normalize(destPoint - sourcePoint);
 
 		float dot = glm::dot(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
 
-		if (std::abs(dot - (-1.0f)) < 0.000001f)
-		{
+		if (std::abs(dot - (-1.0f)) < 0.000001f) {
 			return glm::quat(TRANSFORM_UP_DIRECTION.x, TRANSFORM_UP_DIRECTION.y, TRANSFORM_UP_DIRECTION.z, 3.1415926535897932f);
 		}
-		if (std::abs(dot - (1.0f)) < 0.000001f)
-		{
+		if (std::abs(dot - (1.0f)) < 0.000001f) {
 			return glm::quat(0.0f,0.0f,0.0f,1.0f);
 		}
 
@@ -116,8 +112,7 @@ namespace Stulu {
 		rotAxis = glm::normalize(rotAxis);
 		return quaternionFromEulerAngle(rotAxis, rotAngle);
 	}
-	const glm::quat Math::quaternionFromEulerAngle(const glm::vec3& axis, float angle)
-	{
+	const glm::quat Math::quaternionFromEulerAngle(const glm::vec3& axis, float angle) {
 		float halfAngle = angle * .5f;
 		float s = (float)std::sin(halfAngle);
 		glm::quat q;

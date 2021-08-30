@@ -16,12 +16,10 @@ TestProject::TestProject() {
 
 
 #ifdef ST_DIST
-	pushLayer(new Intro([](Stulu::Application* app) { app->pushLayer(new Layer2D()); }, this));
+	pushLayer(new Splash([](Stulu::Application* app) { app->pushLayer(new Layer2D()); }, this));
 #else
 	pushLayer(new Layer2D());
 #endif //  ST_DIST
-
 }
-
 TestProject::~TestProject() {
 }

@@ -10,10 +10,10 @@ namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application() {
+	Application::Application(std::string title) {
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
-		m_window = Window::create();
+		m_window = Window::create(WindowProps{title,1920,1080});
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		Renderer::init();
 		m_imguiLayer = new ImGuiLayer();
@@ -42,7 +42,6 @@ namespace Stulu {
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
 
-		_onEvent(e);
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
 			(*--it)->onEvent(e);
 			if (e.handled)
@@ -58,20 +57,28 @@ namespace Stulu {
 			Timestep deltaTimestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
 			if (!m_minimized) {
-				_onUpdate(deltaTimestep);
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(deltaTimestep);
 				}
+				m_imguiLayer->Begin();
+				for (Layer* layer : m_layerStack) {
+					ST_PROFILING_SCOPE("onImguiRender - layerstack");
+					layer->onImguiRender(deltaTimestep);
+				}
+				m_imguiLayer->End();
 			}
-			m_imguiLayer->Begin();
-			for (Layer* layer : m_layerStack) {
-				ST_PROFILING_SCOPE("onImguiRender - layerstack");
-				layer->onImguiRender(deltaTimestep);
-			}
-			m_imguiLayer->End();
 			m_window->onUpdate();
 		}
+	}
+	void Application::exit(int code) {
+		ST_PROFILING_FUNCTION();
+		if (s_instance != nullptr) {
+			s_instance->m_runnig = false;
+			CORE_INFO("Force Exit: {0}", code);
+			return;
+		}
+		CORE_ERROR("Application can't shut down! It hasn't been created yet")
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
 		ST_PROFILING_FUNCTION();
@@ -82,6 +89,6 @@ namespace Stulu {
 	{
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
 		m_minimized ? 0 : Renderer::onWinndowResize(e);
-		return false;
+		return m_minimized;
 	}
 }

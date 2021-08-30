@@ -129,33 +129,16 @@ namespace Stulu {
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			FlushReset();
 		}
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[0];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 0.0f,0.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = 0.0f;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = glm::vec2(1.0f, 1.0f);
-		s_renderer2Ddata.vertexBufferPtr++;
+		glm::vec2 texCoords[] = { glm::vec2(.0f,.0f),glm::vec2(1.0f,.0f),glm::vec2(1.0f,1.0f),glm::vec2(.0f,1.0f) };
 
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[1];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 1.0f,0.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = 0.0f;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = glm::vec2(1.0f, 1.0f);
-		s_renderer2Ddata.vertexBufferPtr++;
-
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[2];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 1.0f,1.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = 0.0f;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = glm::vec2(1.0f, 1.0f);
-		s_renderer2Ddata.vertexBufferPtr++;
-
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[3];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 0.0f,1.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = 0.0f;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = glm::vec2(1.0f, 1.0f);
-		s_renderer2Ddata.vertexBufferPtr++;
+		for (int i = 0; i < 4; i++) {
+			s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[i];
+			s_renderer2Ddata.vertexBufferPtr->texCoords = texCoords[i];
+			s_renderer2Ddata.vertexBufferPtr->color = color;
+			s_renderer2Ddata.vertexBufferPtr->texture = 0.0f;
+			s_renderer2Ddata.vertexBufferPtr->textureTiling = glm::vec2(1.0f);
+			s_renderer2Ddata.vertexBufferPtr++;
+		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
@@ -169,7 +152,7 @@ namespace Stulu {
 		drawQuad(Math::createMat4(pos,glm::vec3(.0f,.0f,rotation),glm::vec3(size,1.0f)), color);
 	}
 
-	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, Ref<Texture2D>& texture, glm::vec2 tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec2& tiling, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			FlushReset();
@@ -187,44 +170,66 @@ namespace Stulu {
 			s_renderer2Ddata.textureSlots[s_renderer2Ddata.slotIndex] = texture;
 			s_renderer2Ddata.slotIndex++;
 		}
-
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[0];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 0.0f,0.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = texture->tiling * tiling;
-		s_renderer2Ddata.vertexBufferPtr++;
-
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[1];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 1.0f,0.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = texture->tiling * tiling;
-		s_renderer2Ddata.vertexBufferPtr++;
-
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[2];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 1.0f,1.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = texture->tiling * tiling;
-		s_renderer2Ddata.vertexBufferPtr++;
-
-		s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[3];
-		s_renderer2Ddata.vertexBufferPtr->texCoords = { 0.0f,1.0f };
-		s_renderer2Ddata.vertexBufferPtr->color = color;
-		s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
-		s_renderer2Ddata.vertexBufferPtr->textureTiling = texture->tiling * tiling;
-		s_renderer2Ddata.vertexBufferPtr++;
+		glm::vec2 texCoords[] = { glm::vec2(.0f,.0f),glm::vec2(1.0f,.0f),glm::vec2(1.0f,1.0f),glm::vec2(.0f,1.0f) };
+		for (int i = 0; i < 4; i++) {
+			s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[i];
+			s_renderer2Ddata.vertexBufferPtr->texCoords = texCoords[i];
+			s_renderer2Ddata.vertexBufferPtr->color = color;
+			s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
+			s_renderer2Ddata.vertexBufferPtr->textureTiling = texture->tiling * tiling;
+			s_renderer2Ddata.vertexBufferPtr++;
+		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
-	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, glm::vec2 tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(.0f), glm::vec3(size, 1.0f)),texture, tiling, color);
 	}
-	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, glm::vec2 tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), texture, tiling, color);
 	}
-	void Renderer2D::drawTexturedQuad(Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, glm::vec2 tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f,rotation), glm::vec3(size, 1.0f)), texture, tiling, color);
+	}
+	
+	
+	void Renderer2D::drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling, const glm::vec4& color) {
+		ST_PROFILING_FUNCTION();
+		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
+			FlushReset();
+		}
+		float texureIndex = 0.0f;
+		for (uint32_t i = 1; i < s_renderer2Ddata.slotIndex; i++) {
+			if (*s_renderer2Ddata.textureSlots[i].get() == *sprite->getTexture()) {
+				texureIndex = (float)i;
+				break;
+			}
+		}
+
+		if (texureIndex == 0.0f) {
+			texureIndex = (float)s_renderer2Ddata.slotIndex;
+			s_renderer2Ddata.textureSlots[s_renderer2Ddata.slotIndex] = sprite->getTexture();
+			s_renderer2Ddata.slotIndex++;
+		}
+		const glm::vec2* texCoords = sprite->getTexCoords();
+		for (int i = 0; i < 4; i++) {
+			s_renderer2Ddata.vertexBufferPtr->pos = transform * s_renderer2Ddata.quadVertexPositions[i];
+			s_renderer2Ddata.vertexBufferPtr->texCoords = texCoords[i];
+			s_renderer2Ddata.vertexBufferPtr->color = color;
+			s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
+			s_renderer2Ddata.vertexBufferPtr->textureTiling = sprite->getTexture()->tiling * tiling;
+			s_renderer2Ddata.vertexBufferPtr++;
+		}
+
+		s_renderer2Ddata.quadIndexCount += 6;
+	}
+	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
+		drawFromSpriteSheet(Math::createMat4(glm::vec3(pos,.0f), glm::vec3(.0f), glm::vec3(size, 1.0f)), sprite, tiling, color);
+	}
+	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
+		drawFromSpriteSheet(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), sprite, tiling, color);
+	}
+	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
+		drawFromSpriteSheet(Math::createMat4(pos, glm::vec3(.0f, .0f, rotation), glm::vec3(size, 1.0f)), sprite, tiling, color);
 	}
 }

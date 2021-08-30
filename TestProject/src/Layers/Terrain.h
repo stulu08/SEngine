@@ -27,7 +27,7 @@ class TerrainLayer : public Stulu::Layer
 {
 public:
 	TerrainLayer()
-		:Layer("Terrain"), m_cameraController(1280.0f / 720.0f, 85.0f, .1f, 300.0f) {
+		:Layer("Terrain"), m_cameraController(Stulu::Application::get().getWindow().getWidth() / Stulu::Application::get().getWindow().getHeight(), 85.0f, .1f, 300.0f) {
 	}
 
 	void onAttach() override;

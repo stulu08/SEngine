@@ -2,38 +2,35 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "Stulu/Renderer/Camera.h"
-#include <Stulu/Renderer/Transform.h>
 
 namespace Stulu {
 	class PerspectiveCamera : public Camera{
 	public:
 		PerspectiveCamera(float fov, float aspect, float z_near, float z_far);
 
-		void setProjection(float fov, float aspect, float z_near, float z_far);
+		const virtual void setProjection(float fov, float aspect, float z_near, float z_far) override;
 
 		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
 		const glm::mat4& getViewMatrix() const override { return m_viewMatrix; }
 		const glm::mat4& getViewProjectionMatrix() const override { return m_viewProjcetionMatrix; }
-		const glm::vec3& getPos() override { return m_transform.position; }
+		
 
-		Transform& getTransform() { return m_transform; recalculateViewMatrix();}
-		void setTransform(const Transform& transform) { m_transform = transform; recalculateViewMatrix(); }
+		const virtual glm::vec3& getPosition() override { return m_position; }
+		const virtual glm::vec3& getRotation() override { return m_rotation; }
+		const virtual void setPosition(glm::vec3& pos) override { m_position = pos; recalculateViewMatrix(); }
+		const virtual void setRotation(glm::vec3& rotation) override { m_rotation = rotation; recalculateViewMatrix(); }
 
-		const float& getZFar() { return m_zFar; }
-		const float& getZNear() { return m_zNear; }
-
-		void recalculateViewMatrix();
-		glm::vec3 getUpDirection();
-		glm::vec3 getRightDirection();
-		glm::vec3 getForwardDirection();
+		const virtual glm::vec3 getUpDirection() override;
+		const virtual glm::vec3 getRightDirection() override;
+		const virtual glm::vec3 getForwardDirection() override;
 	private:
-		float m_zNear, m_zFar;
-
+		void recalculateViewMatrix();
 		glm::mat4 m_projcetionMatrix;
 		glm::mat4 m_viewMatrix;
 		glm::mat4 m_viewProjcetionMatrix;
 
-		Transform m_transform;
+		glm::vec3& m_position = glm::vec3(.0f);
+		glm::vec3& m_rotation = glm::vec3(.0f);
 	};
 }
 
