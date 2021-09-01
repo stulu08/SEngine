@@ -124,7 +124,7 @@ namespace Stulu {
 				if (ImGui::MenuItem("Light")) {
 					GameObject* obje = new GameObject();
 					obje->name = new std::string("Light");
-					light = new  Light();
+					light = new Light();
 					obje->components.push_back(light);
 					objects.push_back(obje);
 				}

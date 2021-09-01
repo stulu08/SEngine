@@ -23,6 +23,7 @@ namespace Stulu {
 			m_shader->setFloat("u_metallic",metallic);
 			m_shader->setFloat("u_roughness",roughness);
 			m_shader->setFloat("u_ao",ao);
+			m_shader->unbind();
 		}
 
 		virtual void drawImGui() override;
