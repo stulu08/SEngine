@@ -14,7 +14,7 @@ namespace Stulu {
 			"assets/SkyBox/city/front.jpg",
 			"assets/SkyBox/city/back.jpg"
 			}));
-		car = Model("assets/car.obj");
+		car = Model("assets/car.glb");
 		cube = Model("assets/cube.obj");
 		sphere = Model("assets/sphere.obj");
 		shaderLib.load("Stulu/assets/Shaders/Reflective.glsl");
