@@ -49,7 +49,6 @@ namespace Stulu {
         ST_PROFILING_FUNCTION();
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
-
         {
             ST_PROFILING_SCOPE("Vertices loading - Stulu::Model::processMesh(aiMesh*, const aiScene*)");
             for (unsigned int i = 0; i < mesh->mNumVertices; i++)

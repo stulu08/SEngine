@@ -8,7 +8,7 @@ namespace Stulu {
 	public:
 		static void init();
 		static void shutdown();
-		static void beginScene(const Camera& cam);
+		static void beginScene(Camera& cam);
 		static void endScene();
 
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);

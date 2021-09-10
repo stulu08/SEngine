@@ -148,6 +148,59 @@ namespace Stulu {
 		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 4, speed, &min, &max, format, scaleFactor, minWidth);
 	}
 
+	bool imGui::checkBox(const char* header, bool& v, bool headerText)
+	{
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(header);
+		ImVec2 label_size = CalcTextSize(header, NULL, true);
+		if (!headerText)
+			label_size.x = 0;
+
+		const float square_sz = GetFrameHeight();
+		const ImVec2 pos = window->DC.CursorPos;
+		const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
+		ItemSize(total_bb, style.FramePadding.y);
+		if (!ItemAdd(total_bb, id))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
+		if (pressed)
+		{
+			v = !(v);
+			MarkItemEdited(id);
+		}
+
+		const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
+		RenderNavHighlight(total_bb, id);
+		RenderFrame(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding);
+		ImU32 check_col = GetColorU32(ImGuiCol_CheckMark);
+		if (window->DC.ItemFlags & ImGuiItemFlags_MixedValue)
+		{
+			// Undocumented tristate/mixed/indeterminate checkbox (#2644)
+			ImVec2 pad(ImMax(1.0f, IM_FLOOR(square_sz / 3.6f)), ImMax(1.0f, IM_FLOOR(square_sz / 3.6f)));
+			window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
+		}
+		else if (v)
+		{
+			const float pad = ImMax(1.0f, IM_FLOOR(square_sz / 6.0f));
+			RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
+		}
+
+		if (g.LogEnabled)
+			LogRenderedText(&total_bb.Min, v ? "[x]" : "[ ]");
+		if (label_size.x > 0.0f && headerText)
+			RenderText(ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y), header);
+
+		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
+		return pressed;
+	}
+
 	bool imGui::DragScalarFloatNoLabel(const char* id, void* p_data, int components, float v_speed, const void* p_min, const void* p_max, const char* format, float scaleFactor, float minWidth)
 	{
 		ST_PROFILING_FUNCTION();
@@ -171,9 +224,6 @@ namespace Stulu {
 			p_data = (void*)((char*)p_data + type_size);
 		}
 		PopID();
-
-
-
 		EndGroup();
 		return value_changed;
 	}

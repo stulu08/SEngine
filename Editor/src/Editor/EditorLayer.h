@@ -4,6 +4,7 @@
 namespace Stulu {
 
 	struct GameObject {
+		bool enabled = true;
 		std::string* name;
 		Transform transform = Transform(glm::vec3(.0f), glm::vec3(.0f), glm::vec3(1.0f));
 		std::vector<Component*> components;
@@ -24,6 +25,7 @@ namespace Stulu {
 
 		Light* light = nullptr;
 
+		Model car;
 		Model cube;
 		Model sphere;
 

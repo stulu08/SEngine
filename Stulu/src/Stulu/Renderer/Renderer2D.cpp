@@ -89,7 +89,7 @@ namespace Stulu {
 	void Renderer2D::shutdown() {
 		ST_PROFILING_FUNCTION();
 	}
-	void Renderer2D::beginScene(const Camera& cam) {
+	void Renderer2D::beginScene(Camera& cam) {
 		ST_PROFILING_FUNCTION();
 		s_renderer2Ddata.shader->bind();
 		s_renderer2Ddata.shader->setMat4("u_viewProjection", cam.getViewProjectionMatrix());

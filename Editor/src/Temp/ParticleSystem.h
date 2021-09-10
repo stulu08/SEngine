@@ -29,7 +29,7 @@ struct ParticleSystemData {
 
 	glm::vec4 beginColor = glm::vec4(1.0f, 0.647, 0.0f, 1.0f), endColor = glm::vec4(1.0f, 0.647, 0.0f, .0f);
 
-	static void imGuiDraw(const char* title, ParticleSystemData& data, bool begin = true, bool end = true);
+	static void imGuiDraw(ParticleSystemData& data);
 };
 struct Particle {
 	glm::vec3 pos;
@@ -60,4 +60,22 @@ public:
 private:
 	int m_maxParticle = 1000;
 	std::vector<Particle*> m_particles;
+};
+class ParticleSystemComponent : public Stulu::Component {
+public:
+	ParticleSystemComponent() : m_data(), m_system(&m_data){}
+
+	virtual void onUpdate(Stulu::Timestep t) override {
+		m_system.draw(t, transform.rotation);
+		m_system.emit(transform.position,1);
+	}
+	virtual void drawImGui() override {
+		ParticleSystemData::imGuiDraw(m_data);
+	}
+	virtual const char* getTypeName() override {
+		return "ParticleSystem";
+	}
+private:
+	ParticleSystemData m_data;
+	ParticleSystem m_system;
 };

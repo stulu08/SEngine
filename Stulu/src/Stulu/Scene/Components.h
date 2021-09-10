@@ -2,11 +2,12 @@
 #include "Stulu/ImGui/StuluImGui.h"
 #include <Stulu/Renderer/Model.h>
 #include "Stulu/Scene/Components/Transform.h"
+#include "Stulu/Core/Timestep.h"
 
 namespace Stulu {
 	class Component {
 	public:
-		virtual void onUpdate() { };
+		virtual void onUpdate(Stulu::Timestep t) { };
 		virtual void drawImGui() = 0;
 		virtual const char* getTypeName() = 0;
 		Transform& transform = Transform();
@@ -17,7 +18,7 @@ namespace Stulu {
 			: m_shader(shader) {};
 		virtual ~PBRShaderEdit() = default;
 
-		virtual void onUpdate() override {
+		virtual void onUpdate(Stulu::Timestep t) override {
 			m_shader->bind();
 			m_shader->setFloat3("u_albedo",albedo);
 			m_shader->setFloat("u_metallic",metallic);
@@ -43,7 +44,7 @@ namespace Stulu {
 			: m_model(model), m_shader(shader) {};
 		virtual ~ModelRenderer() = default;
 
-		virtual void onUpdate() override {
+		virtual void onUpdate(Stulu::Timestep t) override {
 			m_model.submitToRenderer(m_shader, transform);
 		}
 
@@ -60,7 +61,7 @@ namespace Stulu {
 		Light() {  };
 		virtual ~Light() = default;
 
-		virtual void onUpdate() override {
+		virtual void onUpdate(Stulu::Timestep t) override {
 			
 		}
 

@@ -14,6 +14,7 @@ namespace Stulu {
 			"assets/SkyBox/city/front.jpg",
 			"assets/SkyBox/city/back.jpg"
 			}));
+		car = Model("assets/car.obj");
 		cube = Model("assets/cube.obj");
 		sphere = Model("assets/sphere.obj");
 		shaderLib.load("Stulu/assets/Shaders/Reflective.glsl");
@@ -24,6 +25,9 @@ namespace Stulu {
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 
 		m_frameBuffer = FrameBuffer::create(fspecs);
+
+
+
 
 	}
 
@@ -37,6 +41,7 @@ namespace Stulu {
 		RenderCommand::clear();
 
 		Renderer::beginScene(*m_cameraController.getCamera());
+		Renderer2D::beginScene(*m_cameraController.getCamera());
 
 		m_skybox.draw(*m_cameraController.getCamera());
 		if (light != nullptr) {
@@ -44,13 +49,17 @@ namespace Stulu {
 			shaderLib.get("pbr")->setFloat3("u_lightColor", light->color);
 			shaderLib.get("pbr")->setFloat3("u_lightPosition", light->transform.position);
 			shaderLib.get("pbr")->setFloat("u_lightStrength", light->strength);
+			shaderLib.get("pbr")->unbind();
 		}
 		for (auto object : objects) {
+			if (!object->enabled)
+				continue;
 			for (auto component : object->components) {
 				component->transform = object->transform;
-				component->onUpdate();
+				component->onUpdate(timestep);
 			}
 		}
+		Renderer2D::endScene();
 		Renderer::endScene();
 		m_frameBuffer->unBind();
 	}
@@ -121,6 +130,13 @@ namespace Stulu {
 					obje->components.push_back(new PBRShaderEdit(shaderLib.get("pbr")));
 					objects.push_back(obje);
 				}
+				if (ImGui::MenuItem("Car")) {
+					GameObject* obje = new GameObject();
+					obje->name = new std::string("car");
+					obje->components.push_back(new ModelRenderer(car, shaderLib.get("pbr")));
+					obje->components.push_back(new PBRShaderEdit(shaderLib.get("pbr")));
+					objects.push_back(obje);
+				}
 				if (ImGui::MenuItem("Light")) {
 					GameObject* obje = new GameObject();
 					obje->name = new std::string("Light");
@@ -141,13 +157,24 @@ namespace Stulu {
 					obje->components.push_back(new ModelRenderer(sphere, shaderLib.get("Reflective")));
 					objects.push_back(obje);
 				}
+				if (ImGui::MenuItem("ParticleSystem")) {
+					GameObject* obje = new GameObject();
+					obje->name = new std::string("ParticleSystem");
+					obje->components.push_back(new ParticleSystemComponent());
+					objects.push_back(obje);
+				}
 				ImGui::EndMenu();
 			}
 			ImGui::EndMenuBar();
 		}
 		for (int i = 0; i < objects.size(); i++) {
+			if(!objects[i]->enabled)
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, .5f);
+			else
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
 			if (ImGui::Selectable(objects[i]->name->c_str(), inspectorItem == i))
 				inspectorItem = i;
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::End();
@@ -159,7 +186,7 @@ namespace Stulu {
 				ImGui::End();
 				return;
 			}
-
+			imGui::checkBox("Enabled", objects[inspectorItem]->enabled, false); ImGui::SameLine();
 			ImGui::InputText("Name", (char*)objects[inspectorItem]->name->c_str(), objects[inspectorItem]->name->capacity() + 1);
 			if (ImGui::CollapsingHeader("Transform")) {
 				objects[inspectorItem]->transform.drawImGui();

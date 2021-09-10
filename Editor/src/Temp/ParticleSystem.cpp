@@ -63,7 +63,7 @@ void ParticleSystem::draw(Stulu::Timestep ts, glm::vec3& rotation) {
 
 			p->cColor = glm::lerp(p->beginColor, p->endColor, life);
 			p->cSize = glm::lerp(p->beginSize, p->endSize, life);
-
+			
 			//Stulu::Renderer2D::drawQuad(p->pos, p->cSize, p->rotation, p->cColor);
 			Stulu::Renderer2D::drawQuad(Stulu::Math::createMat4(p->pos, p->rotation, p->cSize), p->cColor);
 			continue;
@@ -77,9 +77,7 @@ void ParticleSystem::clear() {
 	m_particles.clear();
 }
 #include <imgui/imgui.h>
-void ParticleSystemData::imGuiDraw(const char* title, ParticleSystemData& data, bool begin, bool end) {
-	if(begin)
-		ImGui::Begin(title);
+void ParticleSystemData::imGuiDraw(ParticleSystemData& data) {
 	ImGui::Checkbox("Moving", &data.moving);
 	if (data.moving) {
 		Stulu::imGui::Float("Speed", data.speed);
@@ -130,7 +128,4 @@ void ParticleSystemData::imGuiDraw(const char* title, ParticleSystemData& data, 
 
 	ImGui::ColorEdit4("Begin Color", glm::value_ptr(data.beginColor));
 	ImGui::ColorEdit4("End Color", glm::value_ptr(data.endColor));
-
-	if(end)
-		ImGui::End();
 }
