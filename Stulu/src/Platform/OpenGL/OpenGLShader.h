@@ -19,7 +19,7 @@ namespace Stulu {
 		virtual void setFloat3(const std::string& name, const glm::vec3& vec) override;
 		virtual void setFloat2(const std::string& name, const glm::vec2& vec) override;
 		virtual void setFloat(const std::string& name, const float Float) override;
-		virtual void setInt(const std::string& name, const int Int) override;
+		virtual void setInt(const std::string& name, const int32_t Int) override;
 		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) override;
 		virtual void uploadMat4Uniform(const std::string& name,const glm::mat4& matrix);
 		virtual void uploadMat3Uniform(const std::string& name,const glm::mat3& matrix);
@@ -27,7 +27,7 @@ namespace Stulu {
 		virtual void uploadFloat3Uniform(const std::string& name, const glm::vec3& float3);
 		virtual void uploadFloat2Uniform(const std::string& name, const glm::vec2& float2);
 		virtual void uploadFloatUniform(const std::string& name, const float _float);
-		virtual void uploadIntUniform(const std::string& name, const int _int);
+		virtual void uploadIntUniform(const std::string& name, const int32_t _int);
 		virtual void uploadIntArrayUniform(const std::string& name, const int* values, uint32_t count);
 
 	private:

@@ -71,16 +71,12 @@ void Skybox::load() {
 	m_vertexArray->addVertexBuffer(vertexBuffer);
 }
 
-void Skybox::draw(const Stulu::Camera& cam) {
+void Skybox::draw() {
 	ST_PROFILING_FUNCTION();
 	Stulu::RenderCommand::setDepthFunc(true);
 	m_texture->bind();
 	m_shader->bind();
-	glm::mat4 _view = glm::mat4(glm::mat3(cam.getViewMatrix()));
-	m_shader->setMat4("u_viewProjection", cam.getProjectionMatrix() * _view);
-	m_shader->setMat4("u_transform", glm::mat4(1.0f));
 	m_vertexArray->bind();
-
 	Stulu::RenderCommand::drawPrimitiveArray(m_indexCount);
 	Stulu::RenderCommand::setDepthFunc(false);
 }

@@ -1,15 +1,8 @@
 #pragma once
 #include "Temp/Skybox.h"
 #include "Temp/ParticleSystem.h"
+
 namespace Stulu {
-
-	struct GameObject {
-		bool enabled = true;
-		std::string* name;
-		Transform transform = Transform(glm::vec3(.0f), glm::vec3(.0f), glm::vec3(1.0f));
-		std::vector<Component*> components;
-	};
-
 	class EditorLayer : public Layer {
 	public:
 		EditorLayer();
@@ -19,22 +12,25 @@ namespace Stulu {
 		void onImguiRender(Timestep timestep) override;
 		void onEvent(Event& e) override;
 	private:
-		float m_metalness = 1.0f, m_fov = 85.0f;
+		bool m_viewPortFocused = false, m_viewPortHovered = false, m_runtime = false;
+
+
 		uint32_t m_viewPortPanelWidth;
 		uint32_t m_viewPortPanelHeight;
 
-		Light* light = nullptr;
-
-		Model car;
 		Model cube;
 		Model sphere;
 
-		std::vector<GameObject*> objects;
 
 		ShaderLibary shaderLib;
 
 		Ref<FrameBuffer> m_frameBuffer;
-		CameraController m_cameraController;
+		SceneCamera m_sceneCamera;
 		Skybox m_skybox;
+
+		Scene m_activeScene;
+
+
+		bool onShortCut(KeyDownEvent& e);
 	};
 }

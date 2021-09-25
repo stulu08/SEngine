@@ -5,7 +5,7 @@
 namespace Stulu {
 	class Shader {
 	public:
-		virtual ~Shader() {};
+		virtual ~Shader() = default;
 
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
@@ -18,7 +18,7 @@ namespace Stulu {
 		virtual void setFloat3(const std::string& name, const glm::vec3& vec) = 0;
 		virtual void setFloat2(const std::string& name, const glm::vec2& vec) = 0;
 		virtual void setFloat(const std::string& name, const float Float) = 0;
-		virtual void setInt(const std::string& name, const int Int) = 0;
+		virtual void setInt(const std::string& name, const int32_t Int) = 0;
 		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) = 0;
 	};
 	class ShaderLibary {

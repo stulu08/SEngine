@@ -2,10 +2,8 @@
 
 ////////////////////Core/////////////////////
 #include "Stulu/Core/CameraController.h"
-#include "Stulu/Core/OrthographicCameraController.h"
-#include "Stulu/Core/PerspectiveCameraController.h"
+#include "Stulu/Core/Input.h"
 #include "Stulu/Core/Platform.h"
-#include "Stulu/Core/SceneCamera.h"
 //#include "Stulu/Core/Application.h"
 //#include "Stulu/Core/Core.h"
 //#include "Stulu/Core/CoreConfig.h"
@@ -28,11 +26,6 @@
 ////////////////////ImGui////////////////////
 #include "Stulu/ImGui/StuluImGui.h"
 //#include "Stulu/ImGui/ImGuiLayer.h"
-// 
-////////////////////Input////////////////////
-#include "Stulu/Core/Input.h"
-#include "Stulu/Core/Keycodes.h"
-#include "Stulu/Core/MouseButtonCodes.h"
 
 ////////////////////Math/////////////////////
 #include "Stulu/Math/Math.h"
@@ -52,8 +45,14 @@
 //#include "Stulu/Renderer/RenderAPI.h"
 //#include "Stulu/Renderer/RenderCommand.h"
 //#include "Stulu/Renderer/Shader.h"
+//#include "Stulu/Renderer/SubTexture.h"
 //#include "Stulu/Renderer/Texture.h"
+//#include "Stulu/Renderer/UniformBuffer.h"
 //#include "Stulu/Renderer/VertexArray.h"
 
 ////////////////////Scene////////////////////
+#include "Stulu/Scene/Behavior.h"
+#include "Stulu/Scene/GameObject.h"
 //#include "Stulu/Scene/Components.h"
+//#include "Stulu/Scene/Scene.h"
+//#include "Stulu/Scene/SceneCamera.h"

@@ -119,7 +119,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		GLuint rendererID = glCreateProgram();
 		CORE_ASSERT(shaderSrcs.size() <= 2,"Only 2 shaders are currently supported");
-		int shaderIndex = 0;
+		int32_t shaderIndex = 0;
 		std::array<GLenum, 2> shaderIds;
 		for (auto& kv : shaderSrcs) {
 			GLenum type = kv.first;
@@ -205,7 +205,7 @@ namespace Stulu {
 	void OpenGLShader::setFloat(const std::string& name, const float Float) {
 		uploadFloatUniform(name, Float);
 	}
-	void OpenGLShader::setInt(const std::string& name, const int Int) {
+	void OpenGLShader::setInt(const std::string& name, const int32_t Int) {
 		uploadIntUniform(name, Int);
 	}
 	void OpenGLShader::setIntArray(const std::string& name, const int* values, uint32_t count) {
@@ -236,7 +236,7 @@ namespace Stulu {
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform2f(loc, float2.x, float2.y);
 	}
-	void OpenGLShader::uploadIntUniform(const std::string& name, const int _int) {
+	void OpenGLShader::uploadIntUniform(const std::string& name, const int32_t _int) {
 		ST_PROFILING_FUNCTION();
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1i(loc, _int);

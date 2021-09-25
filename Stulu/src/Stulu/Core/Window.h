@@ -7,10 +7,10 @@ namespace Stulu{
 	
 	struct WindowProps {
 		std::string title;
-		unsigned int width;
-		unsigned int height;
+		uint32_t width;
+		uint32_t height;
 
-		WindowProps(const std::string& _title = "Stulu Engine", unsigned int _width = 1280, unsigned int _height = 720)
+		WindowProps(const std::string& _title = "Stulu Engine", uint32_t _width = 1280, uint32_t _height = 720)
 			: title(_title), width(_width),height(_height){}
 	};
 
@@ -18,12 +18,12 @@ namespace Stulu{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;
 
-		virtual ~Window() {};
+		virtual ~Window() = default;
 
 		virtual void onUpdate() = 0;
 
-		virtual unsigned int getWidth() const = 0;
-		virtual unsigned int getHeight() const = 0;
+		virtual uint32_t getWidth() const = 0;
+		virtual uint32_t getHeight() const = 0;
 
 		//attributes
 		virtual void setEventCallback(const EventCallbackFn& callback) = 0;

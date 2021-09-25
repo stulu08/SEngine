@@ -7,7 +7,7 @@ public:
 	Skybox(std::vector<std::string> faces);
 	Skybox(Stulu::Ref<Stulu::CubeMap> texture);
 	void load();
-	void draw(const Stulu::Camera& cam);
+	void draw();
 
 	void setCubeMap(Stulu::Ref<Stulu::CubeMap> texture) {
 		m_texture = texture;

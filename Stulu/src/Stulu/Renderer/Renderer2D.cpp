@@ -2,6 +2,7 @@
 #include "Renderer2D.h"
 #include "Stulu/Renderer/RenderCommand.h"
 #include "Stulu/Renderer/Shader.h"
+#include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Math/Math.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -89,10 +90,9 @@ namespace Stulu {
 	void Renderer2D::shutdown() {
 		ST_PROFILING_FUNCTION();
 	}
-	void Renderer2D::beginScene(Camera& cam) {
+	void Renderer2D::beginScene(const Ref<Camera>& cam, const TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
-		s_renderer2Ddata.shader->bind();
-		s_renderer2Ddata.shader->setMat4("u_viewProjection", cam.getViewProjectionMatrix());
+		Renderer::beginScene(cam, transform);
 		s_renderer2Ddata.quadIndexCount = 0;
 		s_renderer2Ddata.slotIndex = 1;
 		s_renderer2Ddata.vertexBufferPtr = s_renderer2Ddata.vertexBufferBase;
@@ -102,6 +102,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 
 		flush();
+		Renderer::endScene();
 	}
 	void Renderer2D::flush() {
 		ST_PROFILING_FUNCTION(); 
@@ -114,6 +115,7 @@ namespace Stulu {
 		for (uint32_t i = 0; i < s_renderer2Ddata.slotIndex; i++)
 			s_renderer2Ddata.textureSlots[i]->bind(i);
 
+		s_renderer2Ddata.shader->bind();
 		s_renderer2Ddata.vertexArray->bind();
 		RenderCommand::drawIndexed(s_renderer2Ddata.vertexArray, s_renderer2Ddata.quadIndexCount);
 	}
@@ -191,8 +193,6 @@ namespace Stulu {
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f,rotation), glm::vec3(size, 1.0f)), texture, tiling, color);
 	}
-	
-	
 	void Renderer2D::drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
@@ -232,4 +232,5 @@ namespace Stulu {
 	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
 		drawFromSpriteSheet(Math::createMat4(pos, glm::vec3(.0f, .0f, rotation), glm::vec3(size, 1.0f)), sprite, tiling, color);
 	}
+
 }

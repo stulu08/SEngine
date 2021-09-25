@@ -46,17 +46,17 @@ namespace Stulu {
 
 	class MouseButtonEvent : public Event {
 	public:
-		inline int getButton() const { return m_button; }
+		inline int32_t getButton() const { return m_button; }
 		EVENT_CLASS_CATEGORY(MouseEventCategrory | InputEventCategrory)
 
 	protected:
-		MouseButtonEvent(int button)
+		MouseButtonEvent(int32_t button)
 			: m_button(button){}
-		int m_button;
+		int32_t m_button;
 	};
 	class MouseButtonDownEvent : public MouseButtonEvent{
 	public:
-		MouseButtonDownEvent(int button)
+		MouseButtonDownEvent(int32_t button)
 			: MouseButtonEvent(button){}
 
 		std::string toString() const override {
@@ -68,7 +68,7 @@ namespace Stulu {
 	};
 	class MouseButtonUpEvent : public MouseButtonEvent {
 	public:
-		MouseButtonUpEvent(int button)
+		MouseButtonUpEvent(int32_t button)
 			: MouseButtonEvent(button) {}
 
 		std::string toString() const override {

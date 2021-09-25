@@ -1,3 +1,4 @@
+#include "..\..\..\3D-Demo\src\Chunk.h"
 #include "Terrain.h"
 
 #include <glm/glm/gtc/type_ptr.hpp>

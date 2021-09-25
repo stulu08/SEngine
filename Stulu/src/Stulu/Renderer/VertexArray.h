@@ -4,7 +4,7 @@
 namespace Stulu {
 	class VertexArray {
 	public:
-		virtual ~VertexArray() {};
+		virtual ~VertexArray() = default;
 
 		virtual void addVertexBuffer(const Ref<VertexBuffer>& vBuffer) = 0;
 		virtual void setIndexBuffer(const Ref<IndexBuffer>& iBuffer) = 0;

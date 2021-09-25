@@ -22,6 +22,7 @@ namespace Stulu {
 	};
 	class OpenGLCubeMap : public CubeMap {
 	public:
+		OpenGLCubeMap(uint32_t width, uint32_t height);
 		OpenGLCubeMap(const std::vector<std::string>& faces);
 		virtual ~OpenGLCubeMap();
 		virtual void bind(uint32_t slot) const override;

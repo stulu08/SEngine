@@ -4,11 +4,11 @@
 namespace Stulu {
 	class WindowResizeEvent : public Event {
 	public:
-		WindowResizeEvent(unsigned int width, unsigned int height)
+		WindowResizeEvent(uint32_t width, uint32_t height)
 			: m_width(width), m_height(height){}
 
-		inline unsigned int getWidth() const { return m_width; }
-		inline unsigned int getHeight() const { return m_height; }
+		inline uint32_t getWidth() const { return m_width; }
+		inline uint32_t getHeight() const { return m_height; }
 
 		std::string toString() const override {
 			std::stringstream s;
@@ -20,7 +20,7 @@ namespace Stulu {
 		EVENT_CLASS_CATEGORY(ApplicationEventCategrory)
 
 	private:
-		unsigned int m_width, m_height;
+		uint32_t m_width, m_height;
 	};
 
 	class WindowCloseEvent : public Event {

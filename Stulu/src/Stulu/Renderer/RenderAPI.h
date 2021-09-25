@@ -12,6 +12,7 @@ namespace Stulu {
 			Direct3D11 = 3, Direct3D12 = 4,
 			Metal = 5, GLES = 6
 		};
+		virtual ~RenderAPI() = default;
 
 
 		virtual void init() = 0;

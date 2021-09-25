@@ -26,6 +26,7 @@ namespace Stulu {
 	};
 	class CubeMap : public Texture {
 	public:
+		static Ref<CubeMap> create(uint32_t width, uint32_t height);
 		static Ref<CubeMap> create(const std::vector<std::string>& faces);
 	};
 }

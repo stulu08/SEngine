@@ -10,6 +10,7 @@ namespace Stulu {
 
 	class FrameBuffer {
 	public:
+		virtual ~FrameBuffer() = default;
 		virtual void bind() const = 0;
 		virtual void unBind() const = 0;
 		virtual void Invalidate() = 0;
@@ -17,6 +18,7 @@ namespace Stulu {
 		
 		virtual FrameBufferSpecs& getSpecs() = 0;
 		virtual uint32_t getColorAttachmentRendereID() const = 0;
+		virtual uint32_t getDepthAttachmentRendereID() const = 0;
 
 		static Ref<FrameBuffer> create(const FrameBufferSpecs& frameBufferdata);
 	};

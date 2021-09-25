@@ -61,21 +61,3 @@ private:
 	int m_maxParticle = 1000;
 	std::vector<Particle*> m_particles;
 };
-class ParticleSystemComponent : public Stulu::Component {
-public:
-	ParticleSystemComponent() : m_data(), m_system(&m_data){}
-
-	virtual void onUpdate(Stulu::Timestep t) override {
-		m_system.draw(t, transform.rotation);
-		m_system.emit(transform.position,1);
-	}
-	virtual void drawImGui() override {
-		ParticleSystemData::imGuiDraw(m_data);
-	}
-	virtual const char* getTypeName() override {
-		return "ParticleSystem";
-	}
-private:
-	ParticleSystemData m_data;
-	ParticleSystem m_system;
-};

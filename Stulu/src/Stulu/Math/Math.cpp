@@ -29,6 +29,9 @@ namespace Stulu {
 	void Math::setPerlinSeed(uint32_t seed) {
 		noise.reseed(seed);
 	}
+	float Math::simpleNosie(glm::vec2 pos, float offset, float scale, glm::vec2 size) {
+		return perlinNosie((pos.x + 0.1f) / size.x * scale + offset, (pos.y + 0.1f) / size.y * scale + offset);
+	}
 	float Math::perlinNosie(float x, float y, float frequenzy, float sizeX, float sizeY, bool _0_1_) {
 		float freqX = sizeX / frequenzy;
 		float freqY = sizeY / frequenzy;
@@ -75,17 +78,23 @@ namespace Stulu {
 	const glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale) {
 		if (rotation != glm::vec3(0.0f, 0.0f, 0.0f))
 			return glm::translate(glm::mat4(1.0f), pos)
-			* glm::toMat4(EulerToQuaternion(rotation))
+			* glm::toMat4(glm::quat(glm::radians(rotation)))
 			* glm::scale(glm::mat4(1.0f), scale);
 
 		return glm::translate(glm::mat4(1.0f), pos)
 			* glm::scale(glm::mat4(1.0f), scale);
 	}
-	const glm::vec3 Math::screenToWorld(const glm::vec2& pos, const Camera& cam, glm::vec2& windowSize) {
+	const glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale)
+	{
+		return glm::translate(glm::mat4(1.0f), pos)
+			* glm::toMat4(rotation)
+			* glm::scale(glm::mat4(1.0f), scale);
+	}
+	const glm::vec3 Math::screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize) {
 		double x = 2.0 * pos.x / windowSize.x - 1;
 		double y = 2.0 * pos.y / windowSize.y - 1;
 		glm::vec4 screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
-		glm::mat4 viewProjectionInverse = inverse(cam.getViewProjectionMatrix());
+		glm::mat4 viewProjectionInverse = inverse(viewProjectionMatrix);
 		glm::vec4 worldPos = viewProjectionInverse * screenPos;
 		return glm::vec3(worldPos);
 	}

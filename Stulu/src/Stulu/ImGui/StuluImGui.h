@@ -1,5 +1,4 @@
 #pragma once
-#include "Stulu/Scene/Components.h"
 #include "Stulu/Math/Math.h"
 
 namespace Stulu {

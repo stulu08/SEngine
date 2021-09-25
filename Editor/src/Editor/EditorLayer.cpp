@@ -4,17 +4,16 @@
 namespace Stulu {
 
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_cameraController(new CamerControllerSetting()) {
-		RenderCommand::setClearColor(glm::vec4(0.15f));
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f) {
+		RenderCommand::setClearColor(glm::vec4(.0f));
 		m_skybox = Skybox(CubeMap::create({
-			"assets/SkyBox/city/right.jpg",
-			"assets/SkyBox/city/left.jpg",
-			"assets/SkyBox/city/top.jpg",
-			"assets/SkyBox/city/bottom.jpg",
-			"assets/SkyBox/city/front.jpg",
-			"assets/SkyBox/city/back.jpg"
+			"Stulu/assets/SkyBox/default/right.jpg",
+			"Stulu/assets/SkyBox/default/left.jpg",
+			"Stulu/assets/SkyBox/default/top.jpg",
+			"Stulu/assets/SkyBox/default/bottom.jpg",
+			"Stulu/assets/SkyBox/default/front.jpg",
+			"Stulu/assets/SkyBox/default/back.jpg"
 			}));
-		car = Model("assets/car.glb");
 		cube = Model("assets/cube.obj");
 		sphere = Model("assets/sphere.obj");
 		shaderLib.load("Stulu/assets/Shaders/Reflective.glsl");
@@ -25,43 +24,59 @@ namespace Stulu {
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 
 		m_frameBuffer = FrameBuffer::create(fspecs);
-
-
-
-
 	}
 
 	void EditorLayer::onAttach() {
+		GameObject go;
+		Model car = Model("assets/car.glb");
+		go = m_activeScene.createGameObject("Car");
+		go.addComponent<ModelRendererComponent>(car, shaderLib.get("pbr"));
+
+		class Controller : public Behavior {
+		public:
+			void start() {
+				
+			}
+			void update(Timestep timestep) {
+				getComponent<TransformComponent>().position.x += 8.0f * timestep;
+			}
+			void destroy() {
+
+			}
+		};
+
+		go = m_activeScene.createGameObject("Light");
+		go.getComponent<TransformComponent>().rotation.x = -145;
+		go.getComponent<TransformComponent>().rotation.y = 30;
+		go.addComponent<LightComponent>();
+		
+		go = m_activeScene.createGameObject("Sprite");
+		go.getComponent<TransformComponent>().position.z = 12;
+		go.addComponent<SpriteRendererComponent>(COLOR_PLASTIC_GREEN);
+
+		go = m_activeScene.createGameObject("Camera");
+		go.getComponent<TransformComponent>().position.z = 10;
+		go.addComponent<CameraComponent>(CameraMode::Perspective);
+		go.addComponent<NativeBehaviourComponent>().bind<Controller>();
 	}
-	int inspectorItem = -1;
 
 	void EditorLayer::onUpdate(Timestep timestep) {
-		m_cameraController.onUpdate(timestep);
+		if (m_viewPortFocused && !m_runtime)
+			m_sceneCamera.onUpdate(timestep);
+
 		m_frameBuffer->bind();
 		RenderCommand::clear();
 
-		Renderer::beginScene(*m_cameraController.getCamera());
-		Renderer2D::beginScene(*m_cameraController.getCamera());
+		if(m_runtime)
+			m_activeScene.onUpdateRuntime(timestep);
+		else
+			m_activeScene.onUpdateEditor(timestep, m_sceneCamera);
+		
+		m_skybox.draw();
 
-		m_skybox.draw(*m_cameraController.getCamera());
-		if (light != nullptr) {
-			shaderLib.get("pbr")->bind();
-			shaderLib.get("pbr")->setFloat3("u_lightColor", light->color);
-			shaderLib.get("pbr")->setFloat3("u_lightPosition", light->transform.position);
-			shaderLib.get("pbr")->setFloat("u_lightStrength", light->strength);
-			shaderLib.get("pbr")->unbind();
-		}
-		for (auto object : objects) {
-			if (!object->enabled)
-				continue;
-			for (auto component : object->components) {
-				component->transform = object->transform;
-				component->onUpdate(timestep);
-			}
-		}
-		Renderer2D::endScene();
-		Renderer::endScene();
 		m_frameBuffer->unBind();
+
+
 	}
 	bool about = false;
 	void EditorLayer::onImguiRender(Timestep timestep) {
@@ -69,8 +84,7 @@ namespace Stulu {
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::MenuItem("New Scene")) {
-					objects.clear();
-					inspectorItem = -1;
+
 				}
 				if (ImGui::MenuItem("Exit")) {
 					Application::exit(0);
@@ -104,112 +118,64 @@ namespace Stulu {
 			}
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 		if (ImGui::Begin("View")) {
+			
 			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-
-			if (m_viewPortPanelWidth != viewportSize.x || m_viewPortPanelHeight != viewportSize.y) {
-				m_viewPortPanelWidth = viewportSize.x;
-				m_viewPortPanelHeight = viewportSize.y;
+			m_viewPortPanelWidth = (uint32_t)viewportSize.x;
+			m_viewPortPanelHeight = (uint32_t)viewportSize.y;
+			
+			//resizing
+			FrameBufferSpecs FBspec = m_frameBuffer->getSpecs();
+			if (m_viewPortPanelWidth > 0 && m_viewPortPanelHeight > 0 && (FBspec.width != m_viewPortPanelWidth || FBspec.height != m_viewPortPanelHeight)) {
 				m_frameBuffer->Resize(m_viewPortPanelWidth, m_viewPortPanelHeight);
-				m_cameraController.onResize((float)m_viewPortPanelWidth, (float)m_viewPortPanelHeight);
+				m_sceneCamera.onResize((float)m_viewPortPanelWidth, (float)m_viewPortPanelHeight);
+				m_activeScene.onViewportResize(m_viewPortPanelWidth, m_viewPortPanelHeight);
 			}
-			ImGui::Image((void*)m_frameBuffer->getColorAttachmentRendereID(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+			///////////////
+
+			ImTextureID viewPortTexture = (void*)m_frameBuffer->getColorAttachmentRendereID();
+			ImGui::Image(viewPortTexture, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+
+			m_viewPortFocused = ImGui::IsWindowFocused();
+			m_viewPortHovered = ImGui::IsWindowHovered();
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();
-		ImGui::Begin("Explorer");
 
+		ImGui::Begin("Debug");
 
-		ImGui::End();
-		ImGui::Begin("Hirachy", (bool*)true, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu("Add")) {
-				if (ImGui::MenuItem("Cube")) {
-					GameObject* obje = new GameObject();
-					obje->name = new std::string("Cube");
-					obje->components.push_back(new ModelRenderer(cube, shaderLib.get("pbr")));
-					obje->components.push_back(new PBRShaderEdit(shaderLib.get("pbr")));
-					objects.push_back(obje);
-				}
-				if (ImGui::MenuItem("Car")) {
-					GameObject* obje = new GameObject();
-					obje->name = new std::string("car");
-					obje->components.push_back(new ModelRenderer(car, shaderLib.get("pbr")));
-					obje->components.push_back(new PBRShaderEdit(shaderLib.get("pbr")));
-					objects.push_back(obje);
-				}
-				if (ImGui::MenuItem("Light")) {
-					GameObject* obje = new GameObject();
-					obje->name = new std::string("Light");
-					light = new Light();
-					obje->components.push_back(light);
-					objects.push_back(obje);
-				}
-				if (ImGui::MenuItem("Sphere")) {
-					GameObject* obje = new GameObject();
-					obje->name = new std::string("Sphere");
-					obje->components.push_back(new ModelRenderer(sphere, shaderLib.get("pbr")));
-					obje->components.push_back(new PBRShaderEdit(shaderLib.get("pbr")));
-					objects.push_back(obje);
-				}
-				if (ImGui::MenuItem("Reflection Sphere")) {
-					GameObject* obje = new GameObject();
-					obje->name = new std::string("Reflection Sphere");
-					obje->components.push_back(new ModelRenderer(sphere, shaderLib.get("Reflective")));
-					objects.push_back(obje);
-				}
-				if (ImGui::MenuItem("ParticleSystem")) {
-					GameObject* obje = new GameObject();
-					obje->name = new std::string("ParticleSystem");
-					obje->components.push_back(new ParticleSystemComponent());
-					objects.push_back(obje);
-				}
-				ImGui::EndMenu();
-			}
-			ImGui::EndMenuBar();
-		}
-		for (int i = 0; i < objects.size(); i++) {
-			if(!objects[i]->enabled)
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, .5f);
-			else
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-			if (ImGui::Selectable(objects[i]->name->c_str(), inspectorItem == i))
-				inspectorItem = i;
-			ImGui::PopStyleVar();
-		}
-
-		ImGui::End();
-		ImGui::Begin("Inspector");
-		if (inspectorItem > -1) {
-			if (ImGui::Button("Delete")) {
-				objects.erase(objects.begin() + inspectorItem);
-				inspectorItem = -1;
-				ImGui::End();
-				return;
-			}
-			imGui::checkBox("Enabled", objects[inspectorItem]->enabled, false); ImGui::SameLine();
-			ImGui::InputText("Name", (char*)objects[inspectorItem]->name->c_str(), objects[inspectorItem]->name->capacity() + 1);
-			if (ImGui::CollapsingHeader("Transform")) {
-				objects[inspectorItem]->transform.drawImGui();
-			}
-			for (auto component : objects[inspectorItem]->components) {
-				if (ImGui::CollapsingHeader(component->getTypeName())) {
-					component->drawImGui();
-					if (ImGui::Button("Remove Component")) {
-						std::vector<Component*>::iterator it = std::find(objects[inspectorItem]->components.begin(), objects[inspectorItem]->components.end(), component);
-						if (it != objects[inspectorItem]->components.end())
-							objects[inspectorItem]->components.erase(it);
-
-						break;
-					}
-				}
-			}
-			ImGui::Separator();
-
-		}
+		if (m_runtime)
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha,.5f);
+		else
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+		if (ImGui::Button("Play"))
+			m_runtime = !m_runtime;
+		ImGui::PopStyleVar();
+		
 		ImGui::End();
 	}
-
 	void EditorLayer::onEvent(Event& e) {
-		m_cameraController.onEvent(e);
+		if(!m_runtime)
+			m_sceneCamera.onEvent(e);
+
+		EventDispatcher dispacther(e);
+
+		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
+	}
+	bool EditorLayer::onShortCut(KeyDownEvent& e) {
+		if (e.getRepeatCount() > 0)
+			return false;
+
+		bool control = Input::isKeyDown(Keyboard::LeftControl) || Input::isKeyDown(Keyboard::RightControl);
+		bool shift = Input::isKeyDown(Keyboard::LeftShift) || Input::isKeyDown(Keyboard::RightShift);
+
+		switch (e.getKeyCode())
+		{
+			case Keyboard::D:
+				if (control) {
+					
+				}
+				break;
+		}
+		return false;
 	}
 }

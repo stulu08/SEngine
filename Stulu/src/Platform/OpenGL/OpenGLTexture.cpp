@@ -26,7 +26,7 @@ namespace Stulu {
 		:m_path(path) {
 
 		ST_PROFILING_FUNCTION();
-		int width, height, channels;
+		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
 		stbi_uc* textureData;
 		{
@@ -92,11 +92,27 @@ namespace Stulu {
 
 
 
+	OpenGLCubeMap::OpenGLCubeMap(uint32_t width, uint32_t height) {
+		ST_PROFILING_FUNCTION();
+		glGenTextures(1, &m_rendererID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_rendererID);
+		m_width = width;
+		m_height = height;
+		for (uint32_t i = 0; i < 6; i++) {
+			GLenum type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+			glTextureStorage2D(m_rendererID, 0, GL_RGB, m_width, m_height);
+		}
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	}
 	OpenGLCubeMap::OpenGLCubeMap(const std::vector<std::string>& faces) {
 		ST_PROFILING_FUNCTION();
 		glGenTextures(1, &m_rendererID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_rendererID);
-		int width, height, channels;
+		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(false);
 		for (uint32_t i = 0; i < faces.size(); i++) {
 			GLenum type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
@@ -109,6 +125,8 @@ namespace Stulu {
 			glTexImage2D(type, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
 			stbi_image_free(textureData);
 		}
+		m_width = width;
+		m_height = height;
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

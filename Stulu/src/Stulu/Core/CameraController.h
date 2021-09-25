@@ -1,14 +1,13 @@
 #pragma once
 #include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/PerspectiveCamera.h"
-#include "Stulu/Scene/Components/Transform.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Events/KeyEvent.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Math/Math.h"
+#include <Stulu/Scene/Components.h>
 
 namespace Stulu {
-	enum CameraMode{ Perspective, Orthographic };
 	struct CamerControllerSetting {
 		float fov = 80.0f, zoom = 1.0f, zNear = .01f, zFar = 250.0f;
 		float cameraBaseMoveSpeed = 8.0f, cameraSensitivity = .8f, cameraRotationSpeed = 64.0f;
@@ -18,18 +17,18 @@ namespace Stulu {
 	};
 	class CameraController {
 	public:
-		CameraController(CamerControllerSetting* settings);
+		CameraController(CamerControllerSetting* settings, CameraMode mode = CameraMode::Perspective);
 
 		void onUpdate(Timestep timestep);
 		void onEvent(Event& e);
 		void onResize(float width, float height);
 
-		Stulu::Ref<Camera>& getCamera() {
+		Ref<Camera>& getCamera() {
 			return m_activeCamera;
 		}
 
-		Transform& getTransform() { return m_transform; }
-		void setTransform(const Transform& transform) { m_transform = transform; }
+		TransformComponent& getTransform() { return m_transform; }
+		void setTransform(const TransformComponent& transform) { m_transform = transform; }
 
 		float getAspectRatio() { return m_aspectRatio; }
 
@@ -51,7 +50,7 @@ namespace Stulu {
 		glm::vec2 mouseDelta = glm::vec2(0.0f);
 		CameraMode m_mode = CameraMode::Perspective;
 		CamerControllerSetting* m_settings;
-		Transform m_transform;
+		TransformComponent m_transform;
 
 		Stulu::Ref<Camera> m_activeCamera;
 

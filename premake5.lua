@@ -16,6 +16,7 @@ workspace "Stulu"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
+IncludeDir["spdlog"] = "Stulu/vendor/spdlog/include"
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
@@ -23,6 +24,7 @@ IncludeDir["assimp"] = "Stulu/vendor/assimp/include"
 IncludeDir["glm"] = "Stulu/vendor/glm"
 IncludeDir["stb_image"] = "Stulu/vendor/stb_image"
 IncludeDir["noise"] = "Stulu/vendor/ReputelessPerlinNoise"
+IncludeDir["entt"] = "Stulu/vendor/entt"
 
 group "Dependencies"
 include "Stulu/vendor/GLFW"
@@ -62,14 +64,15 @@ project "Stulu"
 	includedirs
 	{
 		"%{prj.name}/src",
-		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
-		"%{IncludeDir.noise}"
+		"%{IncludeDir.noise}",
+		"%{IncludeDir.entt}"
 	}
 
 	links 
@@ -89,6 +92,59 @@ project "Stulu"
 			"St_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
+
+	filter "configurations:Debug"
+		defines "ST_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "ST_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "ST_DIST"
+		runtime "Release"
+		optimize "on"
+
+project "Editor"
+	location "Editor"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	defines
+	{
+		"ST_EDITOR"
+	}
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/Stulu/**.glsl"
+	}
+
+	includedirs
+	{
+		"Stulu/src",
+		"Stulu/vendor",
+		"%{prj.name}/src",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}",
+	}
+
+	links
+	{
+		"Stulu"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
@@ -154,9 +210,8 @@ project "TestProject"
 		defines "ST_DIST"
 		runtime "Release"
 		optimize "on"
-
-project "Editor"
-	location "Editor"
+project "3D-Demo"
+	location "3D-Demo"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
@@ -164,16 +219,13 @@ project "Editor"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-	defines
-	{
-		"ST_EDITOR"
-	}
+
 	files
 	{
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
-		"%{prj.name}/Stulu/**.h",
-		"%{prj.name}/Stulu/**.cpp"
+		"%{prj.name}/**.glsl",
+		"%{prj.name}/**.sshader"
 	}
 
 	includedirs

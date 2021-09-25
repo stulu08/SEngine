@@ -13,8 +13,8 @@ namespace Stulu {
 
 		void onUpdate() override;
 
-		inline unsigned int getWidth() const override { return m_data.width; }
-		inline unsigned int getHeight() const override { return m_data.height; }
+		inline uint32_t getWidth() const override { return m_data.width; }
+		inline uint32_t getHeight() const override { return m_data.height; }
 
 		//attributes
 		inline void setEventCallback(const EventCallbackFn& callback) override { m_data.eventCallback = callback; }
@@ -35,7 +35,7 @@ namespace Stulu {
 
 		struct WindowData {
 			std::string title;
-			unsigned int width, height;
+			uint32_t width, height;
 			bool VSync;
 
 			EventCallbackFn eventCallback;

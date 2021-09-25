@@ -6,23 +6,25 @@
 #include "Stulu/Renderer/RenderCommand.h"
 
 namespace Stulu {
-	CameraController::CameraController(CamerControllerSetting* settings) 
+	CameraController::CameraController(CamerControllerSetting* settings, CameraMode mode) 
 		: m_settings(settings){
-		//m_activeCamera = createRef<OrthographicCamera>(-m_aspectRatio * m_settings->zoom, m_aspectRatio * m_settings->zoom, -m_settings->zoom, m_settings->zoom, m_settings->zNear, m_settings->zFar);
-		m_activeCamera = createRef<PerspectiveCamera>(m_settings->fov, m_aspectRatio, m_settings->zNear, m_settings->zFar);
+		if(mode == CameraMode::Orthographic)
+			m_activeCamera = createRef<OrthographicCamera>(-m_aspectRatio * m_settings->zoom, m_aspectRatio * m_settings->zoom, -m_settings->zoom, m_settings->zoom, m_settings->zNear, m_settings->zFar);
+		else if(mode == CameraMode::Perspective)
+			m_activeCamera = createRef<PerspectiveCamera>(m_settings->fov, m_aspectRatio, m_settings->zNear, m_settings->zFar);
 	}
 
 	void CameraController::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (m_settings->m_controlls) {
 			if (Input::isKeyDown(KEY_W))
-				m_transform.position += m_activeCamera->getForwardDirection() * m_speed * (float)timestep;
+				m_transform.position += m_transform.forwardDirection() * m_speed * (float)timestep;
 			if (Input::isKeyDown(KEY_S))
-				m_transform.position -= m_activeCamera->getForwardDirection() * m_speed * (float)timestep;;
+				m_transform.position -= m_transform.forwardDirection() * m_speed * (float)timestep;;
 			if (Input::isKeyDown(KEY_A))
-				m_transform.position -= m_activeCamera->getRightDirection() * m_speed * (float)timestep;
+				m_transform.position -= m_transform.rightDirection() * m_speed * (float)timestep;
 			if (Input::isKeyDown(KEY_D))
-				m_transform.position += m_activeCamera->getRightDirection() * m_speed * (float)timestep;
+				m_transform.position += m_transform.rightDirection() * m_speed * (float)timestep;
 
 			if (Input::isKeyDown(KEY_LEFT_SHIFT))
 				m_speed += 5.0f * timestep;
@@ -30,15 +32,12 @@ namespace Stulu {
 				m_speed = m_settings->cameraBaseMoveSpeed;
 
 			if (Input::isMouseDown(MOUSE_BUTTON_2)) {
-				float yawSign = m_activeCamera->getUpDirection().y < 0 ? -1.0f : 1.0f;
+				float yawSign = m_transform.upDirection().y < 0 ? -1.0f : 1.0f;
 				m_yaw += yawSign * mouseDelta.x * m_settings->cameraSensitivity;
 				m_pitch += mouseDelta.y * m_settings->cameraSensitivity;
-				m_transform.setRotation(-m_pitch, -m_yaw, .0f);
+				m_transform.rotation = glm::degrees(glm::vec3(-m_pitch, -m_yaw, .0f));
 			}
 		}
-
-		m_activeCamera->setRotation(m_transform.rotation);
-		m_activeCamera->setPosition(m_transform.position);
 
 		mouseDelta = glm::vec2(Input::getMouseX() - lastMouseXPos, Input::getMouseY() - lastMouseYPos) * 0.003f;
 		lastMouseXPos = Input::getMouseX();
@@ -53,7 +52,10 @@ namespace Stulu {
 	void CameraController::onResize(float width, float height) {
 		ST_PROFILING_FUNCTION();
 		m_aspectRatio = width / height;
-		m_activeCamera->setProjection(-m_aspectRatio * m_settings->zoom, m_aspectRatio * m_settings->zoom, -m_settings->zoom, m_settings->zoom, m_settings->zNear, m_settings->zFar);
+		if(m_mode == CameraMode::Orthographic)
+			m_activeCamera->setProjection(-m_aspectRatio * m_settings->zoom, m_aspectRatio * m_settings->zoom, -m_settings->zoom, m_settings->zoom, m_settings->zNear, m_settings->zFar);
+		else if(m_mode == CameraMode::Perspective)
+			m_activeCamera->setProjection(m_settings->fov, m_aspectRatio, m_settings->zNear, m_settings->zFar);
 	}
 	bool CameraController::onResizeEvent(WindowResizeEvent& e) {
 		onResize((float)e.getWidth(), (float)e.getHeight());

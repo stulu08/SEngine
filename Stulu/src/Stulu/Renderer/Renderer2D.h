@@ -2,13 +2,14 @@
 
 #include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/SubTexture2D.h"
+#include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
 	class Renderer2D {
 	public:
 		static void init();
 		static void shutdown();
-		static void beginScene(Camera& cam);
+		static void beginScene(const Ref<Camera>& cam, const TransformComponent& transform);
 		static void endScene();
 
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);

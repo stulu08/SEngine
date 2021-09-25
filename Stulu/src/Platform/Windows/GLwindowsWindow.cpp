@@ -12,7 +12,7 @@
 namespace Stulu {
 	static bool s_glfwInitilized = false;
 
-	static void glfwErrorCallback(int error, const char* msg) {
+	static void glfwErrorCallback(int32_t error, const char* msg) {
 		CORE_ERROR("GLFW error {0}: {1}" , error , msg)
 	}
 
@@ -32,7 +32,7 @@ namespace Stulu {
 
 		if (!s_glfwInitilized) {
 
-			int succes = glfwInit();
+			int32_t succes = glfwInit();
 			CORE_ASSERT(succes, "Could not initialize GLFW!");
 			glfwSetErrorCallback(glfwErrorCallback);
 			s_glfwInitilized = true;
@@ -128,7 +128,7 @@ namespace Stulu {
 
 	void GLwindowsWindow::setWindowIcon(const std::string& path) {
 		ST_PROFILING_FUNCTION();
-		int width, height, channels;
+		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
 		CORE_ASSERT(textureData, "Icon failed to load: {0}", path);

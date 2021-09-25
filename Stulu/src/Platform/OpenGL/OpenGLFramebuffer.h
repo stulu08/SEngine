@@ -14,6 +14,7 @@ namespace Stulu {
 
 		virtual FrameBufferSpecs& getSpecs() override;
 		virtual uint32_t getColorAttachmentRendereID() const override { return m_colorAttachment; }
+		virtual uint32_t getDepthAttachmentRendereID() const override { return m_depthAttachment; }
 
 
 	private:
