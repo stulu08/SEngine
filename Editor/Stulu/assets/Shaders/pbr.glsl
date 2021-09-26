@@ -38,7 +38,8 @@ out vec4 FragColor;
 struct Light{
     vec4 colorAndStrength;
 	vec4 positionAndType;   
-	vec4 rotation;   
+	vec4 rotation;
+    vec4 spotLightData;
 };
 
 const int maxLights = 25;
@@ -173,7 +174,40 @@ void main()
             float NdotL = max(dot(N, L), 0.0);                
             Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;
         }
+        else if(lights[i].positionAndType.w == 2) {
+            vec3 L = normalize(lights[i].positionAndType.xyz - _input.worldPos);
+            float theta = dot(L, normalize(-lights[i].rotation.xyz));
+            float epsilon   = lights[i].spotLightData.x - lights[i].spotLightData.y;
+            float intensity = clamp((theta - lights[i].spotLightData.y) / epsilon, 0.0, 1.0);    
+
+
+
+            vec3 H = normalize(V + L);
+            float distance    = length(lights[i].positionAndType.xyz - _input.worldPos);
+            float attenuation = lights[i].colorAndStrength.w / (distance * distance);
+
+            vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
+    
+            // cook-torrance brdf
+            float NDF = DistributionGGX(N, H, u_roughness);        
+            float G   = GeometrySmith(N, V, L, u_roughness);      
+            vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+    
+            vec3 kS = F;
+            vec3 kD = vec3(1.0) - kS;
+            kD *= 1.0 - u_metallic;	  
+    
+            vec3 numerator    = NDF * G * F;
+            float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+            vec3 specular     = numerator / max(denominator, 0.001) * intensity;  
+        
+            // add to outgoing radiance Lo
+            float NdotL = max(dot(N, L), 0.0);                
+            Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;   
+            
+        }
     }
+
     vec3 ambient = vec3(0.03) * u_albedo * u_ao;
     vec3 color = ambient + Lo;
 

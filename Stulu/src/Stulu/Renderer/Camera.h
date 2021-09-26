@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 namespace Stulu {
-	enum CameraMode { Perspective, Orthographic };
+	enum CameraMode { Perspective = 0, Orthographic = 1 };
 	class Camera {
 	public:
 		virtual ~Camera(){}

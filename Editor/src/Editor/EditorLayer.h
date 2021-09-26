@@ -1,6 +1,7 @@
 #pragma once
 #include "Temp/Skybox.h"
 #include "Temp/ParticleSystem.h"
+#include "Panel/EditorHierarchy.h"
 
 namespace Stulu {
 	class EditorLayer : public Layer {
@@ -28,8 +29,9 @@ namespace Stulu {
 		SceneCamera m_sceneCamera;
 		Skybox m_skybox;
 
-		Scene m_activeScene;
+		Ref<Scene> m_activeScene;
 
+		EditorHierarchyPanel m_editorHierarchy;
 
 		bool onShortCut(KeyDownEvent& e);
 	};

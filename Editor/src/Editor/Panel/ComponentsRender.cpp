@@ -1,0 +1,92 @@
+#include "ComponentsRender.h"
+
+#include "ImGui/misc/cpp/imgui_stdlib.h"
+
+namespace Stulu {
+	template<typename T>
+	static void ComponentsRender::drawComponent(GameObject gameObject, T& component) {}
+	template<>
+	static void ComponentsRender::drawComponent<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) {
+		std::string* name = &gameObject.getComponent<GameObjectBaseComponent>().name;
+		ImGui::InputText("Name", name);
+
+		std::string* tag = &gameObject.getComponent<GameObjectBaseComponent>().tag;
+		ImGui::InputText("Tag", tag);
+		ImGui::Separator();
+		
+	}
+	template<>
+	void ComponentsRender::drawComponent<TransformComponent>(GameObject gameObject, TransformComponent& component) {
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
+		imGui::DragScalarFloatNoLabel("Position_3d_Transform", glm::value_ptr(component.position), 3, .1f, 0, 0, "%.3f");
+
+		ImGui::Text("Rotation");
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
+		imGui::DragScalarFloatNoLabel("Rotation_3d_Transform", glm::value_ptr(component.rotation), 3, .1f, 0, 0, "%.3f");
+
+		ImGui::Text("Scale");
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
+		imGui::DragScalarFloatNoLabel("Scale_3d_Transform", glm::value_ptr(component.scale), 3, .1f, 0, 0, "%.3f");
+	}
+	template<>
+	void ComponentsRender::drawComponent<CameraComponent>(GameObject gameObject, CameraComponent& component) {
+		const char* const camTypes[] = { "Perspective","Orthographic" };
+		if (ImGui::Combo("Type", (int*)&component.mode, camTypes, IM_ARRAYSIZE(camTypes)))
+			component.updateMode();
+		bool recalc = false;
+		if (component.mode == CameraMode::Orthographic) {
+			if (ImGui::DragFloat("Zoom", &component.settings.zoom))
+				recalc = true;
+		}
+		else if (component.mode == CameraMode::Perspective) {
+			if(ImGui::DragFloat("Fov", &component.settings.fov))
+				recalc = true;
+		}
+		if(ImGui::DragFloat("Far", &component.settings.zFar))
+			recalc = true;
+
+		if(ImGui::DragFloat("Near", &component.settings.zNear))
+			recalc = true;
+
+
+		ImGui::Checkbox("Static Aspect Ratio", &component.settings.staticAspect);
+		if (ImGui::InputFloat("Aspect Ratio", &component.aspectRatio, .0f, .0f, "%.2f", !component.settings.staticAspect ? ImGuiInputTextFlags_ReadOnly : 0))
+			recalc = true;
+
+		ImGui::DragInt("Depth", &component.depth);
+
+		component.updateProjection();
+		
+	}
+	template<>
+	void ComponentsRender::drawComponent<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) {
+		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+	}
+	template<>
+	void ComponentsRender::drawComponent<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) {
+		
+	}
+	template<>
+	void ComponentsRender::drawComponent<LightComponent>(GameObject gameObject, LightComponent& component) {
+		const char* const lightTypes[] = { "Directional","Area","Spot"};
+		ImGui::Combo("Type", (int*)&component.lightType, lightTypes, IM_ARRAYSIZE(lightTypes));
+		ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
+		ImGui::DragFloat("Strength", &component.stength);
+		if (component.lightType == LightComponent::Spot) {
+			ImGui::DragFloat("Cut off", &component.spotLight_cutOff);
+			ImGui::DragFloat("Outer cut off", &component.spotLight_outerCutOff);
+		}
+
+	}
+	template<>
+	void ComponentsRender::drawComponent<ModelRendererComponent>(GameObject gameObject, ModelRendererComponent& component) {
+		ImGui::Text("Shader: %s", component.shader->getName().c_str());
+		ImGui::Text("Vertices: %d", component.model.getVerticesCount());
+		ImGui::Text("Indices: %d", component.model.getIndicesCount());
+		ImGui::Text("Triangles: %d", component.model.getTriangleCount());
+	}
+}

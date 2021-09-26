@@ -28,9 +28,11 @@ namespace Stulu {
 			: position(pos), rotation(rotation), scale(scale) { };
 
 		const glm::mat4 getTransform() { return Math::createMat4(position, rotation, scale); }
+		const glm::mat4 getTransform() const { return Math::createMat4(position, rotation, scale); }
 		const glm::quat getOrientation(){ return glm::quat(glm::radians(rotation)); }
 
 		operator const glm::mat4() { return getTransform(); }
+		operator const glm::mat4() const { return getTransform(); }
 
 		glm::vec3 upDirection(){ return glm::rotate(getOrientation(), TRANSFORM_UP_DIRECTION); }
 		glm::vec3 rightDirection() { return glm::rotate(getOrientation(), TRANSFORM_RIGHT_DIRECTION); }
@@ -61,8 +63,9 @@ namespace Stulu {
 				cam = createRef<OrthographicCamera>(-aspectRatio * settings.zoom, aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar);
 			}
 		}
-		const void onResize(float width, float height) {
-			aspectRatio = width / height;
+		const void onResize(uint32_t width, uint32_t height) {
+			aspectRatio = (float)width / (float)height;
+			//cam->resizeFrameBuffer(width, height);
 			updateProjection();
 		}
 		const void updateProjection() {
@@ -86,14 +89,19 @@ namespace Stulu {
 	};
 
 	struct LightComponent {
-		enum Type{ Directional = 0, Area = 1 };
+		enum Type{ Directional = 0, Area = 1, Spot = 2 };
 
 		Type lightType = Type::Directional;
 		glm::vec3 color = glm::vec3(1.0f);
 		float stength = 1.0f;
 
+		float spotLight_cutOff = 10.0f;
+		float spotLight_outerCutOff = 15.0f;
+
 		LightComponent() = default;
 		LightComponent(const LightComponent&) = default;
+		LightComponent(const Type& type)
+			: lightType(type) {};
 	};
 
 	struct ModelRendererComponent {
@@ -116,22 +124,22 @@ namespace Stulu {
 	class Behavior;
 	struct NativeBehaviourComponent {
 		Behavior* instance = nullptr;
+		std::string behaviorName = "";
 
-		std::function<void()> InstantiateFn;
-		std::function<void()> DestroyFn;
-
-		std::function<void(Behavior*)> startFn;
-		std::function<void(Behavior*, Timestep)> updateFn;
-		std::function<void(Behavior*)> destroyFn;
+		Behavior*(*InstantiateBehaviour)();
+		void(*DestroyBehaviour)(NativeBehaviourComponent*);
 
 		template<typename T>
 		void bind() {
-			InstantiateFn = [&]() { instance = new T(); };
-			DestroyFn = [&]() { delete (T*)instance; instance = nullptr; };
+			InstantiateBehaviour = []() { return static_cast<Behavior*>(new T); };
+			DestroyBehaviour = [](NativeBehaviourComponent* behaviour) { delete behaviour->instance; behaviour->instance = nullptr; };
+			
+			behaviorName = typeid(T).name();
 
-			startFn = [](Behavior* instance) { ((T*)instance)->start(); };
-			updateFn = [](Behavior* instance, Timestep timestep) { ((T*)instance)->update(timestep); };
-			destroyFn = [](Behavior* instance) { ((T*)instance)->destroy(); };
+			if (behaviorName.find("::") != std::string::npos) {
+				size_t last = behaviorName.find_last_of("::");
+				behaviorName.erase(0, last);
+			}
 		}
 	};
 }

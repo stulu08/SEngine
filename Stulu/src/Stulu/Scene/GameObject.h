@@ -34,6 +34,7 @@ namespace Stulu {
 		operator bool() const { return m_entity != entt::null; }
 		operator entt::entity() const { return m_entity; }
 		operator uint32_t() const { return (uint32_t)m_entity; }
+		operator void*() const { return (void*)(uint64_t)m_entity; }
 
 		bool operator==(const GameObject& other) const {
 			return m_entity == other.m_entity && m_scene == other.m_scene;
@@ -41,9 +42,14 @@ namespace Stulu {
 		bool operator!=(const GameObject& other) const {
 			return !(*this == other);
 		}
+
+		static GameObject null;
 	private:
 		entt::entity m_entity{ entt::null };
 		Scene* m_scene = nullptr;
+
+		friend class EditorInspectorPanel;
+		friend class Scene;
 	};
 }
 

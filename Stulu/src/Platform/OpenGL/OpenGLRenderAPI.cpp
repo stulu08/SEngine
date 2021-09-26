@@ -38,7 +38,7 @@ namespace Stulu {
 
 	void OpenGLRenderAPI::setClearColor(const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
-		glClearColor(color.r, color.g, color.b, .0f);
+		glClearColor(color.r, color.g, color.b, color.a);
 	}
 	void OpenGLRenderAPI::clear() {
 		ST_PROFILING_FUNCTION();

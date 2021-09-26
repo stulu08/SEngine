@@ -5,7 +5,7 @@ namespace Stulu {
 
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f) {
-		RenderCommand::setClearColor(glm::vec4(.0f));
+		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f),1.0f));
 		m_skybox = Skybox(CubeMap::create({
 			"Stulu/assets/SkyBox/default/right.jpg",
 			"Stulu/assets/SkyBox/default/left.jpg",
@@ -24,40 +24,17 @@ namespace Stulu {
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 
 		m_frameBuffer = FrameBuffer::create(fspecs);
+
+		m_activeScene = createRef<Scene>();
 	}
 
 	void EditorLayer::onAttach() {
+		m_editorHierarchy.setScene(m_activeScene);
+
 		GameObject go;
 		Model car = Model("assets/car.glb");
-		go = m_activeScene.createGameObject("Car");
+		go = m_activeScene->createGameObject("Car");
 		go.addComponent<ModelRendererComponent>(car, shaderLib.get("pbr"));
-
-		class Controller : public Behavior {
-		public:
-			void start() {
-				
-			}
-			void update(Timestep timestep) {
-				getComponent<TransformComponent>().position.x += 8.0f * timestep;
-			}
-			void destroy() {
-
-			}
-		};
-
-		go = m_activeScene.createGameObject("Light");
-		go.getComponent<TransformComponent>().rotation.x = -145;
-		go.getComponent<TransformComponent>().rotation.y = 30;
-		go.addComponent<LightComponent>();
-		
-		go = m_activeScene.createGameObject("Sprite");
-		go.getComponent<TransformComponent>().position.z = 12;
-		go.addComponent<SpriteRendererComponent>(COLOR_PLASTIC_GREEN);
-
-		go = m_activeScene.createGameObject("Camera");
-		go.getComponent<TransformComponent>().position.z = 10;
-		go.addComponent<CameraComponent>(CameraMode::Perspective);
-		go.addComponent<NativeBehaviourComponent>().bind<Controller>();
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -68,9 +45,9 @@ namespace Stulu {
 		RenderCommand::clear();
 
 		if(m_runtime)
-			m_activeScene.onUpdateRuntime(timestep);
+			m_activeScene->onUpdateRuntime(timestep);
 		else
-			m_activeScene.onUpdateEditor(timestep, m_sceneCamera);
+			m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
 		
 		m_skybox.draw();
 
@@ -126,13 +103,13 @@ namespace Stulu {
 			//resizing
 			FrameBufferSpecs FBspec = m_frameBuffer->getSpecs();
 			if (m_viewPortPanelWidth > 0 && m_viewPortPanelHeight > 0 && (FBspec.width != m_viewPortPanelWidth || FBspec.height != m_viewPortPanelHeight)) {
-				m_frameBuffer->Resize(m_viewPortPanelWidth, m_viewPortPanelHeight);
+				m_frameBuffer->resize(m_viewPortPanelWidth, m_viewPortPanelHeight);
 				m_sceneCamera.onResize((float)m_viewPortPanelWidth, (float)m_viewPortPanelHeight);
-				m_activeScene.onViewportResize(m_viewPortPanelWidth, m_viewPortPanelHeight);
+				m_activeScene->onViewportResize(m_viewPortPanelWidth, m_viewPortPanelHeight);
 			}
 			///////////////
 
-			ImTextureID viewPortTexture = (void*)m_frameBuffer->getColorAttachmentRendereID();
+			ImTextureID viewPortTexture = (void*)m_frameBuffer->getTexture()->getColorAttachmentRendereID();
 			ImGui::Image(viewPortTexture, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
 			m_viewPortFocused = ImGui::IsWindowFocused();
@@ -152,6 +129,8 @@ namespace Stulu {
 		ImGui::PopStyleVar();
 		
 		ImGui::End();
+
+		m_editorHierarchy.render();
 	}
 	void EditorLayer::onEvent(Event& e) {
 		if(!m_runtime)
