@@ -1,19 +1,12 @@
 #include "EditorLayer.h"
 #include <imgui/imgui.h>
 #include "Editor/EditorApp.h"
+#include <ImGuizmo/ImGuizmo.h>
 namespace Stulu {
 
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f) {
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f), m_sceneViewport("Scene"), m_gameViewport("Game") {
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f),1.0f));
-		m_skybox = Skybox(CubeMap::create({
-			"Stulu/assets/SkyBox/default/right.jpg",
-			"Stulu/assets/SkyBox/default/left.jpg",
-			"Stulu/assets/SkyBox/default/top.jpg",
-			"Stulu/assets/SkyBox/default/bottom.jpg",
-			"Stulu/assets/SkyBox/default/front.jpg",
-			"Stulu/assets/SkyBox/default/back.jpg"
-			}));
 		cube = Model("assets/cube.obj");
 		sphere = Model("assets/sphere.obj");
 		shaderLib.load("Stulu/assets/Shaders/Reflective.glsl");
@@ -23,7 +16,7 @@ namespace Stulu {
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 
-		m_frameBuffer = FrameBuffer::create(fspecs);
+		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
 
 		m_activeScene = createRef<Scene>();
 	}
@@ -38,21 +31,14 @@ namespace Stulu {
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
-		if (m_viewPortFocused && !m_runtime)
+		if (m_sceneViewport.m_viewPortFocused && !m_runtime && !ImGuizmo::IsUsing())
 			m_sceneCamera.onUpdate(timestep);
 
-		m_frameBuffer->bind();
-		RenderCommand::clear();
 
 		if(m_runtime)
 			m_activeScene->onUpdateRuntime(timestep);
 		else
 			m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
-		
-		m_skybox.draw();
-
-		m_frameBuffer->unBind();
-
 
 	}
 	bool about = false;
@@ -93,44 +79,90 @@ namespace Stulu {
 				ImGui::End();
 
 			}
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
-		if (ImGui::Begin("View")) {
-			
-			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-			m_viewPortPanelWidth = (uint32_t)viewportSize.x;
-			m_viewPortPanelHeight = (uint32_t)viewportSize.y;
-			
-			//resizing
-			FrameBufferSpecs FBspec = m_frameBuffer->getSpecs();
-			if (m_viewPortPanelWidth > 0 && m_viewPortPanelHeight > 0 && (FBspec.width != m_viewPortPanelWidth || FBspec.height != m_viewPortPanelHeight)) {
-				m_frameBuffer->resize(m_viewPortPanelWidth, m_viewPortPanelHeight);
-				m_sceneCamera.onResize((float)m_viewPortPanelWidth, (float)m_viewPortPanelHeight);
-				m_activeScene->onViewportResize(m_viewPortPanelWidth, m_viewPortPanelHeight);
-			}
-			///////////////
-
-			ImTextureID viewPortTexture = (void*)m_frameBuffer->getTexture()->getColorAttachmentRendereID();
-			ImGui::Image(viewPortTexture, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
-
-			m_viewPortFocused = ImGui::IsWindowFocused();
-			m_viewPortHovered = ImGui::IsWindowHovered();
-		}
-		ImGui::End();
-		ImGui::PopStyleVar();
-
 		ImGui::Begin("Debug");
 
 		if (m_runtime)
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha,.5f);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, .5f);
 		else
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
 		if (ImGui::Button("Play"))
 			m_runtime = !m_runtime;
 		ImGui::PopStyleVar();
-		
-		ImGui::End();
 
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
+		ImGui::DragFloat3("Position_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().position));
+
+		ImGui::Text("Rotation");
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
+		imGui::DragScalarFloatNoLabel("Rotation_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().rotation), 3, .1f, 0, 0, "%.3f");
+
+		ImGui::Text("Scale");
+		ImGui::SameLine();
+		ImGui::SetCursorPosX(80.0f);
+		imGui::DragScalarFloatNoLabel("Scale_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().scale), 3, .1f, 0, 0, "%.3f");
+
+		ImGui::End();
 		m_editorHierarchy.render();
+
+
+		//resizing
+		//scene window
+		auto cam = m_activeScene->getMainCamera();
+		if (cam) {
+			m_gameViewport.draw(cam.getComponent<CameraComponent>().cam->getFrameBuffer()->getTexture());
+			if (m_gameViewport.m_viewPortPanelWidth > 0 && m_gameViewport.m_viewPortPanelHeight > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.m_viewPortPanelWidth || m_activeScene->m_viewportHeight != m_gameViewport.m_viewPortPanelHeight))
+				m_activeScene->onViewportResize(m_gameViewport.m_viewPortPanelWidth, m_gameViewport.m_viewPortPanelHeight);
+		}
+		else {
+			m_gameViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture());
+			if (m_gameViewport.m_viewPortPanelWidth > 0 && m_gameViewport.m_viewPortPanelHeight > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.m_viewPortPanelWidth || m_activeScene->m_viewportHeight != m_gameViewport.m_viewPortPanelHeight))
+				m_activeScene->onViewportResize(m_gameViewport.m_viewPortPanelWidth, m_gameViewport.m_viewPortPanelHeight);
+		}
+		//editor window
+		FrameBufferSpecs FBspec = m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs();
+		m_sceneViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture(),false);
+
+		bool m_ViewportFocused = ImGui::IsWindowFocused();
+		bool m_ViewportHovered = ImGui::IsWindowHovered();
+		Application::get().getImGuiLayer()->blockEvents(!m_ViewportFocused && !m_ViewportHovered);
+
+		if (m_sceneViewport.m_viewPortPanelWidth > 0 && m_sceneViewport.m_viewPortPanelHeight > 0 && (FBspec.width != m_sceneViewport.m_viewPortPanelWidth || FBspec.height != m_sceneViewport.m_viewPortPanelHeight))
+			m_sceneCamera.onResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
+
+
+		//imguizmo
+		GameObject selected = m_editorHierarchy.getCurrentObject();
+		if (selected && m_gizmoEditType != -1 && !m_runtime) {
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetDrawlist();
+
+			float windowWidth = (float)ImGui::GetWindowWidth();
+			float windowHeight = (float)ImGui::GetWindowHeight();
+			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+
+			// Camera
+			const glm::mat4& cameraProjection = m_sceneCamera.getCamera()->getProjectionMatrix();
+			glm::mat4 cameraView = glm::inverse(m_sceneCamera.getTransform().getTransform());
+
+			// Gameobject transform
+			auto& tc = selected.getComponent<TransformComponent>();
+			glm::mat4 transform = tc.getTransform();
+
+			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+				(ImGuizmo::OPERATION)m_gizmoEditType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+
+			if (ImGuizmo::IsUsing()) {
+				glm::vec3 pos, rotation, scale;
+				Math::decomposeTransform(transform, pos, rotation, scale);
+				tc.position = pos;
+				tc.rotation = glm::degrees(rotation);
+				tc.scale = scale;
+			}
+		}
+		m_sceneViewport.endDraw();
 	}
 	void EditorLayer::onEvent(Event& e) {
 		if(!m_runtime)
@@ -149,10 +181,17 @@ namespace Stulu {
 
 		switch (e.getKeyCode())
 		{
-			case Keyboard::D:
-				if (control) {
-					
-				}
+			case Keyboard::Q:
+				m_gizmoEditType = -1;
+				break;
+			case Keyboard::G:
+				m_gizmoEditType = ImGuizmo::OPERATION::TRANSLATE;
+				break;
+			case Keyboard::R:
+				m_gizmoEditType = ImGuizmo::OPERATION::ROTATE;
+				break;
+			case Keyboard::S:
+				m_gizmoEditType = ImGuizmo::OPERATION::SCALE;
 				break;
 		}
 		return false;

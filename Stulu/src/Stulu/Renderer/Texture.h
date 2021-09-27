@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Core/Core.h"
 #include <string>
+#include <vector>
 #include <glm/glm.hpp>
 
 namespace Stulu {

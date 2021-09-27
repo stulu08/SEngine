@@ -2,6 +2,7 @@
 #include "FrameBuffer.h"
 
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
+#include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
 	Ref<FrameBuffer> FrameBuffer::create(const FrameBufferSpecs& frameBufferdata) {

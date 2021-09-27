@@ -30,11 +30,12 @@ namespace Stulu {
 		m_data.sceneData.cameraRotation = transform.rotation;
 
 		m_data.sceneDataUniformBuffer->setData(&m_data.sceneData, sizeof(Data::SceneData));
+		m_data.cam = cam;
+		cam->bindFrameBuffer();
 	}
 	void Renderer::endScene() {
-
 		ST_PROFILING_FUNCTION();
-
+		m_data.cam->unbindFrameBuffer();
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
 		ST_PROFILING_FUNCTION();

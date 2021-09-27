@@ -34,6 +34,7 @@ namespace Stulu{
 			};
 			SceneData sceneData;
 			Ref<UniformBuffer> sceneDataUniformBuffer;
+			Ref<Camera> cam = nullptr;
 		};
 		static Data m_data;
 	};

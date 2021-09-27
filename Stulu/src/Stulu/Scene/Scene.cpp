@@ -27,22 +27,46 @@ namespace Stulu {
 		calculateLights();
 		//rendering
 		if (camera.getCamera()) {
-			Renderer2D::beginScene(camera.getCamera(), camera.getTransform()); {
-				auto group = m_registry.group<TransformComponent>(entt::get<ModelRendererComponent>);
-				for (auto gameObject : group)
+			Renderer2D::beginScene(camera.getCamera(), camera.getTransform());
+			RenderCommand::clear();
+			{
 				{
-					auto [transform, model] = group.get<TransformComponent, ModelRendererComponent>(gameObject);
-					model.model.submitToRenderer(model.shader, transform);
+					auto group = m_registry.group<TransformComponent>(entt::get<ModelRendererComponent>);
+					for (auto gameObject : group)
+					{
+						auto [transform, model] = group.get<TransformComponent, ModelRendererComponent>(gameObject);
+						model.model.submitToRenderer(model.shader, transform);
+					}
 				}
-
-				auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
-				for (auto gameObject : view)
 				{
-					auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-					Renderer2D::drawQuad(transform, sprite.color);
+					auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
+					for (auto gameObject : view)
+					{
+						auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
+						Renderer2D::drawQuad(transform, sprite.color);
+					}
 				}
 			}
 			Renderer2D::endScene();
+		}
+		//demo render
+		{
+			auto view = m_registry.view<CameraComponent>();
+			for (auto gameObject : view) {
+				auto& cam = m_registry.get<CameraComponent>(gameObject);
+
+				switch (cam.settings.clearType)
+				{
+				case CameraComponent::Color:
+					RenderCommand::setClearColor(cam.settings.clearColor);
+					break;
+				case CameraComponent::Skybox:
+					RenderCommand::setClearColor(glm::vec4(.0f));
+					break;
+				}
+
+				renderScene(gameObject);
+			}
 		}
 	}
 	void Scene::onUpdateRuntime(Timestep ts) {
@@ -53,38 +77,29 @@ namespace Stulu {
 				behaviour.instance->start();
 			}
 			behaviour.instance->update(ts);
-			});
-		//getCamera
-		GameObject mainCameraObject = getMainCamera();
+		});
 
+
+		//GameObject mainCameraObject = getMainCamera();
 		//calculations
 		calculateLights();
 		//rendering
-		if (mainCameraObject) {
-			Ref<Camera> mainCamera = mainCameraObject.getComponent<CameraComponent>().cam;
-			TransformComponent mainCameraTransform = mainCameraObject.getComponent<TransformComponent>();
+		auto view = m_registry.view<CameraComponent>();
+		for (auto gameObject : view) {
+			auto& cam = m_registry.get<CameraComponent>(gameObject);
 
-			Renderer2D::beginScene(mainCamera, mainCameraTransform); {
-				auto group = m_registry.group<TransformComponent>(entt::get<ModelRendererComponent>);
-				for (auto gameObject : group)
-				{
-					auto [transform, model] = group.get<TransformComponent, ModelRendererComponent>(gameObject);
-					model.model.submitToRenderer(model.shader, transform);
-				}
-
-				auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
-				for (auto gameObject : view)
-				{
-					auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-					Renderer2D::drawQuad(transform, sprite.color);
-				}
+			switch (cam.settings.clearType)
+			{
+			case CameraComponent::Color:
+				RenderCommand::setClearColor(cam.settings.clearColor);
+				break;
+			case CameraComponent::Skybox:
+				RenderCommand::setClearColor(glm::vec4(.0f));
+				break;
 			}
-			Renderer2D::endScene();
-		}//no camera
-		else {
-			ST_WARN("No Camera to Render on");
-		}
 
+			renderScene(gameObject);
+		}
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
@@ -97,18 +112,16 @@ namespace Stulu {
 				cameraComponent.onResize(width, height);
 		}
 	}
-
 	GameObject Scene::getMainCamera() {
-		auto group = m_registry.group<GameObjectBaseComponent, CameraComponent>();
-		for (auto gameObject : group) {
-			auto base = group.get<GameObjectBaseComponent>(gameObject);
+		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
+		for (auto gameObject : view) {
+			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
 			if (base.tag == "MainCam") {
 				return GameObject{ gameObject,this };
 			}
 		}
 		return GameObject::null;
 	}
-
 	void Scene::calculateLights() {
 		auto view = m_registry.view<TransformComponent, LightComponent>();
 		for (auto gameObject : view)
@@ -129,6 +142,27 @@ namespace Stulu {
 
 		m_data.lightBuffer->setData(&m_data.lightData, sizeof(SceneData::LightData));
 		m_data.lightData = SceneData::LightData();
+	}
+	void Scene::renderScene(entt::entity cam) {
+		Renderer2D::beginScene(m_registry.get<CameraComponent>(cam).cam, m_registry.get<TransformComponent>(cam));
+		RenderCommand::clear();
+		{
+			auto group = m_registry.group<TransformComponent>(entt::get<ModelRendererComponent>);
+			for (auto gameObject : group)
+			{
+				auto [transform, model] = group.get<TransformComponent, ModelRendererComponent>(gameObject);
+				model.model.submitToRenderer(model.shader, transform);
+			}
+		}
+		{
+			auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
+			for (auto gameObject : view)
+			{
+				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
+				Renderer2D::drawQuad(transform, sprite.color);
+			}
+		}
+		Renderer2D::endScene();
 	}
 
 	template<typename T>

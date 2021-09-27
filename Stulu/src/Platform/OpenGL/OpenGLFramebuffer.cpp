@@ -19,7 +19,7 @@ namespace Stulu {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		glViewport(0, 0, m_specs.width, m_specs.height);
 	}
-	void OpenGLFramebuffer::unBind() const {
+	void OpenGLFramebuffer::unbind() const {
 		ST_PROFILING_FUNCTION();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}

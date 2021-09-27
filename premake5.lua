@@ -20,6 +20,7 @@ IncludeDir["spdlog"] = "Stulu/vendor/spdlog/include"
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
+IncludeDir["ImGuizmo"] = "Stulu/vendor/ImGuizmo"
 IncludeDir["assimp"] = "Stulu/vendor/assimp/include"
 IncludeDir["glm"] = "Stulu/vendor/glm"
 IncludeDir["stb_image"] = "Stulu/vendor/stb_image"
@@ -53,7 +54,7 @@ project "Stulu"
 		"%{prj.name}/vendor/stb_image/**.h",
 		"%{prj.name}/vendor/glm/glm/**.hpp",
 		"%{prj.name}/vendor/glm/glm/**.inl",
-		"%{prj.name}/vendor/ReputelessPerlinNoise/**.h"
+		"%{prj.name}/vendor/ReputelessPerlinNoise/**.h",
 	}
 
 	defines
@@ -68,6 +69,7 @@ project "Stulu"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb_image}",
@@ -136,6 +138,7 @@ project "Editor"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links

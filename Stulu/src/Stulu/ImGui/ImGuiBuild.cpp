@@ -5,3 +5,4 @@
 #include "examples/imgui_impl_glfw.cpp"
 
 #include "misc/cpp/imgui_stdlib.cpp"
+#include "ImGuizmo.cpp"

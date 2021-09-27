@@ -2,7 +2,7 @@
 #include "Temp/Skybox.h"
 #include "Temp/ParticleSystem.h"
 #include "Panel/EditorHierarchy.h"
-
+#include "Panel/EditorViewport.h"
 namespace Stulu {
 	class EditorLayer : public Layer {
 	public:
@@ -13,23 +13,20 @@ namespace Stulu {
 		void onImguiRender(Timestep timestep) override;
 		void onEvent(Event& e) override;
 	private:
-		bool m_viewPortFocused = false, m_viewPortHovered = false, m_runtime = false;
-
-
-		uint32_t m_viewPortPanelWidth;
-		uint32_t m_viewPortPanelHeight;
+		bool m_runtime = false;
 
 		Model cube;
 		Model sphere;
 
-
 		ShaderLibary shaderLib;
 
-		Ref<FrameBuffer> m_frameBuffer;
 		SceneCamera m_sceneCamera;
-		Skybox m_skybox;
-
 		Ref<Scene> m_activeScene;
+
+		int m_gizmoEditType = -1;
+		
+		EditorViewportPanel m_sceneViewport;
+		EditorViewportPanel m_gameViewport;
 
 		EditorHierarchyPanel m_editorHierarchy;
 

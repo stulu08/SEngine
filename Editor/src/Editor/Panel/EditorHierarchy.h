@@ -7,7 +7,7 @@ namespace Stulu {
 		EditorHierarchyPanel() { m_scene = nullptr; };
 
 		void setScene(const Ref<Scene>& scene);
-
+		GameObject getCurrentObject() { return m_selectedObject; }
 		void render();
 	private:
 		void drawObject(GameObject gameObject);

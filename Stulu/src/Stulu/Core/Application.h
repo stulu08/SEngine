@@ -27,6 +27,7 @@ namespace Stulu {
 		void pushOverlay(Layer* layer);
 		void popLayer(Layer* layer);
 		void popOverlay(Layer* layer);
+		inline ImGuiLayer* getImGuiLayer(){ return m_imguiLayer; }
 		inline Window& getWindow(){ return *m_window; }
 		inline static Application& get(){ return *s_instance; }
 

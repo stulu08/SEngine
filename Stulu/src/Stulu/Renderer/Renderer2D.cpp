@@ -90,6 +90,12 @@ namespace Stulu {
 	void Renderer2D::shutdown() {
 		ST_PROFILING_FUNCTION();
 	}
+	void Renderer2D::beginScene() {
+		ST_PROFILING_FUNCTION();
+		s_renderer2Ddata.quadIndexCount = 0;
+		s_renderer2Ddata.slotIndex = 1;
+		s_renderer2Ddata.vertexBufferPtr = s_renderer2Ddata.vertexBufferBase;
+	}
 	void Renderer2D::beginScene(const Ref<Camera>& cam, const TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
 		Renderer::beginScene(cam, transform);
@@ -120,7 +126,7 @@ namespace Stulu {
 		RenderCommand::drawIndexed(s_renderer2Ddata.vertexArray, s_renderer2Ddata.quadIndexCount);
 	}
 	void Renderer2D::FlushReset() {
-		Renderer2D::endScene();
+		flush();
 		s_renderer2Ddata.quadIndexCount = 0;
 		s_renderer2Ddata.slotIndex = 1;
 		s_renderer2Ddata.vertexBufferPtr = s_renderer2Ddata.vertexBufferBase;

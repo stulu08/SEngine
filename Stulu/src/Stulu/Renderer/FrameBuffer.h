@@ -1,10 +1,9 @@
 #pragma once
-#include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Renderer/Texture.h"
 
 namespace Stulu {
 	struct FrameBufferSpecs {
-		uint32_t width, height;
+		uint32_t width = 1, height = 1;
 		uint32_t samples = 1;
 		bool swapChainTarget = false;
 	};
@@ -22,7 +21,7 @@ namespace Stulu {
 	public:
 		virtual ~FrameBuffer() = default;
 		virtual void bind() const = 0;
-		virtual void unBind() const = 0;
+		virtual void unbind() const = 0;
 		virtual void invalidate() = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;
 		

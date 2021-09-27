@@ -13,3 +13,6 @@
 [submodule "Stulu/vendor/assimp"]
 	path = Stulu/vendor/assimp
 	url = https://github.com/stulu08/assimp
+[submodule "Stulu/vendor/ImGuizmo"]
+	path = Stulu/vendor/ImGuizmo
+	url = https://github.com/TheCherno/ImGuizmo

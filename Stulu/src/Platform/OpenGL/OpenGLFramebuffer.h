@@ -31,7 +31,7 @@ namespace Stulu {
 		virtual ~OpenGLFramebuffer();
 
 		virtual void bind() const override;
-		virtual void unBind() const override;
+		virtual void unbind() const override;
 		virtual void invalidate() override;
 		virtual void resize(uint32_t width, uint32_t height) override;
 

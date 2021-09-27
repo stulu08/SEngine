@@ -40,12 +40,12 @@ namespace Stulu {
 		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseScrolledEvent));
 		dispatcher.dispatch<MouseMoveEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseMoveEvent));
 		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(SceneCamera::onResizeEvent));
-		dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(SceneCamera::onKeyPressed));
 	}
 	void SceneCamera::onResize(float width, float height) {
 		ST_PROFILING_FUNCTION();
 		m_aspectRatio = width / height;
 		m_cam->setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
+		m_cam->getFrameBuffer()->resize((uint32_t)width, (uint32_t)height);
 	}
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
 		ST_PROFILING_FUNCTION();
@@ -59,14 +59,6 @@ namespace Stulu {
 	}
 	bool SceneCamera::onResizeEvent(WindowResizeEvent& e) {
 		onResize((float)e.getWidth(), (float)e.getHeight());
-		return false;
-	}
-	bool SceneCamera::onKeyPressed(KeyDownEvent& e) {
-		ST_PROFILING_FUNCTION();
-		if (e.getKeyCode() == wireFrameSwitchKey) {
-			wireFrame = !wireFrame;
-			RenderCommand::setWireFrame(wireFrame);
-		}
 		return false;
 	}
 }

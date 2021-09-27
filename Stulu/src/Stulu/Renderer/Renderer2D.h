@@ -9,6 +9,8 @@ namespace Stulu {
 	public:
 		static void init();
 		static void shutdown();
+		//no rendering
+		static void beginScene();
 		static void beginScene(const Ref<Camera>& cam, const TransformComponent& transform);
 		static void endScene();
 
@@ -31,6 +33,8 @@ namespace Stulu {
 	private:
 		static void flush();
 		static void FlushReset();
+
+		friend class Scene;
 	};
 }
 #define COLOR_WHITE_VEC4 {1.0f,1.0f,1.0f,1.0f}

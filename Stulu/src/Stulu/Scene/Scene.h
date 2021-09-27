@@ -47,12 +47,14 @@ namespace Stulu {
 		SceneData m_data;
 
 		void calculateLights();
+		void renderScene(entt::entity cam);
 
 		template<typename T>
 		void onComponentAdded(GameObject gameObject, T& component);
 
 		friend class GameObject;
 		friend class EditorHierarchyPanel;
+		friend class EditorLayer;
 	};
 }
 

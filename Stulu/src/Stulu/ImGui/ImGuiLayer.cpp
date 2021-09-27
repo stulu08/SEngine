@@ -6,6 +6,7 @@
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
+#include "ImGuizmo.h"
 #include "Stulu/Core/Application.h"
 
 #include <GLFW/glfw3.h>
@@ -71,6 +72,7 @@ namespace Stulu {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 	}
 	void ImGuiLayer::End()
 	{
@@ -90,6 +92,14 @@ namespace Stulu {
 		}
 	}
 	void ImGuiLayer::onImguiRender(Timestep timestep) {
+	}
+
+	void ImGuiLayer::onEvent(Event& e) {
+		if (m_blockEvents) {
+			ImGuiIO& io = ImGui::GetIO();
+			e.handled |= e.isInCategory(MouseEventCategrory) & io.WantCaptureKeyboard;
+			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;
+		}
 	}
 
 	void ImGuiLayer::StyleColorsAmoledDark(ImGuiStyle* dst)

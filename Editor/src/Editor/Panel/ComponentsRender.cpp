@@ -3,6 +3,12 @@
 #include "ImGui/misc/cpp/imgui_stdlib.h"
 
 namespace Stulu {
+	const ImVec2 operator *(const ImVec2& vec, const float v) {
+		vec.x* v;
+		vec.y* v;
+		return vec;
+	}
+
 	template<typename T>
 	static void ComponentsRender::drawComponent(GameObject gameObject, T& component) {}
 	template<>
@@ -37,30 +43,50 @@ namespace Stulu {
 		const char* const camTypes[] = { "Perspective","Orthographic" };
 		if (ImGui::Combo("Type", (int*)&component.mode, camTypes, IM_ARRAYSIZE(camTypes)))
 			component.updateMode();
+
+		const char* const clerTypes[] = { "Color","Skybox" };
+		ImGui::Combo("Clear Mode", (int*)&component.settings.clearType, clerTypes, IM_ARRAYSIZE(clerTypes));
+		if (component.settings.clearType == CameraComponent::Color)
+			ImGui::ColorEdit4("Clear Color", glm::value_ptr(component.settings.clearColor));
+
 		bool recalc = false;
 		if (component.mode == CameraMode::Orthographic) {
 			if (ImGui::DragFloat("Zoom", &component.settings.zoom))
 				recalc = true;
 		}
 		else if (component.mode == CameraMode::Perspective) {
-			if(ImGui::DragFloat("Fov", &component.settings.fov))
+			if (ImGui::DragFloat("Fov", &component.settings.fov))
 				recalc = true;
 		}
-		if(ImGui::DragFloat("Far", &component.settings.zFar))
+		if (ImGui::DragFloat("Far", &component.settings.zFar))
 			recalc = true;
 
-		if(ImGui::DragFloat("Near", &component.settings.zNear))
+		if (ImGui::DragFloat("Near", &component.settings.zNear))
 			recalc = true;
 
 
 		ImGui::Checkbox("Static Aspect Ratio", &component.settings.staticAspect);
-		if (ImGui::InputFloat("Aspect Ratio", &component.aspectRatio, .0f, .0f, "%.2f", !component.settings.staticAspect ? ImGuiInputTextFlags_ReadOnly : 0))
-			recalc = true;
+		if (ImGui::InputFloat("Aspect Ratio", &component.settings.aspectRatio, .0f, .0f, "%.2f", !component.settings.staticAspect ? ImGuiInputTextFlags_ReadOnly : 0)) {
+			/*component.settings.textureWidth /= component.settings.aspectRatio;
+			component.settings.textureHeight /= component.settings.aspectRatio;
+			component.cam->getFrameBuffer()->resize(component.settings.textureWidth, component.settings.textureHeight);*/
+		}
+		if (component.settings.staticAspect) {
+			if(ImGui::InputInt("Width", (int*)&component.settings.textureWidth)){
+
+				component.updateSize();
+			}
+			if (ImGui::InputInt("Height", (int*)&component.settings.textureHeight)) {
+
+				component.updateSize();
+			}
+		}
+		else if (recalc)
+			component.updateProjection();
 
 		ImGui::DragInt("Depth", &component.depth);
 
-		component.updateProjection();
-		
+		ImGui::Image((void*)component.cam->getFrameBuffer()->getTexture()->getColorAttachmentRendereID(), ImVec2(160, 90), ImVec2(0, 1), ImVec2(1, 0));
 	}
 	template<>
 	void ComponentsRender::drawComponent<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) {

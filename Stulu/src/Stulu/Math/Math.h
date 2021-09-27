@@ -3,6 +3,7 @@
 #include "Stulu/Renderer/Camera.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/compatibility.hpp>
 #include "glm/gtx/string_cast.hpp"
 #include <glm/gtx/quaternion.hpp>
@@ -24,7 +25,7 @@ namespace Stulu {
 #define PI_2		1.570796326f
 #define LOG_2E		1.442695040f
 #define M_E			2.718281828f
-#define RAD2DEG		360.0f / (PI * 2.0f)
+#define M_RAD2DEG		360.0f / (PI * 2.0f)
 	class Math {
 	public:
 		static const float radiansToDegree(float radians);
@@ -49,6 +50,7 @@ namespace Stulu {
 		static const float lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
 		static const glm::quat lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
 		static const glm::quat quaternionFromEulerAngle(const glm::vec3& axis, float angle);
+		static const bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
 	};
 }
