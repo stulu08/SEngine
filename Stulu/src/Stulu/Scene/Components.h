@@ -2,10 +2,10 @@
 #include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
+#include "Stulu/Scene/GameObject.h"
 #include "Stulu/Renderer/Model.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Math/Math.h"
-
 
 namespace Stulu {
 	struct GameObjectBaseComponent {
@@ -22,22 +22,38 @@ namespace Stulu {
 		glm::vec3 rotation = glm::vec3(0.0f);
 		glm::vec3 scale = glm::vec3(1.0f);
 
+		//this GameObject
+		GameObject gameObject = GameObject::null;
+		//Parent GameObject
+		GameObject parent = GameObject::null;
+
+
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
 		TransformComponent(const glm::vec3 pos, const glm::vec3 rotation, const glm::vec3 scale)
 			: position(pos), rotation(rotation), scale(scale) { };
 
-		const glm::mat4 getTransform() { return Math::createMat4(position, rotation, scale); }
-		const glm::mat4 getTransform() const { return Math::createMat4(position, rotation, scale); }
-		const glm::quat getOrientation(){ return glm::quat(glm::radians(rotation)); }
+		const glm::mat4 getTransform() { return Math::createMat4(position, getOrientation(), scale); }
+		const glm::mat4 getTransform() const { return Math::createMat4(position, getOrientation(), scale); }
+		const glm::quat getOrientation(){ return glm::quat(rotation); }
+		const glm::quat getOrientation() const{ return glm::quat(rotation); }
 
-		operator const glm::mat4() { return getTransform(); }
-		operator const glm::mat4() const { return getTransform(); }
+		const glm::mat4 getWorldSpaceTransform() {
+			if (parent) {
+				return getTransform() * parent.getComponent<TransformComponent>().getWorldSpaceTransform();
+			}
+			return getTransform();
+		}
+
+		operator const glm::mat4() { return getWorldSpaceTransform(); }
 
 		glm::vec3 upDirection(){ return glm::rotate(getOrientation(), TRANSFORM_UP_DIRECTION); }
 		glm::vec3 rightDirection() { return glm::rotate(getOrientation(), TRANSFORM_RIGHT_DIRECTION); }
 		glm::vec3 forwardDirection() { return glm::rotate(getOrientation(), TRANSFORM_FOREWARD_DIRECTION); }
 
+		void addChild(GameObject child) { 
+			child.getComponent<TransformComponent>().parent = gameObject;
+		}
 	};
 	struct CameraComponent {
 		enum ClearType { Color = 0, Skybox = 1};
@@ -117,15 +133,35 @@ namespace Stulu {
 			: lightType(type) {};
 	};
 
-	struct ModelRendererComponent {
+	struct MeshComponent {
 		Ref<Shader> shader;
-		Model model;
-		ModelRendererComponent() = default;
-		ModelRendererComponent(const ModelRendererComponent&) = default;
-		ModelRendererComponent(const Model& model, const Ref<Shader>& shader)
-			: model(model), shader(shader) {};
-	};
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
 
+		Ref<Stulu::VertexArray> vertexArray = nullptr;
+
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent&) = default;
+		MeshComponent(const Ref<Shader>& shader)
+			: shader(shader) {};
+		MeshComponent(const Ref<Shader>& shader, Mesh& mesh)
+			: shader(shader) {
+			vertices = mesh.getVertices();
+			indices = mesh.getIndices();
+			recalculate();
+		};
+		void recalculate() {
+			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+
+			vertexArray = Stulu::VertexArray::create();
+			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
+			vertexBuffer->setLayout(Mesh::getDefaultLayout());
+			vertexArray->addVertexBuffer(vertexBuffer);
+			indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
+			vertexArray->setIndexBuffer(indexBuffer);
+		}
+	};
 	struct SpriteRendererComponent {
 		glm::vec4 color = COLOR_WHITE;
 		SpriteRendererComponent() = default;

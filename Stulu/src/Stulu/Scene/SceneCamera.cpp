@@ -31,7 +31,7 @@ namespace Stulu {
 			float yawSign = m_transform.upDirection().y < 0 ? -1.0f : 1.0f;
 			m_yaw += yawSign * m_mouseDelta.x * m_cameraSensitivity;
 			m_pitch += m_mouseDelta.y * m_cameraSensitivity;
-			m_transform.rotation = glm::degrees(glm::vec3(-m_pitch, -m_yaw, .0f));
+			m_transform.rotation = glm::vec3(-m_pitch, -m_yaw, .0f);
 		}
 	}
 	void SceneCamera::onEvent(Event& e) {

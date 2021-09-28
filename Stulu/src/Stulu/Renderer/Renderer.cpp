@@ -23,7 +23,7 @@ namespace Stulu {
 	}
 	void Renderer::beginScene(const Ref<Camera>& cam, const TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
-		m_data.sceneData.viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), transform.position) * glm::toMat4(glm::quat(glm::radians(transform.rotation))));
+		m_data.sceneData.viewMatrix = glm::inverse(transform.getTransform());
 		m_data.sceneData.projMatrix = cam->getProjectionMatrix();
 		m_data.sceneData.viewProjectionMatrix = m_data.sceneData.projMatrix * m_data.sceneData.viewMatrix;
 		m_data.sceneData.cameraPosition = transform.position;
@@ -44,8 +44,5 @@ namespace Stulu {
 		vertexArray->bind();
 		
 		RenderCommand::drawIndexed(vertexArray, count);
-	}
-	void Renderer::submit(Mesh& mesh, const Ref<Shader>& shader, const glm::mat4& transform) {
-		submit(mesh.getVertexArray(), shader, transform);
 	}
 }

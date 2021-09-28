@@ -120,6 +120,6 @@ namespace Stulu{
 
 		virtual uint32_t getCount() const = 0;
 
-		static Ref<IndexBuffer> create(uint32_t count, uint32_t* vertices);
+		static Ref<IndexBuffer> create(uint32_t count, uint32_t* indices);
 	};
 }

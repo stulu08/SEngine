@@ -24,10 +24,15 @@ namespace Stulu {
 	void EditorLayer::onAttach() {
 		m_editorHierarchy.setScene(m_activeScene);
 
-		GameObject go;
+		/*GameObject go = m_activeScene->createGameObject("Car");
 		Model car = Model("assets/car.glb");
-		go = m_activeScene->createGameObject("Car");
-		go.addComponent<ModelRendererComponent>(car, shaderLib.get("pbr"));
+		int i = 0;
+		for (Mesh m : car.getMeshes()) {
+			GameObject c = m_activeScene->createGameObject(std::string(car.getMesheNames()[i]));
+			c.addComponent<MeshComponent>(shaderLib.get("pbr"), m);
+			go.getComponent<TransformComponent>().addChild(c);
+			i++;
+		}*/
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -92,7 +97,7 @@ namespace Stulu {
 		ImGui::Text("Position");
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(80.0f);
-		ImGui::DragFloat3("Position_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().position));
+		imGui::DragScalarFloatNoLabel("Position_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().position), 3, .1f, 0, 0, "%.3f");
 
 		ImGui::Text("Rotation");
 		ImGui::SameLine();
@@ -152,13 +157,13 @@ namespace Stulu {
 			glm::mat4 transform = tc.getTransform();
 
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-				(ImGuizmo::OPERATION)m_gizmoEditType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+				(ImGuizmo::OPERATION)m_gizmoEditType, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
 
 			if (ImGuizmo::IsUsing()) {
 				glm::vec3 pos, rotation, scale;
 				Math::decomposeTransform(transform, pos, rotation, scale);
 				tc.position = pos;
-				tc.rotation = glm::degrees(rotation);
+				tc.rotation = rotation;
 				tc.scale = scale;
 			}
 		}

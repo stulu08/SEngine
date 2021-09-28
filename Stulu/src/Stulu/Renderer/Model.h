@@ -22,8 +22,12 @@ namespace Stulu {
 		const uint32_t getVerticesCount() { return m_verticesCount; }
 		const uint32_t getIndicesCount() { return m_indicesCount; }
 		const uint32_t getTriangleCount() { return m_triangleCount; }
+
+		const std::vector<Mesh> getMeshes() { return meshes; }
+		const std::vector<std::string> getMesheNames() { return MeshNames; }
 	private:
 		std::vector<Mesh> meshes;
+		std::vector <std::string> MeshNames;
 		std::string directory = "";
 		uint32_t m_verticesCount = 0;
 		uint32_t m_indicesCount = 0;

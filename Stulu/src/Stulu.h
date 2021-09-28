@@ -52,7 +52,7 @@
 
 ////////////////////Scene////////////////////
 #include "Stulu/Scene/Behavior.h"
-#include "Stulu/Scene/GameObject.h"
+#include "Stulu/Scene/SceneCamera.h"
+//#include "Stulu/Scene/GameObject.h"
 //#include "Stulu/Scene/Components.h"
 //#include "Stulu/Scene/Scene.h"
-//#include "Stulu/Scene/SceneCamera.h"

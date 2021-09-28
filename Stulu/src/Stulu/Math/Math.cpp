@@ -75,6 +75,7 @@ namespace Stulu {
 			quad1.pos.y + quad1.height > quad2.pos.y
 			);
 	}
+	//in degreess
 	const glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale) {
 		if (rotation != glm::vec3(0.0f, 0.0f, 0.0f))
 			return glm::translate(glm::mat4(1.0f), pos)
@@ -98,6 +99,7 @@ namespace Stulu {
 		glm::vec4 worldPos = viewProjectionInverse * screenPos;
 		return glm::vec3(worldPos);
 	}
+	//in degrees
 	const float Math::lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
 		glm::vec3 diff = glm::normalize(destPoint - sourcePoint);
 

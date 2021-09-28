@@ -8,7 +8,7 @@
 namespace Stulu {
     void Stulu::Model::submitToRenderer(const Ref<Shader>& shader, const glm::mat4& transform) {
         for (auto i : meshes) {
-            Renderer::submit(i, shader, transform);
+            Renderer::submit(i.getVertexArray(), shader, transform);
         }
     }
 
@@ -38,6 +38,8 @@ namespace Stulu {
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(processMesh(mesh, scene));
+            MeshNames.push_back(std::string(mesh->mName.data));
+           
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
@@ -59,7 +61,6 @@ namespace Stulu {
                 vector.y = mesh->mVertices[i].y;
                 vector.z = mesh->mVertices[i].z;
                 vertex.pos = vector;
-                m_verticesCount += 3;
                 if (mesh->HasNormals())
                 {
                     vector.x = mesh->mNormals[i].x;
@@ -77,6 +78,7 @@ namespace Stulu {
                 else
                     vertex.texCoords = glm::vec2(0.0f, 0.0f);
 
+                m_verticesCount++;
                 vertices.push_back(vertex);
             }
         }

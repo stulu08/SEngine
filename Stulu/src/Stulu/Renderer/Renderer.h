@@ -19,8 +19,6 @@ namespace Stulu{
 		static void endScene();
 
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count = 0);
-		static void submit(Stulu::Mesh& mesh, const Ref<Shader>& shader, const glm::mat4& transform);
-		static void submit(Stulu::Mesh& mesh, const Ref<Shader>& shader, glm::mat4& transform);
 
 		inline static RenderAPI::API getRendererAPI() { return RenderAPI::getAPI(); }
 	private:

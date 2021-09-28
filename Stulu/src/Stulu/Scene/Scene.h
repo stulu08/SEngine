@@ -1,7 +1,5 @@
 #pragma once
 #include "Stulu/Renderer/UniformBuffer.h"
-#include "Stulu/Scene/SceneCamera.h"
-#include "Stulu/Scene/Components.h"
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Core/Timestep.h"
 
@@ -25,6 +23,7 @@ namespace Stulu {
 	};
 
 	class GameObject;
+	class SceneCamera;
 
 	class Scene {
 	public:

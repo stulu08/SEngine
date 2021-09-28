@@ -1,6 +1,8 @@
 #include "st_pch.h"
 #include "Scene.h"
 
+#include "Stulu/Scene/SceneCamera.h"
+#include "Stulu/Scene/Components.h"
 #include "Stulu/Scene/Behavior.h"
 #include "Stulu/Math/Math.h"
 #include "GameObject.h"
@@ -31,11 +33,11 @@ namespace Stulu {
 			RenderCommand::clear();
 			{
 				{
-					auto group = m_registry.group<TransformComponent>(entt::get<ModelRendererComponent>);
+					auto group = m_registry.group<TransformComponent>(entt::get<MeshComponent>);
 					for (auto gameObject : group)
 					{
-						auto [transform, model] = group.get<TransformComponent, ModelRendererComponent>(gameObject);
-						model.model.submitToRenderer(model.shader, transform);
+						auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(gameObject);
+						Renderer::submit(mesh.vertexArray, mesh.shader, transform);
 					}
 				}
 				{
@@ -147,11 +149,11 @@ namespace Stulu {
 		Renderer2D::beginScene(m_registry.get<CameraComponent>(cam).cam, m_registry.get<TransformComponent>(cam));
 		RenderCommand::clear();
 		{
-			auto group = m_registry.group<TransformComponent>(entt::get<ModelRendererComponent>);
+			auto group = m_registry.group<TransformComponent>(entt::get<MeshComponent>);
 			for (auto gameObject : group)
 			{
-				auto [transform, model] = group.get<TransformComponent, ModelRendererComponent>(gameObject);
-				model.model.submitToRenderer(model.shader, transform);
+				auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(gameObject);
+				Renderer::submit(mesh.vertexArray, mesh.shader, transform);
 			}
 		}
 		{
@@ -170,13 +172,13 @@ namespace Stulu {
 	template<>
 	void Scene::onComponentAdded<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<TransformComponent>(GameObject gameObject, TransformComponent& component) { }
+	void Scene::onComponentAdded<TransformComponent>(GameObject gameObject, TransformComponent& component) { component.gameObject = gameObject; }
 	template<>
 	void Scene::onComponentAdded<CameraComponent>(GameObject gameObject, CameraComponent& component) { if (m_viewportWidth > 0 && m_viewportHeight > 0)component.onResize(m_viewportWidth, m_viewportHeight); }
 	template<>
 	void Scene::onComponentAdded<LightComponent>(GameObject gameObject, LightComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<ModelRendererComponent>(GameObject gameObject, ModelRendererComponent& component) { }
+	void Scene::onComponentAdded<MeshComponent>(GameObject gameObject, MeshComponent& component) { }
 	template<>
 	void Scene::onComponentAdded<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
 	template<>

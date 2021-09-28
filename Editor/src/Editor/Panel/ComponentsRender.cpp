@@ -28,10 +28,13 @@ namespace Stulu {
 		ImGui::SetCursorPosX(80.0f);
 		imGui::DragScalarFloatNoLabel("Position_3d_Transform", glm::value_ptr(component.position), 3, .1f, 0, 0, "%.3f");
 
+
 		ImGui::Text("Rotation");
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(80.0f);
-		imGui::DragScalarFloatNoLabel("Rotation_3d_Transform", glm::value_ptr(component.rotation), 3, .1f, 0, 0, "%.3f");
+		glm::vec3 rotation = glm::degrees(component.rotation);
+		imGui::DragScalarFloatNoLabel("Rotation_3d_Transform", glm::value_ptr(rotation), 3, .1f, 0, 0, "%.3f");
+		component.rotation = glm::radians(rotation);
 
 		ImGui::Text("Scale");
 		ImGui::SameLine();
@@ -109,10 +112,10 @@ namespace Stulu {
 
 	}
 	template<>
-	void ComponentsRender::drawComponent<ModelRendererComponent>(GameObject gameObject, ModelRendererComponent& component) {
+	void ComponentsRender::drawComponent<MeshComponent>(GameObject gameObject, MeshComponent& component) {
 		ImGui::Text("Shader: %s", component.shader->getName().c_str());
-		ImGui::Text("Vertices: %d", component.model.getVerticesCount());
-		ImGui::Text("Indices: %d", component.model.getIndicesCount());
-		ImGui::Text("Triangles: %d", component.model.getTriangleCount());
+		ImGui::Text("Vertices: %d", component.vertices.size());
+		ImGui::Text("Indices: %d", component.indices.size());
+		ImGui::Text("Triangles: %d", component.indices.size() / 3);
 	}
 }

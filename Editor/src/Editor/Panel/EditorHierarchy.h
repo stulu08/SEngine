@@ -10,7 +10,7 @@ namespace Stulu {
 		GameObject getCurrentObject() { return m_selectedObject; }
 		void render();
 	private:
-		void drawObject(GameObject gameObject);
+		void drawObject(GameObject gameObject, int childIndex = 0);
 
 		void noScene();
 
