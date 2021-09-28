@@ -9,7 +9,7 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 ## Getting Started
 
-- Download or clone the repository
+- Download or clone the repository with all the submodules
 
 - Run the [generateProjects.bat](https://github.com/stulu08/SEngine/blob/main/generateProjects.bat) file
 
