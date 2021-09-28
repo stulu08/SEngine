@@ -153,13 +153,15 @@ namespace Stulu {
 			glm::mat4 cameraView = glm::inverse(m_sceneCamera.getTransform().getTransform());
 
 			// Gameobject transform
-			auto& tc = selected.getComponent<TransformComponent>();
-			glm::mat4 transform = tc.getTransform();
+			TransformComponent& tc = selected.getComponent<TransformComponent>();
+			glm::mat4 transform = tc.getWorldSpaceTransform();
 
 			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
 				(ImGuizmo::OPERATION)m_gizmoEditType, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
 
 			if (ImGuizmo::IsUsing()) {
+				if(tc.parent)
+					transform /= tc.parent.getComponent<TransformComponent>().getWorldSpaceTransform();
 				glm::vec3 pos, rotation, scale;
 				Math::decomposeTransform(transform, pos, rotation, scale);
 				tc.position = pos;
