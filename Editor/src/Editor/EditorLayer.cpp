@@ -7,10 +7,6 @@ namespace Stulu {
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f), m_sceneViewport("Scene"), m_gameViewport("Game") {
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f),1.0f));
-		cube = Model("assets/cube.obj");
-		sphere = Model("assets/sphere.obj");
-		shaderLib.load("Stulu/assets/Shaders/Reflective.glsl");
-		shaderLib.load("Stulu/assets/Shaders/pbr.glsl");
 
 		FrameBufferSpecs fspecs = FrameBufferSpecs();
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
@@ -24,18 +20,12 @@ namespace Stulu {
 	void EditorLayer::onAttach() {
 		m_editorHierarchy.setScene(m_activeScene);
 
-		/*GameObject go = m_activeScene->createGameObject("Car");
-		Model car = Model("assets/car.glb");
-		int i = 0;
-		for (Mesh m : car.getMeshes()) {
-			GameObject c = m_activeScene->createGameObject(std::string(car.getMesheNames()[i]));
-			c.addComponent<MeshComponent>(shaderLib.get("pbr"), m);
-			go.getComponent<TransformComponent>().addChild(c);
-			i++;
-		}*/
+		Model::loadModel("assets/car.glb", m_activeScene.get());
+		//Model::loadModel("assets/human.glb", m_activeScene.get());
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
+		ST_PROFILING_FUNCTION();
 		if (m_sceneViewport.m_viewPortFocused && !m_runtime && !ImGuizmo::IsUsing())
 			m_sceneCamera.onUpdate(timestep);
 
@@ -110,6 +100,18 @@ namespace Stulu {
 		imGui::DragScalarFloatNoLabel("Scale_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().scale), 3, .1f, 0, 0, "%.3f");
 
 		ImGui::End();
+
+		ImGui::Begin("Profiling");
+		ImGui::Text("FPS: %.1f", 1.0f / timestep);
+		ImGui::Text("Frametime: %.3f", timestep.getSeconds());
+		ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
+		ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
+		ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
+		ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+
+
+		ImGui::End();
+
 		m_editorHierarchy.render();
 
 
@@ -172,6 +174,7 @@ namespace Stulu {
 		m_sceneViewport.endDraw();
 	}
 	void EditorLayer::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		if(!m_runtime)
 			m_sceneCamera.onEvent(e);
 
@@ -180,6 +183,7 @@ namespace Stulu {
 		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
+		ST_PROFILING_FUNCTION();
 		if (e.getRepeatCount() > 0)
 			return false;
 

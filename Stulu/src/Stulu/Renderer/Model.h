@@ -1,10 +1,13 @@
 #pragma once
 #include "Stulu/Renderer/Mesh.h"
-#include <Stulu/Renderer/Shader.h>
+#include "Stulu/Scene/Components.h"
 
 struct aiNode;
 struct aiMesh;
 struct aiScene;
+template<typename>
+class aiMatrix4x4t;
+typedef aiMatrix4x4t<float> aiMatrix4x4;
 
 namespace Stulu {
 	class Model
@@ -17,24 +20,24 @@ namespace Stulu {
 			meshes.push_back(mesh);
 		}
 		Model() {
+
 		}
-		void submitToRenderer(const Ref<Shader>& shader, const glm::mat4& transform);
-		const uint32_t getVerticesCount() { return m_verticesCount; }
-		const uint32_t getIndicesCount() { return m_indicesCount; }
-		const uint32_t getTriangleCount() { return m_triangleCount; }
+
+		static GameObject loadModel(const std::string& path, Scene* scene);
+
 
 		const std::vector<Mesh> getMeshes() { return meshes; }
-		const std::vector<std::string> getMesheNames() { return MeshNames; }
 	private:
 		std::vector<Mesh> meshes;
-		std::vector <std::string> MeshNames;
 		std::string directory = "";
-		uint32_t m_verticesCount = 0;
-		uint32_t m_indicesCount = 0;
-		uint32_t m_triangleCount = 0;
 		void load(const std::string& path);
 		void processNode(aiNode* node, const aiScene* scene);
-		Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+		static Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+
+		static GameObject processNode(aiNode* node, const aiScene* scene, Scene* s_scene);
+		static SubMesh processSubMesh(aiMesh* mesh, const aiScene* scene);
+
+		static const void decompose(const aiMatrix4x4& aMat, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale);
 	};
 }
 

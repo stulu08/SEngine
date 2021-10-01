@@ -13,7 +13,6 @@ namespace Stulu {
 		virtual void clear() override;
 
 		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) override;
-		virtual void drawPrimitiveArray(const uint32_t count) override;
 	private:
 
 	};

@@ -53,7 +53,7 @@ namespace Stulu {
 
 			m_scene->m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
 				if (transform.parent == m_selectedObject)
-					transform.parent = GameObject::null;
+					m_scene->destroyGameObject({ go, m_scene.get() });
 			});
 
 			m_selectedObject = GameObject::null;

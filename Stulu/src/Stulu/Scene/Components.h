@@ -3,7 +3,6 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Scene/GameObject.h"
-#include "Stulu/Renderer/Model.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Math/Math.h"
 
@@ -39,8 +38,13 @@ namespace Stulu {
 		const glm::quat getOrientation() const{ return glm::quat(rotation); }
 
 		const glm::mat4 getWorldSpaceTransform() {
+			ST_PROFILING_FUNCTION();
 			if (parent) {
-				return getTransform() * parent.getComponent<TransformComponent>().getWorldSpaceTransform();
+				glm::mat4 parentTr = parent.getComponent<TransformComponent>().getWorldSpaceTransform();
+				const glm::vec3 ppos = glm::vec3(parentTr[3]);
+				parentTr[3] = glm::vec4(0, 0, 0, parentTr[3].w);
+
+				return glm::translate(glm::mat4(1.0f), ppos + position) * glm::toMat4(getOrientation()) * glm::scale(glm::mat4(1.0f), scale) * parentTr;
 			}
 			return getTransform();
 		}
@@ -86,6 +90,7 @@ namespace Stulu {
 			}
 		}
 		const void onResize(uint32_t width, uint32_t height) {
+			ST_PROFILING_FUNCTION();
 			settings.aspectRatio = (float)width / (float)height;
 			settings.textureWidth = width;
 			settings.textureHeight = height;
@@ -93,11 +98,13 @@ namespace Stulu {
 			updateProjection();
 		}
 		const void updateSize() {
+			ST_PROFILING_FUNCTION();
 			settings.aspectRatio = (float)settings.textureWidth / (float)settings.textureHeight;
 			cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);
 			updateProjection();
 		}
 		const void updateProjection() {
+			ST_PROFILING_FUNCTION();
 			if (mode == CameraMode::Perspective) {
 				cam->setProjection(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);
 			}
@@ -106,6 +113,7 @@ namespace Stulu {
 			}
 		}
 		const void updateMode() {
+			ST_PROFILING_FUNCTION();
 			if (mode == CameraMode::Orthographic) {
 				cam.reset(new OrthographicCamera(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar));
 				cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);
@@ -132,36 +140,25 @@ namespace Stulu {
 		LightComponent(const Type& type)
 			: lightType(type) {};
 	};
-
-	struct MeshComponent {
+	
+	struct MeshRendererComponent {
 		Ref<Shader> shader;
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
 
-		Ref<Stulu::VertexArray> vertexArray = nullptr;
-
-		MeshComponent() = default;
-		MeshComponent(const MeshComponent&) = default;
-		MeshComponent(const Ref<Shader>& shader)
+		MeshRendererComponent() = default;
+		MeshRendererComponent(const MeshRendererComponent&) = default;
+		MeshRendererComponent(const Ref<Shader>&shader)
 			: shader(shader) {};
-		MeshComponent(const Ref<Shader>& shader, Mesh& mesh)
-			: shader(shader) {
-			vertices = mesh.getVertices();
-			indices = mesh.getIndices();
-			recalculate();
-		};
-		void recalculate() {
-			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-
-			vertexArray = Stulu::VertexArray::create();
-			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
-			vertexBuffer->setLayout(Mesh::getDefaultLayout());
-			vertexArray->addVertexBuffer(vertexBuffer);
-			indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
-			vertexArray->setIndexBuffer(indexBuffer);
-		}
 	};
+
+	struct MeshFilterComponent {
+		Ref<Mesh> mesh;
+
+		MeshFilterComponent() = default;
+		MeshFilterComponent(const MeshFilterComponent&) = default;
+		MeshFilterComponent(const Ref<Mesh>&mesh)
+			: mesh(mesh) {};
+	};
+
 	struct SpriteRendererComponent {
 		glm::vec4 color = COLOR_WHITE;
 		SpriteRendererComponent() = default;

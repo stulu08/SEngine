@@ -15,10 +15,6 @@ namespace Stulu {
 	private:
 		bool m_runtime = false;
 
-		Model cube;
-		Model sphere;
-
-		ShaderLibary shaderLib;
 
 		SceneCamera m_sceneCamera;
 		Ref<Scene> m_activeScene;

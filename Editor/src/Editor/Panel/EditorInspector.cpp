@@ -20,7 +20,8 @@ namespace Stulu {
 			drawComponent<CameraComponent>(gameObject, "Camera");
 			drawComponent<SpriteRendererComponent>(gameObject, "SpriteRenderer");
 			drawComponent<LightComponent>(gameObject, "Light");
-			drawComponent<MeshComponent>(gameObject, "ModelRenderer");
+			drawComponent<MeshRendererComponent>(gameObject, "MeshRenderer");
+			drawComponent<MeshFilterComponent>(gameObject, "MeshFilter");
 
 
 			if(gameObject.hasComponent<NativeBehaviourComponent>())

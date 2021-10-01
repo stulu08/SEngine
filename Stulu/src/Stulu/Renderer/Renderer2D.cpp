@@ -147,7 +147,6 @@ namespace Stulu {
 			s_renderer2Ddata.vertexBufferPtr->textureTiling = glm::vec2(1.0f);
 			s_renderer2Ddata.vertexBufferPtr++;
 		}
-
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
 	void Renderer2D::drawQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color) {

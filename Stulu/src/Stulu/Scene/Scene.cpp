@@ -9,44 +9,56 @@
 
 namespace Stulu {
 	Scene::Scene() {
+		ST_PROFILING_FUNCTION();
 		m_data.lightBuffer = UniformBuffer::create(sizeof(SceneData::LightData), 1);
-		
+		m_shaderLib.load("Stulu/assets/Shaders/pbr.glsl");
 	}
 	Scene::~Scene() {
 		
 	}
 	GameObject Scene::createGameObject(const std::string& name) {
+		ST_PROFILING_FUNCTION();
 		GameObject go = { m_registry.create(), this };
 		go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
 		go.addComponent<TransformComponent>();
 		return go;
 	}
-	void Scene::destroyGameObject(GameObject& gameObject) {
+	void Scene::destroyGameObject(GameObject gameObject) {
+		ST_PROFILING_FUNCTION();
 		m_registry.destroy(gameObject);
 		gameObject = GameObject::null;
 	}
 	void Scene::onUpdateEditor(Timestep ts, const SceneCamera& camera) {
+		ST_PROFILING_FUNCTION();
 		calculateLights();
 		//rendering
 		if (camera.getCamera()) {
+			ST_PROFILING_SCOPE("Scene Camera Rendering");
 			Renderer2D::beginScene(camera.getCamera(), camera.getTransform());
 			RenderCommand::clear();
 			{
-				{
-					auto group = m_registry.group<TransformComponent>(entt::get<MeshComponent>);
-					for (auto gameObject : group)
-					{
-						auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(gameObject);
-						Renderer::submit(mesh.vertexArray, mesh.shader, transform);
+				auto group = m_registry.view<MeshFilterComponent>();
+				for (auto gameObject : group) {
+					ST_PROFILING_SCOPE("Rendering Mesh");
+					auto& filter = group.get<MeshFilterComponent>(gameObject);
+					auto& ren = m_registry.get<MeshRendererComponent>(gameObject);
+					glm::mat4 trans = m_registry.get<TransformComponent>(gameObject);
+
+					for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
+						ST_PROFILING_SCOPE("Rendering SubMesh");
+						Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
 					}
+					if (filter.mesh->getVertexArray() != nullptr)
+						Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
 				}
+			}
+			{
+				auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
+				for (auto gameObject : view)
 				{
-					auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
-					for (auto gameObject : view)
-					{
-						auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-						Renderer2D::drawQuad(transform, sprite.color);
-					}
+					ST_PROFILING_SCOPE("Rendering Sprite");
+					auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
+					Renderer2D::drawQuad(transform, sprite.color);
 				}
 			}
 			Renderer2D::endScene();
@@ -72,6 +84,7 @@ namespace Stulu {
 		}
 	}
 	void Scene::onUpdateRuntime(Timestep ts) {
+		ST_PROFILING_FUNCTION();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, auto& behaviour) {
 			if (!behaviour.instance) {
 				behaviour.instance = behaviour.InstantiateBehaviour();
@@ -105,6 +118,7 @@ namespace Stulu {
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
+		ST_PROFILING_FUNCTION();
 		m_viewportWidth = width;
 		m_viewportHeight = height;
 		auto view = m_registry.view<CameraComponent>();
@@ -115,6 +129,7 @@ namespace Stulu {
 		}
 	}
 	GameObject Scene::getMainCamera() {
+		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
 		for (auto gameObject : view) {
 			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
@@ -125,6 +140,7 @@ namespace Stulu {
 		return GameObject::null;
 	}
 	void Scene::calculateLights() {
+		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<TransformComponent, LightComponent>();
 		for (auto gameObject : view)
 		{
@@ -146,20 +162,30 @@ namespace Stulu {
 		m_data.lightData = SceneData::LightData();
 	}
 	void Scene::renderScene(entt::entity cam) {
+		ST_PROFILING_FUNCTION();
 		Renderer2D::beginScene(m_registry.get<CameraComponent>(cam).cam, m_registry.get<TransformComponent>(cam));
 		RenderCommand::clear();
 		{
-			auto group = m_registry.group<TransformComponent>(entt::get<MeshComponent>);
-			for (auto gameObject : group)
-			{
-				auto [transform, mesh] = group.get<TransformComponent, MeshComponent>(gameObject);
-				Renderer::submit(mesh.vertexArray, mesh.shader, transform);
+			auto group = m_registry.view<MeshFilterComponent>();
+			for (auto gameObject : group) {
+				ST_PROFILING_SCOPE("Rendering Mesh");
+				auto& filter = group.get<MeshFilterComponent>(gameObject);
+				auto& ren = m_registry.get<MeshRendererComponent>(gameObject);
+				glm::mat4 trans = m_registry.get<TransformComponent>(gameObject);
+
+				for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
+					ST_PROFILING_SCOPE("Rendering SubMesh");
+					Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
+				}
+				if (filter.mesh->getVertexArray() != nullptr)
+					Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
 			}
 		}
 		{
 			auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
 			for (auto gameObject : view)
 			{
+				ST_PROFILING_SCOPE("Rendering Sprite");
 				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
 				Renderer2D::drawQuad(transform, sprite.color);
 			}
@@ -178,7 +204,9 @@ namespace Stulu {
 	template<>
 	void Scene::onComponentAdded<LightComponent>(GameObject gameObject, LightComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<MeshComponent>(GameObject gameObject, MeshComponent& component) { }
+	void Scene::onComponentAdded<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) { gameObject.addComponent<MeshRendererComponent>().shader = m_shaderLib.get("pbr"); }
+	template<>
+	void Scene::onComponentAdded<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { }
 	template<>
 	void Scene::onComponentAdded<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
 	template<>

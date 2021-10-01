@@ -2,6 +2,7 @@
 #include "Stulu/Renderer/UniformBuffer.h"
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Core/Timestep.h"
+#include "Stulu/Renderer/Shader.h"
 
 #include <entt.hpp>
 
@@ -31,7 +32,7 @@ namespace Stulu {
 		~Scene();
 
 		GameObject createGameObject(const std::string& name = "GameObject");
-		void destroyGameObject(GameObject& gameObject);
+		void destroyGameObject(GameObject gameObject);
 
 		void onUpdateEditor(Timestep ts, const SceneCamera& camera);
 		void onUpdateRuntime(Timestep ts);
@@ -43,6 +44,7 @@ namespace Stulu {
 		uint32_t m_viewportWidth, m_viewportHeight;
 
 		entt::registry m_registry;
+		ShaderLibary m_shaderLib;
 		SceneData m_data;
 
 		void calculateLights();

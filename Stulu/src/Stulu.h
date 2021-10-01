@@ -15,6 +15,7 @@
 //#include "Stulu/Core/Window.h"
 
 ////////////////////Debug////////////////////
+#include "Stulu/Debug/RenderDataProfiler.h"
 //#include "Stulu/Debug/Instrumentor.h"
 
 ////////////////////Events///////////////////

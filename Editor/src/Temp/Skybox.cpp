@@ -75,8 +75,6 @@ void Skybox::draw() {
 	ST_PROFILING_FUNCTION();
 	Stulu::RenderCommand::setDepthFunc(true);
 	m_texture->bind();
-	m_shader->bind();
-	m_vertexArray->bind();
-	Stulu::RenderCommand::drawPrimitiveArray(m_indexCount);
+	Stulu::Renderer::submit(m_vertexArray, m_shader,glm::mat4(1.0f), m_indexCount);
 	Stulu::RenderCommand::setDepthFunc(false);
 }

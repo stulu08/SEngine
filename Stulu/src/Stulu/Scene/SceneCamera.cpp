@@ -53,11 +53,13 @@ namespace Stulu {
 		return false;
 	}
 	bool SceneCamera::onMouseMoveEvent(MouseMoveEvent& e) {
+		ST_PROFILING_FUNCTION();
 		m_lastMouseXPos = e.getX();
 		m_lastMouseYPos = e.getY();
 		return false;
 	}
 	bool SceneCamera::onResizeEvent(WindowResizeEvent& e) {
+		ST_PROFILING_FUNCTION();
 		onResize((float)e.getWidth(), (float)e.getHeight());
 		return false;
 	}

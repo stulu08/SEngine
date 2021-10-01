@@ -16,8 +16,7 @@ namespace Stulu {
 		m_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneData), 0);
 	}
 
-	void Renderer::onWinndowResize(WindowResizeEvent& e)
-	{
+	void Renderer::onWinndowResize(WindowResizeEvent& e) {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}

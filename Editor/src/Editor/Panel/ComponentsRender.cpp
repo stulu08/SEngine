@@ -112,10 +112,29 @@ namespace Stulu {
 
 	}
 	template<>
-	void ComponentsRender::drawComponent<MeshComponent>(GameObject gameObject, MeshComponent& component) {
+	void ComponentsRender::drawComponent<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) {
 		ImGui::Text("Shader: %s", component.shader->getName().c_str());
-		ImGui::Text("Vertices: %d", component.vertices.size());
-		ImGui::Text("Indices: %d", component.indices.size());
-		ImGui::Text("Triangles: %d", component.indices.size() / 3);
+	}
+	template<>
+	void ComponentsRender::drawComponent<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {
+		Ref<Mesh>& mesh = component.mesh;
+
+		if (mesh->getSubMeshCount()) {
+			ImGui::Text("SubMesh Count: %d", (int)component.mesh->getSubMeshCount());
+			for (int i = 0; i < mesh->getSubMeshCount(); i++) {
+				SubMesh& m = mesh->getSubMesh(i);
+				if (ImGui::TreeNodeEx((void*)(mesh->getSubMeshCount() + i + (uint32_t)gameObject), ImGuiTreeNodeFlags_OpenOnArrow, "Submesh %d", i)) {
+					ImGui::Text("Vertices: %d", m.getVertices().size());
+					ImGui::Text("Indices: %d", m.getIndices().size());
+					ImGui::Text("Triangles: %d", m.getIndices().size() / 3);
+					ImGui::TreePop();
+				}
+			}
+		}
+		else {
+			ImGui::Text("Vertices: %d", component.mesh->getVertices().size());
+			ImGui::Text("Indices: %d", component.mesh->getIndices().size());
+			ImGui::Text("Triangles: %d", component.mesh->getIndices().size() / 3);
+		}
 	}
 }

@@ -43,6 +43,8 @@ namespace Stulu {
 	void OpenGLRenderAPI::clear() {
 		ST_PROFILING_FUNCTION();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		ST_PROFILING_RENDERDATA_BEGIN();
 	}
 
 	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count) {
@@ -51,9 +53,11 @@ namespace Stulu {
 		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
 		glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
 		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	void OpenGLRenderAPI::drawPrimitiveArray(const uint32_t count) {
-		ST_PROFILING_FUNCTION();
-		glDrawArrays(GL_TRIANGLES, 0, count);
+
+#ifdef ST_PROFILING_RENDERDATA
+		ST_PROFILING_RENDERDATA_ADDDRAWCALL();
+		ST_PROFILING_RENDERDATA_ADDINDICES(_count);
+		ST_PROFILING_RENDERDATA_ADDVERTICES(vertexArray->getVertexBuffersSize() / sizeof(Vertex));
+#endif // ST_PROFILING_RENDERDATA
 	}
 }

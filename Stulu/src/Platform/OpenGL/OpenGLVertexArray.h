@@ -14,12 +14,14 @@ namespace Stulu {
 		virtual const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const override{ return m_vertexBufffers; }
 		virtual const Ref<IndexBuffer>& getIndexBuffer() const override{ return m_indexBuffer; }
 
+		virtual uint32_t getVertexBuffersSize() const override { return m_combinedVertexBufferSize; };
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
 	private:
 		uint32_t m_rendererID;
 		uint32_t m_vertexbufferIndex = 0;
+		uint32_t m_combinedVertexBufferSize = 0;
 		std::vector<Ref<VertexBuffer>> m_vertexBufffers;
 		Ref<IndexBuffer> m_indexBuffer;
 	};

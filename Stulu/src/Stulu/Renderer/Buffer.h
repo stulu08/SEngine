@@ -106,6 +106,7 @@ namespace Stulu{
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
 
+		virtual uint32_t getSize() const = 0;
 
 		static Ref<VertexBuffer> create(uint32_t size);
 		static Ref<VertexBuffer> create(uint32_t size, float* vertices);

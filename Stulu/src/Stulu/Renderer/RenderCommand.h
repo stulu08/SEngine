@@ -28,9 +28,6 @@ namespace Stulu{
 		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
 			s_renderAPI->drawIndexed(vertexArray, count);
 		}
-		inline static void drawPrimitiveArray(const uint32_t count) {
-			s_renderAPI->drawPrimitiveArray(count);
-		}
 	private:
 		static Scope<RenderAPI> s_renderAPI;
 	};

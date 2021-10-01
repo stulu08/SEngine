@@ -17,6 +17,7 @@
 
 #include "Stulu/Core/Log.h"
 #include "Stulu/Debug/Instrumentor.h"
+#include "Stulu/Debug/RenderDataProfiler.h"
 
 
 #ifdef ST_PLATFORM_WINDOWS
