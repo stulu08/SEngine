@@ -30,7 +30,7 @@ namespace Stulu {
 		void setIndices(std::vector<uint32_t>& indices) { m_indices = indices; }
 		std::vector<uint32_t>& getIndices() { return m_indices; }
 
-		SubMesh& getSubMesh(const uint32_t index) {
+		SubMesh& getSubMesh(const size_t index) {
 			ST_PROFILING_FUNCTION();
 			if (index < subMeshCount)
 				return m_subMeshes.at(index);
@@ -43,7 +43,7 @@ namespace Stulu {
 			m_subMeshes.push_back(mesh);
 			subMeshCount++;
 		}
-		const uint32_t getSubMeshCount() {
+		const size_t& getSubMeshCount() {
 			return subMeshCount;
 		}
 
@@ -56,7 +56,7 @@ namespace Stulu {
 
 		std::vector<SubMesh> m_subMeshes;
 
-		uint32_t subMeshCount = 0;
+		size_t subMeshCount = 0;
 
 		static BufferLayout m_defaultLayout;
 	};

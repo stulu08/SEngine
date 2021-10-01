@@ -180,14 +180,12 @@ void main()
             float epsilon   = lights[i].spotLightData.x - lights[i].spotLightData.y;
             float intensity = clamp((theta - lights[i].spotLightData.y) / epsilon, 0.0, 1.0);    
 
-
-
-            vec3 H = normalize(V + L);
-            float distance    = length(lights[i].positionAndType.xyz - _input.worldPos);
-            float attenuation = lights[i].colorAndStrength.w / (distance * distance);
+            float attenuation = lights[i].colorAndStrength.w;
 
             vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
-    
+
+            vec3 H = normalize(V + L);
+      
             // cook-torrance brdf
             float NDF = DistributionGGX(N, H, u_roughness);        
             float G   = GeometrySmith(N, V, L, u_roughness);      
@@ -199,12 +197,11 @@ void main()
     
             vec3 numerator    = NDF * G * F;
             float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-            vec3 specular     = numerator / max(denominator, 0.001) * intensity;  
+            vec3 specular     = numerator / max(denominator, 0.001);  
         
             // add to outgoing radiance Lo
-            float NdotL = max(dot(N, L), 0.0);                
-            Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;   
-            
+            float NdotL = max(dot(N, vec3(intensity)), 0.0);                
+            Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;
         }
     }
 

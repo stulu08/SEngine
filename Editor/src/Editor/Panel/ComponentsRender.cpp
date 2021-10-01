@@ -94,6 +94,8 @@ namespace Stulu {
 	template<>
 	void ComponentsRender::drawComponent<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) {
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+		ImGui::DragFloat2("Tiling", glm::value_ptr(component.tiling));
+		drawTextureEdit(component.texture, "Texture");
 	}
 	template<>
 	void ComponentsRender::drawComponent<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) {
@@ -136,5 +138,30 @@ namespace Stulu {
 			ImGui::Text("Indices: %d", component.mesh->getIndices().size());
 			ImGui::Text("Triangles: %d", component.mesh->getIndices().size() / 3);
 		}
+	}
+	
+	
+	
+	bool ComponentsRender::drawTextureEdit(Ref<Texture2D>& texture, const std::string& header) {
+		if (ImGui::CollapsingHeader(header.c_str())) {
+			ImGui::Text("Texture edit");
+				if (texture == nullptr)
+					ImGui::Image((void*)Resources::getEmptyTextureTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+				else {
+					ImGui::Image((void*)texture->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+					ImGui::DragFloat2("Texture Tiling", glm::value_ptr(texture->tiling));
+				}
+
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D")) {
+					//ST_ASSERT(sizeof(payload->DataSize) == sizeof(std::string),"ASSETS_BROWSER_MOVE_TEXTURE2D Drag Drop payload size wrong");
+					const char* path = (const char*)payload->Data;
+					texture = Texture2D::create(path);
+					return true;
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+		return false;
 	}
 }

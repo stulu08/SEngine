@@ -15,6 +15,8 @@ namespace Stulu {
 		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
 
 		m_activeScene = createRef<Scene>();
+
+		Resources::loadAll();
 	}
 
 	void EditorLayer::onAttach() {
@@ -98,7 +100,6 @@ namespace Stulu {
 		ImGui::SameLine();
 		ImGui::SetCursorPosX(80.0f);
 		imGui::DragScalarFloatNoLabel("Scale_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().scale), 3, .1f, 0, 0, "%.3f");
-
 		ImGui::End();
 
 		ImGui::Begin("Profiling");
@@ -108,8 +109,22 @@ namespace Stulu {
 		ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
 		ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
 		ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+		ImGui::End();
 
+		ImGui::Begin("Assets");
 
+		const char* file("Stulu/assets/textures/light.png");
+		ImGui::Text(file);
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+			ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", file, (strlen(file) + 1) * sizeof(char));
+			ImGui::EndDragDropSource();
+		}
+		file = ("Stulu/assets/textures/Logo/engine-app-icon.png");
+		ImGui::Text(file);
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+			ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", file, (strlen(file) + 1) * sizeof(char));
+			ImGui::EndDragDropSource();
+		}
 		ImGui::End();
 
 		m_editorHierarchy.render();

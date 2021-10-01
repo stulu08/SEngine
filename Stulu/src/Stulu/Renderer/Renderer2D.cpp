@@ -96,7 +96,7 @@ namespace Stulu {
 		s_renderer2Ddata.slotIndex = 1;
 		s_renderer2Ddata.vertexBufferPtr = s_renderer2Ddata.vertexBufferBase;
 	}
-	void Renderer2D::beginScene(const Ref<Camera>& cam, const TransformComponent& transform) {
+	void Renderer2D::beginScene(const Ref<Camera>& cam, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();
 		Renderer::beginScene(cam, transform);
 		s_renderer2Ddata.quadIndexCount = 0;

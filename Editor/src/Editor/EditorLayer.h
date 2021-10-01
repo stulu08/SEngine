@@ -15,7 +15,6 @@ namespace Stulu {
 	private:
 		bool m_runtime = false;
 
-
 		SceneCamera m_sceneCamera;
 		Ref<Scene> m_activeScene;
 

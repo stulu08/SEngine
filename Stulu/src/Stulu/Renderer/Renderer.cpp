@@ -20,13 +20,15 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
-	void Renderer::beginScene(const Ref<Camera>& cam, const TransformComponent& transform) {
+	void Renderer::beginScene(const Ref<Camera>& cam, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();
-		m_data.sceneData.viewMatrix = glm::inverse(transform.getTransform());
+		m_data.sceneData.viewMatrix = glm::inverse(transform);
 		m_data.sceneData.projMatrix = cam->getProjectionMatrix();
 		m_data.sceneData.viewProjectionMatrix = m_data.sceneData.projMatrix * m_data.sceneData.viewMatrix;
-		m_data.sceneData.cameraPosition = transform.position;
-		m_data.sceneData.cameraRotation = transform.rotation;
+		glm::vec3 pos, rot, scale;
+		Math::decomposeTransform(transform, pos, rot, scale);
+		m_data.sceneData.cameraPosition = pos;
+		m_data.sceneData.cameraRotation = rot;
 
 		m_data.sceneDataUniformBuffer->setData(&m_data.sceneData, sizeof(Data::SceneData));
 		m_data.cam = cam;

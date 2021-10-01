@@ -15,7 +15,7 @@ namespace Stulu{
 		static void init();
 		static void onWinndowResize(WindowResizeEvent& e);
 
-		static void beginScene(const Ref<Camera>& cam, const TransformComponent& transform);
+		static void beginScene(const Ref<Camera>& cam, const glm::mat4& transform);
 		static void endScene();
 
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count = 0);

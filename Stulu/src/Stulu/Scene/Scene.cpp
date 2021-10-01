@@ -34,7 +34,7 @@ namespace Stulu {
 		//rendering
 		if (camera.getCamera()) {
 			ST_PROFILING_SCOPE("Scene Camera Rendering");
-			Renderer2D::beginScene(camera.getCamera(), camera.getTransform());
+			Renderer2D::beginScene(camera.getCamera(), camera.getTransform().getTransform());
 			RenderCommand::clear();
 			{
 				auto group = m_registry.view<MeshFilterComponent>();
@@ -58,7 +58,10 @@ namespace Stulu {
 				{
 					ST_PROFILING_SCOPE("Rendering Sprite");
 					auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-					Renderer2D::drawQuad(transform, sprite.color);
+					if(sprite.texture)
+						Renderer2D::drawTexturedQuad(transform,sprite.texture, sprite.tiling, sprite.color);
+					else
+						Renderer2D::drawQuad(transform, sprite.color);
 				}
 			}
 			Renderer2D::endScene();
@@ -187,7 +190,10 @@ namespace Stulu {
 			{
 				ST_PROFILING_SCOPE("Rendering Sprite");
 				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-				Renderer2D::drawQuad(transform, sprite.color);
+				if (sprite.texture)
+					Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.tiling, sprite.color);
+				else
+					Renderer2D::drawQuad(transform, sprite.color);
 			}
 		}
 		Renderer2D::endScene();
