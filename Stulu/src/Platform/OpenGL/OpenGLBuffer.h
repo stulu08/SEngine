@@ -14,15 +14,12 @@ namespace Stulu {
 		virtual const BufferLayout& getLayout() const override { return m_defaultLayout; }
 		virtual void setData(const void* data, uint32_t size) override;
 
-		
-		virtual uint32_t getSize() const override { return m_size; }
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
 
 	private:
 		uint32_t m_rendererID;
-		uint32_t m_size = 0;
 		BufferLayout m_defaultLayout;
 	};
 

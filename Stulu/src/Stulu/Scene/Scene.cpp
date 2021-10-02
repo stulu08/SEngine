@@ -28,14 +28,18 @@ namespace Stulu {
 		m_registry.destroy(gameObject);
 		gameObject = GameObject::null;
 	}
+
 	void Scene::onUpdateEditor(Timestep ts, const SceneCamera& camera) {
 		ST_PROFILING_FUNCTION();
 		calculateLights();
-		//rendering
 		if (camera.getCamera()) {
 			ST_PROFILING_SCOPE("Scene Camera Rendering");
+			ST_PROFILING_RENDERDATA_BEGIN();
+			RenderCommand::setClearColor(glm::vec4(glm::vec3(.1f),1.0f));
 			Renderer2D::beginScene(camera.getCamera(), camera.getTransform().getTransform());
 			RenderCommand::clear();
+
+
 			{
 				auto group = m_registry.view<MeshFilterComponent>();
 				for (auto gameObject : group) {
@@ -47,9 +51,16 @@ namespace Stulu {
 					for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
 						ST_PROFILING_SCOPE("Rendering SubMesh");
 						Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
+
+						ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getSubMesh(i).getIndicesCount());
+						ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getSubMesh(i).getVerticesCount());
 					}
-					if (filter.mesh->getVertexArray() != nullptr)
+					if (filter.mesh->getVertexArray() != nullptr) {
 						Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
+
+						ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getIndicesCount());
+						ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getVerticesCount());
+					}
 				}
 			}
 			{
@@ -62,6 +73,9 @@ namespace Stulu {
 						Renderer2D::drawTexturedQuad(transform,sprite.texture, sprite.tiling, sprite.color);
 					else
 						Renderer2D::drawQuad(transform, sprite.color);
+
+					ST_PROFILING_RENDERDATA_ADDINDICES(6);
+					ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 				}
 			}
 			Renderer2D::endScene();
@@ -97,8 +111,6 @@ namespace Stulu {
 			behaviour.instance->update(ts);
 		});
 
-
-		//GameObject mainCameraObject = getMainCamera();
 		//calculations
 		calculateLights();
 		//rendering
@@ -131,6 +143,7 @@ namespace Stulu {
 				cameraComponent.onResize(width, height);
 		}
 	}
+	
 	GameObject Scene::getMainCamera() {
 		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
@@ -142,6 +155,7 @@ namespace Stulu {
 		}
 		return GameObject::null;
 	}
+	
 	void Scene::calculateLights() {
 		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<TransformComponent, LightComponent>();
@@ -180,8 +194,9 @@ namespace Stulu {
 					ST_PROFILING_SCOPE("Rendering SubMesh");
 					Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
 				}
-				if (filter.mesh->getVertexArray() != nullptr)
+				if (filter.mesh->getVertexArray() != nullptr) {
 					Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
+				}
 			}
 		}
 		{

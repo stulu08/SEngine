@@ -143,24 +143,20 @@ namespace Stulu {
 	
 	
 	bool ComponentsRender::drawTextureEdit(Ref<Texture2D>& texture, const std::string& header) {
-		if (ImGui::CollapsingHeader(header.c_str())) {
-			ImGui::Text("Texture edit");
-				if (texture == nullptr)
-					ImGui::Image((void*)Resources::getEmptyTextureTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
-				else {
-					ImGui::Image((void*)texture->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
-					ImGui::DragFloat2("Texture Tiling", glm::value_ptr(texture->tiling));
-				}
+		ImGui::Text("Texture edit");
+		if (texture == nullptr)
+			ImGui::Image((void*)Resources::getEmptyTextureTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+		else {
+			ImGui::Image((void*)texture->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+		}
 
-			if (ImGui::BeginDragDropTarget()) {
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D")) {
-					//ST_ASSERT(sizeof(payload->DataSize) == sizeof(std::string),"ASSETS_BROWSER_MOVE_TEXTURE2D Drag Drop payload size wrong");
-					const char* path = (const char*)payload->Data;
-					texture = Texture2D::create(path);
-					return true;
-				}
-				ImGui::EndDragDropTarget();
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D")) {
+				const char* path = (const char*)payload->Data;
+				texture = Texture2D::create(path);
+				return true;
 			}
+			ImGui::EndDragDropTarget();
 		}
 		return false;
 	}

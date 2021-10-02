@@ -12,10 +12,14 @@ namespace Stulu {
 		std::vector<Vertex>& getVertices() { return m_vertices; }
 		std::vector<uint32_t>& getIndices() { return m_indices; }
 		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; }
+		const size_t& getVerticesCount() { return m_verticesCount; }
+		const size_t& getIndicesCount() { return m_indicesCount; }
 	private:
 		Ref<Stulu::VertexArray> m_vertexArray;
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
+		size_t m_verticesCount = 0;
+		size_t m_indicesCount = 0;
 	};
 	class Mesh {
 	public:
@@ -32,7 +36,7 @@ namespace Stulu {
 
 		SubMesh& getSubMesh(const size_t index) {
 			ST_PROFILING_FUNCTION();
-			if (index < subMeshCount)
+			if (index < m_subMeshCount)
 				return m_subMeshes.at(index);
 
 			CORE_ASSERT(false, "Invalid index");
@@ -41,11 +45,12 @@ namespace Stulu {
 		void addSubMesh(const SubMesh mesh) {
 			ST_PROFILING_FUNCTION();
 			m_subMeshes.push_back(mesh);
-			subMeshCount++;
+			m_subMeshCount++;
 		}
-		const size_t& getSubMeshCount() {
-			return subMeshCount;
-		}
+
+		const size_t& getSubMeshCount() { return m_subMeshCount; }
+		const size_t& getVerticesCount() { return m_verticesCount; }
+		const size_t& getIndicesCount() { return m_indicesCount; }
 
 		static BufferLayout getDefaultLayout() { return m_defaultLayout; }
 		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; }
@@ -56,7 +61,9 @@ namespace Stulu {
 
 		std::vector<SubMesh> m_subMeshes;
 
-		size_t subMeshCount = 0;
+		size_t m_subMeshCount = 0;
+		size_t m_verticesCount = 0;
+		size_t m_indicesCount = 0;
 
 		static BufferLayout m_defaultLayout;
 	};

@@ -22,8 +22,9 @@ namespace Stulu {
 	void EditorLayer::onAttach() {
 		m_editorHierarchy.setScene(m_activeScene);
 
-		Model::loadModel("assets/car.glb", m_activeScene.get());
+		//Model::loadModel("assets/car.glb", m_activeScene.get());
 		//Model::loadModel("assets/human.glb", m_activeScene.get());
+		//Model::loadModel("assets/sphere.obj", m_activeScene.get());
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -113,18 +114,15 @@ namespace Stulu {
 
 		ImGui::Begin("Assets");
 
-		const char* file("Stulu/assets/textures/light.png");
-		ImGui::Text(file);
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-			ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", file, (strlen(file) + 1) * sizeof(char));
-			ImGui::EndDragDropSource();
+		const char* file[2] = { ("Stulu/assets/textures/light.png"), ("Stulu/assets/textures/Logo/engine-app-icon.png") };
+		for (int i = 0; i < 2; i++) {
+			ImGui::Button(file[i]);
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+				ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", file[i], (strlen(file[i]) + 1) * sizeof(char));
+				ImGui::EndDragDropSource();
+			}
 		}
-		file = ("Stulu/assets/textures/Logo/engine-app-icon.png");
-		ImGui::Text(file);
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-			ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", file, (strlen(file) + 1) * sizeof(char));
-			ImGui::EndDragDropSource();
-		}
+
 		ImGui::End();
 
 		m_editorHierarchy.render();

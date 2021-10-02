@@ -18,8 +18,6 @@ namespace Stulu {
 		virtual const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const = 0;
 		virtual const Ref<IndexBuffer>& getIndexBuffer() const = 0;
 
-		virtual uint32_t getVertexBuffersSize() const = 0;
-
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
 

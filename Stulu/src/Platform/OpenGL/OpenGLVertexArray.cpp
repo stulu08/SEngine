@@ -50,7 +50,6 @@ namespace Stulu {
 			);
 			m_vertexbufferIndex++;
 		}
-		m_combinedVertexBufferSize += vBuffer->getSize();
 		m_vertexBufffers.push_back(vBuffer);
 	}
 

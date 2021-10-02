@@ -9,21 +9,18 @@ namespace Stulu {
 		glCreateBuffers(1, &m_rendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-		m_size = 0;
 	}
 	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size, float* vertices){
 		ST_PROFILING_FUNCTION();
 		glCreateBuffers(1, &m_rendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
-		m_size = size;
 	}
 	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size, const void* data) {
 		ST_PROFILING_FUNCTION();
 		glCreateBuffers(1, &m_rendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-		m_size = size;
 	}
 	OpenGLVertexBuffer::~OpenGLVertexBuffer() {
 		ST_PROFILING_FUNCTION();
@@ -33,7 +30,6 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
-		m_size = size;
 	}
 	void OpenGLVertexBuffer::bind() const {
 		ST_PROFILING_FUNCTION();
