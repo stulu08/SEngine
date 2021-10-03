@@ -37,7 +37,7 @@ namespace Stulu {
 
 		//io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 16.0f);
 		//io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 16.0f);
-		//io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 18.0f);
+		io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 15.0f);
 		//ImGui::StyleColorsDark();
 		//ImGui::StyleColorsClassic();
 		//ImGui::StyleColorsLight();

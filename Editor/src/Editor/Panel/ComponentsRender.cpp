@@ -1,6 +1,8 @@
 #include "ComponentsRender.h"
 
-#include "ImGui/misc/cpp/imgui_stdlib.h"
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <ImGui/misc/cpp/imgui_stdlib.h>
 
 namespace Stulu {
 	const ImVec2 operator *(const ImVec2& vec, const float v) {
@@ -10,36 +12,20 @@ namespace Stulu {
 	}
 
 	template<typename T>
-	static void ComponentsRender::drawComponent(GameObject gameObject, T& component) {}
+	void ComponentsRender::drawComponent(GameObject gameObject, T& component) {}
 	template<>
-	static void ComponentsRender::drawComponent<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) {
-		std::string* name = &gameObject.getComponent<GameObjectBaseComponent>().name;
-		ImGui::InputText("Name", name);
-
-		std::string* tag = &gameObject.getComponent<GameObjectBaseComponent>().tag;
-		ImGui::InputText("Tag", tag);
-		ImGui::Separator();
-		
+	void ComponentsRender::drawComponent<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) {
+		drawStringControl("Name", gameObject.getComponent<GameObjectBaseComponent>().name);
+		drawStringControl("Tag", gameObject.getComponent<GameObjectBaseComponent>().tag);
+		ImGui::Separator();	
 	}
 	template<>
 	void ComponentsRender::drawComponent<TransformComponent>(GameObject gameObject, TransformComponent& component) {
-		ImGui::Text("Position");
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
-		imGui::DragScalarFloatNoLabel("Position_3d_Transform", glm::value_ptr(component.position), 3, .1f, 0, 0, "%.3f");
-
-
-		ImGui::Text("Rotation");
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
+		drawVector3Control("Position", component.position);
 		glm::vec3 rotation = glm::degrees(component.rotation);
-		imGui::DragScalarFloatNoLabel("Rotation_3d_Transform", glm::value_ptr(rotation), 3, .1f, 0, 0, "%.3f");
+		drawVector3Control("Rotation", rotation);
 		component.rotation = glm::radians(rotation);
-
-		ImGui::Text("Scale");
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
-		imGui::DragScalarFloatNoLabel("Scale_3d_Transform", glm::value_ptr(component.scale), 3, .1f, 0, 0, "%.3f");
+		drawVector3Control("Scale", component.scale);
 	}
 	template<>
 	void ComponentsRender::drawComponent<CameraComponent>(GameObject gameObject, CameraComponent& component) {
@@ -53,33 +39,27 @@ namespace Stulu {
 			ImGui::ColorEdit4("Clear Color", glm::value_ptr(component.settings.clearColor));
 
 		bool recalc = false;
+
 		if (component.mode == CameraMode::Orthographic) {
-			if (ImGui::DragFloat("Zoom", &component.settings.zoom))
-				recalc = true;
+			recalc |= drawFloatControl("Zoom", component.settings.zoom);
 		}
 		else if (component.mode == CameraMode::Perspective) {
-			if (ImGui::DragFloat("Fov", &component.settings.fov))
-				recalc = true;
+			recalc |= drawFloatControl("Fov", component.settings.fov);
 		}
-		if (ImGui::DragFloat("Far", &component.settings.zFar))
-			recalc = true;
+		recalc |= drawFloatControl("Far", component.settings.zFar);
 
-		if (ImGui::DragFloat("Near", &component.settings.zNear))
-			recalc = true;
+		recalc |= drawFloatControl("Near", component.settings.zNear);
 
 
-		ImGui::Checkbox("Static Aspect Ratio", &component.settings.staticAspect);
-		if (ImGui::InputFloat("Aspect Ratio", &component.settings.aspectRatio, .0f, .0f, "%.2f", !component.settings.staticAspect ? ImGuiInputTextFlags_ReadOnly : 0)) {
-			/*component.settings.textureWidth /= component.settings.aspectRatio;
-			component.settings.textureHeight /= component.settings.aspectRatio;
-			component.cam->getFrameBuffer()->resize(component.settings.textureWidth, component.settings.textureHeight);*/
-		}
+		drawBoolControl("Static Aspect", component.settings.staticAspect);
+
 		if (component.settings.staticAspect) {
-			if(ImGui::InputInt("Width", (int*)&component.settings.textureWidth)){
+			recalc |= drawFloatControl("Aspect Ratio", component.settings.aspectRatio);
+			if (drawIntControl("Width", *(int*)&component.settings.textureWidth)) {
 
 				component.updateSize();
 			}
-			if (ImGui::InputInt("Height", (int*)&component.settings.textureHeight)) {
+			if (drawIntControl("Height", *(int*)&component.settings.textureHeight)) {
 
 				component.updateSize();
 			}
@@ -87,15 +67,15 @@ namespace Stulu {
 		else if (recalc)
 			component.updateProjection();
 
-		ImGui::DragInt("Depth", &component.depth);
+		drawIntControl("Depth", component.depth);
 
 		ImGui::Image((void*)component.cam->getFrameBuffer()->getTexture()->getColorAttachmentRendereID(), ImVec2(160, 90), ImVec2(0, 1), ImVec2(1, 0));
 	}
 	template<>
 	void ComponentsRender::drawComponent<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) {
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
-		ImGui::DragFloat2("Tiling", glm::value_ptr(component.tiling));
-		drawTextureEdit(component.texture, "Texture");
+		drawVector2Control("Tiling", component.tiling);
+		drawTextureEdit("Texture", component.texture);
 	}
 	template<>
 	void ComponentsRender::drawComponent<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) {
@@ -106,10 +86,10 @@ namespace Stulu {
 		const char* const lightTypes[] = { "Directional","Area","Spot"};
 		ImGui::Combo("Type", (int*)&component.lightType, lightTypes, IM_ARRAYSIZE(lightTypes));
 		ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
-		ImGui::DragFloat("Strength", &component.stength);
+		drawFloatControl("Strength", component.stength);
 		if (component.lightType == LightComponent::Spot) {
-			ImGui::DragFloat("Cut off", &component.spotLight_cutOff);
-			ImGui::DragFloat("Outer cut off", &component.spotLight_outerCutOff);
+			drawFloatControl("Cut off", component.spotLight_cutOff);
+			drawFloatControl("Outer cut off", component.spotLight_outerCutOff);
 		}
 
 	}
@@ -140,24 +120,175 @@ namespace Stulu {
 		}
 	}
 	
-	
-	
-	bool ComponentsRender::drawTextureEdit(Ref<Texture2D>& texture, const std::string& header) {
-		ImGui::Text("Texture edit");
+
+
+	bool ComponentsRender::drawStringControl(const std::string& header, std::string& v) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::InputText("##String", &v);
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawBoolControl(const std::string& header, bool& v) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::Checkbox("##CheckBoxBool", &v);
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawIntControl(const std::string& header, int& v) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::DragInt("##INT", &v);
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawFloatControl(const std::string& header, float& v) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::DragFloat("##FLOAT", &v, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawVector2Control(const std::string& header, glm::vec2& vec) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+
+		ImGui::Text("X");
+		ImGui::SameLine();
+		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::Text("Y");
+		ImGui::SameLine();
+		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawVector3Control(const std::string& header, glm::vec3& vec) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+
+		ImGui::Text("X");
+		ImGui::SameLine();
+		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::Text("Y");
+		ImGui::SameLine();
+		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::Text("Z");
+		ImGui::SameLine();
+		change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+
+	bool ComponentsRender::drawTextureEdit(const std::string& header, Ref<Texture2D>& texture) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		
 		if (texture == nullptr)
 			ImGui::Image((void*)Resources::getEmptyTextureTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		else {
 			ImGui::Image((void*)texture->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
-
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D")) {
 				const char* path = (const char*)payload->Data;
 				texture = Texture2D::create(path);
-				return true;
+				change = true;
 			}
 			ImGui::EndDragDropTarget();
 		}
-		return false;
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
 	}
 }

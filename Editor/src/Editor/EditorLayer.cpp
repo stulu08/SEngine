@@ -22,9 +22,9 @@ namespace Stulu {
 	void EditorLayer::onAttach() {
 		m_editorHierarchy.setScene(m_activeScene);
 
-		//Model::loadModel("assets/car.glb", m_activeScene.get());
-		//Model::loadModel("assets/human.glb", m_activeScene.get());
-		//Model::loadModel("assets/sphere.obj", m_activeScene.get());
+		Model::loadModel("assets/car.glb", m_activeScene.get());
+		Model::loadModel("assets/human.glb", m_activeScene.get());
+		Model::loadModel("assets/sphere.obj", m_activeScene.get());
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -175,10 +175,17 @@ namespace Stulu {
 				(ImGuizmo::OPERATION)m_gizmoEditType, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
 
 			if (ImGuizmo::IsUsing()) {
-				if(tc.parent)
-					transform /= tc.parent.getComponent<TransformComponent>().getWorldSpaceTransform();
+				if (tc.parent) {
+					glm::vec3 worldPos, worldRotation, worldScale;
+					Math::decomposeTransform(transform, worldPos, worldRotation, worldScale);
+					glm::mat4 parent = tc.parent.getComponent<TransformComponent>().getWorldSpaceTransform();
+					const glm::vec3 parentPos = glm::vec3(parent[3]);
+					parent[3] = glm::vec4(0, 0, 0, parent[3].w);
+					transform = glm::translate(glm::mat4(1.0f), worldPos - parentPos) * glm::toMat4(glm::quat(worldRotation)) * glm::scale(glm::mat4(1.0f), worldScale) / parent;
+				}
 				glm::vec3 pos, rotation, scale;
 				Math::decomposeTransform(transform, pos, rotation, scale);
+
 				tc.position = pos;
 				tc.rotation = rotation;
 				tc.scale = scale;

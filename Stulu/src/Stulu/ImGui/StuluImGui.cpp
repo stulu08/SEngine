@@ -136,9 +136,10 @@ namespace Stulu {
 	bool imGui::vec3(const char* header, glm::vec3& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
 		ST_PROFILING_FUNCTION();
 		ImGui::Text(header);
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
-		return DragScalarFloatNoLabel(header, glm::value_ptr(v), 3, speed, &min, &max, format, scaleFactor, minWidth);
+		ImGui::DragFloat("X",&v.x);
+		ImGui::DragFloat("Y",&v.y);
+		ImGui::DragFloat("Z",&v.z);
+		return true;
 	}
 	bool imGui::vec4(const char* header, glm::vec4& v, float speed, float min, float max, const char* format, float scaleFactor, float minWidth) {
 		ST_PROFILING_FUNCTION();
