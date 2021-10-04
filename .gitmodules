@@ -16,3 +16,6 @@
 [submodule "Stulu/vendor/ImGuizmo"]
 	path = Stulu/vendor/ImGuizmo
 	url = https://github.com/TheCherno/ImGuizmo
+[submodule "Stulu/vendor/yaml-cpp"]
+	path = Stulu/vendor/yaml-cpp
+	url = https://github.com/TheCherno/yaml-cpp

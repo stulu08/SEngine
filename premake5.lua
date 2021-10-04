@@ -23,6 +23,7 @@ IncludeDir["ImGui"] = "Stulu/vendor/imgui"
 IncludeDir["ImGuizmo"] = "Stulu/vendor/ImGuizmo"
 IncludeDir["assimp"] = "Stulu/vendor/assimp/include"
 IncludeDir["glm"] = "Stulu/vendor/glm"
+IncludeDir["yaml_cpp"] = "Stulu/vendor/yaml-cpp/include"
 IncludeDir["stb_image"] = "Stulu/vendor/stb_image"
 IncludeDir["noise"] = "Stulu/vendor/ReputelessPerlinNoise"
 IncludeDir["entt"] = "Stulu/vendor/entt"
@@ -32,6 +33,7 @@ include "Stulu/vendor/GLFW"
 include "Stulu/vendor/Glad"
 include "Stulu/vendor/imgui"
 include "Stulu/vendor/assimp"
+include "Stulu/vendor/yaml-cpp"
 group ""
 project "Stulu"
 	location "Stulu"
@@ -72,6 +74,7 @@ project "Stulu"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.noise}",
 		"%{IncludeDir.entt}"
@@ -83,7 +86,8 @@ project "Stulu"
 		"Glad",
 		"ImGui",
 		"assimp",
-		"opengl32.lib"
+		"opengl32.lib",
+		"yaml-cpp"
 	}
 
 	filter "system:windows"

@@ -19,6 +19,7 @@ namespace Stulu {
 		//attributes
 		inline void setEventCallback(const EventCallbackFn& callback) override { m_data.eventCallback = callback; }
 		virtual void setWindowIcon(const std::string& path) override;
+		virtual void setWindowTitle(const std::string& title) override;
 		void setVSysnc(bool enabled) override;
 		bool isVSysnc() const override;
 
