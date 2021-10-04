@@ -11,7 +11,6 @@ namespace Stulu {
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
 		m_data.lightBuffer = UniformBuffer::create(sizeof(SceneData::LightData), 1);
-		m_shaderLib.load("Stulu/assets/Shaders/pbr.glsl");
 	}
 	Scene::~Scene() {
 		
@@ -163,7 +162,7 @@ namespace Stulu {
 		{
 			auto [transform, light] = view.get<TransformComponent, LightComponent>(gameObject);
 			if (m_data.lightData.lightCount < MAXLIGHTS) {
-				m_data.lightData.lights[m_data.lightData.lightCount].colorAndStrength = glm::vec4(light.color, light.stength);
+				m_data.lightData.lights[m_data.lightData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
 				m_data.lightData.lights[m_data.lightData.lightCount].positionAndType = glm::vec4(transform.position, light.lightType);
 				m_data.lightData.lights[m_data.lightData.lightCount].rotation = glm::vec4(transform.forwardDirection(), 1.0f);
 				if (light.lightType == LightComponent::Spot)
@@ -225,7 +224,7 @@ namespace Stulu {
 	template<>
 	void Scene::onComponentAdded<LightComponent>(GameObject gameObject, LightComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) { gameObject.addComponent<MeshRendererComponent>().shader = m_shaderLib.get("pbr"); }
+	void Scene::onComponentAdded<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {  }
 	template<>
 	void Scene::onComponentAdded<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { }
 	template<>

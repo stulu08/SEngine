@@ -140,6 +140,10 @@ namespace Stulu {
 
 		glfwSetWindowIcon(m_window, 1, images);
 	}
+	void GLwindowsWindow::setWindowTitle(const std::string& title) {
+		ST_PROFILING_FUNCTION();
+		glfwSetWindowTitle(m_window, title.c_str());
+	}
 	void GLwindowsWindow::setVSysnc(bool enabled) {
 		ST_PROFILING_FUNCTION();
 		if (enabled)

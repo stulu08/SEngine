@@ -45,6 +45,7 @@ namespace Stulu {
                     mesh.addSubMesh(processSubMesh(a_mesh, scene));
                 }
             }
+            go.addComponent<MeshRendererComponent>();
             go.addComponent<MeshFilterComponent>().mesh = createRef<Mesh>(mesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {

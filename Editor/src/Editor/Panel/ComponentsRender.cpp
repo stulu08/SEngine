@@ -86,7 +86,7 @@ namespace Stulu {
 		const char* const lightTypes[] = { "Directional","Area","Spot"};
 		ImGui::Combo("Type", (int*)&component.lightType, lightTypes, IM_ARRAYSIZE(lightTypes));
 		ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
-		drawFloatControl("Strength", component.stength);
+		drawFloatControl("Strength", component.strength);
 		if (component.lightType == LightComponent::Spot) {
 			drawFloatControl("Cut off", component.spotLight_cutOff);
 			drawFloatControl("Outer cut off", component.spotLight_outerCutOff);

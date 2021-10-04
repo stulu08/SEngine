@@ -41,10 +41,9 @@ namespace Stulu {
 
 		GameObject getMainCamera();
 	private:
-		uint32_t m_viewportWidth, m_viewportHeight;
+		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 
 		entt::registry m_registry;
-		ShaderLibary m_shaderLib;
 		SceneData m_data;
 
 		void calculateLights();
@@ -54,8 +53,9 @@ namespace Stulu {
 		void onComponentAdded(GameObject gameObject, T& component);
 
 		friend class GameObject;
-		friend class EditorHierarchyPanel;
 		friend class EditorLayer;
+		friend class SceneSerializer;
+		friend class EditorHierarchyPanel;
 	};
 }
 

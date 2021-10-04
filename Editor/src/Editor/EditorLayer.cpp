@@ -16,15 +16,23 @@ namespace Stulu {
 
 		m_activeScene = createRef<Scene>();
 
+		m_shaderLib.load("Stulu/assets/Shaders/pbr.glsl");
+
 		Resources::loadAll();
 	}
 
 	void EditorLayer::onAttach() {
 		m_editorHierarchy.setScene(m_activeScene);
 
+
+		/*
 		Model::loadModel("assets/car.glb", m_activeScene.get());
 		Model::loadModel("assets/human.glb", m_activeScene.get());
 		Model::loadModel("assets/sphere.obj", m_activeScene.get());
+		*/
+
+		m_activeScene->createGameObject("Directional Light").addComponent<LightComponent>();
+		
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -39,20 +47,33 @@ namespace Stulu {
 			m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
 
 	}
-	bool about = false;
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ImGui::DockSpaceOverViewport();
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New Scene")) {
 
+				if (ImGui::MenuItem("New Scene","Ctrl+N")) {
+					m_currentScenePath = "";
+					m_activeScene = createRef<Scene>();
+					m_editorHierarchy.setScene(m_activeScene);
+					m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
 				}
-				if (ImGui::MenuItem("Exit")) {
+				if (ImGui::MenuItem("Open Scene", "Ctrl+O")) {
+					OpenScene();
+				}
+				if (ImGui::MenuItem("Save Scene", "Ctrl+S",false, !m_currentScenePath.empty())) {
+					SaveScene(m_currentScenePath);
+				}
+				if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S")) {
+					SaveScene();
+				}
+				if (ImGui::MenuItem("Exit","Alt+F4")) {
 					Application::exit(0);
 				}
 
 				ImGui::EndMenu();
 			}
+
 			if (ImGui::BeginMenu("Edit")) {
 				if (ImGui::MenuItem("Settings")) {
 
@@ -60,23 +81,8 @@ namespace Stulu {
 				ImGui::EndMenu();
 
 			}
-			if (ImGui::BeginMenu("Help")) {
-				if (ImGui::MenuItem("About"))
-					about = true;
-
-				ImGui::EndMenu();
-			}
 			ImGui::EndMainMenuBar();
 		}
-		if (about)
-			if (ImGui::Begin("About - Stulu Engine")) {
-				ImGui::Text("Stulu");
-				ImGui::BulletText("https://github.com/stulu08/sengine");
-				if (ImGui::Button("Close"))
-					about = false;
-				ImGui::End();
-
-			}
 		ImGui::Begin("Debug");
 
 		if (m_runtime)
@@ -87,20 +93,8 @@ namespace Stulu {
 			m_runtime = !m_runtime;
 		ImGui::PopStyleVar();
 
-		ImGui::Text("Position");
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
-		imGui::DragScalarFloatNoLabel("Position_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().position), 3, .1f, 0, 0, "%.3f");
-
-		ImGui::Text("Rotation");
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
-		imGui::DragScalarFloatNoLabel("Rotation_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().rotation), 3, .1f, 0, 0, "%.3f");
-
-		ImGui::Text("Scale");
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(80.0f);
-		imGui::DragScalarFloatNoLabel("Scale_3d_Transform", glm::value_ptr(m_sceneCamera.getTransform().scale), 3, .1f, 0, 0, "%.3f");
+		ComponentsRender::drawComponent(GameObject::null, m_sceneCamera.getTransform());
+	
 		ImGui::End();
 
 		ImGui::Begin("Profiling");
@@ -114,15 +108,22 @@ namespace Stulu {
 
 		ImGui::Begin("Assets");
 
-		const char* file[2] = { ("Stulu/assets/textures/light.png"), ("Stulu/assets/textures/Logo/engine-app-icon.png") };
+		const char* Texturefile[2] = { ("Stulu/assets/textures/light.png"), ("Stulu/assets/textures/Logo/engine-app-icon.png") };
 		for (int i = 0; i < 2; i++) {
-			ImGui::Button(file[i]);
+			ImGui::Button(Texturefile[i]);
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-				ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", file[i], (strlen(file[i]) + 1) * sizeof(char));
+				ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", Texturefile[i], (strlen(Texturefile[i]) + 1) * sizeof(char));
 				ImGui::EndDragDropSource();
 			}
 		}
-
+		const char* Scenefile[2] = { ("assets/scenes/sprites.scene"), ("assets/scenes/default.scene") };
+		for (int i = 0; i < 2; i++) {
+			ImGui::Button(Scenefile[i]);
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+				ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_SCENE", Scenefile[i], (strlen(Scenefile[i]) + 1) * sizeof(char));
+				ImGui::EndDragDropSource();
+			}
+		}
 		ImGui::End();
 
 		m_editorHierarchy.render();
@@ -142,9 +143,16 @@ namespace Stulu {
 				m_activeScene->onViewportResize(m_gameViewport.m_viewPortPanelWidth, m_gameViewport.m_viewPortPanelHeight);
 		}
 		//editor window
-		FrameBufferSpecs FBspec = m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs();
 		m_sceneViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture(),false);
-
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_SCENE")) {
+				const char* path = (const char*)payload->Data;
+				ST_INFO("Received Scene: {0}", path);
+				OpenScene(path);
+			}
+			ImGui::EndDragDropTarget();
+		}
+		FrameBufferSpecs FBspec = m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs();
 		bool m_ViewportFocused = ImGui::IsWindowFocused();
 		bool m_ViewportHovered = ImGui::IsWindowHovered();
 		Application::get().getImGuiLayer()->blockEvents(!m_ViewportFocused && !m_ViewportHovered);
@@ -226,5 +234,35 @@ namespace Stulu {
 				break;
 		}
 		return false;
+	}
+	void EditorLayer::SaveScene() {
+		std::string path = Platform::saveFile("All\0 * .*\0Scene Files\0 * .scene\0");
+		if (!path.empty())
+			SaveScene(path);
+	}
+	void EditorLayer::OpenScene() {
+		std::string path = Platform::openFile("All\0 * .*\0Scene Files\0 * .scene\0");
+		if (!path.empty())
+			OpenScene(path);
+	}
+	void EditorLayer::SaveScene(const std::string& path) {
+		if (path.empty()) {
+			SaveScene();
+		}
+		m_currentScenePath = path;
+		SceneSerializer ss(m_activeScene);
+		ss.serialze(path);
+	}
+	void EditorLayer::OpenScene(const std::string& path) {
+		if (path.empty()) {
+			OpenScene();
+		}
+		m_currentScenePath = path;
+		Ref<Scene> nScene = createRef<Scene>();
+		SceneSerializer ss(nScene);
+		ss.deSerialze(path);
+		m_activeScene = nScene;
+		m_editorHierarchy.setScene(m_activeScene);
+		m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
 	}
 }

@@ -14,9 +14,12 @@ namespace Stulu {
 		void onEvent(Event& e) override;
 	private:
 		bool m_runtime = false;
+		std::string m_currentScenePath;
 
 		SceneCamera m_sceneCamera;
 		Ref<Scene> m_activeScene;
+
+		ShaderLibary m_shaderLib;
 
 		int m_gizmoEditType = -1;
 		
@@ -26,5 +29,9 @@ namespace Stulu {
 		EditorHierarchyPanel m_editorHierarchy;
 
 		bool onShortCut(KeyDownEvent& e);
+		void SaveScene();
+		void OpenScene();
+		void SaveScene(const std::string& path);
+		void OpenScene(const std::string& path);
 	};
 }

@@ -130,7 +130,7 @@ namespace Stulu {
 
 		Type lightType = Type::Directional;
 		glm::vec3 color = glm::vec3(1.0f);
-		float stength = 1.0f;
+		float strength = 1.0f;
 
 		float spotLight_cutOff = 10.0f;
 		float spotLight_outerCutOff = 15.0f;

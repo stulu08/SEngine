@@ -7,7 +7,11 @@ namespace Stulu {
 	/// <returns></returns>
 	bool EditorInspectorPanel::render(GameObject gameObject) {
 		ImGui::Begin("Inspector");
-		if (gameObject == GameObject::null || !gameObject.hasComponent<GameObjectBaseComponent>()) {
+		if (gameObject == GameObject::null) {
+			ImGui::End();
+			return true;
+		}
+		else if (!gameObject.hasComponent<GameObjectBaseComponent>()) {
 			ImGui::End();
 			return true;
 		}
