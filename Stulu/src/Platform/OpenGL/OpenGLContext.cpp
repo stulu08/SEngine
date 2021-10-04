@@ -23,13 +23,7 @@ namespace Stulu {
 			(const char*)glGetString(GL_VERSION), 
 			(const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)
 		);
-		int32_t maxTextureUnits = 0;
-		int32_t maxTextureUnitsshader = 0;
-		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnitsshader);
-		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
-		CORE_INFO("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: {0}", maxTextureUnits);
-		CORE_INFO("GL_MAX_TEXTURE_IMAGE_UNITS: {0}", maxTextureUnitsshader);
-
+		CORE_INFO("Renderer Data:\nVendor: {0}\nRenderer: {1}\nVersion: {2}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION))
 	}
 
 	void OpenGLContext::swapBuffers() {
