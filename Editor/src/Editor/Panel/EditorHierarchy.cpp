@@ -4,6 +4,7 @@
 
 namespace Stulu {
 	void EditorHierarchyPanel::setScene(const Ref<Scene>& scene) {
+		m_selectedObject = GameObject::null;
 		m_scene = scene;
 	}
 

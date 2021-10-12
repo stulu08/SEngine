@@ -106,28 +106,8 @@ namespace Stulu {
 		ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
 		ImGui::End();
 
-		ImGui::Begin("Assets");
-
-		const char* Texturefile[2] = { ("Stulu/assets/textures/light.png"), ("Stulu/assets/textures/Logo/engine-app-icon.png") };
-		for (int i = 0; i < 2; i++) {
-			ImGui::Button(Texturefile[i]);
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-				ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D", Texturefile[i], (strlen(Texturefile[i]) + 1) * sizeof(char));
-				ImGui::EndDragDropSource();
-			}
-		}
-		const char* Scenefile[2] = { ("assets/scenes/sprites.scene"), ("assets/scenes/default.scene") };
-		for (int i = 0; i < 2; i++) {
-			ImGui::Button(Scenefile[i]);
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-				ImGui::SetDragDropPayload("ASSETS_BROWSER_MOVE_SCENE", Scenefile[i], (strlen(Scenefile[i]) + 1) * sizeof(char));
-				ImGui::EndDragDropSource();
-			}
-		}
-		ImGui::End();
-
 		m_editorHierarchy.render();
-
+		m_assetBrowser.render();
 
 		//resizing
 		//scene window
@@ -145,7 +125,7 @@ namespace Stulu {
 		//editor window
 		m_sceneViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture(),false);
 		if (ImGui::BeginDragDropTarget()) {
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_SCENE")) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_SCENE")) {
 				const char* path = (const char*)payload->Data;
 				ST_INFO("Received Scene: {0}", path);
 				OpenScene(path);

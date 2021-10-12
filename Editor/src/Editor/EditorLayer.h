@@ -3,6 +3,8 @@
 #include "Temp/ParticleSystem.h"
 #include "Panel/EditorHierarchy.h"
 #include "Panel/EditorViewport.h"
+#include "Panel/AssetBrowser.h"
+
 namespace Stulu {
 	class EditorLayer : public Layer {
 	public:
@@ -25,7 +27,7 @@ namespace Stulu {
 		
 		EditorViewportPanel m_sceneViewport;
 		EditorViewportPanel m_gameViewport;
-
+		AssetBrowserPanel m_assetBrowser;
 		EditorHierarchyPanel m_editorHierarchy;
 
 		bool onShortCut(KeyDownEvent& e);

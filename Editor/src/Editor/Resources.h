@@ -6,8 +6,12 @@ namespace Stulu {
 	public:
 		static void loadAll();
 
-		static Ref<Texture2D> getEmptyTextureTexture();
+		static Ref<Texture2D> getEmptySlotTexture();
+		static Ref<Texture2D> getFileTexture();
+		static Ref<Texture2D> getFolderTexture();
 	private:
-		static inline Ref<Texture2D> s_EmptyTextureTexture = nullptr;
+		static inline Ref<Texture2D> s_emptyTexture = nullptr;
+		static inline Ref<Texture2D> s_fileTexture = nullptr;
+		static inline Ref<Texture2D> s_folderTexture = nullptr;
 	};
 }

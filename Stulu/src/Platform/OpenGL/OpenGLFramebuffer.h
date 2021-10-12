@@ -18,6 +18,7 @@ namespace Stulu {
 
 		virtual void bind(uint32_t slot = 0) const override;
 		virtual bool operator == (const Texture& other) const override { return getRendererID() == other.getRendererID(); };
+		virtual operator int() override { return m_colorAttachment; }
 	private:
 		uint32_t m_width;
 		uint32_t m_height;

@@ -142,6 +142,8 @@ namespace Stulu {
 			auto& spriteRendererComponent = gameObject.getComponent<SpriteRendererComponent>();
 			out << YAML::Key << "color" << YAML::Value << spriteRendererComponent.color;
 			out << YAML::Key << "tiling" << YAML::Value << spriteRendererComponent.tiling;
+			if(spriteRendererComponent.texture)
+				out << YAML::Key << "texture" << YAML::Value << spriteRendererComponent.texture->getPath();
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<LightComponent>()) {
@@ -246,6 +248,8 @@ namespace Stulu {
 					auto& src = deserialized.addComponent<SpriteRendererComponent>();
 					src.color = spriteRendererComponent["color"].as<glm::vec4>();
 					src.tiling = spriteRendererComponent["tiling"].as<glm::vec2>();
+					if(spriteRendererComponent["texture"])
+						src.texture = Texture2D::create(spriteRendererComponent["texture"].as<std::string>());
 				}
 
 				auto lightC = gameObject["LightComponent"];

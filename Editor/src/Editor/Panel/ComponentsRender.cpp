@@ -269,14 +269,13 @@ namespace Stulu {
 
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
-		
 		if (texture == nullptr)
-			ImGui::Image((void*)Resources::getEmptyTextureTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image((void*)Resources::getEmptySlotTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		else {
 			ImGui::Image((void*)texture->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
 		if (ImGui::BeginDragDropTarget()) {
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSETS_BROWSER_MOVE_TEXTURE2D")) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_TEXTURE2D")) {
 				const char* path = (const char*)payload->Data;
 				texture = Texture2D::create(path);
 				change = true;
