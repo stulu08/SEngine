@@ -16,8 +16,8 @@ namespace Stulu {
 		m_window = Window::create(WindowProps{title,1920,1080});
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		Renderer::init();
-		m_imguiLayer = new ImGuiLayer();
-		pushOverlay(m_imguiLayer);
+		//m_imguiLayer = new ImGuiLayer();
+		//pushOverlay(m_imguiLayer);
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
@@ -49,6 +49,9 @@ namespace Stulu {
 		}
 
 	}
+#ifdef ST_LOG_FPS
+	float ST_FRAMETIME_LOG = 0;
+#endif
 	void Application::run() {
 		ST_PROFILING_FUNCTION();
 		while (m_runnig) {
@@ -56,17 +59,25 @@ namespace Stulu {
 			float time = Platform::getTime();
 			Timestep deltaTimestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
+
+#ifdef ST_LOG_FPS
+			if (ST_FRAMETIME_LOG > 1.0f) {
+				CORE_INFO("FPS: {0}({1}ms)", 1.0f / deltaTimestep, deltaTimestep.getMilliseconds());
+				ST_FRAMETIME_LOG = 0;
+			}
+			ST_FRAMETIME_LOG += deltaTimestep.getSeconds();
+#endif
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(deltaTimestep);
 				}
-				m_imguiLayer->Begin();
+				//m_imguiLayer->Begin();
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onImguiRender - layerstack");
 					layer->onImguiRender(deltaTimestep);
 				}
-				m_imguiLayer->End();
+				//m_imguiLayer->End();
 			}
 			m_window->onUpdate();
 		}
@@ -88,7 +99,7 @@ namespace Stulu {
 	bool Application::onWindowResize(WindowResizeEvent& e)
 	{
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
-		m_minimized ? 0 : Renderer::onWinndowResize(e);
+		m_minimized ? 0 : Renderer::onWindowResize(e);
 		return m_minimized;
 	}
 }

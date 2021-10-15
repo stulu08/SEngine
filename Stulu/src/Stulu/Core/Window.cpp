@@ -2,6 +2,7 @@
 #include "Window.h"
 
 #include "Platform/Windows/GLwindowsWindow.h"
+#include "Platform/Windows/VulkanWindowsWindow.h"
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
@@ -10,6 +11,8 @@ namespace Stulu {
 		{
 			case RenderAPI::API::OpenGL:
 				return createScope<GLwindowsWindow>(props);
+			case RenderAPI::API::Vulkan:
+				return createScope<VulkanWindowsWindow>(props);
 			case RenderAPI::API::none:
 				CORE_ASSERT(false, "No renderAPI specified");
 				return nullptr;

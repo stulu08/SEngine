@@ -11,13 +11,14 @@ namespace Stulu {
 	void Renderer::init() {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::init();
-		Renderer2D::init();
+		//Renderer2D::init();
 
+		//m_data.defaultShader = Shader::create("Stulu/assets/Shaders/pbr.glsl");
+		m_data.defaultShader = nullptr;
 		m_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneData), 0);
-		m_data.defaultShader = Shader::create("Stulu/assets/Shaders/pbr.glsl");
 	}
 
-	void Renderer::onWinndowResize(WindowResizeEvent& e) {
+	void Renderer::onWindowResize(WindowResizeEvent& e) {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}

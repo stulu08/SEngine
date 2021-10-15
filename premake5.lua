@@ -15,9 +15,12 @@ workspace "Stulu"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+vulkanSDK = os.getenv("VK_SDK_PATH")
+
 IncludeDir = {}
 IncludeDir["spdlog"] = "Stulu/vendor/spdlog/include"
 IncludeDir["GLFW"] = "Stulu/vendor/GLFW/include"
+IncludeDir["Vulkan"] = "%{vulkanSDK}/Include"
 IncludeDir["Glad"] = "Stulu/vendor/Glad/include"
 IncludeDir["ImGui"] = "Stulu/vendor/imgui"
 IncludeDir["ImGuizmo"] = "Stulu/vendor/ImGuizmo"
@@ -69,6 +72,7 @@ project "Stulu"
 		"%{prj.name}/src",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.ImGuizmo}",
@@ -87,7 +91,12 @@ project "Stulu"
 		"ImGui",
 		"assimp",
 		"opengl32.lib",
+		"vulkan-1.lib",
 		"yaml-cpp"
+	}
+	libdirs 
+	{ 
+		"%{vulkanSDK}/Lib" 
 	}
 
 	filter "system:windows"
@@ -127,6 +136,56 @@ project "Editor"
 	{
 		"ST_EDITOR"
 	}
+	files
+	{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/Stulu/**.glsl"
+	}
+
+	includedirs
+	{
+		"Stulu/src",
+		"Stulu/vendor",
+		"%{prj.name}/src",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.ImGuizmo}"
+	}
+
+	links
+	{
+		"Stulu"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "ST_DEBUG"
+		runtime "Debug"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "ST_RELEASE"
+		runtime "Release"
+		optimize "on"
+
+	filter "configurations:Dist"
+		defines "ST_DIST"
+		runtime "Release"
+		optimize "on"
+
+project "VulkanTesting"
+	location "VulkanTesting"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 	files
 	{
 		"%{prj.name}/src/**.h",

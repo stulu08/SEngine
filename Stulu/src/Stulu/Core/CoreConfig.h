@@ -5,4 +5,6 @@
 	#define ST_SHOWCONSOLE 1
 	#define ST_ENABLE_ASSERTS 1
 	#define ST_PROFILING_RENDERDATA 1
+#elif ST_RELEASE
+	#define ST_SHOWCONSOLE 1
 #endif

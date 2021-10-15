@@ -6,6 +6,9 @@
 #include <algorithm>
 #include <functional>
 
+#include <set>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <array>
@@ -13,6 +16,7 @@
 #include <future>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 #include <iomanip>
 
 #include "Stulu/Core/Log.h"
@@ -24,3 +28,4 @@
 	#include <Windows.h>
 	#include <commdlg.h>
 #endif // ST_PLATFORM_WINDOWS
+

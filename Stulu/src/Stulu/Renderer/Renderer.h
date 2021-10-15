@@ -13,7 +13,7 @@ namespace Stulu{
 
 	public:
 		static void init();
-		static void onWinndowResize(WindowResizeEvent& e);
+		static void onWindowResize(WindowResizeEvent& e);
 
 		static void beginScene(const Ref<Camera>& cam, const glm::mat4& transform = glm::mat4(1.0f));
 		static void endScene();
