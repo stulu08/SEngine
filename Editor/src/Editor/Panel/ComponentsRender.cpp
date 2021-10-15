@@ -95,7 +95,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) {
-		ImGui::Text("Shader: %s", component.shader->getName().c_str());
+		ImGui::Text("Shader: %s", component.shader ? component.shader->getName().c_str() : "Using default Renderer Shader");
 	}
 	template<>
 	void ComponentsRender::drawComponent<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {

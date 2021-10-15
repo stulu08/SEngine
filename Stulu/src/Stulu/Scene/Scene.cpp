@@ -13,7 +13,7 @@ namespace Stulu {
 		m_data.lightBuffer = UniformBuffer::create(sizeof(SceneData::LightData), 1);
 	}
 	Scene::~Scene() {
-		
+
 	}
 	GameObject Scene::createGameObject(const std::string& name) {
 		ST_PROFILING_FUNCTION();
@@ -30,10 +30,10 @@ namespace Stulu {
 
 	void Scene::onUpdateEditor(Timestep ts, const SceneCamera& camera) {
 		ST_PROFILING_FUNCTION();
+		ST_PROFILING_RENDERDATA_DISABLE();
 		calculateLights();
 		if (camera.getCamera()) {
 			ST_PROFILING_SCOPE("Scene Camera Rendering");
-			ST_PROFILING_RENDERDATA_BEGIN();
 			RenderCommand::setClearColor(glm::vec4(glm::vec3(.1f),1.0f));
 			Renderer2D::beginScene(camera.getCamera(), camera.getTransform().getTransform());
 			RenderCommand::clear();
@@ -42,23 +42,19 @@ namespace Stulu {
 			{
 				auto group = m_registry.view<MeshFilterComponent>();
 				for (auto gameObject : group) {
-					ST_PROFILING_SCOPE("Rendering Mesh");
+					ST_PROFILING_SCOPE("Rendering Mesh Editor");
 					auto& filter = group.get<MeshFilterComponent>(gameObject);
 					auto& ren = m_registry.get<MeshRendererComponent>(gameObject);
 					glm::mat4 trans = m_registry.get<TransformComponent>(gameObject);
 
 					for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
-						ST_PROFILING_SCOPE("Rendering SubMesh");
+						ST_PROFILING_SCOPE("Rendering SubMesh Editor");
 						Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
 
-						ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getSubMesh(i).getIndicesCount());
-						ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getSubMesh(i).getVerticesCount());
 					}
 					if (filter.mesh->getVertexArray() != nullptr) {
 						Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
 
-						ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getIndicesCount());
-						ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getVerticesCount());
 					}
 				}
 			}
@@ -73,8 +69,6 @@ namespace Stulu {
 					else
 						Renderer2D::drawQuad(transform, sprite.color);
 
-					ST_PROFILING_RENDERDATA_ADDINDICES(6);
-					ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 				}
 			}
 			Renderer2D::endScene();
@@ -94,13 +88,13 @@ namespace Stulu {
 					RenderCommand::setClearColor(glm::vec4(.0f));
 					break;
 				}
-
 				renderScene(gameObject);
 			}
 		}
 	}
 	void Scene::onUpdateRuntime(Timestep ts) {
 		ST_PROFILING_FUNCTION();
+		ST_PROFILING_RENDERDATA_ENABLE();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, auto& behaviour) {
 			if (!behaviour.instance) {
 				behaviour.instance = behaviour.InstantiateBehaviour();
@@ -126,7 +120,6 @@ namespace Stulu {
 				RenderCommand::setClearColor(glm::vec4(.0f));
 				break;
 			}
-
 			renderScene(gameObject);
 		}
 	}
@@ -179,6 +172,8 @@ namespace Stulu {
 	}
 	void Scene::renderScene(entt::entity cam) {
 		ST_PROFILING_FUNCTION();
+		ST_PROFILING_RENDERDATA_BEGIN();
+		ST_PROFILING_RENDERDATA_ADDCAMERAS(1);
 		Renderer2D::beginScene(m_registry.get<CameraComponent>(cam).cam, m_registry.get<TransformComponent>(cam));
 		RenderCommand::clear();
 		{
@@ -192,9 +187,13 @@ namespace Stulu {
 				for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
 					ST_PROFILING_SCOPE("Rendering SubMesh");
 					Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
+					ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getSubMesh(i).getIndicesCount());
+					ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getSubMesh(i).getVerticesCount());
 				}
 				if (filter.mesh->getVertexArray() != nullptr) {
 					Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
+					ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getIndicesCount());
+					ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getVerticesCount());
 				}
 			}
 		}
@@ -208,6 +207,9 @@ namespace Stulu {
 					Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.tiling, sprite.color);
 				else
 					Renderer2D::drawQuad(transform, sprite.color);
+
+				ST_PROFILING_RENDERDATA_ADDINDICES(6);
+				ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 			}
 		}
 		Renderer2D::endScene();
@@ -231,4 +233,23 @@ namespace Stulu {
 	void Scene::onComponentAdded<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
 	template<>
 	void Scene::onComponentAdded<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
+
+	template<typename T>
+	void Scene::onComponentRemove(GameObject gameObject, T& component) {  }
+	template<>
+	void Scene::onComponentRemove<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
+	template<>
+	void Scene::onComponentRemove<TransformComponent>(GameObject gameObject, TransformComponent& component) {  }
+	template<>
+	void Scene::onComponentRemove<CameraComponent>(GameObject gameObject, CameraComponent& component) { component.cam.reset(); }
+	template<>
+	void Scene::onComponentRemove<LightComponent>(GameObject gameObject, LightComponent& component) { }
+	template<>
+	void Scene::onComponentRemove<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {  }
+	template<>
+	void Scene::onComponentRemove<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { }
+	template<>
+	void Scene::onComponentRemove<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
+	template<>
+	void Scene::onComponentRemove<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
 }

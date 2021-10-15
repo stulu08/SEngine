@@ -16,23 +16,12 @@ namespace Stulu {
 
 		m_activeScene = createRef<Scene>();
 
-		m_shaderLib.load("Stulu/assets/Shaders/pbr.glsl");
 
 		Resources::loadAll();
 	}
 
 	void EditorLayer::onAttach() {
 		m_editorHierarchy.setScene(m_activeScene);
-
-
-		/*
-		Model::loadModel("assets/car.glb", m_activeScene.get());
-		Model::loadModel("assets/human.glb", m_activeScene.get());
-		Model::loadModel("assets/sphere.obj", m_activeScene.get());
-		*/
-
-		m_activeScene->createGameObject("Directional Light").addComponent<LightComponent>();
-		
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -53,10 +42,7 @@ namespace Stulu {
 			if (ImGui::BeginMenu("File")) {
 
 				if (ImGui::MenuItem("New Scene","Ctrl+N")) {
-					m_currentScenePath = "";
-					m_activeScene = createRef<Scene>();
-					m_editorHierarchy.setScene(m_activeScene);
-					m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
+					newScene();
 				}
 				if (ImGui::MenuItem("Open Scene", "Ctrl+O")) {
 					OpenScene();
@@ -99,6 +85,7 @@ namespace Stulu {
 
 		ImGui::Begin("Profiling");
 		ImGui::Text("FPS: %.1f", 1.0f / timestep);
+		ImGui::Text("Drawing for %d Camera", ST_PROFILING_RENDERDATA_GETCAMERAS());
 		ImGui::Text("Frametime: %.3f", timestep.getSeconds());
 		ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
 		ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
@@ -125,12 +112,16 @@ namespace Stulu {
 		//editor window
 		m_sceneViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture(),false);
 		if (ImGui::BeginDragDropTarget()) {
+			bool news = false;
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_SCENE")) {
 				const char* path = (const char*)payload->Data;
 				ST_INFO("Received Scene: {0}", path);
 				OpenScene(path);
+				news = true;
 			}
 			ImGui::EndDragDropTarget();
+			if (news)
+				return m_sceneViewport.endDraw();
 		}
 		FrameBufferSpecs FBspec = m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs();
 		bool m_ViewportFocused = ImGui::IsWindowFocused();
@@ -200,6 +191,7 @@ namespace Stulu {
 
 		switch (e.getKeyCode())
 		{
+
 			case Keyboard::Q:
 				m_gizmoEditType = -1;
 				break;
@@ -211,6 +203,25 @@ namespace Stulu {
 				break;
 			case Keyboard::S:
 				m_gizmoEditType = ImGuizmo::OPERATION::SCALE;
+				if (control) {
+					if (shift || m_currentScenePath.empty())
+						SaveScene();
+					else
+						SaveScene(m_currentScenePath);
+					ST_INFO("Saveing Scene");
+				}
+				break;
+			case Keyboard::O:
+				if (control) {
+					OpenScene();
+					ST_INFO("Opening Scene");
+				}
+				break;
+			case Keyboard::N:
+				if (control) {
+					newScene();
+					ST_INFO("New Scene");
+				}
 				break;
 		}
 		return false;
@@ -242,6 +253,12 @@ namespace Stulu {
 		SceneSerializer ss(nScene);
 		ss.deSerialze(path);
 		m_activeScene = nScene;
+		m_editorHierarchy.setScene(m_activeScene);
+		m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
+	}
+	void EditorLayer::newScene() {
+		m_currentScenePath = "";
+		m_activeScene = createRef<Scene>();
 		m_editorHierarchy.setScene(m_activeScene);
 		m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
 	}

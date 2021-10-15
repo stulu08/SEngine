@@ -35,5 +35,6 @@ namespace Stulu {
 		void OpenScene();
 		void SaveScene(const std::string& path);
 		void OpenScene(const std::string& path);
+		void newScene();
 	};
 }

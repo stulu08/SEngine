@@ -28,6 +28,7 @@ namespace Stulu {
 		template<typename T>
 		void removeComponent() {
 			ST_ASSERT(hasComponent<T>(), "GameObject does not have component");
+			m_scene->onComponentRemove<T>(*this, getComponent<T>());
 			m_scene->m_registry.remove<T>(m_entity);
 		}
 

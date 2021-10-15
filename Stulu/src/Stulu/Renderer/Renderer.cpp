@@ -14,6 +14,7 @@ namespace Stulu {
 		Renderer2D::init();
 
 		m_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneData), 0);
+		m_data.defaultShader = Shader::create("Stulu/assets/Shaders/pbr.glsl");
 	}
 
 	void Renderer::onWinndowResize(WindowResizeEvent& e) {
@@ -40,8 +41,14 @@ namespace Stulu {
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
 		ST_PROFILING_FUNCTION();
-		shader->bind();
-		shader->setMat4("u_transform", transform);
+		if (shader) {
+			shader->bind();
+			shader->setMat4("u_transform", transform);
+		}
+		else {
+			m_data.defaultShader->bind();
+			m_data.defaultShader->setMat4("u_transform", transform);
+		}
 		vertexArray->bind();
 		
 		RenderCommand::drawIndexed(vertexArray, count);

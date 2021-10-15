@@ -15,10 +15,10 @@ namespace Stulu{
 		static void init();
 		static void onWinndowResize(WindowResizeEvent& e);
 
-		static void beginScene(const Ref<Camera>& cam, const glm::mat4& transform);
+		static void beginScene(const Ref<Camera>& cam, const glm::mat4& transform = glm::mat4(1.0f));
 		static void endScene();
 
-		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count = 0);
+		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader = nullptr, const glm::mat4& transform = glm::mat4(1.0f), uint32_t count = 0);
 
 		inline static RenderAPI::API getRendererAPI() { return RenderAPI::getAPI(); }
 	private:
@@ -32,6 +32,7 @@ namespace Stulu{
 			};
 			SceneData sceneData;
 			Ref<UniformBuffer> sceneDataUniformBuffer;
+			Ref<Shader> defaultShader;
 			Ref<Camera> cam = nullptr;
 		};
 		static Data m_data;

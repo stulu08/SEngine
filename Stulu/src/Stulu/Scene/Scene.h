@@ -52,6 +52,9 @@ namespace Stulu {
 		template<typename T>
 		void onComponentAdded(GameObject gameObject, T& component);
 
+		template<typename T>
+		void onComponentRemove(GameObject gameObject, T& component);
+
 		friend class GameObject;
 		friend class EditorLayer;
 		friend class SceneSerializer;
