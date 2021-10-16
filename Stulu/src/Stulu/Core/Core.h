@@ -48,13 +48,12 @@
 #endif // ST_PLATFORM_WINDOWS
 
 #ifdef ST_ENABLE_ASSERTS
-	#define ST_ASSERT(x, ...) {if(!(x)){ST_ERROR("Asserion failed: {0}", __VA_ARGS__); __debugbreak(); } }
-	#define CORE_ASSERT(x, ...) {if(!(x)){CORE_ERROR("Asserion failed: {0}", __VA_ARGS__); __debugbreak(); } }
+	#define ST_ASSERT(x, ...) {if(!(x)){ST_ERROR("Asserion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak(); } }
+	#define CORE_ASSERT(x, ...) {if(!(x)){CORE_ERROR("Asserion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak(); } }
 #else
 	#define ST_ASSERT(x, ...)
 	#define CORE_ASSERT(x, ...)
 #endif // ST_ENABLE_ASSERT
-
 
 #define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 #define ST_BIT(x) (1 << x)

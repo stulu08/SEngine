@@ -15,7 +15,7 @@ namespace Stulu {
 
 		//m_data.defaultShader = Shader::create("Stulu/assets/Shaders/pbr.glsl");
 		m_data.defaultShader = nullptr;
-		m_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneData), 0);
+		//m_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneData), 0);
 	}
 
 	void Renderer::onWindowResize(WindowResizeEvent& e) {

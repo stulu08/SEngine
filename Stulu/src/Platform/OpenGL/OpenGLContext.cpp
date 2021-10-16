@@ -17,12 +17,6 @@ namespace Stulu {
 		glfwMakeContextCurrent(m_windowHandle);
 		int32_t status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		CORE_ASSERT(status, "Failed glad initialization");
-		Application::get().graphicDriverConstants = GraphicDriverConstants(
-			(const char*)glGetString(GL_VENDOR),
-			(const char*)glGetString(GL_RENDERER), 
-			(const char*)glGetString(GL_VERSION), 
-			(const char*)glGetString(GL_SHADING_LANGUAGE_VERSION)
-		);
 		CORE_INFO("Renderer Data:\nVendor: {0}\nRenderer: {1}\nVersion: {2}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION))
 	}
 

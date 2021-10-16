@@ -10,10 +10,11 @@ namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(std::string title) {
+	Application::Application(ApplicationInfo appInfo) 
+		:m_appInfo(appInfo)	{
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
-		m_window = Window::create(WindowProps{title,1920,1080});
+		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		Renderer::init();
 		//m_imguiLayer = new ImGuiLayer();

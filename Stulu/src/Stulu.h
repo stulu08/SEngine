@@ -13,6 +13,7 @@
 //#include "Stulu/Core/Log.h"
 //#include "Stulu/Core/Timestep.h"
 //#include "Stulu/Core/Window.h"
+//#include "Stulu/Core/Version.h"
 
 ////////////////////Debug////////////////////
 #include "Stulu/Debug/RenderDataProfiler.h"

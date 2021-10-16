@@ -4,21 +4,26 @@
 #include "Stulu/Core/LayerStack.h"
 #include "Stulu/ImGui/ImGuiLayer.h"
 #include "Stulu/Events/ApplicationEvent.h"
+#include "Stulu/Core/Version.h"
 
 namespace Stulu {
-	struct GraphicDriverConstants {
-		std::string vendor;
-		std::string renderer;
-		std::string version;
-		std::string other;
+	struct ApplicationInfo {
+		const char* ApplicationName;
+		const Version ApplicationVersion;
+		WindowProps windowProps;
 
-		GraphicDriverConstants(const std::string& _vendor = "no data", const std::string& _renderer = "no data", const std::string& _version = "no data", const std::string& _other = "no data")
-			: vendor(_vendor), renderer(_renderer), version(_version), other(_other) {}
+		ApplicationInfo(const char* applicationName = "Stulu Engine", const Version applicationVersion = Version())
+			: ApplicationName(applicationName), ApplicationVersion(applicationVersion) {
+			windowProps = WindowProps(applicationName);
+		}
+		ApplicationInfo(const char* applicationName, const Version applicationVersion, WindowProps windowProps)
+			: ApplicationName(applicationName), ApplicationVersion(applicationVersion), windowProps(windowProps) {}
 	};
-	class Application
-	{
+
+
+	class Application {
 	public:
-		Application(std::string title = "Stulu Engine");
+		Application(ApplicationInfo appInfo);
 		virtual ~Application();
 
 		void run();
@@ -29,9 +34,9 @@ namespace Stulu {
 		void popOverlay(Layer* layer);
 		inline ImGuiLayer* getImGuiLayer(){ return m_imguiLayer; }
 		inline Window& getWindow(){ return *m_window; }
-		inline static Application& get(){ return *s_instance; }
+		inline const ApplicationInfo& getApplicationInfo() { return m_appInfo; }
 
-		GraphicDriverConstants graphicDriverConstants;
+		inline static Application& get(){ return *s_instance; }
 
 		static void exit(int code = 0);
 	private:
@@ -40,9 +45,10 @@ namespace Stulu {
 
 		Scope<Window> m_window;
 		ImGuiLayer* m_imguiLayer;
+		LayerStack m_layerStack;
+		ApplicationInfo m_appInfo;
 		bool m_runnig = true;
 		bool m_minimized = false;
-		LayerStack m_layerStack;
 		float m_lastFrameTime;
 
 		static Application* s_instance;

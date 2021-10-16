@@ -1,7 +1,11 @@
 #pragma once
 #include "Stulu/Renderer/GraphicsContext.h"
+#include "Stulu/Core/Application.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+
+#define ST_MAKE_VK_VERSION(version) VK_MAKE_VERSION(version.major, version.minor, version.patch)
 
 struct GLFWwindow;
 namespace Stulu {
@@ -13,6 +17,7 @@ namespace Stulu {
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
+
 	class VulkanContext : public GraphicsContext {
 	public:
 		VulkanContext(GLFWwindow* windowHandle);
@@ -27,6 +32,9 @@ namespace Stulu {
 #else
 		const bool enableValidationLayers = true;
 #endif
+
+		Version vulkanVersion;
+
 		VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
 		VkSurfaceKHR surface;
@@ -42,18 +50,23 @@ namespace Stulu {
 			"VK_LAYER_KHRONOS_validation"
 		};
 
-
+		const ApplicationInfo applicationInfo;
 
 		void createVulkanInstance();
 		void createSurface();
-		void pickPhysicalDevice();
-		void setupDebugMessenger();
-		void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-		bool checkValidationLayerSupport();
 		void createLogicalDevice();
+		void setupDebugMessenger();
+		void pickPhysicalDevice();
+
+		void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
 		bool isDeviceSuitable(VkPhysicalDevice device);
+
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+		bool checkValidationLayerSupport();
+
 		std::vector<const char*> getRequiredExtensions();
+		bool getVulkanVersion();
 	};
 }
 
