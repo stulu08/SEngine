@@ -21,7 +21,7 @@ project "Editor"
 	{
 		"%{wks.location}/Stulu/src",
 		"%{wks.location}/Stulu/vendor",
-		"%{wks.location}/src",
+		"src",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",

@@ -50,7 +50,7 @@ namespace Stulu {
 		}
 
 	}
-#ifdef ST_LOG_FPS
+#if ST_LOG_FPS
 	float ST_FRAMETIME_LOG = 0;
 #endif
 	void Application::run() {
@@ -61,7 +61,7 @@ namespace Stulu {
 			Timestep deltaTimestep = time - m_lastFrameTime;
 			m_lastFrameTime = time;
 
-#ifdef ST_LOG_FPS
+#if ST_LOG_FPS
 			if (ST_FRAMETIME_LOG > 1.0f) {
 				CORE_INFO("FPS: {0}({1}ms)", 1.0f / deltaTimestep, deltaTimestep.getMilliseconds());
 				ST_FRAMETIME_LOG = 0;

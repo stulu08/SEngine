@@ -6,10 +6,10 @@
 
 	int main(int argc, char** argv) {
 
-#ifndef ST_SHOWCONSOLE
-		ShowWindow(GetConsoleWindow(), SW_HIDE);
-#else
+#if ST_SHOWCONSOLE
 		ShowWindow(GetConsoleWindow(), SW_SHOW);
+#else
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif // ST_SHOWCONSOLE
 
 

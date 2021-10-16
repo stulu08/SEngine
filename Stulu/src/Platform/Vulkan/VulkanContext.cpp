@@ -5,6 +5,7 @@
 #include "Stulu/Renderer/GraphicsContext.h"
 namespace Stulu {
 	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+		ST_PROFILING_FUNCTION();
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -14,13 +15,32 @@ namespace Stulu {
 		}
 	}
 	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+		ST_PROFILING_FUNCTION();
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			func(instance, debugMessenger, pAllocator);
 		}
 	}
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-		CORE_ERROR("validation layer: {0}",pCallbackData->pMessage)
+		switch (messageSeverity)
+		{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			CORE_TRACE("[Vulkan][ValidationLayer] {0}", pCallbackData->pMessage)
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			CORE_INFO("[Vulkan][ValidationLayer] {0}", pCallbackData->pMessage)
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			CORE_WARN("[Vulkan][ValidationLayer] {0}", pCallbackData->pMessage)
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			CORE_ERROR("[Vulkan][ValidationLayer] {0}", pCallbackData->pMessage)
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+			break;
+		default:
+			break;
+		}
 
 		return VK_FALSE;
 	}
@@ -36,6 +56,7 @@ namespace Stulu {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 		}
 		vkDestroySurfaceKHR(instance, surface, nullptr);
+		vkDestroyDevice(device, nullptr);
 		vkDestroyInstance(instance, nullptr);
 		glfwTerminate();
 	}
@@ -49,6 +70,7 @@ namespace Stulu {
 		createLogicalDevice();
 	}
 	void VulkanContext::swapBuffers() {
+		ST_PROFILING_FUNCTION();
 
 	}
 
@@ -58,7 +80,7 @@ namespace Stulu {
 		if (!getVulkanVersion()) {
 			CORE_ASSERT(false, "Can't get Vulkan version");
 		}
-		ST_INFO("Vulkan Version: {0}", vulkanVersion);
+		CORE_INFO("Vulkan Version: {0}", vulkanVersion);
 
 		if (enableValidationLayers && !checkValidationLayerSupport()) {
 			CORE_ASSERT(false, "Validation layers requested, but not available!");
@@ -97,11 +119,13 @@ namespace Stulu {
 		}
 	}
 	void VulkanContext::createSurface() {
+		ST_PROFILING_FUNCTION();
 		if (glfwCreateWindowSurface(instance, m_windowHandle, NULL, &surface)) {
 			CORE_ASSERT(false, "Could not create Vulkan Surface");
 		}
 	}
 	void VulkanContext::createLogicalDevice() {
+		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -145,6 +169,7 @@ namespace Stulu {
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 	}
 	void VulkanContext::setupDebugMessenger() {
+		ST_PROFILING_FUNCTION();
 		if (!enableValidationLayers) return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo;
@@ -155,6 +180,7 @@ namespace Stulu {
 		}
 	}
 	void VulkanContext::pickPhysicalDevice() {
+		ST_PROFILING_FUNCTION();
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -178,19 +204,28 @@ namespace Stulu {
 	}
 
 	void VulkanContext::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+		ST_PROFILING_FUNCTION();
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+#if ST_VULKAN_VERBOSE_LOGGING
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+#elif ST_VULKAN_INFO_LOGGING
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+#else
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+#endif // VULKAN_VERBOSE_LOGGING
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		createInfo.pfnUserCallback = debugCallback;
 	}
 	
 	bool VulkanContext::isDeviceSuitable(VkPhysicalDevice device) {
+		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices = findQueueFamilies(device);
 		return indices.isComplete();
 	}
 	
 	QueueFamilyIndices VulkanContext::findQueueFamilies(VkPhysicalDevice device) {
+		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices;
 
 		uint32_t queueFamilyCount = 0;
@@ -222,6 +257,7 @@ namespace Stulu {
 		return indices;
 	}
 	bool VulkanContext::checkValidationLayerSupport() {
+		ST_PROFILING_FUNCTION();
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -247,6 +283,7 @@ namespace Stulu {
 	}
 
 	std::vector<const char*> VulkanContext::getRequiredExtensions() {
+		ST_PROFILING_FUNCTION();
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -262,9 +299,11 @@ namespace Stulu {
 
 	typedef VkResult(VKAPI_PTR* _vkEnumerateInstanceVersion)(uint32_t*);
 	bool VulkanContext::getVulkanVersion() {
+		ST_PROFILING_FUNCTION();
 		uint32_t vulkan_major;
 		uint32_t vulkan_minor;
 		uint32_t vulkan_patch;
+
 		auto FN_vkEnumerateInstanceVersion = PFN_vkEnumerateInstanceVersion(vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
 		if (FN_vkEnumerateInstanceVersion != nullptr) {
 			uint32_t api_version;

@@ -38,7 +38,7 @@ namespace Stulu::Profiling {
 		static inline int CameraCount = 0;
 	};
 }
-#ifdef ST_PROFILING_RENDERDATA
+#if ST_PROFILING_RENDERDATA
 #define ST_PROFILING_RENDERDATA_ENABLE()			Stulu::Profiling::RenderDataProfiler::enable()
 #define ST_PROFILING_RENDERDATA_DISABLE()			Stulu::Profiling::RenderDataProfiler::disable()
 #define ST_PROFILING_RENDERDATA_BEGIN()				Stulu::Profiling::RenderDataProfiler::begin()

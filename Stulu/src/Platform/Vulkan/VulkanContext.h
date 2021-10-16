@@ -36,15 +36,15 @@ namespace Stulu {
 		Version vulkanVersion;
 
 		VkInstance instance;
-		VkDebugUtilsMessengerEXT debugMessenger;
 		VkSurfaceKHR surface;
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+		VkDevice device;
+		VkDebugUtilsMessengerEXT debugMessenger;
 		GLFWwindow* m_windowHandle;
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-		VkDevice device;
 
 		const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
@@ -67,6 +67,7 @@ namespace Stulu {
 
 		std::vector<const char*> getRequiredExtensions();
 		bool getVulkanVersion();
+
 	};
 }
 
