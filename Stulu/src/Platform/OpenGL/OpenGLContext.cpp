@@ -8,12 +8,16 @@
 
 namespace Stulu {
 
-	OpenGLContext::OpenGLContext(GLFWwindow* windowHandle) 
-		: m_windowHandle(windowHandle)
-	{CORE_ASSERT(windowHandle,"Window handle is null") }
+	OpenGLContext::OpenGLContext() 
+	{ }
 
-	void OpenGLContext::init() {
+	void OpenGLContext::init(Window* window) {
 		ST_PROFILING_FUNCTION();
+		{
+			GLFWwindow* windowHandle = static_cast<GLFWwindow*>(window->getNativeWindow());
+			CORE_ASSERT(windowHandle, "Window handle is null");
+			m_windowHandle = windowHandle;
+		}
 		glfwMakeContextCurrent(m_windowHandle);
 		int32_t status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		CORE_ASSERT(status, "Failed glad initialization");
@@ -23,5 +27,12 @@ namespace Stulu {
 	void OpenGLContext::swapBuffers() {
 		
 		glfwSwapBuffers(m_windowHandle);
+	}
+	void OpenGLContext::setVSync(bool enabled) {
+		ST_PROFILING_FUNCTION();
+		if (enabled)
+			glfwSwapInterval(1);
+		else
+			glfwSwapInterval(0);
 	}
 }

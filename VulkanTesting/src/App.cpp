@@ -6,7 +6,7 @@ class App : public Stulu::Application {
 public:
 	App() 
 		:Application(Stulu::ApplicationInfo("Vulkan testing", Version(1,1,1))) {
-		getWindow().setVSysnc(false);
+		getWindow().setVSync(false);
 	}
 	~App() {
 

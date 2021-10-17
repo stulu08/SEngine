@@ -1,11 +1,16 @@
 #pragma once
+#include "Stulu/Core/Window.h"
 
 namespace Stulu {
 	class GraphicsContext {
 	public:
 		virtual ~GraphicsContext() = default;
 
-		virtual void init() = 0;
+		virtual void init(Window* window) = 0;
 		virtual void swapBuffers() = 0;
+		virtual void setVSync(bool enabled) = 0;
+
+
+		static Scope<GraphicsContext> create();
 	};
 }

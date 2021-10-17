@@ -1,5 +1,5 @@
 #include "st_pch.h"
-#include "VulkanContext.h"
+#include "WindowsVulkanContext.h"
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Renderer/GraphicsContext.h"
@@ -46,11 +46,12 @@ namespace Stulu {
 	}
 	
 	
-	VulkanContext::VulkanContext(GLFWwindow* windowHandle)
-		: m_windowHandle(windowHandle), applicationInfo(Application::get().getApplicationInfo()) {
-		CORE_ASSERT(windowHandle, "Window handle is null");
+	WindowsVulkanContext::WindowsVulkanContext()
+		: applicationInfo(Application::get().getApplicationInfo()) {
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	}
-	VulkanContext::~VulkanContext() {
+	WindowsVulkanContext::~WindowsVulkanContext() {
 		ST_PROFILING_FUNCTION();
 		if (enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
@@ -60,21 +61,29 @@ namespace Stulu {
 		vkDestroyInstance(instance, nullptr);
 		glfwTerminate();
 	}
-	void VulkanContext::init() {
+	void WindowsVulkanContext::init(Window* window) {
 		ST_PROFILING_FUNCTION();
-
+		{
+			GLFWwindow* windowHandle = static_cast<GLFWwindow*>(window->getNativeWindow());
+			CORE_ASSERT(windowHandle, "Window handle is null");
+			m_windowHandle = windowHandle;
+		}
 		createVulkanInstance();
 		setupDebugMessenger();
 		createSurface();
 		pickPhysicalDevice();
 		createLogicalDevice();
+		getPhysicalDeviceProps();
 	}
-	void VulkanContext::swapBuffers() {
+	void WindowsVulkanContext::swapBuffers() {
 		ST_PROFILING_FUNCTION();
-
+		
 	}
 
-	void VulkanContext::createVulkanInstance() {
+	void WindowsVulkanContext::setVSync(bool enabled) {
+	}
+
+	void WindowsVulkanContext::createVulkanInstance() {
 		ST_PROFILING_FUNCTION();
 
 		if (!getVulkanVersion()) {
@@ -118,13 +127,13 @@ namespace Stulu {
 			CORE_ASSERT(false, "failed to create instance!");
 		}
 	}
-	void VulkanContext::createSurface() {
+	void WindowsVulkanContext::createSurface() {
 		ST_PROFILING_FUNCTION();
 		if (glfwCreateWindowSurface(instance, m_windowHandle, NULL, &surface)) {
 			CORE_ASSERT(false, "Could not create Vulkan Surface");
 		}
 	}
-	void VulkanContext::createLogicalDevice() {
+	void WindowsVulkanContext::createLogicalDevice() {
 		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
@@ -168,7 +177,7 @@ namespace Stulu {
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 	}
-	void VulkanContext::setupDebugMessenger() {
+	void WindowsVulkanContext::setupDebugMessenger() {
 		ST_PROFILING_FUNCTION();
 		if (!enableValidationLayers) return;
 
@@ -179,7 +188,7 @@ namespace Stulu {
 			CORE_ASSERT(false,"failed to set up debug messenger!");
 		}
 	}
-	void VulkanContext::pickPhysicalDevice() {
+	void WindowsVulkanContext::pickPhysicalDevice() {
 		ST_PROFILING_FUNCTION();
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -203,7 +212,7 @@ namespace Stulu {
 		}
 	}
 
-	void VulkanContext::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+	void WindowsVulkanContext::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
 		ST_PROFILING_FUNCTION();
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -218,13 +227,13 @@ namespace Stulu {
 		createInfo.pfnUserCallback = debugCallback;
 	}
 	
-	bool VulkanContext::isDeviceSuitable(VkPhysicalDevice device) {
+	bool WindowsVulkanContext::isDeviceSuitable(VkPhysicalDevice device) {
 		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices = findQueueFamilies(device);
 		return indices.isComplete();
 	}
 	
-	QueueFamilyIndices VulkanContext::findQueueFamilies(VkPhysicalDevice device) {
+	QueueFamilyIndices WindowsVulkanContext::findQueueFamilies(VkPhysicalDevice device) {
 		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices;
 
@@ -256,7 +265,7 @@ namespace Stulu {
 
 		return indices;
 	}
-	bool VulkanContext::checkValidationLayerSupport() {
+	bool WindowsVulkanContext::checkValidationLayerSupport() {
 		ST_PROFILING_FUNCTION();
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -282,7 +291,7 @@ namespace Stulu {
 		return true;
 	}
 
-	std::vector<const char*> VulkanContext::getRequiredExtensions() {
+	std::vector<const char*> WindowsVulkanContext::getRequiredExtensions() {
 		ST_PROFILING_FUNCTION();
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
@@ -298,20 +307,14 @@ namespace Stulu {
 	}
 
 	typedef VkResult(VKAPI_PTR* _vkEnumerateInstanceVersion)(uint32_t*);
-	bool VulkanContext::getVulkanVersion() {
+	bool WindowsVulkanContext::getVulkanVersion() {
 		ST_PROFILING_FUNCTION();
-		uint32_t vulkan_major;
-		uint32_t vulkan_minor;
-		uint32_t vulkan_patch;
-
 		auto FN_vkEnumerateInstanceVersion = PFN_vkEnumerateInstanceVersion(vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
 		if (FN_vkEnumerateInstanceVersion != nullptr) {
 			uint32_t api_version;
 			VkResult res = FN_vkEnumerateInstanceVersion(&api_version);
 			if (res == VK_SUCCESS) {
-				vulkan_major = VK_VERSION_MAJOR(api_version);
-				vulkan_minor = VK_VERSION_MINOR(api_version);
-				vulkan_patch = VK_VERSION_PATCH(api_version);
+				vulkanVersion = ST_GET_ST_VERSION(api_version);
 			}
 			else {
 				CORE_ASSERT(false, "Cant read vulkan version");
@@ -322,13 +325,53 @@ namespace Stulu {
 			CORE_ASSERT(false,"vkEnumerateInstanceVersion not available, assuming Vulkan 1.0.");
 			return false;
 		}
-		if ((vulkan_major > 1) || (vulkan_major == 1 && vulkan_minor > 2)) {
-			vulkan_major = 1;
-			vulkan_minor = 2;
-			vulkan_patch = 0;
+		if ((vulkanVersion.major > 1) || (vulkanVersion.major == 1 && vulkanVersion.minor > 2)) {
+			vulkanVersion.major = 1;
+			vulkanVersion.minor = 2;
+			vulkanVersion.patch = 0;
 		}
-
-		vulkanVersion = Version(vulkan_major, vulkan_minor, vulkan_patch);
 		return true;
+	}
+	void WindowsVulkanContext::getPhysicalDeviceProps() {
+		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
+		const char* vendor;
+		switch (physicalDeviceProps.vendorID)
+		{
+		case 0x1002:
+			vendor = "Advanced Micro Devices, Inc. [AMD/ATI]";
+			break;
+		case 0x10DE:
+			vendor = "NVIDIA Corporation";
+			break;
+		case 0x8086:
+			vendor = "INTEL Corporation";
+			break;
+		case 0x13B5:
+			vendor = "ARM";
+			break;
+		default:
+			vendor = "Unknown";
+			break;
+		}
+		const char* deviceType;
+		switch (physicalDeviceProps.deviceType)
+		{
+		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+			deviceType = "GPU";
+			break;
+		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+			deviceType = "Integrated GPU";
+			break;
+		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+			deviceType = "Virtual GPU";
+			break;
+		case VK_PHYSICAL_DEVICE_TYPE_CPU:
+			deviceType = "CPU";
+			break;
+		default:
+			break;
+		}
+		CORE_INFO("Physical Device Data({3}):\nVendor: {0}\nDevice Name: {1}\nVersion: {2}",
+			vendor, physicalDeviceProps.deviceName, ST_GET_ST_VERSION(physicalDeviceProps.driverVersion), deviceType)
 	}
 }

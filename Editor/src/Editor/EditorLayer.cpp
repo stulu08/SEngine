@@ -85,12 +85,14 @@ namespace Stulu {
 
 		ImGui::Begin("Profiling");
 		ImGui::Text("FPS: %.1f", 1.0f / timestep);
-		ImGui::Text("Drawing for %d Camera", ST_PROFILING_RENDERDATA_GETCAMERAS());
 		ImGui::Text("Frametime: %.3f", timestep.getSeconds());
+#if ST_PROFILING_RENDERDATA
+		ImGui::Text("Drawing for %d Camera", ST_PROFILING_RENDERDATA_GETCAMERAS());
 		ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
 		ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
 		ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
 		ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+#endif
 		ImGui::End();
 
 		m_editorHierarchy.render();

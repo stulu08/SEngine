@@ -1,0 +1,8 @@
+# VK_LAYER_KHRONOS_validation
+khronos_validation.log_filename = stdout
+khronos_validation.report_flags = error,perf,info,warn
+khronos_validation.enable_message_limit = true
+khronos_validation.duplicate_message_limit = 10
+khronos_validation.message_id_filter = 
+khronos_validation.disables = VK_VALIDATION_FEATURE_DISABLE_THREAD_SAFETY_EXT
+khronos_validation.enables = 

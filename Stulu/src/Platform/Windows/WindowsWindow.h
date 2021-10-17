@@ -2,14 +2,15 @@
 
 #include "Stulu/Core/Window.h"
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu {
-	class GLwindowsWindow : public Window {
+	class WindowsWindow : public Window {
 	public:
-		GLwindowsWindow(const WindowProps& props);
-		virtual ~GLwindowsWindow();
+		WindowsWindow(const WindowProps& props);
+		virtual ~WindowsWindow();
 
 		void onUpdate() override;
 
@@ -20,15 +21,14 @@ namespace Stulu {
 		inline void setEventCallback(const EventCallbackFn& callback) override { m_data.eventCallback = callback; }
 		virtual void setWindowIcon(const std::string& path) override;
 		virtual void setWindowTitle(const std::string& title) override;
-		void setVSysnc(bool enabled) override;
-		bool isVSysnc() const override;
+		void setVSync(bool enabled) override;
+		bool isVSync() const override;
 
 		virtual void* getNativeWindow() const { return m_window; }
 
 	private:
 		virtual void init(const WindowProps& props);
 		virtual void shutDown();
-
 
 
 		GLFWwindow* m_window;

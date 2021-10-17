@@ -6,6 +6,7 @@
 
 
 #define ST_MAKE_VK_VERSION(version) VK_MAKE_VERSION(version.major, version.minor, version.patch)
+#define ST_GET_ST_VERSION(uintVersion) Version(VK_VERSION_MAJOR(uintVersion),VK_VERSION_MINOR(uintVersion),VK_VERSION_PATCH(uintVersion))
 
 struct GLFWwindow;
 namespace Stulu {
@@ -18,14 +19,14 @@ namespace Stulu {
 		}
 	};
 
-	class VulkanContext : public GraphicsContext {
+	class WindowsVulkanContext : public GraphicsContext {
 	public:
-		VulkanContext(GLFWwindow* windowHandle);
-		virtual ~VulkanContext();
+		WindowsVulkanContext();
+		virtual ~WindowsVulkanContext();
 
-		virtual void init() override;
+		virtual void init(Window* window) override;
 		virtual void swapBuffers() override;
-
+		virtual void setVSync(bool enabled) override;
 	private:
 #ifndef ST_DEBUG
 		const bool enableValidationLayers = false;
@@ -40,6 +41,7 @@ namespace Stulu {
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice device;
 		VkDebugUtilsMessengerEXT debugMessenger;
+		VkPhysicalDeviceProperties physicalDeviceProps;
 		GLFWwindow* m_windowHandle;
 
 		VkQueue graphicsQueue;
@@ -67,7 +69,7 @@ namespace Stulu {
 
 		std::vector<const char*> getRequiredExtensions();
 		bool getVulkanVersion();
-
+		void getPhysicalDeviceProps();
 	};
 }
 

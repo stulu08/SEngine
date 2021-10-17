@@ -6,10 +6,11 @@ struct GLFWwindow;
 namespace Stulu {
 	class OpenGLContext : public GraphicsContext {
 	public:
-		OpenGLContext(GLFWwindow* windowHandle);
+		OpenGLContext();
 
-		virtual void init() override;
+		virtual void init(Window* window) override;
 		virtual void swapBuffers() override;
+		virtual void setVSync(bool enabled) override;
 
 	private:
 		GLFWwindow* m_windowHandle;

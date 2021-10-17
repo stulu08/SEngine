@@ -9,3 +9,6 @@ Stulu/vendor/VulkanSDK
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user 
+VulkanTesting/Profiling-Startup.json
+VulkanTesting/Profiling-Shutdown.json
+VulkanTesting/Profiling-Runtime.json

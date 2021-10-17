@@ -29,8 +29,8 @@ namespace Stulu{
 		virtual void setEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void setWindowIcon(const std::string& path) = 0;
 		virtual void setWindowTitle(const std::string& title) = 0;
-		virtual void setVSysnc(bool enabled) = 0;
-		virtual bool isVSysnc() const = 0;
+		virtual void setVSync(bool enabled) = 0;
+		virtual bool isVSync() const = 0;
 
 		virtual void* getNativeWindow() const = 0;
 

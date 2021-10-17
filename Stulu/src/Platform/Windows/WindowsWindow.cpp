@@ -1,5 +1,5 @@
 #include "st_pch.h"
-#include "VulkanWindowsWindow.h"
+#include "WindowsWindow.h"
 
 #include <stb_image.h>
 
@@ -7,7 +7,6 @@
 #include <Stulu/Events/KeyEvent.h>
 #include <Stulu/Events/MouseEvent.h>
 
-#include "Platform/Vulkan/VulkanContext.h"
 
 namespace Stulu {
 	static bool s_glfwInitilized = false;
@@ -16,14 +15,14 @@ namespace Stulu {
 		CORE_ERROR("GLFW error {0}: {1}" , error , msg)
 	}
 
-	VulkanWindowsWindow::VulkanWindowsWindow(const WindowProps& props) {
+	WindowsWindow::WindowsWindow(const WindowProps& props) {
 		ST_PROFILING_FUNCTION();
 		init(props);
 	}
-	VulkanWindowsWindow::~VulkanWindowsWindow() { shutDown(); }
+	WindowsWindow::~WindowsWindow() { shutDown(); }
 
 
-	void VulkanWindowsWindow::init(const WindowProps& props) {
+	void WindowsWindow::init(const WindowProps& props) {
 		ST_PROFILING_FUNCTION();
 		m_data.title = props.title;
 		m_data.width = props.width;
@@ -38,17 +37,10 @@ namespace Stulu {
 			CORE_ASSERT(succes, "Could not initialize GLFW!");
 			glfwSetErrorCallback(glfwErrorCallback);
 			s_glfwInitilized = true;
-			if (!glfwVulkanSupported()) {
-				CORE_ASSERT(false, "Vulkan is not supported");
-			}
 		}
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		m_graphicsContext = GraphicsContext::create();
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr); 
-
-		m_graphicsContext = createScope<VulkanContext>(m_window);
-
-		m_graphicsContext->init();
+		m_graphicsContext->init(this);
 
 		glfwSetWindowUserPointer(m_window, &m_data);
 		
@@ -122,23 +114,23 @@ namespace Stulu {
 			data.eventCallback(event);
 		});
 	}
-	void VulkanWindowsWindow::shutDown() {
+	void WindowsWindow::shutDown() {
 		ST_PROFILING_FUNCTION();
 		glfwDestroyWindow(m_window);
 	}
-	void VulkanWindowsWindow::onUpdate() {
+	void WindowsWindow::onUpdate() {
 		ST_PROFILING_FUNCTION();
 		glfwPollEvents();
 
 		m_graphicsContext->swapBuffers();
 	}
 
-	void VulkanWindowsWindow::setWindowIcon(const std::string& path) {
+	void WindowsWindow::setWindowIcon(const std::string& path) {
 		ST_PROFILING_FUNCTION();
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		CORE_ASSERT(textureData, "Icon failed to load: {0}", path);
+		CORE_ASSERT(textureData, std::string("Icon failed to load: " + path));
 		GLFWimage images[1];
 		images[0] = GLFWimage();
 		images[0].height = height;
@@ -147,15 +139,15 @@ namespace Stulu {
 
 		glfwSetWindowIcon(m_window, 1, images);
 	}
-	void VulkanWindowsWindow::setWindowTitle(const std::string& title) {
+	void WindowsWindow::setWindowTitle(const std::string& title) {
 		ST_PROFILING_FUNCTION();
 		glfwSetWindowTitle(m_window, title.c_str());
 	}
-	void VulkanWindowsWindow::setVSysnc(bool enabled) {
+	void WindowsWindow::setVSync(bool enabled) {
 		ST_PROFILING_FUNCTION();
-		
+		m_graphicsContext->setVSync(enabled);
 		m_data.VSync = enabled;
 	}
 
-	bool VulkanWindowsWindow::isVSysnc() const { return m_data.VSync; }
+	bool WindowsWindow::isVSync() const { return m_data.VSync; }
 }
