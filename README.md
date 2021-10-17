@@ -11,7 +11,7 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 - Download or clone the repository with all the submodules
 
-- Run the [generateProjects.bat](https://github.com/stulu08/SEngine/blob/main/generateProjects.bat) file
+- Run the [setup.bat](https://github.com/stulu08/SEngine/blob/main/generateProjects.bat) file to install python and vulkan
 
 - Open the Solution and build the project
 
@@ -21,7 +21,7 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 - 2D Rendering
 - 3D Rendering(Thread, Render queue)
 - Scripting
-- Scene Saving/Loading
+- Vulkan
 - Assets
 
 Icons for the Assets Explorer made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/)
