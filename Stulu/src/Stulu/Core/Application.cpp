@@ -17,8 +17,10 @@ namespace Stulu {
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		Renderer::init();
-		//m_imguiLayer = new ImGuiLayer();
-		//pushOverlay(m_imguiLayer);
+#if OPENGL
+		m_imguiLayer = new ImGuiLayer();
+		pushOverlay(m_imguiLayer);
+#endif
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
@@ -73,12 +75,14 @@ namespace Stulu {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(deltaTimestep);
 				}
-				//m_imguiLayer->Begin();
+#if OPENGL
+				m_imguiLayer->Begin();
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onImguiRender - layerstack");
 					layer->onImguiRender(deltaTimestep);
 				}
-				//m_imguiLayer->End();
+				m_imguiLayer->End();
+#endif
 			}
 			m_window->onUpdate();
 		}

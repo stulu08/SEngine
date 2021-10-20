@@ -32,7 +32,6 @@
 #else
 	#error "Unknown platform!"
 #endif
-
 #ifdef ST_PLATFORM_WINDOWS
 	#if ST_DYNAMIC_LINK
 		#ifdef ST_DLL_BUILD
@@ -60,6 +59,10 @@
 
 #define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 #define ST_BIT(x) (1 << x)
+#define ST_CONCAT_INNER(a, b) a ## b
+#define ST_CONCAT(a, b) ST_CONCAT_INNER(a, b)
+
+
 namespace Stulu {
 	template<typename T>
 	using Scope = std::unique_ptr<T>;

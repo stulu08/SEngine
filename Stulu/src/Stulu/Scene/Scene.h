@@ -20,7 +20,6 @@ namespace Stulu {
 			uint32_t lightCount = 0;
 		};
 		LightData lightData;
-		Ref<UniformBuffer> lightBuffer;
 	};
 
 	class GameObject;
@@ -59,6 +58,9 @@ namespace Stulu {
 		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class EditorHierarchyPanel;
+
+
+		static Ref<UniformBuffer> s_lightBuffer;
 	};
 }
 

@@ -1,5 +1,4 @@
 #include "EditorApp.h"
-#include <Stulu.h>
 #include <Stulu/Core/EntryPoint.h>
 namespace Stulu {
 	Application* Stulu::CreateApplication() {
@@ -8,7 +7,7 @@ namespace Stulu {
 	EditorApp* EditorApp::s_instance = nullptr;
 	EditorApp::EditorApp() 
 		: Application("Stulu Editor") {
-
+		getWindow().setVSync(false);
 		getWindow().setWindowIcon("Stulu/assets/Textures/Logo/engine-app-icon.png");
 		s_instance = this;
 		editorLayer = new EditorLayer();

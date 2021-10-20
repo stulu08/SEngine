@@ -1,4 +1,4 @@
-#include <Stulu.h>
+#include "Layer.h"
 #include <Stulu/Core/EntryPoint.h>
 
 
@@ -6,7 +6,7 @@ class App : public Stulu::Application {
 public:
 	App() 
 		:Application(Stulu::ApplicationInfo("Vulkan testing", Version(1,1,1))) {
-		getWindow().setVSync(false);
+		pushLayer(new DefaultLayer());
 	}
 	~App() {
 

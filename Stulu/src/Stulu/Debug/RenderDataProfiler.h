@@ -8,6 +8,9 @@ namespace Stulu::Profiling {
 			enabled = true;
 			begin();
 		}
+		static bool isEnabled() {
+			return enabled;
+		}
 		static void disable() {
 			enabled = false;
 			begin();
@@ -20,16 +23,16 @@ namespace Stulu::Profiling {
 		}
 
 		static void addDrawCall() { if(enabled)drawCalls++; }
-		static int getDrawCalls() { return drawCalls; }
+		static int& getDrawCalls() { return drawCalls; }
 
 		static void addVertices(int count) { if (enabled)VerticesCount += count; }
-		static int getVerticesCount() { return VerticesCount; }
+		static int& getVerticesCount() { return VerticesCount; }
 
 		static void addIndices(int count) { if (enabled)IndicesCount += count; }
-		static int getIndicesCount() { return IndicesCount; }
+		static int& getIndicesCount() { return IndicesCount; }
 
 		static void addCameras(int count) { if (enabled)CameraCount += count; }
-		static int getCameraCount() { return CameraCount; }
+		static int& getCameraCount() { return CameraCount; }
 	private:
 		static inline bool enabled = false;
 		static inline int drawCalls = 0;
@@ -47,6 +50,7 @@ namespace Stulu::Profiling {
 #define ST_PROFILING_RENDERDATA_ADDINDICES(x)		Stulu::Profiling::RenderDataProfiler::addIndices((int)x)
 #define ST_PROFILING_RENDERDATA_ADDCAMERAS(x)		Stulu::Profiling::RenderDataProfiler::addCameras((int)x)
 
+#define ST_PROFILING_RENDERDATA_GETENABLE()			Stulu::Profiling::RenderDataProfiler::isEnabled()
 #define ST_PROFILING_RENDERDATA_GETDRAWCALLS()		Stulu::Profiling::RenderDataProfiler::getDrawCalls()
 #define ST_PROFILING_RENDERDATA_GETVERTICES()		Stulu::Profiling::RenderDataProfiler::getVerticesCount()
 #define ST_PROFILING_RENDERDATA_GETINDICES()		Stulu::Profiling::RenderDataProfiler::getIndicesCount()
@@ -61,6 +65,7 @@ namespace Stulu::Profiling {
 #define ST_PROFILING_RENDERDATA_ADDINDICES(x)
 #define ST_PROFILING_RENDERDATA_ADDCAMERAS(x)
 
+#define ST_PROFILING_RENDERDATA_GETENABLE()			false
 #define ST_PROFILING_RENDERDATA_GETDRAWCALLS()	-1
 #define ST_PROFILING_RENDERDATA_GETVERTICES()	-1
 #define ST_PROFILING_RENDERDATA_GETINDICES()	-1

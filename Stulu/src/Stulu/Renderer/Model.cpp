@@ -6,7 +6,7 @@
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
-    GameObject Model::loadModel(const std::string& path, Scene* scene) {
+    GameObject Model::loadModel(const std::string& path, Scene* scene, const Ref<Material>& material) {
         ST_PROFILING_FUNCTION();
 
         Assimp::Importer importer;
@@ -21,9 +21,9 @@ namespace Stulu {
             return GameObject::null;
         }
         a_scene->mRootNode->mName = a_scene->GetShortFilename(path.c_str());
-        return processNode(a_scene->mRootNode, a_scene, scene);;
+        return processNode(a_scene->mRootNode, a_scene, scene, material);;
     }
-    GameObject Stulu::Model::processNode(aiNode* node, const aiScene* scene, Scene* s_scene) {
+    GameObject Stulu::Model::processNode(aiNode* node, const aiScene* scene, Scene* s_scene, const Ref<Material>& material) {
         ST_PROFILING_FUNCTION();
         GameObject go = s_scene->createGameObject(std::string(node->mName.data));
 
@@ -45,11 +45,11 @@ namespace Stulu {
                     mesh.addSubMesh(processSubMesh(a_mesh, scene));
                 }
             }
-            go.addComponent<MeshRendererComponent>();
+            go.addComponent<MeshRendererComponent>().material = material;
             go.addComponent<MeshFilterComponent>().mesh = createRef<Mesh>(mesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            GameObject g = processNode(node->mChildren[i], scene, s_scene);
+            GameObject g = processNode(node->mChildren[i], scene, s_scene, material);
             go.getComponent<TransformComponent>().addChild(g);
         }
         return go;
@@ -135,12 +135,23 @@ namespace Stulu {
     }
     void Stulu::Model::processNode(aiNode* node, const aiScene* scene) {
         ST_PROFILING_FUNCTION();
-        for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(processMesh(mesh, scene));
+        if (node->mNumMeshes > 0) {
+            Mesh mesh;
+            if (node->mNumMeshes == 1) {
+                aiMesh* a_mesh = scene->mMeshes[node->mMeshes[0]];
+                mesh = processMesh(a_mesh, scene);
+            }
+            else {
+                for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+                    aiMesh* a_mesh = scene->mMeshes[node->mMeshes[i]];
+                    mesh.addSubMesh(processSubMesh(a_mesh, scene));
+                }
+            }
+            meshes.push_back(mesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene);
+           processNode(node->mChildren[i], scene);
+           
         }
     }
     Mesh Stulu::Model::processMesh(aiMesh* mesh, const aiScene* scene) {

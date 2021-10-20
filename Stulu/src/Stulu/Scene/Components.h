@@ -3,6 +3,7 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Scene/GameObject.h"
+#include "Stulu/Scene/Material.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Math/Math.h"
 
@@ -142,12 +143,12 @@ namespace Stulu {
 	};
 	
 	struct MeshRendererComponent {
-		Ref<Shader> shader;
+		Ref<Material> material = nullptr;
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
-		MeshRendererComponent(const Ref<Shader>&shader)
-			: shader(shader) {};
+		MeshRendererComponent(const Ref<Material>& material)
+			: material(material) {};
 	};
 
 	struct MeshFilterComponent {

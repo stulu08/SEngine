@@ -23,19 +23,19 @@ namespace Stulu {
 
 		}
 
-		static GameObject loadModel(const std::string& path, Scene* scene);
+		static GameObject loadModel(const std::string& path, Scene* scene, const Ref<Material>& material = nullptr);
 
 
-		const std::vector<Mesh> getMeshes() { return meshes; }
+		const std::vector<Mesh>& getMeshes() { return meshes; }
 	private:
 		std::vector<Mesh> meshes;
 		std::string directory = "";
 		void load(const std::string& path);
 		void processNode(aiNode* node, const aiScene* scene);
 		static Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-
-		static GameObject processNode(aiNode* node, const aiScene* scene, Scene* s_scene);
 		static SubMesh processSubMesh(aiMesh* mesh, const aiScene* scene);
+
+		static GameObject processNode(aiNode* node, const aiScene* scene, Scene* s_scene, const Ref<Material>& material = nullptr);
 
 		static const void decompose(const aiMatrix4x4& aMat, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale);
 	};

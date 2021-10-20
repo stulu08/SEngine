@@ -60,7 +60,7 @@ namespace Stulu{
 		return shader;
 	}
 	Ref<Shader> ShaderLibary::get(const std::string& name){
-		CORE_ASSERT(exists(name), "{0} Shader not found: {1}", name);
+		CORE_ASSERT(exists(name), std::string("Shader not found: ") + name);
 		return m_shaders[name];
 	}
 }

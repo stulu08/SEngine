@@ -1,0 +1,4 @@
+Shader: Stulu/assets/Shaders/pbr.glsl
+StructName: u_mat
+DataTypes:
+  - [1, 3, Metallic]

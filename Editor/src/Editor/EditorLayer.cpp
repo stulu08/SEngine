@@ -13,15 +13,16 @@ namespace Stulu {
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 
 		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
-
-		m_activeScene = createRef<Scene>();
-
+		
+		m_material = createRef<Material>(Material::fromDataStringPath("assets/Materials/red.mat"));
 
 		Resources::loadAll();
+
+		Previewing::init();
 	}
 
 	void EditorLayer::onAttach() {
-		m_editorHierarchy.setScene(m_activeScene);
+		newScene();
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -87,11 +88,13 @@ namespace Stulu {
 		ImGui::Text("FPS: %.1f", 1.0f / timestep);
 		ImGui::Text("Frametime: %.3f", timestep.getSeconds());
 #if ST_PROFILING_RENDERDATA
-		ImGui::Text("Drawing for %d Camera", ST_PROFILING_RENDERDATA_GETCAMERAS());
-		ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
-		ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
-		ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
-		ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+		if (ST_PROFILING_RENDERDATA_GETENABLE()) {
+			ImGui::Text("Drawing for %d Camera(s)", ST_PROFILING_RENDERDATA_GETCAMERAS());
+			ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
+			ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
+			ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
+			ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+		}
 #endif
 		ImGui::End();
 

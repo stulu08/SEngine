@@ -7,6 +7,9 @@ namespace Stulu {
 	public:
 		AssetBrowserPanel(const std::filesystem::path& path = "assets");
 		void render();
+
+
+		const Ref<Texture> getIcon(const std::filesystem::directory_entry& directory);
 	private:
 		std::filesystem::path m_path;
 	};

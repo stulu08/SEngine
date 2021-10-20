@@ -8,12 +8,15 @@
 #include "GameObject.h"
 
 namespace Stulu {
+	Ref<UniformBuffer> Scene::s_lightBuffer = nullptr;
+
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
-		m_data.lightBuffer = UniformBuffer::create(sizeof(SceneData::LightData), 1);
+		if(s_lightBuffer == nullptr)
+			s_lightBuffer = UniformBuffer::create(sizeof(SceneData::LightData), 1);
 	}
 	Scene::~Scene() {
-
+		m_registry.clear();
 	}
 	GameObject Scene::createGameObject(const std::string& name) {
 		ST_PROFILING_FUNCTION();
@@ -46,14 +49,15 @@ namespace Stulu {
 					auto& filter = group.get<MeshFilterComponent>(gameObject);
 					auto& ren = m_registry.get<MeshRendererComponent>(gameObject);
 					glm::mat4 trans = m_registry.get<TransformComponent>(gameObject);
+					Ref<Shader>& shader = (ren.material ? ren.material->getShader() : nullptr);
 
 					for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
 						ST_PROFILING_SCOPE("Rendering SubMesh Editor");
-						Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
+						Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), shader, trans);
 
 					}
 					if (filter.mesh->getVertexArray() != nullptr) {
-						Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
+						Renderer::submit(filter.mesh->getVertexArray(), shader, trans);
 
 					}
 				}
@@ -72,24 +76,6 @@ namespace Stulu {
 				}
 			}
 			Renderer2D::endScene();
-		}
-		//demo render
-		{
-			auto view = m_registry.view<CameraComponent>();
-			for (auto gameObject : view) {
-				auto& cam = m_registry.get<CameraComponent>(gameObject);
-
-				switch (cam.settings.clearType)
-				{
-				case CameraComponent::Color:
-					RenderCommand::setClearColor(cam.settings.clearColor);
-					break;
-				case CameraComponent::Skybox:
-					RenderCommand::setClearColor(glm::vec4(.0f));
-					break;
-				}
-				renderScene(gameObject);
-			}
 		}
 	}
 	void Scene::onUpdateRuntime(Timestep ts) {
@@ -167,7 +153,7 @@ namespace Stulu {
 			}
 		}
 
-		m_data.lightBuffer->setData(&m_data.lightData, sizeof(SceneData::LightData));
+		s_lightBuffer->setData(&m_data.lightData, sizeof(SceneData::LightData));
 		m_data.lightData = SceneData::LightData();
 	}
 	void Scene::renderScene(entt::entity cam) {
@@ -183,15 +169,17 @@ namespace Stulu {
 				auto& filter = group.get<MeshFilterComponent>(gameObject);
 				auto& ren = m_registry.get<MeshRendererComponent>(gameObject);
 				glm::mat4 trans = m_registry.get<TransformComponent>(gameObject);
+				Ref<Shader>& shader = (ren.material ? ren.material->getShader() : nullptr);
 
 				for (size_t i = 0; i < filter.mesh->getSubMeshCount(); i++) {
 					ST_PROFILING_SCOPE("Rendering SubMesh");
-					Renderer::submit(filter.mesh->getSubMesh(i).getVertexArray(), ren.shader, trans);
-					ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getSubMesh(i).getIndicesCount());
-					ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getSubMesh(i).getVerticesCount());
+					SubMesh& mesh = filter.mesh->getSubMesh(i);
+					Renderer::submit(mesh.getVertexArray(), shader, trans);
+					ST_PROFILING_RENDERDATA_ADDINDICES(mesh.getIndicesCount());
+					ST_PROFILING_RENDERDATA_ADDVERTICES(mesh.getVerticesCount());
 				}
 				if (filter.mesh->getVertexArray() != nullptr) {
-					Renderer::submit(filter.mesh->getVertexArray(), ren.shader, trans);
+					Renderer::submit(filter.mesh->getVertexArray(), shader, trans);
 					ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh->getIndicesCount());
 					ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh->getVerticesCount());
 				}

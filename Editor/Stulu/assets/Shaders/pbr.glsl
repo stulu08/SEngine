@@ -62,11 +62,13 @@ layout (location = 0) in vertInput _input;
 
 
 // material parameters
-uniform vec3  u_albedo = vec3(1.0f);
-uniform float u_metallic = .5f;
-uniform float u_roughness = .5f;
-uniform float u_ao = .2f;
-
+struct Material{
+    vec3  albedo;
+    float metallic;
+    float roughness;
+    float ao;
+};
+uniform Material u_mat = {vec3(.5,.5,.5),1.0,.5,.2};
 
   
 const float PI = 3.14159265359;
@@ -114,7 +116,7 @@ void main()
 
 
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, u_albedo, u_metallic);
+    F0 = mix(F0, u_mat.albedo, u_mat.metallic);
 	
     vec3 Lo = vec3(0.0);
     // reflectance equation
@@ -130,13 +132,13 @@ void main()
             vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
     
             // cook-torrance brdf
-            float NDF = DistributionGGX(N, H, u_roughness);        
-            float G   = GeometrySmith(N, V, L, u_roughness);      
+            float NDF = DistributionGGX(N, H, u_mat.roughness);        
+            float G   = GeometrySmith(N, V, L, u_mat.roughness);      
             vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
     
             vec3 kS = F;
             vec3 kD = vec3(1.0) - kS;
-            kD *= 1.0 - u_metallic;	  
+            kD *= 1.0 - u_mat.metallic;	  
     
             vec3 numerator    = NDF * G * F;
             float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
@@ -144,7 +146,7 @@ void main()
         
             // add to outgoing radiance Lo
             float NdotL = max(dot(N, L), 0.0);                
-            Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;
+            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL;
             
         }
         //point
@@ -158,13 +160,13 @@ void main()
             vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
     
             // cook-torrance brdf
-            float NDF = DistributionGGX(N, H, u_roughness);        
-            float G   = GeometrySmith(N, V, L, u_roughness);      
+            float NDF = DistributionGGX(N, H, u_mat.roughness);        
+            float G   = GeometrySmith(N, V, L, u_mat.roughness);      
             vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
     
             vec3 kS = F;
             vec3 kD = vec3(1.0) - kS;
-            kD *= 1.0 - u_metallic;	  
+            kD *= 1.0 - u_mat.metallic;	  
     
             vec3 numerator    = NDF * G * F;
             float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
@@ -172,7 +174,7 @@ void main()
         
             // add to outgoing radiance Lo
             float NdotL = max(dot(N, L), 0.0);                
-            Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;
+            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL;
         }
         else if(lights[i].positionAndType.w == 2) {
             vec3 L = normalize(lights[i].positionAndType.xyz - _input.worldPos);
@@ -187,13 +189,13 @@ void main()
             vec3 H = normalize(V + L);
       
             // cook-torrance brdf
-            float NDF = DistributionGGX(N, H, u_roughness);        
-            float G   = GeometrySmith(N, V, L, u_roughness);      
+            float NDF = DistributionGGX(N, H, u_mat.roughness);        
+            float G   = GeometrySmith(N, V, L, u_mat.roughness);      
             vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
     
             vec3 kS = F;
             vec3 kD = vec3(1.0) - kS;
-            kD *= 1.0 - u_metallic;	  
+            kD *= 1.0 - u_mat.metallic;	  
     
             vec3 numerator    = NDF * G * F;
             float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
@@ -201,11 +203,11 @@ void main()
         
             // add to outgoing radiance Lo
             float NdotL = max(dot(N, vec3(intensity)), 0.0);                
-            Lo += (kD * u_albedo / PI + specular) * radiance * NdotL;
+            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL;
         }
     }
 
-    vec3 ambient = vec3(0.03) * u_albedo * u_ao;
+    vec3 ambient = vec3(0.03) * u_mat.albedo * u_mat.ao;
     vec3 color = ambient + Lo;
 
     color = color / (color + vec3(1.0));

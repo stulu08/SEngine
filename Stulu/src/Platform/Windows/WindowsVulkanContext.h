@@ -18,7 +18,11 @@ namespace Stulu {
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
-
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
 	class WindowsVulkanContext : public GraphicsContext {
 	public:
 		WindowsVulkanContext();
@@ -33,43 +37,63 @@ namespace Stulu {
 #else
 		const bool enableValidationLayers = true;
 #endif
+		GLFWwindow* m_windowHandle;
 
-		Version vulkanVersion;
-
+		VkDevice device;
 		VkInstance instance;
 		VkSurfaceKHR surface;
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-		VkDevice device;
 		VkDebugUtilsMessengerEXT debugMessenger;
 		VkPhysicalDeviceProperties physicalDeviceProps;
-		GLFWwindow* m_windowHandle;
+		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 
+		VkSwapchainKHR swapChain;
+		VkExtent2D swapChainExtent;
+		VkFormat swapChainImageFormat;
+		std::vector<VkImage> swapChainImages;
+		std::vector<VkImageView> swapChainImageViews;
+
+		//Mailbox = no Vsync
+		//Fifo = Vsync
+		VkPresentModeKHR preferedPresentMode = VkPresentModeKHR::VK_PRESENT_MODE_MAILBOX_KHR;
 
 		const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
 		};
+		const std::vector<const char*> deviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
 
-		const ApplicationInfo applicationInfo;
+		Version vulkanVersion;
+		ApplicationInfo applicationInfo;
 
 		void createVulkanInstance();
 		void createSurface();
 		void createLogicalDevice();
-		void setupDebugMessenger();
 		void pickPhysicalDevice();
+		void createSwapChain();
+		void createImageViews();
 
-		void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availFormats);
+		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availModes);
+		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		bool isDeviceSuitable(VkPhysicalDevice device);
 
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkValidationLayerSupport();
+		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 		std::vector<const char*> getRequiredExtensions();
 		bool getVulkanVersion();
 		void getPhysicalDeviceProps();
+
+		void setupDebugMessenger();
+		void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	};
 }
 

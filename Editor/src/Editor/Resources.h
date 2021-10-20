@@ -9,9 +9,13 @@ namespace Stulu {
 		static Ref<Texture2D> getEmptySlotTexture();
 		static Ref<Texture2D> getFileTexture();
 		static Ref<Texture2D> getFolderTexture();
+		static Ref<Texture2D> getObjectTexture();
+		static Ref<Texture2D> getSceneTexture();
 	private:
 		static inline Ref<Texture2D> s_emptyTexture = nullptr;
 		static inline Ref<Texture2D> s_fileTexture = nullptr;
 		static inline Ref<Texture2D> s_folderTexture = nullptr;
+		static inline Ref<Texture2D> s_objectTexture = nullptr;
+		static inline Ref<Texture2D> s_sceneTexture = nullptr;
 	};
 }

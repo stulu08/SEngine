@@ -14,13 +14,16 @@ namespace Stulu {
 		void onUpdate(Timestep timestep) override;
 		void onImguiRender(Timestep timestep) override;
 		void onEvent(Event& e) override;
+
+		inline static Ref<Scene>& getActiveScene() { return m_activeScene; }
 	private:
 		bool m_runtime = false;
 		std::string m_currentScenePath;
 
 		SceneCamera m_sceneCamera;
-		Ref<Scene> m_activeScene;
+		//Ref<Scene> m_activeScene;
 
+		Ref<Material> m_material;
 		ShaderLibary m_shaderLib;
 
 		int m_gizmoEditType = -1;
@@ -36,5 +39,8 @@ namespace Stulu {
 		void SaveScene(const std::string& path);
 		void OpenScene(const std::string& path);
 		void newScene();
+
+
+		inline static Ref<Scene> m_activeScene = nullptr;
 	};
 }
