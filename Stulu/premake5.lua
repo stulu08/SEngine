@@ -49,10 +49,10 @@ project "Stulu"
 		"Glad",
 		"ImGui",
 		"assimp",
+		"yaml-cpp",
 		"opengl32.lib",
 		"vulkan-1.lib",
-		"VkLayer_utils.lib",
-		"yaml-cpp"
+		"VkLayer_utils.lib"
 	}
 	libdirs 
 	{ 

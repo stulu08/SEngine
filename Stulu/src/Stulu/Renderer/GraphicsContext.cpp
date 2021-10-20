@@ -2,7 +2,7 @@
 #include "GraphicsContext.h"
 #include "Renderer.h"
 #include "Platform/OpenGL/OpenGLContext.h"
-#include "Platform/Windows/WindowsVulkanContext.h"
+#include "Platform/Vulkan/WindowsVulkanContext.h"
 
 namespace Stulu {
 	Scope<GraphicsContext> GraphicsContext::create() {

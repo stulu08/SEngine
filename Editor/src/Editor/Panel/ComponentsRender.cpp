@@ -124,17 +124,17 @@ namespace Stulu {
 			for (int i = 0; i < mesh->getSubMeshCount(); i++) {
 				SubMesh& m = mesh->getSubMesh(i);
 				if (ImGui::TreeNodeEx((void*)(mesh->getSubMeshCount() + i + (uint32_t)gameObject), ImGuiTreeNodeFlags_OpenOnArrow, "Submesh %d", i)) {
-					ImGui::Text("Vertices: %d", m.getVertices().size());
-					ImGui::Text("Indices: %d", m.getIndices().size());
-					ImGui::Text("Triangles: %d", m.getIndices().size() / 3);
+					ImGui::Text("Vertices: %d", m.getVerticesCount());
+					ImGui::Text("Indices: %d", m.getIndicesCount());
+					ImGui::Text("Triangles: %d", m.getIndicesCount() / 3);
 					ImGui::TreePop();
 				}
 			}
 		}
 		else {
-			ImGui::Text("Vertices: %d", component.mesh->getVertices().size());
-			ImGui::Text("Indices: %d", component.mesh->getIndices().size());
-			ImGui::Text("Triangles: %d", component.mesh->getIndices().size() / 3);
+			ImGui::Text("Vertices: %d", component.mesh->getVerticesCount());
+			ImGui::Text("Indices: %d", component.mesh->getIndicesCount());
+			ImGui::Text("Triangles: %d", component.mesh->getIndicesCount() / 3);
 		}
 	}
 	

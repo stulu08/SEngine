@@ -10,18 +10,16 @@ namespace Stulu {
 
 	SubMesh::SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices) {
 		ST_PROFILING_FUNCTION();
-		m_vertices = vertices;
-		m_indices = indices;
-		m_verticesCount = m_vertices.size();
-		m_indicesCount = m_indices.size();
+		m_verticesCount = vertices.size();
+		m_indicesCount = indices.size();
 		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
 		Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
 
 		m_vertexArray = Stulu::VertexArray::create();
-		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(m_verticesCount * sizeof(Vertex)), &m_vertices[0]);
+		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(m_verticesCount * sizeof(Vertex)), &vertices[0]);
 		vertexBuffer->setLayout(Mesh::getDefaultLayout());
 		m_vertexArray->addVertexBuffer(vertexBuffer);
-		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
+		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
 
@@ -44,5 +42,10 @@ namespace Stulu {
 		m_vertexArray->addVertexBuffer(vertexBuffer);
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
+
+
+		//m_vertices and m_indices are just to update the mesh not to actually get the vertices and indices in the mesh
+		m_vertices.clear();
+		m_indices.clear();
 	}
 }

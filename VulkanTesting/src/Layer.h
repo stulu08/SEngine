@@ -6,13 +6,6 @@ class DefaultLayer : public Layer {
 public:
 	DefaultLayer()
 		: Layer("Default") {
-		mat = Material("Stulu/assets/Shaders/pbr.glsl", 
-			MaterialData(std::vector<MaterialDataType>{
-			MaterialDataType{ ShaderDataType::Float, 3.0f,"metallic" },
-			MaterialDataType{ ShaderDataType::Float3, 3.0f,"albedo" },
-			MaterialDataType{ ShaderDataType::Float, 3.0f,"roughness" },
-			MaterialDataType{ ShaderDataType::Float, 3.0f,"ao" },
-		}));
 	}
 	virtual void onAttach() override;
 	virtual void onUpdate(Timestep ts) override;
@@ -21,5 +14,5 @@ public:
 
 
 private:
-	Material mat;
+	Ref<Shader> shader;
 };

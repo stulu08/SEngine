@@ -2,6 +2,7 @@
 #include "Shader.h"
 #include "Renderer.h"
 #include "Platform/OpenGL/OpenGLShader.h"
+#include "Platform/Vulkan/VulkanShader.h"
 
 namespace Stulu{
 	Ref<Shader> Shader::create(const std::string& path) {
@@ -9,6 +10,8 @@ namespace Stulu{
 		{
 		case RenderAPI::API::OpenGL:
 			return std::make_shared<OpenGLShader>(path);
+		case RenderAPI::API::Vulkan:
+			return std::make_shared<VulkanShader>(path);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
@@ -25,6 +28,8 @@ namespace Stulu{
 		{
 		case RenderAPI::API::OpenGL:
 			return std::make_shared<OpenGLShader>(name, vertex, fragment);
+		case RenderAPI::API::Vulkan:
+			return std::make_shared<VulkanShader>(name, vertex, fragment);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;

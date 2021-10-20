@@ -69,5 +69,14 @@ namespace Stulu {
 
 		return std::string();
 	}
+	
+	bool Platform::createDirectory(const char* directory) {	
+		if (CreateDirectoryA(std::string(directory).c_str(), NULL)) {
+			return true;
+		}
+		CORE_ASSERT(false, "Cant create directory(" + std::to_string(GetLastError()) + "): " + std::string(directory));
+		return false;
+	}
+
 }
 #endif // PLAFORM_WINDOWS
