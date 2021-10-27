@@ -1,4 +1,4 @@
 Shader: Stulu/assets/Shaders/texture.glsl
 StructName: u_mat
 DataTypes:
-  - [12, [assets\textures\Cerberus_N.tga], u_texture]
+  - [12, [assets\textures\rustediron2_basecolor.png], u_texture]

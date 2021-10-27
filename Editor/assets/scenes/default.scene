@@ -1,31 +1,6 @@
 Scene: Untitled
 GameObjects:
-  - GameObject: 12837192831273
-    GameObjectBaseComponent:
-      name: SpriteRenderer
-      tag: default
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0, 0]
-      scale: [1, 1, 1]
-    SpriteRendererComponent:
-      color: [1, 1, 1, 1]
-      tiling: [1, 1]
-  - GameObject: 12837192831273
-    GameObjectBaseComponent:
-      name: Directional Light
-      tag: default
-    TransformComponent:
-      position: [0, 12, 0]
-      rotation: [0.785398185, -0, 0]
-      scale: [1, 1, 1]
-    LightComponent:
-      color: [1, 1, 1]
-      lightType: 0
-      strength: 1
-      spotLight_cutOff: 10
-      spotLight_outerCutOff: 15
-  - GameObject: 12837192831273
+  - GameObject: 13509376564103049220
     GameObjectBaseComponent:
       name: Camera
       tag: MainCam
@@ -49,3 +24,28 @@ GameObjects:
       depth: -1
     SkyBoxComponent:
       material: assets\Materials\skybox.mat
+  - GameObject: 12098483016706803307
+    GameObjectBaseComponent:
+      name: Directional Light
+      tag: default
+    TransformComponent:
+      position: [0, 12, 0]
+      rotation: [0.785398185, -0, 0]
+      scale: [1, 1, 1]
+    LightComponent:
+      color: [1, 1, 1]
+      lightType: 0
+      strength: 1
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15
+  - GameObject: 12051223560696932705
+    GameObjectBaseComponent:
+      name: SpriteRenderer
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    SpriteRendererComponent:
+      color: [1, 1, 1, 1]
+      tiling: [1, 1]

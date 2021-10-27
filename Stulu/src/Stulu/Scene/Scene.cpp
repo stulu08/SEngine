@@ -28,7 +28,9 @@ namespace Stulu {
 	GameObject Scene::createGameObject(const std::string& name, UUID uuid) {
 		ST_PROFILING_FUNCTION();
 		GameObject go = { m_registry.create(), this };
-		go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
+		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
+		base.uuid = uuid;
+
 		go.addComponent<TransformComponent>();
 		return go;
 	}

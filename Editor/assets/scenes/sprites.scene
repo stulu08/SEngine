@@ -1,6 +1,6 @@
 Scene: Untitled
 GameObjects:
-  - GameObject: 12837192831273
+  - GameObject: 5554622758789103752
     GameObjectBaseComponent:
       name: Player
       tag: Player
@@ -27,7 +27,7 @@ GameObjects:
       retainAccelaration: false
       mass: 1
       massCenterPos: [0, 0, 0]
-  - GameObject: 12837192831273
+  - GameObject: 4272374145669548997
     GameObjectBaseComponent:
       name: SpriteRenderer
       tag: default
@@ -44,7 +44,7 @@ GameObjects:
       restitution: 0
       size: [0.5, 0.5, 0.5]
       offset: [0, 0, 0]
-  - GameObject: 12837192831273
+  - GameObject: 9174480392660884161
     GameObjectBaseComponent:
       name: SpriteRenderer
       tag: default
@@ -61,7 +61,7 @@ GameObjects:
       restitution: 0
       size: [0.5, 0.5, 0.5]
       offset: [0, 0, 0]
-  - GameObject: 12837192831273
+  - GameObject: 1357610829658090607
     GameObjectBaseComponent:
       name: Perspective Camera
       tag: MainCam
@@ -83,7 +83,7 @@ GameObjects:
         textureHeight: 720
       mode: 0
       depth: -1
-  - GameObject: 12837192831273
+  - GameObject: 11588863683178488087
     GameObjectBaseComponent:
       name: SpriteRenderer
       tag: default

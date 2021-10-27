@@ -7,7 +7,7 @@ namespace Stulu {
 
 	static void SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
 		out << YAML::BeginMap;
-		out << YAML::Key << "GameObject" << YAML::Value << "12837192831273"; // TODO: Entity ID goes here
+		out << YAML::Key << "GameObject" << YAML::Value << gameObject.getId();
 
 		if (gameObject.hasComponent<GameObjectBaseComponent>()) {
 			out << YAML::Key << "GameObjectBaseComponent";
@@ -188,10 +188,11 @@ namespace Stulu {
 				if (base) {
 					tag = base["tag"].as<std::string>();
 					name = base["name"].as<std::string>();
+
 				}
 
 
-				GameObject deserialized = m_scene->createGameObject(name);
+				GameObject deserialized = m_scene->createGameObject(name, uuid);
 				deserialized.getComponent<GameObjectBaseComponent>().tag = tag;
 
 				auto transformComponentNode = gameObject["TransformComponent"];
