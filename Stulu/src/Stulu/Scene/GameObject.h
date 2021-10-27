@@ -33,6 +33,7 @@ namespace Stulu {
 		}
 
 		UUID getId();
+		static GameObject getById(UUID& id, Scene* scene);
 
 		operator bool() const { return m_entity != entt::null; }
 		operator entt::entity() const { return m_entity; }

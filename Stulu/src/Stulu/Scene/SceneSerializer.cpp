@@ -8,7 +8,6 @@ namespace Stulu {
 	static void SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << YAML::Value << gameObject.getId();
-
 		if (gameObject.hasComponent<GameObjectBaseComponent>()) {
 			out << YAML::Key << "GameObjectBaseComponent";
 			out << YAML::BeginMap;
@@ -25,6 +24,9 @@ namespace Stulu {
 			out << YAML::Key << "position" << YAML::Value << trans.position;
 			out << YAML::Key << "rotation" << YAML::Value << trans.rotation;
 			out << YAML::Key << "scale" << YAML::Value << trans.scale;
+			if (gameObject.getComponent<TransformComponent>().parent) {
+				out << YAML::Key << "parent" << YAML::Value << trans.parent.getId();
+			}
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<CameraComponent>()) {
@@ -151,10 +153,7 @@ namespace Stulu {
 				if (go == GameObject::null)
 					return;
 				
-				if (!go.getComponent<TransformComponent>().parent)
-					SerializerGameObject(out, go);
-				else
-					CORE_WARN("Child object saving currently not supported");
+				SerializerGameObject(out, go);
 			});
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -305,6 +304,22 @@ namespace Stulu {
 					body.mass = rigidbodyComponentNode["mass"].as<float>();
 					body.massCenterPos = rigidbodyComponentNode["massCenterPos"].as<glm::vec3>();
 				}
+			}
+		}
+
+		//handle childs and parents
+		if (gos) {
+			for (auto gameObject : gos) {
+				UUID uuid = gameObject["GameObject"].as<uint64_t>();
+				GameObject go = GameObject::getById(uuid, m_scene.get());
+
+				auto transformComponentNode = gameObject["TransformComponent"];
+				if (transformComponentNode) {
+					if (transformComponentNode["parent"]) {
+						go.getComponent<TransformComponent>().parent = GameObject::getById(UUID(transformComponentNode["parent"].as<uint64_t>()), m_scene.get());
+					}
+				}
+				
 			}
 		}
 	}
