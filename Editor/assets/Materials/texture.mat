@@ -1,0 +1,4 @@
+Shader: Stulu/assets/Shaders/texture.glsl
+StructName: u_mat
+DataTypes:
+  - [12, [assets\textures\Cerberus_N.tga], u_texture]

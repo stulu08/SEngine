@@ -23,16 +23,17 @@ namespace Stulu {
 		return mat;
 	}
 	Material::Material(const std::string& shaderPath, const MaterialData& data)
-		: m_shaderPath(shaderPath), m_data(data) {
+		: m_shaderPath(shaderPath), m_runtimeData(data) {
 		m_shader = Shader::create(m_shaderPath);
+		uploadData();
 	}
 	void Material::toDataStringFile(std::string path) {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Shader" << YAML::Value << m_shaderPath;
-		out << YAML::Key << "StructName" << YAML::Value << m_data.materialStructName;
+		out << YAML::Key << "StructName" << YAML::Value << m_runtimeData.materialStructName;
 		out << YAML::Key << "DataTypes" << YAML::Value << YAML::BeginSeq;
-		for (auto& dataType : m_data.dataTypes) {
+		for (auto& dataType : m_runtimeData.dataTypes) {
 			out << dataType;
 		}
 		out << YAML::EndSeq;
@@ -43,9 +44,10 @@ namespace Stulu {
 		fclose(file);
 	}
 	void Material::uploadData() {
+		int texCount = 2;
 		m_shader->bind();
-		for (auto& dataType : m_data.dataTypes) {
-			std::string name = m_data.materialStructName + "." + dataType.name;
+		for (auto& dataType : m_runtimeData.dataTypes) {
+			std::string name = m_runtimeData.materialStructName + "." + dataType.name;
 			switch (dataType.type) {
 				case ShaderDataType::Float:		m_shader->setFloat(name, std::any_cast<float>(dataType.data));			break;
 				case ShaderDataType::Float2:	m_shader->setFloat2(name, std::any_cast<glm::vec2>(dataType.data));		break;
@@ -61,18 +63,55 @@ namespace Stulu {
 				case ShaderDataType::Mat4:		m_shader->setMat4(name, std::any_cast<glm::mat4>(dataType.data));		break;
 																											
 				//case ShaderDataType::Bool:		m_shader->setBool()										break;
+				case ShaderDataType::Sampler:
+					m_shader->setInt(dataType.name, texCount);
+					texCount++;
+					break;
+				case ShaderDataType::SamplerCube:
+					m_shader->setInt(dataType.name, texCount);
+					texCount++;
+					break;
 				default:
 					CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
 			}
 		}
-		if(!m_path.empty())
-			toDataStringFile(m_path);
+	}
+	void Material::bind() {
+		int texCount = 2;
+		for (auto& dataType : m_runtimeData.dataTypes) {
+			std::string name = m_runtimeData.materialStructName + "." + dataType.name;
+			switch (dataType.type) {
+				case ShaderDataType::Sampler:
+					std::any_cast<MaterialTexture>(dataType.data).texture->bind(texCount);
+					texCount++;
+					break;
+				case ShaderDataType::SamplerCube:
+					std::any_cast<MaterialTextureCube>(dataType.data).texture->bind(texCount);
+					texCount++;
+					break;
+			}
+		}
+		m_shader->bind();
+	}
+	void Material::unbind(){
+		m_shader->unbind();
+		for (auto& dataType : m_runtimeData.dataTypes) {
+			std::string name = m_runtimeData.materialStructName + "." + dataType.name;
+			switch (dataType.type) {
+				case ShaderDataType::Sampler:
+					m_shader->setInt(dataType.name, 0);
+					break;
+				case ShaderDataType::SamplerCube:
+					m_shader->setInt(dataType.name, 0);
+					break;
+			}
+		}
 	}
 	bool Material::operator==(const Material& other) const {
 		bool samePath = m_path == other.m_path;
 		bool sameShaderPath = m_shaderPath == other.m_shaderPath;
-		bool sameDataStructName = m_data.materialStructName == other.m_data.materialStructName;
-		bool sameData = m_data.dataTypes == other.m_data.dataTypes;
+		bool sameDataStructName = m_runtimeData.materialStructName == other.m_runtimeData.materialStructName;
+		bool sameData = m_runtimeData.dataTypes == other.m_runtimeData.dataTypes;
 
 		return sameData && sameShaderPath && sameDataStructName && sameData;
 	}
@@ -96,8 +135,6 @@ namespace Stulu {
 			case ShaderDataType::Mat4:		sameData = std::any_cast<glm::mat4>(data) == std::any_cast<glm::mat4>(other.data);		break;
 
 			//case ShaderDataType::Bool:	m_shader->setBool()										break;
-			default:
-				CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
 		}
 
 

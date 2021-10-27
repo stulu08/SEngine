@@ -5,11 +5,6 @@
 #include <ImGui/misc/cpp/imgui_stdlib.h>
 
 namespace Stulu {
-	const ImVec2 operator *(const ImVec2& vec, const float v) {
-		vec.x* v;
-		vec.y* v;
-		return vec;
-	}
 
 	template<typename T>
 	void ComponentsRender::drawComponent(GameObject gameObject, T& component) {}
@@ -68,8 +63,25 @@ namespace Stulu {
 			component.updateProjection();
 
 		drawIntControl("Depth", component.depth);
+		static float zoom = .1f;
+		ImGui::Image(reinterpret_cast<void*>((uint64_t)component.cam->getFrameBuffer()->getTexture()->getColorAttachmentRendereID()), ImVec2((float)component.settings.textureWidth, (float)component.settings.textureHeight)*zoom, ImVec2(0, 1), ImVec2(1, 0));
+		drawFloatSliderControl("[Texture Scale]",zoom);
+	}
+	template<>
+	void ComponentsRender::drawComponent<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) {
+		if (component.material) {
+			if (component.material->getShader())
+				ImGui::Text("Material: %s(Shader: %s)", component.material->getName().c_str(), component.material->getShader()->getName().c_str());
+		}
+		else {
+			ImGui::Text("Draw Material here");
+			if (drawMaterialEdit("Material", component.material))
+				component.material->uploadData();
+			return;
+		}
 
-		ImGui::Image((void*)component.cam->getFrameBuffer()->getTexture()->getColorAttachmentRendereID(), ImVec2(160, 90), ImVec2(0, 1), ImVec2(1, 0));
+		if (drawMaterialEdit(component.material->getName(), component.material))
+			component.material->uploadData();
 	}
 	template<>
 	void ComponentsRender::drawComponent<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) {
@@ -90,6 +102,9 @@ namespace Stulu {
 		if (component.lightType == LightComponent::Spot) {
 			drawFloatControl("Cut off", component.spotLight_cutOff);
 			drawFloatControl("Outer cut off", component.spotLight_outerCutOff);
+		}
+		else if (component.lightType == LightComponent::Area) {
+			drawFloatControl("Radius", component.areaRadius);
 		}
 
 	}
@@ -137,7 +152,69 @@ namespace Stulu {
 			ImGui::Text("Triangles: %d", component.mesh->getIndicesCount() / 3);
 		}
 	}
-	
+	template<>
+	void ComponentsRender::drawComponent<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) {
+		drawComboControl("Type", (int&)component.rbType, "Dynamic\0Static");
+		drawBoolControl("Use gravity", component.useGravity);
+		if (component.rbType == RigidbodyComponent::Dynamic) {
+			//bool 3
+			{
+				ImGui::PushID("Enable rotation");
+				bool change = false;
+				ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+				ImGui::SetColumnWidth(0, 100.0f);
+				ImGui::Text("Enable rotation");
+				ImGui::NextColumn();
+
+				ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+
+				change |= ImGui::Checkbox("##X", &component.rotationX);
+				ImGui::PopItemWidth();
+
+				ImGui::SameLine();
+				change |= ImGui::Checkbox("##>", &component.rotationY);
+				ImGui::PopItemWidth();
+
+				ImGui::SameLine();
+				change |= ImGui::Checkbox("##Z", &component.rotationZ);
+				ImGui::PopItemWidth();
+
+				ImGui::PopStyleVar();
+
+				ImGui::EndColumns();
+
+				ImGui::PopID();
+			}
+			drawFloatControl("Mass", component.mass);
+			drawVector3Control("Center of mass", component.massCenterPos);
+			drawBoolControl("Kinematic", component.kinematic);
+			drawBoolControl("Retain acceleration", component.retainAccelaration);
+		}
+	}
+	template<>
+	void ComponentsRender::drawComponent<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) {
+		drawFloatControl("Static friction", component.staticFriction);
+		drawFloatControl("Dynamic friction", component.dynamicFriction);
+		drawFloatControl("Restitution", component.restitution);
+		drawVector3Control("Offset", component.offset);
+		drawVector3Control("Size", component.size);
+	}
+	template<>
+	void ComponentsRender::drawComponent<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) {
+		drawFloatControl("Static friction", component.staticFriction);
+		drawFloatControl("Dynamic friction", component.dynamicFriction);
+		drawFloatControl("Restitution", component.restitution);
+		drawVector3Control("Offset", component.offset);
+		drawFloatControl("Size", component.radius);
+	}
+	template<>
+	void ComponentsRender::drawComponent<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) {
+		drawFloatControl("Static friction", component.staticFriction);
+		drawFloatControl("Dynamic friction", component.dynamicFriction);
+		drawFloatControl("Restitution", component.restitution);
+	}
+
 
 
 	bool ComponentsRender::drawStringControl(const std::string& header, std::string& v) {
@@ -205,6 +282,24 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 		change |= ImGui::DragFloat("##FLOAT", &v, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawFloatSliderControl(const std::string& header, float& v, float min, float max) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::SliderFloat("##FLOATSLIDER", &v, min, max, "%.2f");
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
 		ImGui::EndColumns();
@@ -300,6 +395,24 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
+	bool ComponentsRender::drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items) {
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::Combo("##COMBO", &current_item, items_separated_by_zeros, height_in_items);
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
 	bool ComponentsRender::drawMat4Control(const std::string& header, glm::mat4& v) {
 		bool change = false;
 		ImGui::Text(header.c_str());
@@ -353,9 +466,9 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 		if (texture == nullptr)
-			ImGui::Image((void*)Resources::getEmptySlotTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		else {
-			ImGui::Image((void*)texture->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(reinterpret_cast<void*>((uint64_t)texture->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_TEXTURE2D")) {
@@ -384,9 +497,9 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 		if (material == nullptr)
-			ImGui::Image((void*)Resources::getEmptySlotTexture()->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		else {
-			ImGui::Image((void*)Previewing::get().getMaterial(material->getPath())->getRendererID(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(reinterpret_cast<void*>((uint64_t)Previewing::get().getMaterial(material->getPath())->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_MATERIAL")) {
@@ -454,14 +567,38 @@ namespace Stulu {
 							changed |= true;
 						}
 					}
+					else if (type == Stulu::ShaderDataType::Sampler) {
+						MaterialTexture& v = std::any_cast<MaterialTexture>(dataType.data);
+						if (drawTextureEdit(name, v.texture)) {
+							v.texPath = v.texture->getPath();
+							dataType.data = v;
+							changed |= true;
+						}
+					}
+					else if (type == Stulu::ShaderDataType::SamplerCube) {
+						MaterialTextureCube& v = std::any_cast<MaterialTextureCube>(dataType.data);
+						for (int i = 0; i < 6; i++) {
+							if (drawStringControl("Path " + std::to_string(i), v.texPath[i])) {
+								dataType.data = v;
+							}
+						}
+						if (ImGui::Button("Update")) {
+							Previewing::get().addMaterial(material);
+							material->toDataStringFile(material->getPath());
+							material = createRef<Material>(Material::fromDataStringPath(material->getPath()));
+
+						}
+					}
 					else {
 						CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
 					}
 				}
 				ImGui::TreePop();
 			}
-			if (changed)
+			if (changed) {
 				Previewing::get().addMaterial(material);
+				material->toDataStringFile(material->getPath());
+			}
 		}
 		return changed;
 	}
@@ -477,20 +614,23 @@ namespace Stulu {
 		setUpScene(material);
 
 		material->uploadData();
-
+		material->getShader()->setInt("u_preview", 1);
+		scene->getData().enablePhsyics3D = false;
+		scene->onRuntimeStart();
 		scene->onUpdateRuntime(Timestep(.05f));
+		scene->onRuntimeStop();
 
 		materials[materialPath] = camera.getComponent<CameraComponent>().cam->getFrameBuffer()->getTexture();
 		scene.reset();
+		material->getShader()->setInt("u_preview", 0);
 	}
-
-	Ref<FrameBufferTexture>& Previewing::getMaterial(const Ref<Material>& material) {
+	Ref<Texture>& Previewing::getMaterial(const Ref<Material>& material) {
 		if (!existsMaterial(material->getPath())) {
 			addMaterial(material);
 		}
 		return materials[material->getPath()];
 	}
-	Ref<FrameBufferTexture>& Previewing::getMaterial(const std::string& path) {
+	Ref<Texture>& Previewing::getMaterial(const std::string& path) {
 		if (!existsMaterial(path)) {
 			addMaterial(createRef<Material>(Material::fromDataStringPath(path)));
 		}
@@ -506,7 +646,9 @@ namespace Stulu {
 		scene = createRef<Scene>();
 		scene->onViewportResize(200, 200);
 
-		cube = Model::loadModel("Stulu/assets/Meshes/sphere.glb", scene.get(), material);
+		sphere = scene->createGameObject("Sphere");
+		sphere.addComponent<MeshFilterComponent>().mesh = Resources::getSphereMesh();
+		sphere.getComponent<MeshRendererComponent>().material = material;
 		camera = scene->createGameObject("Camera");
 		light = scene->createGameObject("Light");
 

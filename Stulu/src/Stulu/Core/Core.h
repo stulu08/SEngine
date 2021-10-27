@@ -1,8 +1,7 @@
 #pragma once
 
-#include <memory>
-
 #include "CoreConfig.h"
+#include "Log.h"
 
 #ifdef _WIN32
 	#ifdef _WIN64

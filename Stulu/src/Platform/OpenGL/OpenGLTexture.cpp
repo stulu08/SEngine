@@ -47,6 +47,14 @@ namespace Stulu {
 			internalFormat = GL_RGB8;
 			m_dataFormat = GL_RGB;
 			break;
+		case 2:
+			internalFormat = GL_RG8;
+			m_dataFormat = GL_RG;
+			break;
+		case 1:
+			internalFormat = GL_ALPHA8;
+			m_dataFormat = GL_ALPHA;
+			break;
 		}
 		CORE_ASSERT(internalFormat, "Texture channel not supported: {0}", path);
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
@@ -68,11 +76,7 @@ namespace Stulu {
 	}
 	void OpenGLTexture2D::bind(uint32_t slot) const {
 		ST_PROFILING_FUNCTION();
-		int32_t active_id = 0;
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &active_id);
-		if (active_id != m_rendererID) {
-			glBindTextureUnit(slot, m_rendererID);
-		}
+		glBindTextureUnit(slot, m_rendererID);
 	}
 	void OpenGLTexture2D::setData(void* data, uint32_t size) const{
 		ST_PROFILING_FUNCTION();
@@ -139,11 +143,7 @@ namespace Stulu {
 	}
 	void OpenGLCubeMap::bind(uint32_t slot) const {
 		ST_PROFILING_FUNCTION();
-		int32_t active_id = 0;
-		glGetIntegerv(GL_TEXTURE_BINDING_CUBE_MAP, &active_id);
-		if (active_id != m_rendererID) {
-			glBindTextureUnit(slot, m_rendererID);
-		}
+		glBindTextureUnit(slot, m_rendererID);
 	}
 	uint32_t OpenGLCubeMap::getRendererID() const {
 		return m_rendererID;

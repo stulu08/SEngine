@@ -1,11 +1,12 @@
 #pragma once
 #include "Stulu/Core/Log.h"
+#include "Stulu/Math/Math.h"
 namespace Stulu{
 	enum class ShaderDataType { none = 0,
 		Float, Float2, Float3, Float4,
 		Int, Int2, Int3, Int4,
 		Mat3, Mat4,
-		Bool
+		Bool, Sampler, SamplerCube
 	};
 
 	static uint32_t shaderDataTypeSize(ShaderDataType type) {
@@ -24,6 +25,9 @@ namespace Stulu{
 			case ShaderDataType::Mat4:		return 4 * 4 * 4;
 
 			case ShaderDataType::Bool:		return 1;
+
+			case ShaderDataType::Sampler:	return 4;
+			case ShaderDataType::SamplerCube:	return 4;
 		}
 		CORE_ASSERT(false, "Uknown ShaderDataType");
 		return 0;
@@ -58,6 +62,9 @@ namespace Stulu{
 				case ShaderDataType::Mat4:		return 4 * 4;
 
 				case ShaderDataType::Bool:		return 1;
+
+				case ShaderDataType::Sampler:	return 1;
+				case ShaderDataType::SamplerCube:	return 1;
 			}
 			CORE_ASSERT(false, "Uknown ShaderDataType");
 			return 0;

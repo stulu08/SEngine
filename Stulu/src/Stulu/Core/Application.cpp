@@ -60,26 +60,27 @@ namespace Stulu {
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Run Loop");
 			float time = Platform::getTime();
-			Timestep deltaTimestep = time - m_lastFrameTime;
+			Timestep delta = time - m_lastFrameTime;
+			Time::applicationRuntime = time;
 			m_lastFrameTime = time;
-
+			Time::deltaTime = delta * Time::Scale;
 #if ST_LOG_FPS
 			if (ST_FRAMETIME_LOG > 1.0f) {
-				CORE_INFO("FPS: {0}({1}ms)", 1.0f / deltaTimestep, deltaTimestep.getMilliseconds());
+				CORE_INFO("FPS: {0}({1}ms)", 1.0f / Time::deltaTime, Time::deltaTime.getMilliseconds());
 				ST_FRAMETIME_LOG = 0;
 			}
-			ST_FRAMETIME_LOG += deltaTimestep.getSeconds();
+			ST_FRAMETIME_LOG += Time::deltaTime.getSeconds();
 #endif
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
-					layer->onUpdate(deltaTimestep);
+					layer->onUpdate(delta);
 				}
 #if OPENGL
 				m_imguiLayer->Begin();
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onImguiRender - layerstack");
-					layer->onImguiRender(deltaTimestep);
+					layer->onImguiRender(delta);
 				}
 				m_imguiLayer->End();
 #endif

@@ -2,20 +2,29 @@
 #include <Stulu.h>
 
 namespace Stulu {
-	class Resources {
+	class EditorResources {
 	public:
 		static void loadAll();
 
-		static Ref<Texture2D> getEmptySlotTexture();
-		static Ref<Texture2D> getFileTexture();
-		static Ref<Texture2D> getFolderTexture();
-		static Ref<Texture2D> getObjectTexture();
-		static Ref<Texture2D> getSceneTexture();
+		static Ref<Texture> getEmptySlotTexture();
+		static Ref<Texture> getFileTexture();
+		static Ref<Texture> getFolderTexture();
+		static Ref<Texture> getObjectTexture();
+		static Ref<Texture> getSceneTexture();
+		static Ref<Texture> getNoCameraTexture();
+		static Ref<Texture> getPlayTexture();
+		static Ref<Texture> getPauseTexture();
+		static Ref<Texture> getStopTexture();
+
 	private:
-		static inline Ref<Texture2D> s_emptyTexture = nullptr;
-		static inline Ref<Texture2D> s_fileTexture = nullptr;
-		static inline Ref<Texture2D> s_folderTexture = nullptr;
-		static inline Ref<Texture2D> s_objectTexture = nullptr;
-		static inline Ref<Texture2D> s_sceneTexture = nullptr;
+		static inline Ref<Texture> s_emptyTexture = nullptr;
+		static inline Ref<Texture> s_fileTexture = nullptr;
+		static inline Ref<Texture> s_folderTexture = nullptr;
+		static inline Ref<Texture> s_objectTexture = nullptr;
+		static inline Ref<Texture> s_sceneTexture = nullptr;
+		static inline Ref<Texture> s_noCameraTexture = nullptr;
+		static inline Ref<Texture> s_playTexture = nullptr;
+		static inline Ref<Texture> s_pauseTexture = nullptr;
+		static inline Ref<Texture> s_stopTexture = nullptr;
 	};
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Resources.h"
+#include "Editor/Resources.h"
 #include <imgui/imgui.h>
 namespace Stulu {
 
@@ -17,14 +17,14 @@ namespace Stulu {
 		}
 
 		void addMaterial(const Ref<Material>& material);
-		Ref<FrameBufferTexture>& getMaterial(const Ref<Material>& material);
-		Ref<FrameBufferTexture>& getMaterial(const std::string& path);
+		Ref<Texture>& getMaterial(const Ref<Material>& material);
+		Ref<Texture>& getMaterial(const std::string& path);
 		bool existsMaterial(const Ref<Material>& material);
 		bool existsMaterial(const std::string& path);
 	private:
-		std::unordered_map<std::string, Ref<FrameBufferTexture>> materials;
+		std::unordered_map<std::string, Ref<Texture>> materials;
 		GameObject camera;
-		GameObject cube;
+		GameObject sphere;
 		GameObject light;
 		Ref<Scene> scene;
 
@@ -43,9 +43,11 @@ namespace Stulu {
 		static bool drawBoolControl(const std::string& header, bool& v);
 		static bool drawIntControl(const std::string& header, int& v);
 		static bool drawFloatControl(const std::string& header, float& v);
+		static bool drawFloatSliderControl(const std::string& header, float& v, float min = 0.0f, float max = 1.0f);
 		static bool drawVector2Control(const std::string& header, glm::vec2& vec);
 		static bool drawVector3Control(const std::string& header, glm::vec3& vec);
 		static bool drawVector4Control(const std::string& header, glm::vec4& vec);
+		static bool drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items = -1);
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 		static bool drawTextureEdit(const std::string& header, Ref<Texture2D>& texture);
 		static bool drawMaterialEdit(const std::string& header, Ref<Material>& material);

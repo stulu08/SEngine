@@ -8,7 +8,8 @@ project "Editor"
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 	defines
 	{
-		"ST_EDITOR"
+		"ST_EDITOR",
+		"_CRT_SECURE_NO_WARNINGS"
 	}
 	files
 	{
@@ -25,14 +26,15 @@ project "Editor"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.Discord}"
 	}
 
 	links
 	{
-		"Stulu"
+		"Stulu", 
+		"discord-rpc"
 	}
-
 	filter "system:windows"
 		systemversion "latest"
 

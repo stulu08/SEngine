@@ -2,15 +2,65 @@ Scene: Untitled
 GameObjects:
   - GameObject: 12837192831273
     GameObjectBaseComponent:
+      name: Player
+      tag: Player
+    TransformComponent:
+      position: [-6.43737745, 2.9815793, 0]
+      rotation: [0, -0, 0]
+      scale: [1.00000024, 0.999995589, 0.999995351]
+    SpriteRendererComponent:
+      color: [1, 0, 0, 1]
+      tiling: [1, 1]
+    BoxColliderComponent:
+      dynamicFriction: 0
+      staticFriction: 0
+      restitution: 0
+      size: [0.5, 0.5, 0.5]
+      offset: [0, 0, 0]
+    RigidbodyComponent:
+      rbType: 0
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      rotationZ: true
+      kinematic: false
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]
+  - GameObject: 12837192831273
+    GameObjectBaseComponent:
       name: SpriteRenderer
       tag: default
     TransformComponent:
-      position: [-6.65335083, -2.76468611, 0]
-      rotation: [0, -0, -0.66588074]
-      scale: [14.0438137, 0.999999881, 1]
+      position: [-1.84905338, -20.383379, 0]
+      rotation: [0, -0, 0]
+      scale: [39.8489723, 1, 1]
     SpriteRendererComponent:
       color: [1, 1, 1, 1]
       tiling: [1, 1]
+    BoxColliderComponent:
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+      size: [0.5, 0.5, 0.5]
+      offset: [0, 0, 0]
+  - GameObject: 12837192831273
+    GameObjectBaseComponent:
+      name: SpriteRenderer
+      tag: default
+    TransformComponent:
+      position: [5.21143627, -10.7927551, -1.92577522e-06]
+      rotation: [0, -0, 0.697835922]
+      scale: [16.7084789, 1, 1]
+    SpriteRendererComponent:
+      color: [1, 1, 1, 1]
+      tiling: [1, 1]
+    BoxColliderComponent:
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+      size: [0.5, 0.5, 0.5]
+      offset: [0, 0, 0]
   - GameObject: 12837192831273
     GameObjectBaseComponent:
       name: Perspective Camera
@@ -28,9 +78,9 @@ GameObjects:
         zNear: 0.00999999978
         zFar: 250
         staticAspect: false
-        aspectRatio: 1.63496149
-        textureWidth: 1272
-        textureHeight: 778
+        aspectRatio: 1.77777779
+        textureWidth: 1280
+        textureHeight: 720
       mode: 0
       depth: -1
   - GameObject: 12837192831273
@@ -38,31 +88,15 @@ GameObjects:
       name: SpriteRenderer
       tag: default
     TransformComponent:
-      position: [5.21143627, -10.7927551, -1.92577522e-06]
-      rotation: [0, -0, 0.697835922]
-      scale: [16.7084789, 1, 1]
+      position: [-6.65335083, -2.76468611, 0]
+      rotation: [0, -0, -0.66588074]
+      scale: [14.0438137, 0.999999881, 1]
     SpriteRendererComponent:
       color: [1, 1, 1, 1]
       tiling: [1, 1]
-  - GameObject: 12837192831273
-    GameObjectBaseComponent:
-      name: SpriteRenderer
-      tag: default
-    TransformComponent:
-      position: [-1.84905338, -20.383379, 0]
-      rotation: [0, -0, 0]
-      scale: [39.8489723, 1, 1]
-    SpriteRendererComponent:
-      color: [1, 1, 1, 1]
-      tiling: [1, 1]
-  - GameObject: 12837192831273
-    GameObjectBaseComponent:
-      name: Player
-      tag: Player
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0, 0]
-      scale: [1, 1, 1]
-    SpriteRendererComponent:
-      color: [1, 0, 0, 1]
-      tiling: [1, 1]
+    BoxColliderComponent:
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+      size: [0.5, 0.5, 0.5]
+      offset: [0, 0, 0]

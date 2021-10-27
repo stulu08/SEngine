@@ -1,7 +1,7 @@
 Shader: Stulu/assets/Shaders/pbr.glsl
 StructName: u_mat
 DataTypes:
-  - [1, 0.899999976, metallic]
-  - [3, [0.899999976, 0.899999976, 0.899999976], albedo]
-  - [1, 0.200000003, roughness]
-  - [1, 0.200000003, ao]
+  - [1, 0.699999988, metallic]
+  - [3, [1, 1, 1], albedo]
+  - [1, 0.899999976, roughness]
+  - [1, 0.5, ao]

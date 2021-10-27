@@ -1,11 +1,15 @@
 #include "EditorLayer.h"
-#include <imgui/imgui.h>
 #include "Editor/EditorApp.h"
+#include "Editor/DiscordRPC.h"
+#include "Editor/Panel/StyleEditor.h"
 #include <ImGuizmo/ImGuizmo.h>
+
 namespace Stulu {
 
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f), m_sceneViewport("Scene"), m_gameViewport("Game") {
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f) {
+		StyleEditor::init();
+
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f),1.0f));
 
 		FrameBufferSpecs fspecs = FrameBufferSpecs();
@@ -14,10 +18,8 @@ namespace Stulu {
 
 		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
 		
-		m_material = createRef<Material>(Material::fromDataStringPath("assets/Materials/red.mat"));
 
-		Resources::loadAll();
-
+		EditorResources::loadAll();
 		Previewing::init();
 	}
 
@@ -27,164 +29,159 @@ namespace Stulu {
 
 	void EditorLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
-		if (m_sceneViewport.m_viewPortFocused && !m_runtime && !ImGuizmo::IsUsing())
+		if (!ImGuizmo::IsUsing()) {
+			if(m_sceneViewport.focused)
+				m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
+		}
 
 
-		if(m_runtime)
+		if(s_runtime)
 			m_activeScene->onUpdateRuntime(timestep);
-		else
-			m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
+
+		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
 
 	}
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ImGui::DockSpaceOverViewport();
+
+		{
+
+			ImGui::Begin("Profiling");
+			ImGui::Text("FPS: %.1f", 1.0f / timestep);
+			ImGui::Text("Frametime: %.3f", Time::deltaTime.getSeconds());
+#if ST_PROFILING_RENDERDATA
+			if (s_runtime) {
+				ImGui::Text("Runtime time: %.1f", Time::time.getSeconds());
+				ImGui::Text("Drawing for %d Camera(s)", ST_PROFILING_RENDERDATA_GETCAMERAS());
+				ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
+				ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
+				ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
+				ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+			}
+#endif
+			ImGui::End();
+		}
+
+		Application::get().getImGuiLayer()->blockEvents(!m_sceneViewport.hovered && !m_sceneViewport.focused);
+
+
+		drawMenuBar();
+
+		if (m_showStyleEditor) {
+			StyleEditor::drawStyleEditor(&ImGui::GetStyle(), &m_showStyleEditor);
+		}
+		if (m_showHierarchy) {
+			m_editorHierarchy.render(&m_showHierarchy);
+		}
+		if (m_showInspector) {
+			if (!m_inspectorPanel.render(m_editorHierarchy.getCurrentObject(), &m_showInspector)) {
+				m_editorHierarchy.setSelectedGameObject(GameObject::null);
+			}
+		}
+		if (m_showAssetBrowser) {
+			m_assetBrowser.render(&m_showAssetBrowser);
+		}
+		if (m_showGameViewport) {
+			auto cam = m_activeScene->getMainCamera();
+			if (cam) {
+				m_gameViewport.draw(cam.getComponent<CameraComponent>().cam, &m_showGameViewport);
+				if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height))
+					m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
+			}
+			else {
+				m_gameViewport.draw(nullptr, &m_showGameViewport);
+			}
+		}
+		if (m_showSceneViewport) {
+			m_sceneViewport.draw(m_sceneCamera, m_editorHierarchy.getCurrentObject(), &m_showSceneViewport);
+		}
+
+	}
+	void EditorLayer::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
+
+		m_sceneCamera.onEvent(e);
+
+		EventDispatcher dispacther(e);
+
+		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
+	}
+	void EditorLayer::drawMenuBar() {
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 
-				if (ImGui::MenuItem("New Scene","Ctrl+N")) {
+				if (ImGui::MenuItem("New Scene", "Ctrl+N")) {
 					newScene();
 				}
 				if (ImGui::MenuItem("Open Scene", "Ctrl+O")) {
 					OpenScene();
 				}
-				if (ImGui::MenuItem("Save Scene", "Ctrl+S",false, !m_currentScenePath.empty())) {
+				if (ImGui::MenuItem("Save Scene", "Ctrl+S", false, !m_currentScenePath.empty())) {
 					SaveScene(m_currentScenePath);
 				}
 				if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S")) {
 					SaveScene();
 				}
-				if (ImGui::MenuItem("Exit","Alt+F4")) {
+				if (ImGui::MenuItem("Exit", "Alt+F4")) {
 					Application::exit(0);
 				}
 
 				ImGui::EndMenu();
 			}
-
-			if (ImGui::BeginMenu("Edit")) {
-				if (ImGui::MenuItem("Settings")) {
-
+			if (ImGui::BeginMenu("View")) {
+				if (ImGui::MenuItem("Style Editor", (const char*)0, m_showStyleEditor)) {
+					m_showStyleEditor = !m_showStyleEditor;
+				}
+				if (ImGui::MenuItem("Game Viewport", (const char*)0, m_showGameViewport)) {
+					m_showGameViewport = !m_showGameViewport;
+				}
+				if (ImGui::MenuItem("Scene Viewport", (const char*)0, m_showSceneViewport)) {
+					m_showSceneViewport = !m_showSceneViewport;
+				}
+				if (ImGui::MenuItem("Scene Hierachy", (const char*)0, m_showHierarchy)) {
+					m_showHierarchy = !m_showHierarchy;
+				}
+				if (ImGui::MenuItem("Inspector", (const char*)0, m_showInspector)) {
+					m_showInspector = !m_showInspector;
+				}
+				if (ImGui::MenuItem("Asset Browser", (const char*)0, m_showAssetBrowser)) {
+					m_showAssetBrowser = !m_showAssetBrowser;
 				}
 				ImGui::EndMenu();
-
 			}
 			ImGui::EndMainMenuBar();
 		}
-		ImGui::Begin("Debug");
 
-		if (m_runtime)
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, .5f);
-		else
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-		if (ImGui::Button("Play"))
-			m_runtime = !m_runtime;
-		ImGui::PopStyleVar();
+		//toolbar
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
 
-		ComponentsRender::drawComponent(GameObject::null, m_sceneCamera.getTransform());
-	
-		ImGui::End();
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		auto& colors = ImGui::GetStyle().Colors;
+		const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+		const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-		ImGui::Begin("Profiling");
-		ImGui::Text("FPS: %.1f", 1.0f / timestep);
-		ImGui::Text("Frametime: %.3f", timestep.getSeconds());
-#if ST_PROFILING_RENDERDATA
-		if (ST_PROFILING_RENDERDATA_GETENABLE()) {
-			ImGui::Text("Drawing for %d Camera(s)", ST_PROFILING_RENDERDATA_GETCAMERAS());
-			ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
-			ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
-			ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
-			ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
-		}
-#endif
-		ImGui::End();
-
-		m_editorHierarchy.render();
-		m_assetBrowser.render();
-
-		//resizing
-		//scene window
-		auto cam = m_activeScene->getMainCamera();
-		if (cam) {
-			m_gameViewport.draw(cam.getComponent<CameraComponent>().cam->getFrameBuffer()->getTexture());
-			if (m_gameViewport.m_viewPortPanelWidth > 0 && m_gameViewport.m_viewPortPanelHeight > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.m_viewPortPanelWidth || m_activeScene->m_viewportHeight != m_gameViewport.m_viewPortPanelHeight))
-				m_activeScene->onViewportResize(m_gameViewport.m_viewPortPanelWidth, m_gameViewport.m_viewPortPanelHeight);
-		}
-		else {
-			m_gameViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture());
-			if (m_gameViewport.m_viewPortPanelWidth > 0 && m_gameViewport.m_viewPortPanelHeight > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.m_viewPortPanelWidth || m_activeScene->m_viewportHeight != m_gameViewport.m_viewPortPanelHeight))
-				m_activeScene->onViewportResize(m_gameViewport.m_viewPortPanelWidth, m_gameViewport.m_viewPortPanelHeight);
-		}
-		//editor window
-		m_sceneViewport.draw(m_sceneCamera.getCamera()->getFrameBuffer()->getTexture(),false);
-		if (ImGui::BeginDragDropTarget()) {
-			bool news = false;
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_SCENE")) {
-				const char* path = (const char*)payload->Data;
-				ST_INFO("Received Scene: {0}", path);
-				OpenScene(path);
-				news = true;
+		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar);
+		float size = ImGui::GetWindowHeight() - 4.0f;
+		ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size));
+		Ref<Texture> tex = s_runtime ? EditorResources::getStopTexture() : EditorResources::getPlayTexture();
+		if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), {size, size}, {0, 1}, {1, 0}, 0, {0,0,0,0}, icoColor)) {
+			if (s_runtime) {
+				m_activeScene->onRuntimeStop();
+				s_runtime = false;
 			}
-			ImGui::EndDragDropTarget();
-			if (news)
-				return m_sceneViewport.endDraw();
-		}
-		FrameBufferSpecs FBspec = m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs();
-		bool m_ViewportFocused = ImGui::IsWindowFocused();
-		bool m_ViewportHovered = ImGui::IsWindowHovered();
-		Application::get().getImGuiLayer()->blockEvents(!m_ViewportFocused && !m_ViewportHovered);
-
-		if (m_sceneViewport.m_viewPortPanelWidth > 0 && m_sceneViewport.m_viewPortPanelHeight > 0 && (FBspec.width != m_sceneViewport.m_viewPortPanelWidth || FBspec.height != m_sceneViewport.m_viewPortPanelHeight))
-			m_sceneCamera.onResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
-
-
-		//imguizmo
-		GameObject selected = m_editorHierarchy.getCurrentObject();
-		if (selected && m_gizmoEditType != -1 && !m_runtime) {
-			ImGuizmo::SetOrthographic(false);
-			ImGuizmo::SetDrawlist();
-
-			float windowWidth = (float)ImGui::GetWindowWidth();
-			float windowHeight = (float)ImGui::GetWindowHeight();
-			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
-
-			// Camera
-			const glm::mat4& cameraProjection = m_sceneCamera.getCamera()->getProjectionMatrix();
-			glm::mat4 cameraView = glm::inverse(m_sceneCamera.getTransform().getTransform());
-
-			// Gameobject transform
-			TransformComponent& tc = selected.getComponent<TransformComponent>();
-			glm::mat4 transform = tc.getWorldSpaceTransform();
-
-			ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-				(ImGuizmo::OPERATION)m_gizmoEditType, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
-
-			if (ImGuizmo::IsUsing()) {
-				if (tc.parent) {
-					glm::vec3 worldPos, worldRotation, worldScale;
-					Math::decomposeTransform(transform, worldPos, worldRotation, worldScale);
-					glm::mat4 parent = tc.parent.getComponent<TransformComponent>().getWorldSpaceTransform();
-					const glm::vec3 parentPos = glm::vec3(parent[3]);
-					parent[3] = glm::vec4(0, 0, 0, parent[3].w);
-					transform = glm::translate(glm::mat4(1.0f), worldPos - parentPos) * glm::toMat4(glm::quat(worldRotation)) * glm::scale(glm::mat4(1.0f), worldScale) / parent;
-				}
-				glm::vec3 pos, rotation, scale;
-				Math::decomposeTransform(transform, pos, rotation, scale);
-
-				tc.position = pos;
-				tc.rotation = rotation;
-				tc.scale = scale;
+			else {
+				m_activeScene->onRuntimeStart();
+				s_runtime = true;
 			}
 		}
-		m_sceneViewport.endDraw();
-	}
-	void EditorLayer::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
-		if(!m_runtime)
-			m_sceneCamera.onEvent(e);
-
-		EventDispatcher dispacther(e);
-
-		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
+		ImGui::End();
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
 		ST_PROFILING_FUNCTION();
@@ -198,22 +195,22 @@ namespace Stulu {
 		{
 
 			case Keyboard::Q:
-				m_gizmoEditType = -1;
+				m_sceneViewport.gizmoEditType = -1;
 				break;
 			case Keyboard::G:
-				m_gizmoEditType = ImGuizmo::OPERATION::TRANSLATE;
+				m_sceneViewport.gizmoEditType = ImGuizmo::OPERATION::TRANSLATE;
 				break;
 			case Keyboard::R:
-				m_gizmoEditType = ImGuizmo::OPERATION::ROTATE;
+				m_sceneViewport.gizmoEditType = ImGuizmo::OPERATION::ROTATE;
 				break;
 			case Keyboard::S:
-				m_gizmoEditType = ImGuizmo::OPERATION::SCALE;
+				m_sceneViewport.gizmoEditType = ImGuizmo::OPERATION::SCALE;
 				if (control) {
 					if (shift || m_currentScenePath.empty())
 						SaveScene();
 					else
 						SaveScene(m_currentScenePath);
-					ST_INFO("Saveing Scene");
+					ST_INFO("Saving Scene");
 				}
 				break;
 			case Keyboard::O:
@@ -248,6 +245,8 @@ namespace Stulu {
 		m_currentScenePath = path;
 		SceneSerializer ss(m_activeScene);
 		ss.serialze(path);
+		DiscordRPC::setDetails("Editing " + path.substr(path.find_last_of("/\\")+1, path.npos));
+		ST_INFO("Saved Scene {0}", path);
 	}
 	void EditorLayer::OpenScene(const std::string& path) {
 		if (path.empty()) {
@@ -259,12 +258,16 @@ namespace Stulu {
 		ss.deSerialze(path);
 		m_activeScene = nScene;
 		m_editorHierarchy.setScene(m_activeScene);
-		m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
+		m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
+		ST_INFO("Opened Scene {0}", path);
+		DiscordRPC::setDetails("Editing " + path.substr(path.find_last_of("/\\")+1, path.npos));
 	}
 	void EditorLayer::newScene() {
 		m_currentScenePath = "";
 		m_activeScene = createRef<Scene>();
 		m_editorHierarchy.setScene(m_activeScene);
-		m_activeScene->onViewportResize((float)m_sceneViewport.m_viewPortPanelWidth, (float)m_sceneViewport.m_viewPortPanelHeight);
+		m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
+		DiscordRPC::setDetails("Editing a scene");
+		ST_INFO("New Scene loaded");
 	}
 }

@@ -19,6 +19,8 @@ namespace Stulu {
 		case Stulu::ShaderDataType::Mat3:		return GL_FLOAT;
 		case Stulu::ShaderDataType::Mat4:		return GL_FLOAT;
 		case Stulu::ShaderDataType::Bool:		return GL_INT;
+		case Stulu::ShaderDataType::Sampler:	return GL_INT;
+		case Stulu::ShaderDataType::SamplerCube:return GL_INT;
 		}
 		CORE_ASSERT(false, "Uknown ShaderDataType");
 		return 0;

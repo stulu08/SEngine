@@ -35,15 +35,17 @@ GameObjects:
       scale: [1, 1, 1]
     CameraComponent:
       Camera Settings:
-        clearType: 0
+        clearType: 1
         clearColor: [0, 0, 0, 1]
         fov: 80
         zoom: 1
         zNear: 0.00999999978
         zFar: 250
         staticAspect: false
-        aspectRatio: 1.75448275
-        textureWidth: 1272
-        textureHeight: 725
+        aspectRatio: 1.77777779
+        textureWidth: 1280
+        textureHeight: 720
       mode: 0
       depth: -1
+    SkyBoxComponent:
+      material: assets\Materials\skybox.mat

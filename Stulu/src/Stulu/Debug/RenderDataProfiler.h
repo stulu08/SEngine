@@ -6,14 +6,12 @@ namespace Stulu::Profiling {
 	public:
 		static void enable() {
 			enabled = true;
-			begin();
 		}
 		static bool isEnabled() {
 			return enabled;
 		}
 		static void disable() {
 			enabled = false;
-			begin();
 		}
 		static void begin() { 
 			VerticesCount = 0;

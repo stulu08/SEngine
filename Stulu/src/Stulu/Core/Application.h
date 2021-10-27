@@ -5,6 +5,7 @@
 #include "Stulu/ImGui/ImGuiLayer.h"
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Core/Version.h"
+#include "Stulu/Core/Time.h"
 
 namespace Stulu {
 	struct ApplicationInfo {

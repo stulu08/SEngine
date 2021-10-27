@@ -51,4 +51,10 @@ namespace Stulu {
 		glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	void OpenGLRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
+		glDrawElements(GL_LINES, _count, GL_UNSIGNED_INT, nullptr);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
 }

@@ -29,6 +29,10 @@ namespace Stulu{
 			ST_PROFILING_RENDERDATA_ADDDRAWCALL();
 			s_renderAPI->drawIndexed(vertexArray, count);
 		}
+		inline static void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
+			ST_PROFILING_RENDERDATA_ADDDRAWCALL();
+			s_renderAPI->drawLines(vertexArray, count);
+		}
 	private:
 		static Scope<RenderAPI> s_renderAPI;
 	};

@@ -19,3 +19,6 @@
 [submodule "Stulu/vendor/yaml-cpp"]
 	path = Stulu/vendor/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp
+[submodule "Editor/vendor/discord-rpc"]
+	path = Editor/vendor/discord-rpc
+	url = https://github.com/stulu08/discord-rpc

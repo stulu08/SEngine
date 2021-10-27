@@ -14,11 +14,11 @@ namespace Stulu {
 
 		void onUpdate() override;
 
-		inline uint32_t getWidth() const override { return m_data.width; }
-		inline uint32_t getHeight() const override { return m_data.height; }
+		inline uint32_t getWidth() const override { return m_runtimeData.width; }
+		inline uint32_t getHeight() const override { return m_runtimeData.height; }
 
 		//attributes
-		inline void setEventCallback(const EventCallbackFn& callback) override { m_data.eventCallback = callback; }
+		inline void setEventCallback(const EventCallbackFn& callback) override { m_runtimeData.eventCallback = callback; }
 		virtual void setWindowIcon(const std::string& path) override;
 		virtual void setWindowTitle(const std::string& title) override;
 		void setVSync(bool enabled) override;
@@ -41,6 +41,6 @@ namespace Stulu {
 
 			EventCallbackFn eventCallback;
 		};
-		WindowData m_data;
+		WindowData m_runtimeData;
 	};
 }

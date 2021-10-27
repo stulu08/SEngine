@@ -24,9 +24,9 @@ namespace Stulu {
 
 	void WindowsWindow::init(const WindowProps& props) {
 		ST_PROFILING_FUNCTION();
-		m_data.title = props.title;
-		m_data.width = props.width;
-		m_data.height = props.height;
+		m_runtimeData.title = props.title;
+		m_runtimeData.width = props.width;
+		m_runtimeData.height = props.height;
 
 
 		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
@@ -39,10 +39,10 @@ namespace Stulu {
 			s_glfwInitilized = true;
 		}
 		m_graphicsContext = GraphicsContext::create();
-		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_data.title.c_str(), nullptr, nullptr); 
+		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_runtimeData.title.c_str(), nullptr, nullptr); 
 		m_graphicsContext->init(this);
 
-		glfwSetWindowUserPointer(m_window, &m_data);
+		glfwSetWindowUserPointer(m_window, &m_runtimeData);
 		
 
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
@@ -146,8 +146,8 @@ namespace Stulu {
 	void WindowsWindow::setVSync(bool enabled) {
 		ST_PROFILING_FUNCTION();
 		m_graphicsContext->setVSync(enabled);
-		m_data.VSync = enabled;
+		m_runtimeData.VSync = enabled;
 	}
 
-	bool WindowsWindow::isVSync() const { return m_data.VSync; }
+	bool WindowsWindow::isVSync() const { return m_runtimeData.VSync; }
 }

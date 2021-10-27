@@ -1,6 +1,8 @@
 #pragma once
 #include <yaml-cpp/yaml.h>
 #include <glm/glm.hpp>
+
+#include <Stulu/Renderer/Texture.h>
 #include "Stulu/Scene/Material.h"
 namespace YAML {
 
@@ -92,6 +94,44 @@ namespace YAML {
 			}
 			return true;
 		}
+	};	
+	template<>
+	struct convert<Stulu::MaterialTexture> {
+		inline static Node encode(const Stulu::MaterialTexture& rhs) {
+			Node node;
+			node.push_back(rhs.texPath);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		inline static bool decode(const Node& node, Stulu::MaterialTexture& rhs) {
+			if (!node.IsSequence() || node.size() != 1)
+				return false;
+			rhs.texPath = node[0].as<std::string>();
+			rhs.texture = Stulu::Texture2D::create(rhs.texPath);
+			return true;
+		}
+	};	
+	template<>
+	struct convert<Stulu::MaterialTextureCube> {
+		inline static Node encode(const Stulu::MaterialTextureCube& rhs) {
+			Node node;
+			for (int i = 0; i < 6; i++) {
+				node.push_back(rhs.texPath[i]);
+			}
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		inline static bool decode(const Node& node, Stulu::MaterialTextureCube& rhs) {
+			if (!node.IsSequence() || node.size() != 6)
+				return false;
+			for (int i = 0; i < 6; i++) {
+				rhs.texPath.push_back(node[i].as<std::string>());
+			}
+			rhs.texture = Stulu::CubeMap::create(rhs.texPath);
+			return true;
+		}
 	};
 	template<>
 	struct convert<Stulu::MaterialDataType> {
@@ -99,20 +139,23 @@ namespace YAML {
 			Node node;
 			node.push_back((int)rhs.type);
 			switch (rhs.type) {
-				case Stulu::ShaderDataType::Float:			node.push_back(std::any_cast<float>(rhs.data));				break;
-				case Stulu::ShaderDataType::Float2:			node.push_back(std::any_cast<glm::vec2>(rhs.data));			break;
-				case Stulu::ShaderDataType::Float3:			node.push_back(std::any_cast<glm::vec3>(rhs.data));			break;
-				case Stulu::ShaderDataType::Float4:			node.push_back(std::any_cast<glm::vec4>(rhs.data));			break;
+				case Stulu::ShaderDataType::Float:			node.push_back(std::any_cast<float>(rhs.data));					break;
+				case Stulu::ShaderDataType::Float2:			node.push_back(std::any_cast<glm::vec2>(rhs.data));				break;
+				case Stulu::ShaderDataType::Float3:			node.push_back(std::any_cast<glm::vec3>(rhs.data));				break;
+				case Stulu::ShaderDataType::Float4:			node.push_back(std::any_cast<glm::vec4>(rhs.data));				break;
 
-				case  Stulu::ShaderDataType::Int:			node.push_back(std::any_cast<int>(rhs.data));				break;
-				//case  Stulu::ShaderDataType::Int2:		node.push_back()											break;
-				//case  Stulu::ShaderDataType::Int3:		node.push_back()											break;
-				//case  Stulu::ShaderDataType::Int4:		node.push_back()											break;
+				case  Stulu::ShaderDataType::Int:			node.push_back(std::any_cast<int>(rhs.data));					break;
+				//case  Stulu::ShaderDataType::Int2:		node.push_back()												break;
+				//case  Stulu::ShaderDataType::Int3:		node.push_back()												break;
+				//case  Stulu::ShaderDataType::Int4:		node.push_back()												break;
 
-				//case  Stulu::ShaderDataType::Mat3:		node.push_back()											break;
-				case  Stulu::ShaderDataType::Mat4:			node.push_back(std::any_cast<glm::mat4>(rhs.data));			break;
+				//case  Stulu::ShaderDataType::Mat3:		node.push_back()												break;
+				case  Stulu::ShaderDataType::Mat4:			node.push_back(std::any_cast<glm::mat4>(rhs.data));				break;
 
-				//case  Stulu::ShaderDataType::Bool:		node.push_back()											break;
+				//case  Stulu::ShaderDataType::Bool:		node.push_back()												break;
+
+				case  Stulu::ShaderDataType::Sampler:		node.push_back(std::any_cast<Stulu::MaterialTexture>(rhs.data));break;
+				case  Stulu::ShaderDataType::SamplerCube:		node.push_back(std::any_cast<Stulu::MaterialTextureCube>(rhs.data));break;
 				default:
 					CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
 			}
@@ -143,11 +186,19 @@ namespace YAML {
 				rhs.data = v;
 			}
 			else if (type == Stulu::ShaderDataType::Mat4) {
-				int v = node[1].as<int>();				
+				glm::mat4 v = node[1].as<glm::mat4>();
 				rhs.data = v;
 			}
 			else if (type == Stulu::ShaderDataType::Int) {
-				glm::mat4 v = node[1].as<glm::mat4>();
+				int v = node[1].as<int>();				
+				rhs.data = v;
+			}
+			else if (type == Stulu::ShaderDataType::Sampler) {
+				Stulu::MaterialTexture v = node[1].as<Stulu::MaterialTexture>();
+				rhs.data = v;
+			}
+			else if (type == Stulu::ShaderDataType::SamplerCube) {
+				Stulu::MaterialTextureCube v = node[1].as<Stulu::MaterialTextureCube>();
 				rhs.data = v;
 			}
 			else {
@@ -190,6 +241,22 @@ namespace Stulu {
 		out << YAML::EndSeq;
 		return out;
 	}
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::MaterialTexture& v) {
+		out << YAML::Flow;
+		out << YAML::BeginSeq;
+		out << v.texPath;
+		out << YAML::EndSeq;
+		return out;
+	}
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::MaterialTextureCube& v) {
+		out << YAML::Flow;
+		out << YAML::BeginSeq;
+		for (int i = 0; i < 6; i++) {
+			out << v.texPath[i];
+		}
+		out << YAML::EndSeq;
+		return out;
+	}
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::MaterialDataType& rhs) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq << (int)rhs.type;
@@ -208,6 +275,9 @@ namespace Stulu {
 			case  Stulu::ShaderDataType::Mat4:			out << std::any_cast<glm::mat4>(rhs.data);	break;
 
 			//case  Stulu::ShaderDataType::Bool:		out << 										break;
+
+			case  Stulu::ShaderDataType::Sampler:		out << std::any_cast<MaterialTexture>(rhs.data);break;
+			case  Stulu::ShaderDataType::SamplerCube:	out << std::any_cast<MaterialTextureCube>(rhs.data);break;
 			default:
 				CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
 		}

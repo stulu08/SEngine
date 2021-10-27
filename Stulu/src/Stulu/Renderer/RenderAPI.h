@@ -23,6 +23,8 @@ namespace Stulu {
 		virtual void setWireFrame(bool v) = 0;
 		virtual void clear() = 0;
 		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) = 0;
+		virtual void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) = 0;
+
 
 		inline static API getAPI() { return s_api; };
 	private:

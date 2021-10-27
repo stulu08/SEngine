@@ -15,10 +15,16 @@ namespace Stulu {
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
+
+		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos) * 0.003f;
+		m_lastMouseXPos = Input::getMouseX();
+		m_lastMouseYPos = Input::getMouseY();
+
+	}
+	void SceneCamera::updateMove(Timestep timestep) {
+		ST_PROFILING_FUNCTION();
 		mouseTranslateMove(timestep);
 		mouseLookMove();
-		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos) * 0.003f;
-
 	}
 	void SceneCamera::mouseTranslateMove(Timestep timestep) {
 		if (Input::isMouseDown(MOUSE_BUTTON_1)) {
@@ -54,8 +60,6 @@ namespace Stulu {
 	}
 	bool SceneCamera::onMouseMoveEvent(MouseMoveEvent& e) {
 		ST_PROFILING_FUNCTION();
-		m_lastMouseXPos = e.getX();
-		m_lastMouseYPos = e.getY();
 		return false;
 	}
 	bool SceneCamera::onResizeEvent(WindowResizeEvent& e) {

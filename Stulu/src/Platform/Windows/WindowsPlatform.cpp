@@ -31,7 +31,7 @@ namespace Stulu {
 		//ofn.lpstrFileTitle = NULL;
 		//ofn.nMaxFileTitle = 0;
 		ofn.lpstrInitialDir = NULL;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		// Display the Open dialog box. 
 
@@ -60,7 +60,7 @@ namespace Stulu {
 		//ofn.lpstrFileTitle = NULL;
 		//ofn.nMaxFileTitle = 0;
 		ofn.lpstrInitialDir = NULL;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_SHOWHELP | OFN_OVERWRITEPROMPT;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT;
 
 		// Display the Open dialog box. 
 
@@ -74,7 +74,7 @@ namespace Stulu {
 		if (CreateDirectoryA(std::string(directory).c_str(), NULL)) {
 			return true;
 		}
-		CORE_ASSERT(false, "Cant create directory(" + std::to_string(GetLastError()) + "): " + std::string(directory));
+		CORE_ERROR("Cant create directory({0}): {1}", std::to_string(GetLastError()), std::string(directory));
 		return false;
 	}
 

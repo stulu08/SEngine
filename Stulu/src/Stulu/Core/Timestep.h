@@ -13,6 +13,10 @@ namespace Stulu{
 
 		glm::vec3 operator* (const glm::vec3& v) const { return v * m_time; }
 		glm::vec2 operator* (const glm::vec2& v) const { return v * m_time; }
+
+		Timestep operator+ (const float& v) const { return v + m_time; }
+		Timestep& operator+= (const float& v) { this->m_time += v; return *this; }
+		Timestep& operator+= (const Timestep& v) { this->m_time += v.m_time; return *this; }
 	private:
 		float m_time;
 	};

@@ -13,7 +13,7 @@ namespace Stulu {
         const aiScene* a_scene;
         {
             ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            a_scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+            a_scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
         }
 
         if (!a_scene || a_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !a_scene->mRootNode) {
@@ -44,9 +44,10 @@ namespace Stulu {
                     aiMesh* a_mesh = scene->mMeshes[node->mMeshes[i]];
                     mesh.addSubMesh(processSubMesh(a_mesh, scene));
                 }
+                mesh = Mesh::combine(mesh);
             }
             go.addComponent<MeshRendererComponent>().material = material;
-            go.addComponent<MeshFilterComponent>().mesh = createRef<Mesh>(mesh);
+            go.getComponent<MeshFilterComponent>().mesh = createRef<Mesh>(mesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
             GameObject g = processNode(node->mChildren[i], scene, s_scene, material);
@@ -103,17 +104,16 @@ namespace Stulu {
         aiQuaternion a_rot;
 
         aMat.Decompose(a_scale, a_rot, a_pos);
+        glm::vec3 pos, sca;
+        pos.x = a_pos.x;
+        pos.y = a_pos.y;
+        pos.z = a_pos.z;
+        sca.x = a_scale.x;
+        sca.y = a_scale.y;
+        sca.z = a_scale.z;
+        glm::quat q = glm::quat(a_rot.w, a_rot.x, a_rot.y, a_rot.z);//q is only pitch yaw roll, but we want it in x y z
+        Math::decomposeTransform(Math::createMat4(pos, q, sca), position, rotation, scale);
 
-        position.x = a_pos.x;
-        position.y = a_pos.y;
-        position.z = a_pos.z;
-        glm::quat q = glm::quat(a_rot.w, a_rot.x, a_rot.y, a_rot.z);
-
-        rotation = glm::eulerAngles(q);
-
-        scale.x = a_scale.x;
-        scale.y = a_scale.y;
-        scale.z = a_scale.z;
     }
 
     void Stulu::Model::load(const std::string& path) {
@@ -123,7 +123,7 @@ namespace Stulu {
         const aiScene* scene;
         {
             ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+            scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
         }
         
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {

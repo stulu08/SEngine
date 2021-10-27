@@ -1,0 +1,8 @@
+Shader: Stulu/assets/Shaders/pbrtextured.glsl
+StructName: u_mat
+DataTypes:
+  - [12, [assets/textures/Cerberus_A.tga], albedoMap]
+  - [12, [assets/textures/Cerberus_M.tga], metallicMap]
+  - [12, [assets/textures/Cerberus_R.tga], roughnessMap]
+  - [12, [assets/textures/Cerberus_N.tga], normalMap]
+  - [12, [assets\textures\Cerberus_AO.tga], aoMap]

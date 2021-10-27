@@ -16,6 +16,7 @@ workspace "Stulu"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 vulkanSDK = os.getenv("VULKAN_SDK")
+physx = "%{wks.location}/Stulu/vendor/physx"
 
 IncludeDir = {}
 IncludeDir["spdlog"] = "%{wks.location}/Stulu/vendor/spdlog/include"
@@ -30,6 +31,8 @@ IncludeDir["stb_image"] = "%{wks.location}/Stulu/vendor/stb_image"
 IncludeDir["noise"] = "%{wks.location}/Stulu/vendor/ReputelessPerlinNoise"
 IncludeDir["entt"] = "%{wks.location}/Stulu/vendor/entt"
 IncludeDir["Vulkan"] = "%{vulkanSDK}/Include"
+IncludeDir["PhysX"] = "%{physx}/include"
+IncludeDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc/include"
 
 group "Dependencies"
 include "Stulu/vendor/GLFW"
@@ -37,6 +40,7 @@ include "Stulu/vendor/Glad"
 include "Stulu/vendor/imgui"
 include "Stulu/vendor/assimp"
 include "Stulu/vendor/yaml-cpp"
+include "Editor/vendor/discord-rpc"
 group ""
 
 include "Stulu"

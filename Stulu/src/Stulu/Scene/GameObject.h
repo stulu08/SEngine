@@ -32,6 +32,8 @@ namespace Stulu {
 			m_scene->m_registry.remove<T>(m_entity);
 		}
 
+		UUID getId();
+
 		operator bool() const { return m_entity != entt::null; }
 		operator entt::entity() const { return m_entity; }
 		operator uint32_t() const { return (uint32_t)m_entity; }

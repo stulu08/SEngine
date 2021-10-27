@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Stulu/Core/Core.h"
-#include "Stulu/Math/Math.h"
+#include <memory>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/fmt/ostr.h>
-
 
 namespace Stulu {
 	class Log {

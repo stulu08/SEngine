@@ -8,8 +8,10 @@ namespace Stulu {
 		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
 	};
 
-	SubMesh::SubMesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices) {
+	SubMesh::SubMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) {
 		ST_PROFILING_FUNCTION();
+		m_vertices = vertices;
+		m_indices = indices;
 		m_verticesCount = vertices.size();
 		m_indicesCount = indices.size();
 		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
@@ -23,7 +25,7 @@ namespace Stulu {
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
 
-	Mesh::Mesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices) {
+	Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) {
 		ST_PROFILING_FUNCTION();
 		m_vertices = vertices;
 		m_indices = indices;
@@ -42,10 +44,24 @@ namespace Stulu {
 		m_vertexArray->addVertexBuffer(vertexBuffer);
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
+	}
+	Mesh Mesh::combine(Mesh& mesh) {
+		if (mesh.m_subMeshCount == 0)
+			return mesh;
 
+		Mesh newMesh;
+		uint32_t indicesOffset = 0;
 
-		//m_vertices and m_indices are just to update the mesh not to actually get the vertices and indices in the mesh
-		m_vertices.clear();
-		m_indices.clear();
+		for (auto& sub : mesh.m_subMeshes) {
+			indicesOffset =(uint32_t)newMesh.m_vertices.size();
+			for (auto& vertex : sub.m_vertices) {
+				newMesh.m_vertices.push_back(vertex);
+			}
+			for (auto& index : sub.m_indices) {
+				newMesh.m_indices.push_back(index + indicesOffset);
+			}
+		}
+		newMesh.recalculate();
+		return newMesh;
 	}
 }

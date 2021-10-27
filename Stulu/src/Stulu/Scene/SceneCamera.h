@@ -12,6 +12,7 @@ namespace Stulu {
 		SceneCamera(float aspectRatio, float fov, float zNear, float zFar);
 
 		void onUpdate(Timestep timestep);
+		void updateMove(Timestep timestep);
 		void onEvent(Event& e);
 		void onResize(float width, float height);
 

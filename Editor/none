@@ -1,0 +1,4 @@
+Shader: Stulu/assets/Shaders/SkyBox.glsl
+StructName: u_mat
+DataTypes:
+  - [13, [Stulu/assets/SkyBox/default/right.jpg, Stulu/assets/SkyBox/default/left.jpg, Stulu/assets/SkyBox/default/top.jpg, Stulu/assets/SkyBox/default/bottom.jpg, Stulu/assets/SkyBox/default/front.jpg, Stulu/assets/SkyBox/default/back.jpg], u_skyBox]

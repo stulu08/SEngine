@@ -1,7 +1,20 @@
 #pragma once
 #include "Stulu/Core/Layer.h"
-struct ImGuiStyle;
-struct ImVec4;
+struct ImVec2;
+
+ImVec2 operator *(const ImVec2& vec, const float v);
+ImVec2 operator /(const ImVec2& vec, const float v);
+ImVec2 operator +(const ImVec2& vec, const float v);
+ImVec2 operator -(const ImVec2& vec, const float v);
+ImVec2 operator *(const ImVec2& vec, const ImVec2& vec2);
+ImVec2 operator /(const ImVec2& vec, const ImVec2& vec2);
+ImVec2 operator +(const ImVec2& vec, const ImVec2& vec2);
+ImVec2 operator -(const ImVec2& vec, const ImVec2& vec2);
+ImVec2 operator *(const ImVec2& vec, const glm::vec2& vec2);
+ImVec2 operator /(const ImVec2& vec, const glm::vec2& vec2);
+ImVec2 operator +(const ImVec2& vec, const glm::vec2& vec2);
+ImVec2 operator -(const ImVec2& vec, const glm::vec2& vec2);
+
 namespace Stulu {
 	class ImGuiLayer : public Layer
 	{
@@ -17,12 +30,11 @@ namespace Stulu {
 
 		void Begin();
 		void End();
-		void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);
-		void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
 
 	private:
 		bool m_blockEvents = true;
 		float m_time = 0.0f;
 	};
 }
+
 

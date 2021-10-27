@@ -18,7 +18,6 @@ namespace Stulu {
 			out << YAML::Key << "tag" << YAML::Value << tag;
 			out << YAML::EndMap;
 		}
-
 		if (gameObject.hasComponent<TransformComponent>()) {
 			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
@@ -28,7 +27,6 @@ namespace Stulu {
 			out << YAML::Key << "scale" << YAML::Value << trans.scale;
 			out << YAML::EndMap;
 		}
-
 		if (gameObject.hasComponent<CameraComponent>()) {
 			out << YAML::Key << "CameraComponent";
 			out << YAML::BeginMap;
@@ -51,7 +49,6 @@ namespace Stulu {
 			out << YAML::Key << "depth" << YAML::Value << camera.depth;
 			out << YAML::EndMap;
 		}
-
 		if (gameObject.hasComponent<SpriteRendererComponent>()) {
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
@@ -71,6 +68,72 @@ namespace Stulu {
 			out << YAML::Key << "strength" << YAML::Value << light.strength;
 			out << YAML::Key << "spotLight_cutOff" << YAML::Value << light.spotLight_cutOff;
 			out << YAML::Key << "spotLight_outerCutOff" << YAML::Value << light.spotLight_outerCutOff;
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<MeshRendererComponent>()) {
+			out << YAML::Key << "MeshRendererComponent";
+			out << YAML::BeginMap;
+			auto& meshren = gameObject.getComponent<MeshRendererComponent>();
+			out << YAML::Key << "material" << YAML::Value << meshren.material->getPath();
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<MeshFilterComponent>()) {
+			out << YAML::Key << "MeshFilterComponent";
+			out << YAML::BeginMap;
+			auto& meshren = gameObject.getComponent<MeshFilterComponent>();
+			//out << YAML::Key << "mesh" << YAML::Value << meshren.mesh;
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<SkyBoxComponent>()) {
+			out << YAML::Key << "SkyBoxComponent";
+			out << YAML::BeginMap;
+			auto& meshren = gameObject.getComponent<SkyBoxComponent>();
+			out << YAML::Key << "material" << YAML::Value << meshren.material->getPath();
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<BoxColliderComponent>()) {
+			out << YAML::Key << "BoxColliderComponent";
+			out << YAML::BeginMap;
+			auto& component = gameObject.getComponent<BoxColliderComponent>();
+			out << YAML::Key << "dynamicFriction" << YAML::Value << component.dynamicFriction;
+			out << YAML::Key << "staticFriction" << YAML::Value << component.staticFriction;
+			out << YAML::Key << "restitution" << YAML::Value << component.restitution;
+			out << YAML::Key << "size" << YAML::Value << component.size;
+			out << YAML::Key << "offset" << YAML::Value << component.offset;
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<SphereColliderComponent>()) {
+			out << YAML::Key << "SphereColliderComponent";
+			out << YAML::BeginMap;
+			auto& component = gameObject.getComponent<SphereColliderComponent>();
+			out << YAML::Key << "dynamicFriction" << YAML::Value << component.dynamicFriction;
+			out << YAML::Key << "staticFriction" << YAML::Value << component.staticFriction;
+			out << YAML::Key << "restitution" << YAML::Value << component.restitution;
+			out << YAML::Key << "radius" << YAML::Value << component.radius;
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<MeshColliderComponent>()) {
+			out << YAML::Key << "MeshColliderComponent";
+			out << YAML::BeginMap;
+			auto& component = gameObject.getComponent<MeshColliderComponent>();
+			out << YAML::Key << "dynamicFriction" << YAML::Value << component.dynamicFriction;
+			out << YAML::Key << "staticFriction" << YAML::Value << component.staticFriction;
+			out << YAML::Key << "restitution" << YAML::Value << component.restitution;
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<RigidbodyComponent>()) {
+			out << YAML::Key << "RigidbodyComponent";
+			out << YAML::BeginMap;
+			auto& component = gameObject.getComponent<RigidbodyComponent>();
+			out << YAML::Key << "rbType" << YAML::Value << (int)component.rbType;
+			out << YAML::Key << "useGravity" << YAML::Value << component.useGravity;
+			out << YAML::Key << "rotationX" << YAML::Value << component.rotationX;
+			out << YAML::Key << "rotationY" << YAML::Value << component.rotationY;
+			out << YAML::Key << "rotationZ" << YAML::Value << component.rotationZ;
+			out << YAML::Key << "kinematic" << YAML::Value << component.kinematic;
+			out << YAML::Key << "retainAccelaration" << YAML::Value << component.retainAccelaration;
+			out << YAML::Key << "mass" << YAML::Value << component.mass;
+			out << YAML::Key << "massCenterPos" << YAML::Value << component.massCenterPos;
 			out << YAML::EndMap;
 		}
 
@@ -130,18 +193,19 @@ namespace Stulu {
 
 				GameObject deserialized = m_scene->createGameObject(name);
 				deserialized.getComponent<GameObjectBaseComponent>().tag = tag;
-				auto transformComponent = gameObject["TransformComponent"];
-				if (transformComponent) {
+
+				auto transformComponentNode = gameObject["TransformComponent"];
+				if (transformComponentNode) {
 					auto& tc = deserialized.getComponent<TransformComponent>();
-					tc.position = transformComponent["position"].as<glm::vec3>();
-					tc.rotation = transformComponent["rotation"].as<glm::vec3>();
-					tc.scale = transformComponent["scale"].as<glm::vec3>();
+					tc.position = transformComponentNode["position"].as<glm::vec3>();
+					tc.rotation = transformComponentNode["rotation"].as<glm::vec3>();
+					tc.scale = transformComponentNode["scale"].as<glm::vec3>();
 				}
 
-				auto cameraComponent = gameObject["CameraComponent"];
-				if (cameraComponent) {
+				auto cameraComponentNode = gameObject["CameraComponent"];
+				if (cameraComponentNode) {
 					auto& cc = deserialized.addComponent<CameraComponent>();
-					auto& settings = cameraComponent["Camera Settings"];
+					auto& settings = cameraComponentNode["Camera Settings"];
 
 					cc.settings.clearType = (CameraComponent::ClearType)settings["clearType"].as<int>();
 					cc.settings.clearColor = settings["clearColor"].as<glm::vec4>();
@@ -155,30 +219,90 @@ namespace Stulu {
 					cc.settings.textureHeight = settings["textureHeight"].as<uint32_t>();
 
 
-					cc.mode = (CameraMode)cameraComponent["mode"].as<int>();
-					cc.depth = (CameraMode)cameraComponent["depth"].as<int>();
+					cc.mode = (CameraMode)cameraComponentNode["mode"].as<int>();
+					cc.depth = (CameraMode)cameraComponentNode["depth"].as<int>();
 					cc.updateMode();
 					cc.updateProjection();
 					cc.updateSize();
 				}
 
-				auto spriteRendererComponent = gameObject["SpriteRendererComponent"];
-				if (spriteRendererComponent) {
+				auto spriteRendererNode = gameObject["SpriteRendererComponent"];
+				if (spriteRendererNode) {
 					auto& src = deserialized.addComponent<SpriteRendererComponent>();
-					src.color = spriteRendererComponent["color"].as<glm::vec4>();
-					src.tiling = spriteRendererComponent["tiling"].as<glm::vec2>();
-					if(spriteRendererComponent["texture"])
-						src.texture = Texture2D::create(spriteRendererComponent["texture"].as<std::string>());
+					src.color = spriteRendererNode["color"].as<glm::vec4>();
+					src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
+					if(spriteRendererNode["texture"])
+						src.texture = Texture2D::create(spriteRendererNode["texture"].as<std::string>());
 				}
 
-				auto lightC = gameObject["LightComponent"];
-				if (lightC) {
+				auto lightComponentNode = gameObject["LightComponent"];
+				if (lightComponentNode) {
 					auto& light = deserialized.addComponent<LightComponent>();
-					light.color = lightC["color"].as<glm::vec3>();
-					light.lightType = (LightComponent::Type)lightC["lightType"].as<int>();
-					light.strength = lightC["strength"].as<float>();
-					light.spotLight_cutOff = lightC["spotLight_cutOff"].as<float>();
-					light.spotLight_outerCutOff = lightC["spotLight_outerCutOff"].as<float>();
+					light.color = lightComponentNode["color"].as<glm::vec3>();
+					light.lightType = (LightComponent::Type)lightComponentNode["lightType"].as<int>();
+					light.strength = lightComponentNode["strength"].as<float>();
+					light.spotLight_cutOff = lightComponentNode["spotLight_cutOff"].as<float>();
+					light.spotLight_outerCutOff = lightComponentNode["spotLight_outerCutOff"].as<float>();
+				}
+
+				auto meshRendererComponentNode = gameObject["MeshRendererComponent"];
+				if (meshRendererComponentNode) {
+					auto& meshrenC = deserialized.addComponent<MeshRendererComponent>();
+					meshrenC.material = createRef<Material>(Material::fromDataStringPath(meshRendererComponentNode["material"].as<std::string>()));
+				}
+
+				auto meshFilterComponentNode = gameObject["MeshFilterComponent"];
+				if (meshFilterComponentNode) {
+					auto& meshFilter = deserialized.addComponent<MeshFilterComponent>();
+				}
+
+				auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
+				if (skyBoxComponentNode) {
+					auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
+					skyBox.material = createRef<Material>(Material::fromDataStringPath(skyBoxComponentNode["material"].as<std::string>()));
+				}
+
+				auto boxColliderComponentNode = gameObject["BoxColliderComponent"];
+				if (boxColliderComponentNode) {
+					auto& collider = deserialized.addComponent<BoxColliderComponent>();
+					collider.dynamicFriction = boxColliderComponentNode["dynamicFriction"].as<float>();
+					collider.staticFriction = boxColliderComponentNode["staticFriction"].as<float>();
+					collider.restitution = boxColliderComponentNode["restitution"].as<float>();
+
+					collider.size = boxColliderComponentNode["size"].as<glm::vec3>();
+					collider.offset = boxColliderComponentNode["offset"].as<glm::vec3>();
+				}
+
+				auto sphereColliderComponentNode = gameObject["SphereColliderComponent"];
+				if (sphereColliderComponentNode) {
+					auto& collider = deserialized.addComponent<SphereColliderComponent>();
+					collider.dynamicFriction = sphereColliderComponentNode["dynamicFriction"].as<float>();
+					collider.staticFriction = sphereColliderComponentNode["staticFriction"].as<float>();
+					collider.restitution = sphereColliderComponentNode["restitution"].as<float>();
+
+					collider.radius = sphereColliderComponentNode["radius"].as<float>();
+				}
+
+				auto meshColliderComponentNode = gameObject["MeshColliderComponent"];
+				if (meshColliderComponentNode) {
+					auto& collider = deserialized.addComponent<MeshColliderComponent>();
+					collider.dynamicFriction = meshColliderComponentNode["dynamicFriction"].as<float>();
+					collider.staticFriction = meshColliderComponentNode["staticFriction"].as<float>();
+					collider.restitution = meshColliderComponentNode["restitution"].as<float>();
+				}
+
+				auto rigidbodyComponentNode = gameObject["RigidbodyComponent"];
+				if (rigidbodyComponentNode) {
+					auto& body = deserialized.addComponent<RigidbodyComponent>();
+					body.rbType = (RigidbodyComponent::Type)rigidbodyComponentNode["rbType"].as<int>();
+					body.useGravity = rigidbodyComponentNode["useGravity"].as<bool>();
+					body.rotationX = rigidbodyComponentNode["rotationX"].as<bool>();
+					body.rotationY = rigidbodyComponentNode["rotationY"].as<bool>();
+					body.rotationZ = rigidbodyComponentNode["rotationZ"].as<bool>();
+					body.kinematic = rigidbodyComponentNode["kinematic"].as<bool>();
+					body.retainAccelaration = rigidbodyComponentNode["retainAccelaration"].as<bool>();
+					body.mass = rigidbodyComponentNode["mass"].as<float>();
+					body.massCenterPos = rigidbodyComponentNode["massCenterPos"].as<glm::vec3>();
 				}
 			}
 		}

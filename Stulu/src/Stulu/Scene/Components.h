@@ -1,14 +1,19 @@
 #pragma once
+#include "Stulu/Core/UUID.h"
+#include "Stulu/Core/Timestep.h"
+
+#include "Stulu/Math/Math.h"
+
 #include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
+
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Material.h"
-#include "Stulu/Core/Timestep.h"
-#include "Stulu/Math/Math.h"
 
 namespace Stulu {
 	struct GameObjectBaseComponent {
+		UUID uuid;
 		std::string name = "GameObject";
 		std::string tag = "default";
 
@@ -126,12 +131,24 @@ namespace Stulu {
 		}
 	};
 
+	struct SpriteRendererComponent {
+		glm::vec4 color = COLOR_WHITE;
+		glm::vec2 tiling = glm::vec2(1.0f);
+		Ref<Texture2D> texture = nullptr;
+		SpriteRendererComponent() = default;
+		SpriteRendererComponent(const SpriteRendererComponent&) = default;
+		SpriteRendererComponent(const glm::vec4 color)
+			: color(color) {};
+	};
+
 	struct LightComponent {
 		enum Type{ Directional = 0, Area = 1, Spot = 2 };
 
 		Type lightType = Type::Directional;
 		glm::vec3 color = glm::vec3(1.0f);
 		float strength = 1.0f;
+
+		float areaRadius = 1.0f;
 
 		float spotLight_cutOff = 10.0f;
 		float spotLight_outerCutOff = 15.0f;
@@ -141,7 +158,12 @@ namespace Stulu {
 		LightComponent(const Type& type)
 			: lightType(type) {};
 	};
-	
+	struct SkyBoxComponent {
+		Ref<Material> material = nullptr;
+		SkyBoxComponent() = default;
+		SkyBoxComponent(const SkyBoxComponent&) = default;
+	};
+
 	struct MeshRendererComponent {
 		Ref<Material> material = nullptr;
 
@@ -150,9 +172,8 @@ namespace Stulu {
 		MeshRendererComponent(const Ref<Material>& material)
 			: material(material) {};
 	};
-
 	struct MeshFilterComponent {
-		Ref<Mesh> mesh;
+		Ref<Mesh> mesh = nullptr;
 
 		MeshFilterComponent() = default;
 		MeshFilterComponent(const MeshFilterComponent&) = default;
@@ -160,14 +181,50 @@ namespace Stulu {
 			: mesh(mesh) {};
 	};
 
-	struct SpriteRendererComponent {
-		glm::vec4 color = COLOR_WHITE;
-		glm::vec2 tiling = glm::vec2(1.0f);
-		Ref<Texture2D> texture = nullptr;
-		SpriteRendererComponent() = default;
-		SpriteRendererComponent(const SpriteRendererComponent&) = default;
-		SpriteRendererComponent(const glm::vec4 color)
-			: color(color) {};
+	struct RigidbodyComponent {
+		enum Type{Dynamic=0,Static=1};
+		Type rbType = Dynamic;
+		bool useGravity = true;
+		//dynamic
+		bool rotationX = true, rotationY = true, rotationZ = true;
+		bool kinematic = false;
+		bool retainAccelaration = false;
+		float mass = 1.0f;
+		glm::vec3 massCenterPos = glm::vec3(.0f);
+
+		RigidbodyComponent() = default;
+		RigidbodyComponent(const RigidbodyComponent&) = default;
+
+		//runtime
+		void* body = nullptr;
+	};
+	struct BoxColliderComponent {
+		float staticFriction = .1f;
+		float dynamicFriction = .1f;
+		float restitution = .0f;
+		glm::vec3 offset = glm::vec3(0.0f);
+		glm::vec3 size = glm::vec3(.5f);
+
+		BoxColliderComponent() = default;
+		BoxColliderComponent(const BoxColliderComponent&) = default;
+	};
+	struct SphereColliderComponent {
+		float staticFriction = .1f;
+		float dynamicFriction = .1f;
+		float restitution = .0f;
+		glm::vec3 offset = glm::vec3(0.0f);
+		float radius = .5f;
+
+		SphereColliderComponent() = default;
+		SphereColliderComponent(const SphereColliderComponent&) = default;
+	};
+	struct MeshColliderComponent {
+		float staticFriction = .1f;
+		float dynamicFriction = .1f;
+		float restitution = .0f;
+
+		MeshColliderComponent() = default;
+		MeshColliderComponent(const MeshColliderComponent&) = default;
 	};
 
 	class Behavior;

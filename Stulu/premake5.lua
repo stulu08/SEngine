@@ -40,7 +40,9 @@ project "Stulu"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.noise}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.PhysX}/physx",
 	}
 
 	links 
@@ -52,11 +54,17 @@ project "Stulu"
 		"yaml-cpp",
 		"opengl32.lib",
 		"vulkan-1.lib",
-		"VkLayer_utils.lib"
+		"VkLayer_utils.lib",
+		"PhysX_static_64.lib",
+		"PhysXCommon_static_64.lib",
+		"PhysXFoundation_static_64.lib",
+		"PhysXPvdSDK_static_64.lib",
+		"PhysXExtensions_static_64.lib",
+		"PhysXCooking_static_64.lib",
 	}
 	libdirs 
 	{ 
-		"%{vulkanSDK}/Lib" 
+		"%{vulkanSDK}/Lib"
 	}
 
 	filter "system:windows"
@@ -72,13 +80,25 @@ project "Stulu"
 		defines "ST_DEBUG"
 		runtime "Debug"
 		symbols "on"
+		libdirs 
+		{ 
+			"%{physx}/windows-bin/debug"
+		}
 
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
 		optimize "on"
+		libdirs 
+		{ 
+			"%{physx}/windows-bin/release"
+		}
 
 	filter "configurations:Dist"
 		defines "ST_DIST"
 		runtime "Release"
 		optimize "on"
+		libdirs 
+		{ 
+			"%{physx}/windows-bin/checked"
+		}

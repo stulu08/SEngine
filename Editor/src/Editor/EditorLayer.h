@@ -1,9 +1,8 @@
 #pragma once
-#include "Temp/Skybox.h"
-#include "Temp/ParticleSystem.h"
-#include "Panel/EditorHierarchy.h"
-#include "Panel/EditorViewport.h"
-#include "Panel/AssetBrowser.h"
+#include "Editor/Panel/EditorHierarchy.h"
+#include "Editor/Panel/SceneViewport.h"
+#include "Editor/Panel/GameViewport.h"
+#include "Editor/Panel/AssetBrowser.h"
 
 namespace Stulu {
 	class EditorLayer : public Layer {
@@ -16,31 +15,41 @@ namespace Stulu {
 		void onEvent(Event& e) override;
 
 		inline static Ref<Scene>& getActiveScene() { return m_activeScene; }
+
+		void SaveScene(const std::string& path);
+		void OpenScene(const std::string& path);
+		inline static bool isRuntime() { return s_runtime; }
 	private:
-		bool m_runtime = false;
+		bool m_showStyleEditor = false;
+		bool m_showHierarchy = true;
+		bool m_showInspector = true;
+		bool m_showAssetBrowser = true;
+		bool m_showGameViewport = true;
+		bool m_showSceneViewport = true;
+		
 		std::string m_currentScenePath;
 
 		SceneCamera m_sceneCamera;
-		//Ref<Scene> m_activeScene;
 
 		Ref<Material> m_material;
 		ShaderLibary m_shaderLib;
 
-		int m_gizmoEditType = -1;
 		
-		EditorViewportPanel m_sceneViewport;
-		EditorViewportPanel m_gameViewport;
+		SceneViewportPanel m_sceneViewport;
+		GameViewportPanel m_gameViewport;
 		AssetBrowserPanel m_assetBrowser;
 		EditorHierarchyPanel m_editorHierarchy;
+		EditorInspectorPanel m_inspectorPanel;
 
+
+		void drawMenuBar();
 		bool onShortCut(KeyDownEvent& e);
 		void SaveScene();
 		void OpenScene();
-		void SaveScene(const std::string& path);
-		void OpenScene(const std::string& path);
 		void newScene();
 
 
 		inline static Ref<Scene> m_activeScene = nullptr;
+		inline static bool s_runtime = false;
 	};
 }

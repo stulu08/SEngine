@@ -59,6 +59,7 @@ struct vertInput
 };
 
 layout (location = 0) in vertInput _input;
+layout(binding = 1) uniform samplerCube skybox;
 
 
 // material parameters
@@ -68,7 +69,7 @@ struct Material{
     float roughness;
     float ao;
 };
-uniform Material u_mat = {vec3(.5,.5,.5),1.0,.5,.2};
+uniform Material u_mat = {vec3(.5,.5,.5),1.0,.5,.0};
 
   
 const float PI = 3.14159265359;
@@ -108,12 +109,16 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 } 
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}   
 
 void main()
 {		
     vec3 N = normalize(_input.normal);
     vec3 V = normalize(_input.cameraPosition - _input.worldPos);
-
+    vec3 R = reflect(-V, N);
 
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, u_mat.albedo, u_mat.metallic);
@@ -127,7 +132,7 @@ void main()
              // calculate per-light radiance
             vec3 L = normalize(-lights[i].rotation.xyz);
             vec3 H = normalize(V + L);
-            float attenuation = lights[i].colorAndStrength.w;
+            float attenuation = 1.0f;
 
             vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
     
@@ -141,12 +146,12 @@ void main()
             kD *= 1.0 - u_mat.metallic;	  
     
             vec3 numerator    = NDF * G * F;
-            float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-            vec3 specular     = numerator / max(denominator, 0.001);  
-        
+            float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+            vec3 specular     = numerator / denominator;  
+
             // add to outgoing radiance Lo
             float NdotL = max(dot(N, L), 0.0);                
-            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL;
+            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w;
             
         }
         //point
@@ -155,8 +160,9 @@ void main()
             vec3 L = normalize(lights[i].positionAndType.xyz - _input.worldPos);
             vec3 H = normalize(V + L);
             float distance    = length(lights[i].positionAndType.xyz - _input.worldPos);
-            float attenuation = lights[i].colorAndStrength.w / (distance * distance);
-
+            float radius = lights[i].spotLightData.w;
+            float attenuation = max(1-(distance / radius),0);
+            
             vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
     
             // cook-torrance brdf
@@ -174,15 +180,16 @@ void main()
         
             // add to outgoing radiance Lo
             float NdotL = max(dot(N, L), 0.0);                
-            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL;
+            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w;
         }
+        //spot
         else if(lights[i].positionAndType.w == 2) {
             vec3 L = normalize(lights[i].positionAndType.xyz - _input.worldPos);
             float theta = dot(L, normalize(-lights[i].rotation.xyz));
             float epsilon   = lights[i].spotLightData.x - lights[i].spotLightData.y;
             float intensity = clamp((theta - lights[i].spotLightData.y) / epsilon, 0.0, 1.0);    
 
-            float attenuation = lights[i].colorAndStrength.w;
+            float attenuation = 1.0f;
 
             vec3 radiance     = lights[i].colorAndStrength.xyz * attenuation;        
 
@@ -203,18 +210,32 @@ void main()
         
             // add to outgoing radiance Lo
             float NdotL = max(dot(N, vec3(intensity)), 0.0);                
-            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL;
+            Lo += (kD * u_mat.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w;
         }
     }
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, u_mat.roughness);
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - u_mat.metallic;	  
+    
+    vec3 irradiance = vec3(1.0);
+    vec3 diffuse      = irradiance * u_mat.albedo;
+    
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(skybox, R, u_mat.roughness * MAX_REFLECTION_LOD).rgb;    
+    vec2 brdf  = vec2(.75*u_mat.roughness);
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    vec3 ambient = vec3(0.03) * u_mat.albedo * u_mat.ao;
+    vec3 ambient = (kD * diffuse + specular) * u_mat.ao;
+    
     vec3 color = ambient + Lo;
 
+    // HDR tonemapping
     color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0/2.2));  
-   
+    // gamma correct
+    color = pow(color, vec3(1.0/2.2)); 
 
-
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(color , 1.0);
 
 }

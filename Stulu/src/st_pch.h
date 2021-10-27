@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <optional>
 #include <iomanip>
+#include <xhash>
 
 #include "Stulu/Core/Log.h"
 #include "Stulu/Debug/Instrumentor.h"

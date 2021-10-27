@@ -180,11 +180,7 @@ namespace Stulu {
 
 	void OpenGLShader::bind() const {
 		ST_PROFILING_FUNCTION();
-		int32_t active_id = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &active_id);
-		if (active_id != m_rendererID) {
-			glUseProgram(m_rendererID);
-		}
+		glUseProgram(m_rendererID);
 	}
 	void OpenGLShader::unbind() const {
 		ST_PROFILING_FUNCTION();

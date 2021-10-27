@@ -7,58 +7,76 @@ namespace Stulu {
 		m_selectedObject = GameObject::null;
 		m_scene = scene;
 	}
+	void EditorHierarchyPanel::render(bool* open) {
+		if (ImGui::Begin("Hierarchy", open)) {
+			if (m_scene == nullptr)
+				return noScene();
 
-	void EditorHierarchyPanel::render() {
-		ImGui::Begin("Hierarchy");
-		if (m_scene == nullptr)
-			return noScene();
-		
-		m_scene->m_registry.each([&](auto goID) {
-			GameObject gameObject{ goID, m_scene.get() };
-			drawObject(gameObject);
-		});
+			m_scene->m_registry.each([&](auto goID) {
+				GameObject gameObject{ goID, m_scene.get() };
+				drawObject(gameObject);
+				});
 
-		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-			m_selectedObject = GameObject::null;
+			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+				m_selectedObject = GameObject::null;
 
-		if (ImGui::BeginPopupContextWindow("Create")) {
-			if (ImGui::MenuItem("GameObject")) {
-				m_scene->createGameObject();
+			if (ImGui::BeginPopupContextWindow("Create")) {
+				if (ImGui::MenuItem("GameObject")) {
+					m_scene->createGameObject();
+				}
+				if (m_selectedObject != GameObject::null && ImGui::MenuItem("Child")) {
+					m_scene->createGameObject("Child").getComponent<TransformComponent>().parent = m_selectedObject;
+				}
+				ImGui::Separator();
+				if (ImGui::BeginMenu("3D")) {
+					if (ImGui::MenuItem("Cube")) {
+						GameObject g = m_scene->createGameObject("Cube");
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getCubeMesh();
+						g.addComponent<BoxColliderComponent>();
+					}
+					if (ImGui::MenuItem("Plane")) {
+						GameObject g = m_scene->createGameObject("Plane");
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getPlaneMesh();
+						g.addComponent<MeshColliderComponent>();
+					}
+					if (ImGui::MenuItem("Sphere")) {
+						GameObject g = m_scene->createGameObject("Sphere");
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getSphereMesh();
+						g.addComponent<SphereColliderComponent>();
+					}
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("2D")) {
+					if (ImGui::MenuItem("SpriteRenderer"))
+						m_scene->createGameObject("SpriteRenderer").addComponent<SpriteRendererComponent>();
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Lights")) {
+					if (ImGui::MenuItem("Directional Light"))
+						m_scene->createGameObject("Directional Light").addComponent<LightComponent>(LightComponent::Directional);
+					if(ImGui::MenuItem("Area Light"))
+						m_scene->createGameObject("Area Light").addComponent<LightComponent>(LightComponent::Area);
+					if (ImGui::MenuItem("Spot Light")) 
+						m_scene->createGameObject("Spot Light").addComponent<LightComponent>(LightComponent::Spot);
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Rendering")) {
+					if (ImGui::MenuItem("Orthographic Camera")) {
+						GameObject g = m_scene->createGameObject("Orthographic Camera");
+						g.addComponent<CameraComponent>(CameraMode::Orthographic);
+						g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
+					}
+					if (ImGui::MenuItem("Perspective Camera")) {
+						GameObject g = m_scene->createGameObject("Perspective Camera");
+						g.addComponent<CameraComponent>(CameraMode::Perspective);
+						g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
+					}
+					ImGui::EndMenu();
+				}
+				ImGui::EndPopup();
 			}
-			if (ImGui::MenuItem("SpriteRenderer")) {
-				m_scene->createGameObject("SpriteRenderer").addComponent<SpriteRendererComponent>();
-			}
-			if (ImGui::MenuItem("Directional Light")) {
-				m_scene->createGameObject("Directional Light").addComponent<LightComponent>(LightComponent::Directional);
-			}
-			if (ImGui::MenuItem("Area Light")) {
-				m_scene->createGameObject("Area Light").addComponent<LightComponent>(LightComponent::Area);
-			}
-			if (ImGui::MenuItem("Spot Light")) {
-				m_scene->createGameObject("Spot Light").addComponent<LightComponent>(LightComponent::Spot);
-			}
-			if (ImGui::MenuItem("Orthographic Camera")) {
-				GameObject g = m_scene->createGameObject("Orthographic Camera");
-				g.addComponent<CameraComponent>(CameraMode::Orthographic);
-				g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
-			}
-			if (ImGui::MenuItem("Perspective Camera")) {
-				GameObject g = m_scene->createGameObject("Perspective Camera");
-				g.addComponent<CameraComponent>(CameraMode::Perspective);
-				g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
-			}
-			ImGui::EndPopup();
 		}
 		ImGui::End();
-		if (!m_inspectorPanel.render(m_selectedObject)) {
-
-			m_scene->m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
-				if (transform.parent == m_selectedObject)
-					m_scene->destroyGameObject({ go, m_scene.get() });
-			});
-
-			m_selectedObject = GameObject::null;
-		}
 	}
 	void EditorHierarchyPanel::drawObject(GameObject gameObject, int childIndex) {
 		auto transform = gameObject.getComponent<TransformComponent>();
