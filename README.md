@@ -18,11 +18,13 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 ***
 ### Next
+- Assets Manager
+- Much optimization(my code is garbage)
+- 3D Rendering(Thread, Render queue, Shadows, Reflections)
 - 2D Rendering
-- 3D Rendering(Thread, Render queue)
-- Scripting
+- Scripting(C#)
 - Vulkan
-- Assets
+
 
 Icons for the Assets Explorer made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/)
 
