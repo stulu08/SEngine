@@ -1,12 +1,14 @@
 #include "st_pch.h"
 #include "Material.h"
+#include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/YAML.h"
 
+
 namespace Stulu {
-	Material Material::fromDataStringPath(const std::string& path) {
+	Material Material::fromDataStringPath(const std::string& path, UUID uuid) {
 		MaterialData data;
 		YAML::Node YAMLdata = YAML::LoadFile(path);
-		std::string shaderPath = YAMLdata["Shader"].as<std::string>();
+		UUID shaderUuid = UUID(YAMLdata["Shader"].as<uint64_t>());
 		data.materialStructName = YAMLdata["StructName"].as<std::string>();
 		
 		auto DataTypes = YAMLdata["DataTypes"];
@@ -14,23 +16,25 @@ namespace Stulu {
 			MaterialDataType daty = dataType.as<MaterialDataType>();
 			data.dataTypes.push_back(daty);
 		}
-		Material mat = Material(shaderPath, data);
-		mat.m_path = path;
+		Material mat = Material(Asset{ AssetType::Unknown, 0, AssetsManager::get(shaderUuid).path, shaderUuid }, data);
+		mat.m_uuid = uuid;
 		size_t lastS = path.find_last_of("/\\");
 		lastS = lastS == std::string::npos ? 0 : lastS + 1;
 		size_t lastD = path.rfind('.');
 		mat.m_name = path.substr(lastS, lastD == std::string::npos ? path.size() - lastS : lastD - lastS);
 		return mat;
 	}
-	Material::Material(const std::string& shaderPath, const MaterialData& data)
-		: m_shaderPath(shaderPath), m_runtimeData(data) {
-		m_shader = Shader::create(m_shaderPath);
+	Material::Material(Asset& shader, const MaterialData& data)
+		: m_runtimeData(data) {
+		m_shader = Shader::create(shader.path);
+		m_shaderUuid = shader.uuid;
+		m_uuid = UUID::null;
 		uploadData();
 	}
 	void Material::toDataStringFile(std::string path) {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Shader" << YAML::Value << m_shaderPath;
+		out << YAML::Key << "Shader" << YAML::Value << (uint64_t)m_shaderUuid;
 		out << YAML::Key << "StructName" << YAML::Value << m_runtimeData.materialStructName;
 		out << YAML::Key << "DataTypes" << YAML::Value << YAML::BeginSeq;
 		for (auto& dataType : m_runtimeData.dataTypes) {
@@ -67,10 +71,6 @@ namespace Stulu {
 					m_shader->setInt(dataType.name, texCount);
 					texCount++;
 					break;
-				case ShaderDataType::SamplerCube:
-					m_shader->setInt(dataType.name, texCount);
-					texCount++;
-					break;
 				default:
 					CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
 			}
@@ -79,16 +79,25 @@ namespace Stulu {
 	void Material::bind() {
 		int texCount = 2;
 		for (auto& dataType : m_runtimeData.dataTypes) {
-			std::string name = m_runtimeData.materialStructName + "." + dataType.name;
-			switch (dataType.type) {
-				case ShaderDataType::Sampler:
-					std::any_cast<MaterialTexture>(dataType.data).texture->bind(texCount);
-					texCount++;
+			if (dataType.type == ShaderDataType::Sampler) {
+				Asset& asset = AssetsManager::get(std::any_cast<UUID>(dataType.data));
+
+				switch (asset.type)
+				{
+				case Stulu::AssetType::Texture2D:
+					asset.data._Cast<Ref<Texture2D>>()->get()->bind(texCount);
 					break;
-				case ShaderDataType::SamplerCube:
-					std::any_cast<MaterialTextureCube>(dataType.data).texture->bind(texCount);
-					texCount++;
+				case Stulu::AssetType::Texture:
+					asset.data._Cast<Ref<Texture>>()->get()->bind(texCount);
 					break;
+				case Stulu::AssetType::CubeMap:
+					asset.data._Cast<Ref<CubeMap>>()->get()->bind(texCount);
+					break;
+				default:
+					break;
+				}
+				texCount++;
+				break;
 			}
 		}
 		m_shader->bind();
@@ -96,20 +105,16 @@ namespace Stulu {
 	void Material::unbind(){
 		m_shader->unbind();
 		for (auto& dataType : m_runtimeData.dataTypes) {
-			std::string name = m_runtimeData.materialStructName + "." + dataType.name;
 			switch (dataType.type) {
 				case ShaderDataType::Sampler:
-					m_shader->setInt(dataType.name, 0);
-					break;
-				case ShaderDataType::SamplerCube:
 					m_shader->setInt(dataType.name, 0);
 					break;
 			}
 		}
 	}
 	bool Material::operator==(const Material& other) const {
-		bool samePath = m_path == other.m_path;
-		bool sameShaderPath = m_shaderPath == other.m_shaderPath;
+		bool samePath = m_uuid == other.m_uuid;
+		bool sameShaderPath = m_shaderUuid == other.m_shaderUuid;
 		bool sameDataStructName = m_runtimeData.materialStructName == other.m_runtimeData.materialStructName;
 		bool sameData = m_runtimeData.dataTypes == other.m_runtimeData.dataTypes;
 
@@ -135,6 +140,7 @@ namespace Stulu {
 			case ShaderDataType::Mat4:		sameData = std::any_cast<glm::mat4>(data) == std::any_cast<glm::mat4>(other.data);		break;
 
 			//case ShaderDataType::Bool:	m_shader->setBool()										break;
+			case ShaderDataType::Sampler:	sameData = std::any_cast<UUID>(data) == std::any_cast<UUID>(other.data);				break;
 		}
 
 

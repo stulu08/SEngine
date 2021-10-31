@@ -6,14 +6,14 @@
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
-    GameObject Model::loadModel(const std::string& path, Scene* scene, const Ref<Material>& material) {
+    GameObject Model::loadModel(const std::string& path, Scene* scene, UUID material) {
         ST_PROFILING_FUNCTION();
 
         Assimp::Importer importer;
         const aiScene* a_scene;
         {
             ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            a_scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_CalcTangentSpace);
+            a_scene = importer.ReadFile(path, aiProcess_Triangulate);
         }
 
         if (!a_scene || a_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !a_scene->mRootNode) {
@@ -23,7 +23,7 @@ namespace Stulu {
         a_scene->mRootNode->mName = a_scene->GetShortFilename(path.c_str());
         return processNode(a_scene->mRootNode, a_scene, scene, material);;
     }
-    GameObject Stulu::Model::processNode(aiNode* node, const aiScene* scene, Scene* s_scene, const Ref<Material>& material) {
+    GameObject Stulu::Model::processNode(aiNode* node, const aiScene* scene, Scene* s_scene, UUID material) {
         ST_PROFILING_FUNCTION();
         GameObject go = s_scene->createGameObject(std::string(node->mName.data));
 
@@ -46,7 +46,11 @@ namespace Stulu {
                 }
                 mesh = Mesh::combine(mesh);
             }
-            go.addComponent<MeshRendererComponent>().material = material;
+            go.addComponent<MeshRendererComponent>();
+            if (AssetsManager::existsAndType(material, AssetType::Material))
+                go.getComponent<MeshRendererComponent>().material = AssetsManager::get(material).data._Cast<Material>();
+
+
             go.getComponent<MeshFilterComponent>().mesh = createRef<Mesh>(mesh);
         }
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -123,7 +127,7 @@ namespace Stulu {
         const aiScene* scene;
         {
             ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+            scene = import.ReadFile(path, aiProcess_Triangulate);
         }
         
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {

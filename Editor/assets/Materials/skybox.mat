@@ -1,4 +1,4 @@
-Shader: Stulu/assets/Shaders/SkyBox.glsl
+Shader: 7
 StructName: u_mat
 DataTypes:
-  - [13, [assets/skybox/city/right.jpg, assets/skybox/city/left.jpg, assets/skybox/city/top.jpg, assets/skybox/city/bottom.jpg, assets/skybox/city/front.jpg, assets/skybox/city/back.jpg], u_skyBox]
+  - [12, 11, u_skyBox]

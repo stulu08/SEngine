@@ -8,6 +8,7 @@ namespace Stulu {
 		loadPlaneMesh();
 		loadSphereMesh();
 		loadSkyBoxMesh();
+		loadBlackTexture();
 	}
 
 	Ref<Mesh>& Resources::getCubeMesh() {
@@ -21,6 +22,9 @@ namespace Stulu {
 	}
 	Ref<Mesh>& Resources::getSkyBoxMesh() {
 		return s_skyBoxMesh;
+	}
+	Ref<Texture2D>& Resources::getBlackTexture() {
+		return s_blackTexture;
 	}
 	void Resources::loadCubeMesh() {
 		std::vector<Vertex> vertices{
@@ -147,5 +151,10 @@ namespace Stulu {
 			22,23,20
 		};
 		s_skyBoxMesh = createRef<Mesh>(vertices, indices);
+	}
+	void Resources::loadBlackTexture() {
+		s_blackTexture = Texture2D::create(1, 1);
+		uint32_t datawhite = 0xffffffff;
+		s_blackTexture->setData(&datawhite, sizeof(uint32_t));
 	}
 }

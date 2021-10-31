@@ -6,7 +6,7 @@ namespace Stulu{
 		Float, Float2, Float3, Float4,
 		Int, Int2, Int3, Int4,
 		Mat3, Mat4,
-		Bool, Sampler, SamplerCube
+		Bool, Sampler
 	};
 
 	static uint32_t shaderDataTypeSize(ShaderDataType type) {
@@ -27,7 +27,6 @@ namespace Stulu{
 			case ShaderDataType::Bool:		return 1;
 
 			case ShaderDataType::Sampler:	return 4;
-			case ShaderDataType::SamplerCube:	return 4;
 		}
 		CORE_ASSERT(false, "Uknown ShaderDataType");
 		return 0;
@@ -64,7 +63,6 @@ namespace Stulu{
 				case ShaderDataType::Bool:		return 1;
 
 				case ShaderDataType::Sampler:	return 1;
-				case ShaderDataType::SamplerCube:	return 1;
 			}
 			CORE_ASSERT(false, "Uknown ShaderDataType");
 			return 0;

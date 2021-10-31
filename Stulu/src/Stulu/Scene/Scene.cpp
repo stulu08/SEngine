@@ -72,8 +72,8 @@ namespace Stulu {
 				{
 					ST_PROFILING_SCOPE("Rendering Sprite");
 					auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-					if(sprite.texture)
-						Renderer2D::drawTexturedQuad(transform,sprite.texture, sprite.tiling, sprite.color);
+					if(AssetsManager::existsAndType(sprite.texture, AssetType::Texture2D))
+						Renderer2D::drawTexturedQuad(transform, std::any_cast<Ref<Texture2D>>(AssetsManager::get(sprite.texture).data), sprite.tiling, sprite.color);
 					else
 						Renderer2D::drawQuad(transform, sprite.color);
 
@@ -305,8 +305,8 @@ namespace Stulu {
 			{
 				ST_PROFILING_SCOPE("Rendering Sprite");
 				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-				if (sprite.texture)
-					Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.tiling, sprite.color);
+				if (AssetsManager::existsAndType(sprite.texture, AssetType::Texture2D))
+					Renderer2D::drawTexturedQuad(transform, std::any_cast<Ref<Texture2D>>(AssetsManager::get(sprite.texture).data), sprite.tiling, sprite.color);
 				else
 					Renderer2D::drawQuad(transform, sprite.color);
 

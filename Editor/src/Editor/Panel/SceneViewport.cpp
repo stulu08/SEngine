@@ -24,11 +24,16 @@ namespace Stulu {
 
 			if (ImGui::BeginDragDropTarget()) {
 				bool news = false;
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_DROP_SCENE")) {
-					const char* path = (const char*)payload->Data;
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Scene)).c_str())) {
+					UUID id = *(UUID*)payload->Data;
+					std::string path = AssetsManager::get(id).path;
 					ST_INFO("Received Scene: {0}", path);
 					EditorApp::getLayer().OpenScene(path);
 					news = true;
+				}
+				else if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Model)).c_str())) {
+					UUID id = *(UUID*)payload->Data;
+					GameObject go = Model::loadModel(AssetsManager::get(id).path, EditorLayer::getActiveScene().get());
 				}
 				ImGui::EndDragDropTarget();
 				if (news) {

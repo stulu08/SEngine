@@ -19,6 +19,7 @@
 #include <optional>
 #include <iomanip>
 #include <xhash>
+#include <filesystem>
 
 #include "Stulu/Core/Log.h"
 #include "Stulu/Debug/Instrumentor.h"
@@ -28,5 +29,6 @@
 #ifdef ST_PLATFORM_WINDOWS
 	#include <Windows.h>
 	#include <commdlg.h>
+	#include <psapi.h>
 #endif // ST_PLATFORM_WINDOWS
 

@@ -1,9 +1,10 @@
 #include "st_pch.h"
 #include "Texture.h"
 
+#include "Stulu/Scene/YAML.h"
 #include "Stulu/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
-
+#include "Stulu/Scene/AssetsManager.h"
 namespace Stulu {
 	Ref<Texture2D> Texture2D::create(const std::string& path)
 	{
@@ -72,5 +73,15 @@ namespace Stulu {
 
 		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
 		return nullptr;
+	}
+	Ref<CubeMap> CubeMap::create(const std::string& cubeMapYamlPath) {
+		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
+		std::string right = AssetsManager::get(data["right"].as<uint64_t>()).path;
+		std::string left = AssetsManager::get(data["left"].as<uint64_t>()).path;
+		std::string top = AssetsManager::get(data["top"].as<uint64_t>()).path;
+		std::string bottom = AssetsManager::get(data["bottom"].as<uint64_t>()).path;
+		std::string front = AssetsManager::get(data["front"].as<uint64_t>()).path;
+		std::string back = AssetsManager::get(data["back"].as<uint64_t>()).path;
+		return create({ right,left,top,bottom,front,back });
 	}
 }

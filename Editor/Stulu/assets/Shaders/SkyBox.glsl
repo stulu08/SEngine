@@ -12,17 +12,12 @@ layout(std140, binding = 0) uniform data
 	vec3 cameraRotation;
 };
 uniform mat4 u_transform;
-uniform int u_preview = 0;
 out vec3 v_texCoords;
 void main(){
 	v_texCoords = a_pos;
 	mat4 view = mat4(mat3(viewMatrix));
 	vec4 pos = projMatrix * view * vec4(a_pos, 1.0f);
-	if(u_preview == 1){
-		gl_Position = u_viewProjection * u_transform * vec4(a_pos,1.0f);
-	}else{
-		gl_Position = pos.xyww;
-	}
+	gl_Position = pos.xyww;
 }
 ##type fragment
 #version 460 core

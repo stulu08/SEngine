@@ -28,7 +28,7 @@ namespace Stulu {
 			};
 			SceneRuntimeData sceneData;
 			Ref<UniformBuffer> sceneDataUniformBuffer = nullptr;
-			Ref<Material> defaultMaterial = nullptr;
+			UUID defaultMaterial;
 			Ref<Camera> cam = nullptr;
 		};
 		static Data m_runtimeData;

@@ -7,6 +7,8 @@ namespace Stulu {
 		UUID();
 		UUID(uint64_t uuid);
 		operator uint64_t() const { return m_uuid; }
+
+		static UUID null;
 	private:
 		uint64_t m_uuid;
 	};

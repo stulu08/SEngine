@@ -50,8 +50,17 @@ namespace Stulu {
 			ImGui::Begin("Profiling");
 			ImGui::Text("FPS: %.1f", 1.0f / timestep);
 			ImGui::Text("Frametime: %.3f", Time::deltaTime.getSeconds());
+			if (ImGui::TreeNodeEx("Memory Usage", ImGuiTreeNodeFlags_DefaultOpen)) {
+				MemoryUsageInfo info = Platform::getMemoryUsage();
+				double sqrt = 1048576;
+				ImGui::Text("Virtual memory usage: %smb", 
+					std::to_string(static_cast<double>(info.virtualUsedByProcess) / sqrt).c_str());
+				ImGui::Text("Physical memory usage: %smb",
+					std::to_string(static_cast<double>(info.physicalUsedByProcess) / sqrt).c_str());
+				ImGui::TreePop();
+			}
 #if ST_PROFILING_RENDERDATA
-			if (s_runtime) {
+			if (ST_PROFILING_RENDERDATA_GETENABLE() && ImGui::TreeNodeEx("Render Data", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::Text("Runtime time: %.1f", Time::time.getSeconds());
 				ImGui::Text("Drawing for %d Camera(s)", ST_PROFILING_RENDERDATA_GETCAMERAS());
 				ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());

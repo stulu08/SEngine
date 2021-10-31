@@ -8,6 +8,7 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
 
+#include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Material.h"
 
@@ -134,7 +135,7 @@ namespace Stulu {
 	struct SpriteRendererComponent {
 		glm::vec4 color = COLOR_WHITE;
 		glm::vec2 tiling = glm::vec2(1.0f);
-		Ref<Texture2D> texture = nullptr;
+		UUID texture;
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4 color)
@@ -159,18 +160,17 @@ namespace Stulu {
 			: lightType(type) {};
 	};
 	struct SkyBoxComponent {
-		Ref<Material> material = nullptr;
+		Material* material;
+
 		SkyBoxComponent() = default;
 		SkyBoxComponent(const SkyBoxComponent&) = default;
 	};
 
 	struct MeshRendererComponent {
-		Ref<Material> material = nullptr;
+		Material* material;
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
-		MeshRendererComponent(const Ref<Material>& material)
-			: material(material) {};
 	};
 	struct MeshFilterComponent {
 		Ref<Mesh> mesh = nullptr;

@@ -9,8 +9,7 @@ namespace Stulu {
 	void SceneRenderer::init() {
 		ST_PROFILING_FUNCTION();
 #if OPENGL
-		if(m_runtimeData.defaultMaterial == nullptr)
-			m_runtimeData.defaultMaterial = createRef<Material>(Material::fromDataStringPath("Stulu/assets/Materials/default.mat"));
+		m_runtimeData.defaultMaterial = AssetsManager::getFromPath("Stulu/assets/Materials/default.mat");
 		if(m_runtimeData.sceneDataUniformBuffer == nullptr)
 			m_runtimeData.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneRuntimeData), 0);
 #endif
@@ -95,32 +94,46 @@ namespace Stulu {
 	}
 	void SceneRenderer::submit(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
+		Material* material;
 		if (mesh.material) {
-			mesh.material->bind();
-			mesh.material->getShader()->setMat4("u_transform", transform);
+			material = mesh.material;
 		}
 		else {
-			m_runtimeData.defaultMaterial->bind();
-			m_runtimeData.defaultMaterial->getShader()->setMat4("u_transform", transform);
+			material = AssetsManager::get(m_runtimeData.defaultMaterial).data._Cast<Material>();
 		}
+		material->bind();
+		material->getShader()->setMat4("u_transform", transform);
 		filter.mesh->getVertexArray()->bind();
 		RenderCommand::drawIndexed(filter.mesh->getVertexArray(),0);
 
 		if (mesh.material) {
-			mesh.material->unbind();
+			material->unbind();
 		}
 	}
 	void SceneRenderer::drawSkyBox(SkyBoxComponent& skybox) {
-		if (!skybox.material)
+		ST_PROFILING_FUNCTION();
+		if (!skybox.material) {
 			return;
+		}
+
+		Material* material = skybox.material;
+
 		auto& mesh = Resources::getSkyBoxMesh();
 		Stulu::RenderCommand::setDepthFunc(true);
-		skybox.material->bind();
 
-		for (auto& dataType : skybox.material->getData().dataTypes) {
-			switch (dataType.type) {
-			case ShaderDataType::SamplerCube:
-				std::any_cast<MaterialTextureCube>(dataType.data).texture->bind(1);
+		material->bind();
+		for (auto& dataType : material->getData().dataTypes) {
+			if (dataType.type == ShaderDataType::Sampler) {
+				Asset& asset = AssetsManager::get(std::any_cast<UUID>(dataType.data));
+
+				switch (asset.type)
+				{
+				case Stulu::AssetType::CubeMap:
+					asset.data._Cast<Ref<CubeMap>>()->get()->bind(1);
+					break;
+				default:
+					break;
+				}
 				break;
 			}
 		}
@@ -129,7 +142,7 @@ namespace Stulu {
 		mesh->getVertexArray()->bind();
 		RenderCommand::drawIndexed(mesh->getVertexArray(), 0);
 
-		skybox.material->unbind();
+		material->unbind();
 		Stulu::RenderCommand::setDepthFunc(false);
 	}
 }

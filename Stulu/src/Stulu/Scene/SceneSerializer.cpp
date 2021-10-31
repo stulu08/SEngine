@@ -57,8 +57,8 @@ namespace Stulu {
 			auto& spriteRendererComponent = gameObject.getComponent<SpriteRendererComponent>();
 			out << YAML::Key << "color" << YAML::Value << spriteRendererComponent.color;
 			out << YAML::Key << "tiling" << YAML::Value << spriteRendererComponent.tiling;
-			if(spriteRendererComponent.texture)
-				out << YAML::Key << "texture" << YAML::Value << spriteRendererComponent.texture->getPath();
+			if (spriteRendererComponent.texture)
+				out << YAML::Key << "texture" << YAML::Value << (uint64_t)spriteRendererComponent.texture;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<LightComponent>()) {
@@ -76,7 +76,8 @@ namespace Stulu {
 			out << YAML::Key << "MeshRendererComponent";
 			out << YAML::BeginMap;
 			auto& meshren = gameObject.getComponent<MeshRendererComponent>();
-			out << YAML::Key << "material" << YAML::Value << meshren.material->getPath();
+			if(meshren.material)
+				out << YAML::Key << "material" << YAML::Value << (uint64_t)meshren.material->getUUID();
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<MeshFilterComponent>()) {
@@ -90,7 +91,8 @@ namespace Stulu {
 			out << YAML::Key << "SkyBoxComponent";
 			out << YAML::BeginMap;
 			auto& meshren = gameObject.getComponent<SkyBoxComponent>();
-			out << YAML::Key << "material" << YAML::Value << meshren.material->getPath();
+			if(meshren.material)
+				out << YAML::Key << "material" << YAML::Value << (uint64_t)meshren.material->getUUID();
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<BoxColliderComponent>()) {
@@ -232,7 +234,7 @@ namespace Stulu {
 					src.color = spriteRendererNode["color"].as<glm::vec4>();
 					src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
 					if(spriteRendererNode["texture"])
-						src.texture = Texture2D::create(spriteRendererNode["texture"].as<std::string>());
+						src.texture = spriteRendererNode["texture"].as<uint64_t>();
 				}
 
 				auto lightComponentNode = gameObject["LightComponent"];
@@ -247,19 +249,25 @@ namespace Stulu {
 
 				auto meshRendererComponentNode = gameObject["MeshRendererComponent"];
 				if (meshRendererComponentNode) {
-					auto& meshrenC = deserialized.addComponent<MeshRendererComponent>();
-					meshrenC.material = createRef<Material>(Material::fromDataStringPath(meshRendererComponentNode["material"].as<std::string>()));
+					auto& meshrenC = deserialized.saveAddComponent<MeshRendererComponent>();
+					if (meshRendererComponentNode["material"]) {
+						UUID id = meshRendererComponentNode["material"].as<uint64_t>();
+						if (AssetsManager::existsAndType(id, AssetType::Material))
+							deserialized.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+					}
 				}
 
 				auto meshFilterComponentNode = gameObject["MeshFilterComponent"];
 				if (meshFilterComponentNode) {
-					auto& meshFilter = deserialized.addComponent<MeshFilterComponent>();
+					//auto& meshFilter = deserialized.saveAddComponent<MeshFilterComponent>();
+					deserialized.removeComponent<MeshFilterComponent>();
 				}
 
 				auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
 				if (skyBoxComponentNode) {
 					auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
-					skyBox.material = createRef<Material>(Material::fromDataStringPath(skyBoxComponentNode["material"].as<std::string>()));
+					if(skyBoxComponentNode["material"])
+						skyBox.material = AssetsManager::get(UUID(skyBoxComponentNode["material"].as<uint64_t>())).data._Cast<Material>();
 				}
 
 				auto boxColliderComponentNode = gameObject["BoxColliderComponent"];

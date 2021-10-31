@@ -5,6 +5,7 @@
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Renderer/Renderer2D.h"
+#include "Stulu/Scene/AssetsManager.h"
 
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -21,6 +22,9 @@ namespace Stulu {
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 #endif
+		CORE_INFO("Loading assets");
+		AssetsManager::loadAllFiles("Stulu");
+		AssetsManager::loadAllFiles("assets");
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();

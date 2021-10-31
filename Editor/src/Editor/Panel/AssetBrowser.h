@@ -9,8 +9,10 @@ namespace Stulu {
 		void render(bool* open);
 
 
-		const Ref<Texture> getIcon(const std::filesystem::directory_entry& directory);
+		const Ref<Texture>& getIcon(const std::filesystem::directory_entry& directory);
 	private:
 		std::filesystem::path m_path;
+
+		void drawDirectory(const std::string& path);
 	};
 }

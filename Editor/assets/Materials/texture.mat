@@ -1,4 +1,4 @@
-Shader: Stulu/assets/Shaders/texture.glsl
+Shader: 15581545370899657542
 StructName: u_mat
 DataTypes:
-  - [12, [assets\textures\rustediron2_basecolor.png], u_texture]
+  - [12, 8940688891585887236, u_texture]

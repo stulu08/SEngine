@@ -53,6 +53,7 @@
 //#include "Stulu/Renderer/VertexArray.h"
 
 ////////////////////Scene////////////////////
+#include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/Behavior.h"
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Scene/Resources.h"

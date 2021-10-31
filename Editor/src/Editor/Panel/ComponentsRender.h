@@ -16,19 +16,17 @@ namespace Stulu {
 			return *s_instance;
 		}
 
-		void addMaterial(const Ref<Material>& material);
-		Ref<Texture>& getMaterial(const Ref<Material>& material);
-		Ref<Texture>& getMaterial(const std::string& path);
-		bool existsMaterial(const Ref<Material>& material);
-		bool existsMaterial(const std::string& path);
+		void addMaterial(Asset& asset);
+		Ref<Texture>& getMaterial(UUID uuid);
+		bool existsMaterial(UUID uuid);
 	private:
-		std::unordered_map<std::string, Ref<Texture>> materials;
+		std::unordered_map<UUID, Ref<Texture>> materials;
 		GameObject camera;
 		GameObject sphere;
 		GameObject light;
 		Ref<Scene> scene;
 
-		void setUpScene(const Ref<Material>& material);
+		void setUpScene(Asset& asset);
 
 		inline static Previewing* s_instance = nullptr;
 	};
@@ -49,7 +47,7 @@ namespace Stulu {
 		static bool drawVector4Control(const std::string& header, glm::vec4& vec);
 		static bool drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items = -1);
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
-		static bool drawTextureEdit(const std::string& header, Ref<Texture2D>& texture);
-		static bool drawMaterialEdit(const std::string& header, Ref<Material>& material);
+		static bool drawTextureEdit(const std::string& header, UUID& uuid, AssetType type = AssetType::Texture2D);
+		static bool drawMaterialEdit(const std::string& header, UUID& uuid);
 	};
 }

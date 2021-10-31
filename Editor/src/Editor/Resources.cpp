@@ -12,32 +12,36 @@ namespace Stulu {
 		s_playTexture = Texture2D::create("Stulu/assets/Textures/Icons/play.png");
 		s_pauseTexture = Texture2D::create("Stulu/assets/Textures/Icons/pause.png");
 		s_stopTexture = Texture2D::create("Stulu/assets/Textures/Icons/stop.png");
+		s_skyboxTexture = Texture2D::create("Stulu/assets/Textures/Icons/skybox.png");
 	}
-	Ref<Texture> EditorResources::getEmptySlotTexture() {
+	Ref<Texture>& EditorResources::getEmptySlotTexture() {
 		return s_emptyTexture;
 	}
-	Ref<Texture> EditorResources::getFileTexture() {
+	Ref<Texture>& EditorResources::getFileTexture() {
 		return s_fileTexture;
 	}
-	Ref<Texture> EditorResources::getFolderTexture() {
+	Ref<Texture>& EditorResources::getFolderTexture() {
 		return s_folderTexture;
 	}
-	Ref<Texture> EditorResources::getObjectTexture() {
+	Ref<Texture>& EditorResources::getObjectTexture() {
 		return s_objectTexture;
 	}
-	Ref<Texture> EditorResources::getSceneTexture() {
+	Ref<Texture>& EditorResources::getSceneTexture() {
 		return s_sceneTexture;
 	}
-	Ref<Texture> EditorResources::getNoCameraTexture() {
+	Ref<Texture>& EditorResources::getNoCameraTexture() {
 		return s_noCameraTexture;
 	}
-	Ref<Texture> EditorResources::getPlayTexture() {
+	Ref<Texture>& EditorResources::getPlayTexture() {
 		return s_playTexture;
 	}
-	Ref<Texture> EditorResources::getPauseTexture() {
+	Ref<Texture>& EditorResources::getPauseTexture() {
 		return s_pauseTexture;
 	}
-	Ref<Texture> EditorResources::getStopTexture() {
+	Ref<Texture>& EditorResources::getStopTexture() {
 		return s_stopTexture;
+	}
+	Ref<Texture>& EditorResources::getSkyBoxTexture() {
+		return s_skyboxTexture;
 	}
 }

@@ -2,17 +2,11 @@
 #include <Stulu/Renderer/Buffer.h>
 #include <Stulu/Renderer/Shader.h>
 #include <Stulu/Renderer/Texture.h>
+#include "Stulu/Core/UUID.h"
 #include <any>
 
 namespace Stulu {
-	struct MaterialTexture {
-		std::string texPath;
-		Ref<Texture2D> texture;
-	};
-	struct MaterialTextureCube {
-		std::vector<std::string> texPath;
-		Ref<CubeMap> texture;
-	};
+	struct Asset;
 	struct MaterialDataType {
 		ShaderDataType type;
 		std::any data;
@@ -31,12 +25,12 @@ namespace Stulu {
 	};
 	class Material {
 	public:
-		static Material fromDataStringPath(const std::string& path);
+		static Material fromDataStringPath(const std::string& path, UUID uuid);
 
 		Material() {
 
 		}
-		Material(const std::string& shaderPath, const MaterialData& data);
+		Material(Asset& shader, const MaterialData& data);
 
 		void toDataStringFile(std::string path);
 
@@ -46,14 +40,14 @@ namespace Stulu {
 
 		Ref<Shader>& getShader() { return m_shader; }
 		MaterialData& getData() { return m_runtimeData; }
-		const std::string& getPath() { return m_path; }
+		UUID& getUUID() { return m_uuid; }
 		const std::string& getName() { return m_name; }
 
 		bool operator == (const Material& other) const;
 	private:
 		Ref<Shader> m_shader = nullptr;
-		std::string m_shaderPath = "Stulu/assets/Shaders/pbr.glsl";
-		std::string m_path = "none";
+		UUID m_uuid = UUID::null;
+		UUID m_shaderUuid = UUID::null;
 		std::string m_name = "none";
 		MaterialData m_runtimeData;
 

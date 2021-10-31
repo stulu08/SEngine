@@ -77,6 +77,23 @@ namespace Stulu {
 		CORE_ERROR("Cant create directory({0}): {1}", std::to_string(GetLastError()), std::string(directory));
 		return false;
 	}
+	//https://stackoverflow.com/a/64166/13917861
+	MemoryUsageInfo Platform::getMemoryUsage() {
+		MEMORYSTATUSEX memInfo;
+		memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+		GlobalMemoryStatusEx(&memInfo);
+		uint64_t totalVirtualMem = memInfo.ullTotalPageFile;
+		uint64_t virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
+		PROCESS_MEMORY_COUNTERS_EX pmc;
+		GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+		uint64_t virtualMemUsedByMe = pmc.PrivateUsage;
+
+		uint64_t totalPhysMem = memInfo.ullTotalPhys;
+		uint64_t physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+		uint64_t physMemUsedByMe = pmc.WorkingSetSize;
+
+		return { totalVirtualMem,virtualMemUsed,virtualMemUsedByMe,totalPhysMem,physMemUsed,physMemUsedByMe };
+	}
 
 }
 #endif // PLAFORM_WINDOWS
