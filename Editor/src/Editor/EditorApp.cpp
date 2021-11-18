@@ -10,7 +10,7 @@ namespace Stulu {
 	EditorApp* EditorApp::s_instance = nullptr;
 	EditorApp::EditorApp() 
 		: Application("Stulu Editor") {
-		getWindow().setVSync(true);
+		getWindow().setVSync(false);
 		getWindow().setWindowIcon("Stulu/assets/Textures/Logo/engine-app-icon.png");
 		Resources::load();
 		s_instance = this;

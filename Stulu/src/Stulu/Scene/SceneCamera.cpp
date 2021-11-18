@@ -9,6 +9,7 @@ namespace Stulu {
 	SceneCamera::SceneCamera(float aspectRatio, float fov, float zNear, float zFar)
 		:m_aspectRatio(aspectRatio), m_fov(fov), m_zNear(zNear), m_zFar(zFar) {
 
+		ST_PROFILING_FUNCTION();
 		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar);
 
 
@@ -20,6 +21,8 @@ namespace Stulu {
 		m_lastMouseXPos = Input::getMouseX();
 		m_lastMouseYPos = Input::getMouseY();
 
+		m_mouseDelta = glm::clamp(m_mouseDelta, glm::vec2(-1.0f), glm::vec2(1.0f));
+
 	}
 	void SceneCamera::updateMove(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
@@ -27,6 +30,7 @@ namespace Stulu {
 		mouseLookMove();
 	}
 	void SceneCamera::mouseTranslateMove(Timestep timestep) {
+		ST_PROFILING_FUNCTION();
 		if (Input::isMouseDown(MOUSE_BUTTON_1)) {
 			m_transform.position += m_transform.rightDirection() * -m_mouseDelta.x * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
 			m_transform.position += m_transform.upDirection() * m_mouseDelta.y * m_cameraMoveSpeed *(float)timestep.getMilliseconds();

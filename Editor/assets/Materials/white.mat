@@ -4,4 +4,4 @@ DataTypes:
   - [1, 0, metallic]
   - [3, [1, 1, 1], albedo]
   - [1, 0, roughness]
-  - [1, 0.300000012, ao]
+  - [1, 0.100000001, ao]
