@@ -3,7 +3,7 @@
 #include "VulkanRenderAPI.h"
 
 namespace Stulu {
-	class VulkanShader : public Shader
+	class STULU_API VulkanShader : public Shader
 	{
 	public:
 		VulkanShader(const std::string& path);

@@ -6,7 +6,7 @@
 //1 = currentSkyBox
 //2-end = material
 namespace Stulu {
-	class SceneRenderer {
+	class STULU_API SceneRenderer {
 	public:
 		static void init();
 

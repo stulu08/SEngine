@@ -7,7 +7,7 @@
 #include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu {
-	class WindowsWindow : public Window {
+	class STULU_API WindowsWindow : public Window {
 	public:
 		WindowsWindow(const WindowProps& props);
 		virtual ~WindowsWindow();

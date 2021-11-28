@@ -1,6 +1,5 @@
 #include "SceneViewport.h"
 #include <imgui/imgui.h>
-#include <ImGuizmo/ImGuizmo.h>
 
 #include "Editor/Resources.h"
 #include "Editor/EditorApp.h"

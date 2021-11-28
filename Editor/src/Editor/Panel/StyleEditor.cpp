@@ -114,6 +114,7 @@ namespace Stulu {
         ImGui::TreePop();
     }
     void StyleEditor::init() {
+        ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 15.0f);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 15.0f);

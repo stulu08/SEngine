@@ -1,13 +1,21 @@
 #include "st_pch.h"
 #include "PhysX.h"
 #define PX_PHYSX_STATIC_LIB
-#include "PxConfig.h"
 #include "physx/PxPhysicsAPI.h"
 #include "Stulu/Core/Time.h"
 #include "Stulu/Scene/Components.h"
 
-
+//https://gameworksdocs.nvidia.com/PhysX/4.0/documentation/PhysXGuide/Manual/API.html
 namespace Stulu {
+    class SnippetGpuLoadHook : public PxGpuLoadHook
+    {
+        virtual const char* getPhysXGpuDllName() const
+        {
+            return "PhysXGpu_64.dll";
+        }
+    } gGpuLoadHook;
+
+
     physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec) {
         return physx::PxVec3{ vec.x,vec.y,vec.z };
     }
@@ -145,18 +153,22 @@ namespace Stulu {
         if (!m_cooking)
             CORE_ASSERT(false, "PxCreateCooking failed!");
         
+        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
+
+
         m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(data.workerThreads);
         if (!m_cpuDispatcher)
             CORE_ASSERT(false,"PxDefaultCpuDispatcherCreate failed!");
 
-#if PX_WINDOWS & 0
+        physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
+
+#if PX_WINDOWS
         // create GPU dispatcher
         physx::PxCudaContextManagerDesc cudaContextManagerDesc;
         m_cudaContextManager = PxCreateCudaContextManager(*m_foundataion,cudaContextManagerDesc);
         sceneDesc.cudaContextManager = m_cudaContextManager;
 #endif
 
-        physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
         sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
         sceneDesc.cpuDispatcher = m_cpuDispatcher;
         sceneDesc.gravity = PhysicsVec3fromglmVec3(data.gravity);

@@ -3,7 +3,7 @@
 #include "Stulu/Renderer/Camera.h"
 
 namespace Stulu {
-	class PerspectiveCamera : public Camera{
+	class STULU_API PerspectiveCamera : public Camera{
 	public:
 		PerspectiveCamera(float fov, float aspect, float z_near, float z_far);
 		const virtual void setProjection(float fov, float aspect, float z_near, float z_far) override;

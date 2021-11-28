@@ -2,7 +2,7 @@
 #include "Stulu/Core/Core.h"
 
 namespace Stulu {
-	class UUID {
+	class STULU_API UUID {
 	public:
 		UUID();
 		UUID(uint64_t uuid);

@@ -3,7 +3,7 @@
 #include "Scene.h"
 
 namespace Stulu {
-	class GameObject {
+	class STULU_API GameObject {
 	public:
 		GameObject() = default;
 		GameObject(entt::entity entity, Scene* scene);

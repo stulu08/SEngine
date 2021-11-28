@@ -3,7 +3,7 @@
 #include "Stulu/Renderer/Camera.h"
 
 namespace Stulu {
-	class OrthographicCamera : public Camera {
+	class STULU_API OrthographicCamera : public Camera {
 	public:
 		OrthographicCamera(float left, float right, float bottom, float top, float zNear, float zFar);
 		const virtual void setProjection(float left, float right, float bottom, float top, float zNear, float zFar) override;

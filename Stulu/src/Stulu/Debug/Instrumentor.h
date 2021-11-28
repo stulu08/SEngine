@@ -4,7 +4,6 @@
 #include <chrono>
 #include <algorithm>
 #include <fstream>
-
 #include <thread>
 
 #include "Stulu/Core/Core.h"
@@ -22,7 +21,7 @@ namespace Stulu {
         std::string Name;
     };
 
-    class Instrumentor
+    class STULU_API Instrumentor
     {
     private:
         InstrumentationSession* m_CurrentSession;
@@ -90,7 +89,7 @@ namespace Stulu {
         }
     };
 
-    class InstrumentationTimer
+    class STULU_API InstrumentationTimer
     {
     public:
         InstrumentationTimer(const char* name)

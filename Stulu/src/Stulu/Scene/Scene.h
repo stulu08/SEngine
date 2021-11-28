@@ -14,10 +14,10 @@ namespace Stulu {
 		bool enablePhsyics3D = true;
 	};
 
-	class GameObject;
-	class SceneCamera;
+	class STULU_API GameObject;
+	class STULU_API SceneCamera;
 
-	class Scene {
+	class STULU_API Scene {
 	public:
 		Scene();
 		~Scene();

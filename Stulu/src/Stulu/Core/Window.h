@@ -14,7 +14,7 @@ namespace Stulu{
 			: title(_title), width(_width),height(_height){}
 	};
 
-	class Window{
+	class STULU_API Window{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;
 

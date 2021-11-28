@@ -1,11 +1,17 @@
 project "Stulu"
-	kind "StaticLib"
+	if(staticBuild) then
+		kind "StaticLib"
+	else
+		kind "SharedLib"
+	end
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	if(staticRuntime) then
+		staticruntime "on"
+	end
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("bin/" .. outputdir .. "")
+	objdir ("bin-int/" .. outputdir .. "")
 
 	pchheader "st_pch.h"
 	pchsource "src/st_pch.cpp"
@@ -18,13 +24,21 @@ project "Stulu"
 		"vendor/stb_image/**.h",
 		"vendor/glm/glm/**.hpp",
 		"vendor/glm/glm/**.inl",
-		"vendor/ReputelessPerlinNoise/**.h",
+		"vendor/ReputelessPerlinNoise/**.h"
 	}
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"_CRT_SECURE_NO_WARNINGS",
 	}
+	if(staticBuild == false) then
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"ST_DYNAMIC_LINK",
+			"ST_DLL_BUILD"
+		}
+	end
 
 	includedirs
 	{
@@ -52,27 +66,41 @@ project "Stulu"
 		"ImGui",
 		"assimp",
 		"yaml-cpp",
+		"ImGuizmo",
+		
 		"opengl32.lib",
+
 		"vulkan-1.lib",
 		"VkLayer_utils.lib",
+
 		"PhysX_static_64.lib",
 		"PhysXCommon_static_64.lib",
 		"PhysXFoundation_static_64.lib",
 		"PhysXPvdSDK_static_64.lib",
 		"PhysXExtensions_static_64.lib",
-		"PhysXCooking_static_64.lib",
+		"PhysXCooking_static_64.lib"
 	}
 	libdirs 
 	{ 
-		"%{vulkanSDK}/Lib"
+		"%{vulkanSDK}/Lib",
 	}
+	if(staticRuntime) then
+		libdirs
+		{
+			"%{physx}/bin/static/".. outputdir ..""
+		}
+	else
+		libdirs
+		{
+			"%{physx}/bin/dynamic/".. outputdir ..""
+		}
+	end
 
 	filter "system:windows"
 		systemversion "latest"
 
 		defines
 		{
-			"St_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
 
@@ -80,25 +108,13 @@ project "Stulu"
 		defines "ST_DEBUG"
 		runtime "Debug"
 		symbols "on"
-		libdirs 
-		{ 
-			"%{physx}/windows-bin/debug"
-		}
 
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
 		optimize "on"
-		libdirs 
-		{ 
-			"%{physx}/windows-bin/release"
-		}
 
 	filter "configurations:Dist"
 		defines "ST_DIST"
 		runtime "Release"
 		optimize "on"
-		libdirs 
-		{ 
-			"%{physx}/windows-bin/checked"
-		}

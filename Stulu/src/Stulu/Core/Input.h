@@ -4,7 +4,7 @@
 #include "Stulu/Core/MouseButtonCodes.h"
 
 namespace Stulu {
-	class Input {
+	class STULU_API Input {
 	public:
 		static bool isKeyDown(uint32_t keycode);
 		static bool isMouseDown(uint32_t button);

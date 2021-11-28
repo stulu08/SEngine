@@ -20,7 +20,7 @@ namespace Stulu {
 		std::string path;
 		UUID uuid;
 	};
-	class AssetsManager {
+	class STULU_API AssetsManager {
 	public:
 		/// read UUID from .meta file
 		static UUID add(const std::string& path);
@@ -35,7 +35,7 @@ namespace Stulu {
 		static Asset& get(const UUID uuid);
 		const static type_info& getType(const UUID uuid);
 		const static AssetType& getAssetType(const UUID uuid);
-		template<class T>
+		template<typename T>
 		static T* getAs(const UUID uuid);
 
 		static const AssetType assetTypeFromExtension(const std::string& extension);
@@ -47,6 +47,11 @@ namespace Stulu {
 		static void loadMaterials(const std::string& directory);
 
 		static UUID getFromPath(const std::string& path);
+
+		template<typename T>
+		static T getProperity(Asset& aseet, const std::string& name, const T& nullReturn = T());
+		template<typename T>
+		static void setProperity(Asset& aseet, const std::string name, const T& value);
 	private:
 		//uuid ,<data, path>
 		static std::unordered_map<UUID, Asset> assets;

@@ -2,35 +2,35 @@
 #include "Stulu/Core/Core.h"
 
 namespace Stulu::Profiling {
-	class RenderDataProfiler {
+	class STULU_API RenderDataProfiler {
 	public:
-		static void enable() {
+		static inline void enable() {
 			enabled = true;
 		}
-		static bool isEnabled() {
+		static inline bool isEnabled() {
 			return enabled;
 		}
-		static void disable() {
+		static inline void disable() {
 			enabled = false;
 		}
-		static void begin() { 
+		static inline void begin() { 
 			VerticesCount = 0;
 			IndicesCount = 0;
 			CameraCount = 0;
 			drawCalls = 0;
 		}
 
-		static void addDrawCall() { if(enabled)drawCalls++; }
-		static int& getDrawCalls() { return drawCalls; }
+		static inline void addDrawCall() { if(enabled)drawCalls++; }
+		static inline int& getDrawCalls() { return drawCalls; }
 
-		static void addVertices(int count) { if (enabled)VerticesCount += count; }
-		static int& getVerticesCount() { return VerticesCount; }
+		static inline void addVertices(int count) { if (enabled)VerticesCount += count; }
+		static inline int& getVerticesCount() { return VerticesCount; }
 
-		static void addIndices(int count) { if (enabled)IndicesCount += count; }
-		static int& getIndicesCount() { return IndicesCount; }
+		static inline void addIndices(int count) { if (enabled)IndicesCount += count; }
+		static inline int& getIndicesCount() { return IndicesCount; }
 
-		static void addCameras(int count) { if (enabled)CameraCount += count; }
-		static int& getCameraCount() { return CameraCount; }
+		static inline void addCameras(int count) { if (enabled)CameraCount += count; }
+		static inline int& getCameraCount() { return CameraCount; }
 	private:
 		static inline bool enabled = false;
 		static inline int drawCalls = 0;

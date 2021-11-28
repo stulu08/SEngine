@@ -2,8 +2,10 @@
 #include <glm/glm.hpp>
 #include <random>
 
+#include "Stulu/Core/Core.h"
+
 namespace Stulu {
-	class Random {
+	class STULU_API Random {
 	public:
 		static int getInt(int min, int max);
 		static float getFloat(float min = 0.0f, float max = 1.0);

@@ -4,7 +4,7 @@
 #include "Stulu/Renderer/Texture.h"
 
 namespace Stulu {
-	class Resources {
+	class STULU_API Resources {
 	public:
 		static void load();
 

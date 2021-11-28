@@ -4,7 +4,7 @@
 typedef unsigned int GLenum;
 
 namespace Stulu {
-	class OpenGLShader : public Shader
+	class STULU_API OpenGLShader : public Shader
 	{
 	public:
 		OpenGLShader(const std::string& path);

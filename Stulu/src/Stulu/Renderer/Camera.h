@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/FrameBuffer.h"
 namespace Stulu {
 	enum CameraMode { Perspective = 0, Orthographic = 1 };
-	class Camera {
+	class STULU_API Camera {
 	public:
 		virtual ~Camera(){}
 		const virtual void setProjection(float fov, float aspect, float z_near, float z_far) {};

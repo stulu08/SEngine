@@ -10,7 +10,7 @@ class aiMatrix4x4t;
 typedef aiMatrix4x4t<float> aiMatrix4x4;
 
 namespace Stulu {
-	class Model
+	class STULU_API Model
 	{
 	public:
 		Model(const std::string& path) {
@@ -27,6 +27,8 @@ namespace Stulu {
 
 
 		const std::vector<Mesh>& getMeshes() { return meshes; }
+
+		static Mesh& fromModel(UUID modelUuid, uint32_t mesh = 0);
 	private:
 		std::vector<Mesh> meshes;
 		std::string directory = "";

@@ -1,0 +1,13 @@
+﻿  Building Custom Rule C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/source/compiler/cmake/CMakeLists.txt
+  PxProfileEventImpl.cpp
+  PxPvd.cpp
+  PxPvdDataStream.cpp
+  PxPvdDefaultFileTransport.cpp
+  PxPvdDefaultSocketTransport.cpp
+  PxPvdImpl.cpp
+  PxPvdMemClient.cpp
+  PxPvdObjectModelMetaData.cpp
+  PxPvdObjectRegistrar.cpp
+  PxPvdProfileZoneClient.cpp
+  PxPvdUserRenderer.cpp
+  PhysXPvdSDK.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\checked\PhysXPvdSDK_static_64.lib

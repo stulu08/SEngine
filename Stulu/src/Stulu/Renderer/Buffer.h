@@ -69,7 +69,7 @@ namespace Stulu{
 		}
 	};
 
-	class BufferLayout {
+	class STULU_API BufferLayout {
 	public:
 		BufferLayout(){}
 		BufferLayout(const std::initializer_list<BufferElement>& elements)
@@ -100,7 +100,7 @@ namespace Stulu{
 		uint32_t m_stride = 0;
 	};
 
-	class VertexBuffer {
+	class STULU_API VertexBuffer {
 	public:
 		virtual ~VertexBuffer() = default;
 
@@ -115,7 +115,7 @@ namespace Stulu{
 		static Ref<VertexBuffer> create(uint32_t size, float* vertices);
 		static Ref<VertexBuffer> create(uint32_t size, const void* data);
 	};
-	class IndexBuffer {
+	class STULU_API IndexBuffer {
 	public:
 		virtual ~IndexBuffer() = default;
 

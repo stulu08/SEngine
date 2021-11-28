@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/UniformBuffer.h"
 
 namespace Stulu {
-	class OpenGLUniformBuffer : public UniformBuffer {
+	class STULU_API OpenGLUniformBuffer : public UniformBuffer {
 	public:
 		OpenGLUniformBuffer(uint32_t size, uint32_t binding);
 		virtual ~OpenGLUniformBuffer();

@@ -13,7 +13,7 @@ namespace Stulu {
 		uint64_t physicalUsed;
 		uint64_t physicalUsedByProcess;
 	};
-	class Platform {
+	class STULU_API Platform {
 	public:
 		static float getTime();
 

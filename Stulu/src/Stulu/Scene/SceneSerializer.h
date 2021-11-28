@@ -2,7 +2,7 @@
 #include "Stulu/Scene/Scene.h"
 
 namespace Stulu {
-	class SceneSerializer {
+	class STULU_API SceneSerializer {
 	public:
 		SceneSerializer(Ref<Scene>& scene)
 			: m_scene(scene){}

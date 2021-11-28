@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/RenderAPI.h"
 
 namespace Stulu{
-	class RenderCommand {
+	class STULU_API RenderCommand {
 	public:
 		inline static void init() {
 			s_renderAPI->init();

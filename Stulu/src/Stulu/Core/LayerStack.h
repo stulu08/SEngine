@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace Stulu {
-	class LayerStack
+	class STULU_API LayerStack
 	{
 	public:
 		LayerStack();

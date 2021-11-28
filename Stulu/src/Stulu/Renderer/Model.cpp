@@ -1,4 +1,7 @@
 #include "st_pch.h"
+#ifdef ST_DLL_BUILD
+//#define ASSIMP_DLL
+#endif
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -118,6 +121,10 @@ namespace Stulu {
         glm::quat q = glm::quat(a_rot.w, a_rot.x, a_rot.y, a_rot.z);//q is only pitch yaw roll, but we want it in x y z
         Math::decomposeTransform(Math::createMat4(pos, q, sca), position, rotation, scale);
 
+    }
+
+    Mesh& Model::fromModel(UUID modelUuid, uint32_t mesh) {
+        return AssetsManager::get(modelUuid).data._Cast<Model>()->meshes[mesh];
     }
 
     void Stulu::Model::load(const std::string& path) {

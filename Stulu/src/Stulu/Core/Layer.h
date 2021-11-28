@@ -3,7 +3,7 @@
 #include "Stulu/Core/Timestep.h"
 
 namespace Stulu {
-	class Layer
+	class STULU_API Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");

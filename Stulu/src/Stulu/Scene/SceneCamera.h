@@ -7,7 +7,7 @@
 #include "Stulu/Events/KeyEvent.h"
 
 namespace Stulu {
-	class SceneCamera {
+	class STULU_API SceneCamera {
 	public:
 		SceneCamera(float aspectRatio, float fov, float zNear, float zFar);
 

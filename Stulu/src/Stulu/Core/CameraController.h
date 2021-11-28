@@ -15,7 +15,7 @@ namespace Stulu {
 		uint32_t wireFrameSwitchKey = 70;
 
 	};
-	class CameraController {
+	class STULU_API CameraController {
 	public:
 		CameraController(CamerControllerSetting* settings, CameraMode mode = CameraMode::Perspective);
 
@@ -23,7 +23,7 @@ namespace Stulu {
 		void onEvent(Event& e);
 		void onResize(float width, float height);
 
-		Ref<Camera>& getCamera() {
+		inline Ref<Camera>& getCamera() {
 			return m_activeCamera;
 		}
 
@@ -33,7 +33,7 @@ namespace Stulu {
 		float getAspectRatio() { return m_aspectRatio; }
 
 		CameraMode& getMode() { return m_mode; }
-		void setMode(const CameraMode& mode) {
+		inline void setMode(const CameraMode& mode) {
 			if (mode == CameraMode::Orthographic)
 				m_activeCamera = createRef<OrthographicCamera>(-m_aspectRatio * m_settings->zoom, m_aspectRatio * m_settings->zoom, -m_settings->zoom, m_settings->zoom, m_settings->zNear, m_settings->zFar);
 			else

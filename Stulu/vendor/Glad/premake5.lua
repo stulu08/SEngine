@@ -1,7 +1,9 @@
 project "Glad"
-    kind "StaticLib"
+	kind "StaticLib"
     language "C"
-    staticruntime "on"
+	if(staticRuntime) then
+		staticruntime "on"
+	end
     
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -30,5 +32,5 @@ project "Glad"
         optimize "on"
 
     filter "configurations:Dist"
-	runtime "Release"
-	optimize "on"
+	    runtime "Release"
+	    optimize "on"

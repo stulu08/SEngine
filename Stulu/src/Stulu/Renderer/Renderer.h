@@ -9,7 +9,7 @@
 
 namespace Stulu{
 	struct TransformComponent;
-	class Renderer {
+	class STULU_API Renderer {
 
 	public:
 		static void init();

@@ -25,7 +25,7 @@ namespace Stulu {
 #define LOG_2E		1.442695040f
 #define M_E			2.718281828f
 #define M_RAD2DEG	360.0f / (PI * 2.0f)
-	class Math {
+	class STULU_API Math {
 	public:
 		static const float radiansToDegree(float radians);
 		static const float degreeToRadians(float angle);

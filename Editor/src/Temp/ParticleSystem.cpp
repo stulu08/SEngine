@@ -78,6 +78,7 @@ void ParticleSystem::clear() {
 }
 #include <imgui/imgui.h>
 void ParticleSystemData::imGuiDraw(ParticleSystemData& data) {
+	/*
 	ImGui::Checkbox("Moving", &data.moving);
 	if (data.moving) {
 		Stulu::imGui::Float("Speed", data.speed);
@@ -127,5 +128,5 @@ void ParticleSystemData::imGuiDraw(ParticleSystemData& data) {
 	}
 
 	ImGui::ColorEdit4("Begin Color", glm::value_ptr(data.beginColor));
-	ImGui::ColorEdit4("End Color", glm::value_ptr(data.endColor));
+	ImGui::ColorEdit4("End Color", glm::value_ptr(data.endColor));*/
 }

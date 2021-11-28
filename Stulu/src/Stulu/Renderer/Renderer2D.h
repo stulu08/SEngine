@@ -5,7 +5,7 @@
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
-	class Renderer2D {
+	class STULU_API Renderer2D {
 	public:
 		static void init();
 		static void shutdown();

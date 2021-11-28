@@ -7,7 +7,7 @@ namespace Stulu {
 		uint32_t samples = 1;
 		bool swapChainTarget = false;
 	};
-	class FrameBufferTexture : public Texture{
+	class STULU_API FrameBufferTexture : public Texture{
 	public:
 		static Ref<FrameBufferTexture> create(uint32_t width, uint32_t height);
 
@@ -17,7 +17,7 @@ namespace Stulu {
 		virtual uint32_t getColorAttachmentRendereID() const = 0;
 		virtual uint32_t getDepthAttachmentRendereID() const = 0;
 	};
-	class FrameBuffer {
+	class STULU_API FrameBuffer {
 	public:
 		virtual ~FrameBuffer() = default;
 		virtual void bind() const = 0;

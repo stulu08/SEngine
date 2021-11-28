@@ -1,0 +1,34 @@
+﻿  Building Custom Rule C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/source/compiler/cmake/CMakeLists.txt
+  ScActorCore.cpp
+  ScActorSim.cpp
+  ScArticulationCore.cpp
+  ScArticulationJointCore.cpp
+  ScArticulationJointSim.cpp
+  ScArticulationSim.cpp
+  ScBodyCore.cpp
+  ScBodySim.cpp
+  ScConstraintCore.cpp
+  ScConstraintGroupNode.cpp
+  ScConstraintInteraction.cpp
+  ScConstraintProjectionManager.cpp
+  ScConstraintProjectionTree.cpp
+  ScConstraintSim.cpp
+  ScElementInteractionMarker.cpp
+  ScElementSim.cpp
+  ScInteraction.cpp
+  ScIterators.cpp
+  ScMetaData.cpp
+  ScNPhaseCore.cpp
+  ScPhysics.cpp
+  ScRigidCore.cpp
+  ScRigidSim.cpp
+  ScScene.cpp
+  ScShapeCore.cpp
+  ScShapeInteraction.cpp
+  ScShapeSim.cpp
+  ScSimStats.cpp
+  ScSimulationController.cpp
+  ScSqBoundsManager.cpp
+  ScStaticCore.cpp
+  ScTriggerInteraction.cpp
+  SimulationController.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\compiler\vc16win64\sdk_source_bin\SimulationController.dir\debug\SimulationController.lib

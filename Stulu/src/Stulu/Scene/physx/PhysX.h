@@ -42,7 +42,7 @@ namespace Stulu{
             int line) = 0;
         virtual void deallocate(void* ptr) = 0;
     };
-    class PhysX {
+    class STULU_API PhysX {
     public:
         void startUp(const PhysicsData& data = PhysicsData());
         void shutDown();

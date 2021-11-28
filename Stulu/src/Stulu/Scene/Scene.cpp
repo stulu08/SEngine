@@ -320,58 +320,58 @@ namespace Stulu {
 	template<typename T>
 	void Scene::onComponentAdded(GameObject gameObject, T& component) {  }
 	template<>
-	void Scene::onComponentAdded<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
+	void STULU_API Scene::onComponentAdded<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<TransformComponent>(GameObject gameObject, TransformComponent& component) { component.gameObject = gameObject; }
+	void STULU_API Scene::onComponentAdded<TransformComponent>(GameObject gameObject, TransformComponent& component) { component.gameObject = gameObject; }
 	template<>
-	void Scene::onComponentAdded<CameraComponent>(GameObject gameObject, CameraComponent& component) { if (m_viewportWidth > 0 && m_viewportHeight > 0)component.onResize(m_viewportWidth, m_viewportHeight); }
+	void STULU_API Scene::onComponentAdded<CameraComponent>(GameObject gameObject, CameraComponent& component) { if (m_viewportWidth > 0 && m_viewportHeight > 0)component.onResize(m_viewportWidth, m_viewportHeight); }
 	template<>
-	void Scene::onComponentAdded<LightComponent>(GameObject gameObject, LightComponent& component) { }
+	void STULU_API Scene::onComponentAdded<LightComponent>(GameObject gameObject, LightComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) { }
+	void STULU_API Scene::onComponentAdded<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) { if (!gameObject.hasComponent<MeshRendererComponent>()) gameObject.addComponent<MeshRendererComponent>(); }
+	void STULU_API Scene::onComponentAdded<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) { if (!gameObject.hasComponent<MeshRendererComponent>()) gameObject.addComponent<MeshRendererComponent>(); }
 	template<>
-	void Scene::onComponentAdded<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { if (!gameObject.hasComponent<MeshFilterComponent>()) gameObject.addComponent<MeshFilterComponent>(); }
+	void STULU_API Scene::onComponentAdded<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { if (!gameObject.hasComponent<MeshFilterComponent>()) gameObject.addComponent<MeshFilterComponent>(); }
 	template<>
-	void Scene::onComponentAdded<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
+	void STULU_API Scene::onComponentAdded<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) { }
+	void STULU_API Scene::onComponentAdded<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) { }
+	void STULU_API Scene::onComponentAdded<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) { }
+	void STULU_API Scene::onComponentAdded<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
+	void STULU_API Scene::onComponentAdded<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
 	template<>
-	void Scene::onComponentAdded<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
+	void STULU_API Scene::onComponentAdded<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
 
 	template<typename T>
 	void Scene::onComponentRemove(GameObject gameObject, T& component) {  }
 	template<>
-	void Scene::onComponentRemove<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
+	void STULU_API Scene::onComponentRemove<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<TransformComponent>(GameObject gameObject, TransformComponent& component) {  }
+	void STULU_API Scene::onComponentRemove<TransformComponent>(GameObject gameObject, TransformComponent& component) {  }
 	template<>
-	void Scene::onComponentRemove<CameraComponent>(GameObject gameObject, CameraComponent& component) { component.cam.reset(); }
+	void STULU_API Scene::onComponentRemove<CameraComponent>(GameObject gameObject, CameraComponent& component) { component.cam.reset(); }
 	template<>
-	void Scene::onComponentRemove<LightComponent>(GameObject gameObject, LightComponent& component) { }
+	void STULU_API Scene::onComponentRemove<LightComponent>(GameObject gameObject, LightComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) { }
+	void STULU_API Scene::onComponentRemove<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {  }
+	void STULU_API Scene::onComponentRemove<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {  }
 	template<>
-	void Scene::onComponentRemove<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { }
+	void STULU_API Scene::onComponentRemove<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
+	void STULU_API Scene::onComponentRemove<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) { }
+	void STULU_API Scene::onComponentRemove<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) { }
+	void STULU_API Scene::onComponentRemove<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) { }
+	void STULU_API Scene::onComponentRemove<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
+	void STULU_API Scene::onComponentRemove<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
 	template<>
-	void Scene::onComponentRemove<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
+	void STULU_API Scene::onComponentRemove<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
 }

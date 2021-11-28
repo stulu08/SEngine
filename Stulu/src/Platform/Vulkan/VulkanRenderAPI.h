@@ -16,7 +16,7 @@ namespace Stulu {
 		std::vector<VkImage> swapChainImages;
 		std::vector<VkImageView> swapChainImageViews;
 	};
-	class VulkanRenderAPI : public RenderAPI {
+	class STULU_API VulkanRenderAPI : public RenderAPI {
 	public:
 		virtual void init() override;
 		virtual void setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;

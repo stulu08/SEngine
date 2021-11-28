@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/VertexArray.h"
 
 namespace Stulu {
-	class OpenGLVertexArray : public VertexArray
+	class STULU_API OpenGLVertexArray : public VertexArray
 	{
 	public:
 		OpenGLVertexArray();

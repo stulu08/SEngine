@@ -2,15 +2,25 @@ project "Editor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	if(staticRuntime) then
+		staticruntime "on"
+	end
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("bin/" .. outputdir .. "")
+	objdir ("bin-int/" .. outputdir .. "")
+	debugdir ("" .. builddir .. "")
+
 	defines
 	{
 		"ST_EDITOR",
 		"_CRT_SECURE_NO_WARNINGS"
 	}
+	if(staticBuild == false) then
+		defines
+		{
+			"ST_DYNAMIC_LINK",
+		}
+	end
 	files
 	{
 		"src/**.h",
@@ -29,11 +39,24 @@ project "Editor"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Discord}"
 	}
-
+	postbuildcommands {
+		"{MKDIR} ".. builddir .."",
+		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
+		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. ""
+	}
+	if(staticBuild == false) then
+		postbuildcommands
+		{
+			"{COPY} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/Stulu.dll " .. builddir .. ""
+		}
+	end
 	links
 	{
 		"Stulu", 
-		"discord-rpc"
+		"discord-rpc",
+		"ImGuizmo",
+		"ImGui",
+
 	}
 	filter "system:windows"
 		systemversion "latest"

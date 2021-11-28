@@ -15,4 +15,13 @@ namespace Stulu {
 		s_ClientLogger->set_level(spdlog::level::trace);
 		CORE_INFO("Created Core and Client Logger");
 	}
+
+	std::shared_ptr<spdlog::logger>& Log::GetCoreLogger() {
+		return s_CoreLogger;
+	}
+	std::shared_ptr<spdlog::logger>& Log::GetClientLogger() {
+		return s_ClientLogger;
+	}
+
+
 }

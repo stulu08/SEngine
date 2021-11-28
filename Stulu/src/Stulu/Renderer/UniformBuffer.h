@@ -2,7 +2,7 @@
 #include "Stulu/Core/Core.h"
 
 namespace Stulu {
-	class UniformBuffer {
+	class STULU_API UniformBuffer {
 	public:
 		virtual ~UniformBuffer() = default;
 

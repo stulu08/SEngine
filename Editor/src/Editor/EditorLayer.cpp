@@ -2,7 +2,6 @@
 #include "Editor/EditorApp.h"
 #include "Editor/DiscordRPC.h"
 #include "Editor/Panel/StyleEditor.h"
-#include <ImGuizmo/ImGuizmo.h>
 
 namespace Stulu {
 

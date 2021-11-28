@@ -22,7 +22,7 @@ namespace Stulu {
 	};
 
 
-	class Application {
+	class STULU_API Application {
 	public:
 		Application(ApplicationInfo appInfo);
 		virtual ~Application();

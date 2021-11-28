@@ -22,11 +22,10 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 	}
 
-	void ImGuiLayer::onAttach()
-	{
+	void ImGuiLayer::onAttach() {
 		ST_PROFILING_FUNCTION();
 		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
+		m_context = ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls

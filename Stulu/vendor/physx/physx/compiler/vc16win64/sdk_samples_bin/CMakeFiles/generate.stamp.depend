@@ -1,0 +1,21 @@
+# CMake generation dependency list for this directory.
+C:/stulu/dev/SEngine/Stulu/vendor/physx/externals/cmakemodules/ConfigureFileMT.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/externals/cmakemodules/GetCompilerAndPlatform.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/externals/cmakemodules/NvidiaBuildOptions.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/externals/cmakemodules/SetOutputPaths.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/externals/targa/targa-config-version.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/externals/targa/targa-config.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/CMakeLists.txt
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/SampleBase.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/SampleFramework.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/SamplePlatform.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/SampleRenderer.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/Samples.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/SamplesToolkit.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/CMakeLists.txt
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/SampleBase.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/SampleFramework.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/SamplePlatform.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/SampleRenderer.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/Samples.cmake
+C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/samples/compiler/cmake/windows/SamplesToolkit.cmake

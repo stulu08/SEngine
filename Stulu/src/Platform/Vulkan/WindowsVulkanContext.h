@@ -22,7 +22,7 @@ namespace Stulu {
 		std::vector<VkSurfaceFormatKHR> formats;
 		std::vector<VkPresentModeKHR> presentModes;
 	};
-	class WindowsVulkanContext : public GraphicsContext {
+	class STULU_API WindowsVulkanContext : public GraphicsContext {
 	public:
 		WindowsVulkanContext();
 		virtual ~WindowsVulkanContext();

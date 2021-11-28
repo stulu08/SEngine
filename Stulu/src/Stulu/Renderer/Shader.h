@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 namespace Stulu {
-	class Shader {
+	class STULU_API Shader {
 	public:
 		virtual ~Shader() = default;
 
@@ -21,7 +21,7 @@ namespace Stulu {
 		virtual void setInt(const std::string& name, const int32_t Int) = 0;
 		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) = 0;
 	};
-	class ShaderLibary {
+	class STULU_API ShaderLibary {
 	public:
 		void add(const Ref<Shader>& shader);
 		void add(const std::string& name, const Ref<Shader>& shader);

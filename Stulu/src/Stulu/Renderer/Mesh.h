@@ -4,7 +4,7 @@
 #include "glm/glm.hpp"
 
 namespace Stulu {
-	class SubMesh {
+	class STULU_API SubMesh {
 	public:
 		SubMesh() {}
 		SubMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
@@ -23,7 +23,7 @@ namespace Stulu {
 
 		friend class Mesh;
 	};
-	class Mesh {
+	class STULU_API Mesh {
 	public:
 		Mesh(){}
 		Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);

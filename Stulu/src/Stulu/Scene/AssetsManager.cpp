@@ -102,14 +102,44 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		return assets[uuid].type;
 	}
-	template<class T>
-	inline T* AssetsManager::getAs(const UUID uuid) {
+	template<typename T>
+	T* AssetsManager::getAs(const UUID uuid) {
 		ST_PROFILING_FUNCTION();
 		if(exists)
 			return assets[uuid].first._Cast<T>();
 
 		CORE_ASSERT(exists, "UUID not present in assets");
 		return nullptr;
+	}
+
+	template<typename T>
+	T AssetsManager::getProperity(Asset& aseet, const std::string& name, const T& nullReturn) {
+		YAML::Node data = YAML::LoadFile(aseet.path + ".meta");
+		if (data["props"][name]) {
+			return data["props"][name].as<T>();
+		}
+		CORE_WARN("Properity {0} was not found in asset {1}:{2}", name, aseet.uuid, aseet.path);
+		return nullReturn;
+	}
+
+	template<typename T>
+	void AssetsManager::setProperity(Asset& aseet, const std::string name, const T& value) {
+		ST_PROFILING_FUNCTION();
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "uuid" << YAML::Value << (uint64_t)aseet.uuid;
+		out << YAML::Key << "type" << YAML::Value << (int)aseet.type << YAML::BeginMap;
+
+		YAML::Node data = YAML::LoadFile(aseet.path + ".meta");
+		for (YAML::Node d : data["props"]) {
+			out << YAML::Key << d.Tag();
+		}
+
+		out << YAML::EndMap << YAML::EndMap;
+
+		FILE* file = fopen((aseet.path + ".meta").c_str(), "w");
+		fprintf(file, out.c_str());
+		fclose(file);
 	}
 
 	const AssetType AssetsManager::assetTypeFromExtension(const std::string& extension) {
@@ -144,6 +174,7 @@ namespace Stulu {
 	void AssetsManager::loadAllFiles(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
 		CORE_INFO("Loading all files from directory: {0}", directory);
+		//at first shaders and textures need to be loaded for the materials 
 		loadShaders(directory);
 		loadTextures(directory);
 		loadMaterials(directory);

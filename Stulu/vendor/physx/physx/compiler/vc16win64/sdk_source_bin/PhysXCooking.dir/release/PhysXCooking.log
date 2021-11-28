@@ -1,0 +1,23 @@
+﻿  Building Custom Rule C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/source/compiler/cmake/CMakeLists.txt
+  Adjacencies.cpp
+  Cooking.cpp
+  CookingUtils.cpp
+  EdgeList.cpp
+  MeshCleaner.cpp
+  Quantizer.cpp
+  BVHStructureBuilder.cpp
+  HeightFieldCooking.cpp
+  RTreeCooking.cpp
+  MeshBuilder.cpp
+  TriangleMeshBuilder.cpp
+  GrbTriangleMeshCooking.cpp
+  BigConvexDataBuilder.cpp
+  ConvexHullBuilder.cpp
+  ConvexHullLib.cpp
+  ConvexHullUtils.cpp
+  ConvexMeshBuilder.cpp
+  ConvexPolygonsBuilder.cpp
+  QuickHullConvexHullLib.cpp
+  VolumeIntegration.cpp
+  WindowsCookingDelayLoadHook.cpp
+  PhysXCooking.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\release\PhysXCooking_static_64.lib

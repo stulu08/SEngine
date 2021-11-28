@@ -1,7 +1,0 @@
-Shader: 9
-StructName: u_mat
-DataTypes:
-  - [1, 0, metallic]
-  - [3, [0, 0, 1], albedo]
-  - [1, 0, roughness]
-  - [1, 0.300000012, ao]

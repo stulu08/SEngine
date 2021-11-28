@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/FrameBuffer.h"
 
 namespace Stulu {
-	class OpenGLFrameBufferTexture : public FrameBufferTexture {
+	class STULU_API OpenGLFrameBufferTexture : public FrameBufferTexture {
 	public:
 		OpenGLFrameBufferTexture(uint32_t width, uint32_t height);
 		virtual ~OpenGLFrameBufferTexture();

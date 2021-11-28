@@ -4,7 +4,7 @@
 #include "Stulu/Renderer/VertexArray.h"
 
 namespace Stulu {
-	class RenderAPI {
+	class STULU_API RenderAPI {
 	public:
 		enum class API {
 			none = 0,

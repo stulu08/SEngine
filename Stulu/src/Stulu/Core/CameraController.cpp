@@ -17,16 +17,16 @@ namespace Stulu {
 	void CameraController::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (m_settings->m_controlls) {
-			if (Input::isKeyDown(KEY_W))
+			if (Input::isKeyDown(Keyboard::W))
 				m_transform.position += m_transform.forwardDirection() * m_speed * (float)timestep;
-			if (Input::isKeyDown(KEY_S))
+			if (Input::isKeyDown(Keyboard::S))
 				m_transform.position -= m_transform.forwardDirection() * m_speed * (float)timestep;;
-			if (Input::isKeyDown(KEY_A))
+			if (Input::isKeyDown(Keyboard::A))
 				m_transform.position -= m_transform.rightDirection() * m_speed * (float)timestep;
-			if (Input::isKeyDown(KEY_D))
+			if (Input::isKeyDown(Keyboard::D))
 				m_transform.position += m_transform.rightDirection() * m_speed * (float)timestep;
 
-			if (Input::isKeyDown(KEY_LEFT_SHIFT))
+			if (Input::isKeyDown(Keyboard::LeftShift))
 				m_speed += 5.0f * timestep;
 			else
 				m_speed = m_settings->cameraBaseMoveSpeed;

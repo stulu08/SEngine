@@ -23,7 +23,7 @@ namespace Stulu {
 			materialStructName = "u_mat";
 		}
 	};
-	class Material {
+	class STULU_API Material {
 	public:
 		static Material fromDataStringPath(const std::string& path, UUID uuid);
 

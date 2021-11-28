@@ -4,7 +4,7 @@
 struct GLFWwindow;
 
 namespace Stulu {
-	class OpenGLContext : public GraphicsContext {
+	class STULU_API OpenGLContext : public GraphicsContext {
 	public:
 		OpenGLContext();
 

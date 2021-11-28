@@ -2,7 +2,7 @@
 #include "Stulu/Core/Window.h"
 
 namespace Stulu {
-	class GraphicsContext {
+	class STULU_API GraphicsContext {
 	public:
 		virtual ~GraphicsContext() = default;
 

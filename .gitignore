@@ -3,6 +3,7 @@
 bin/
 bin-int/
 Stulu/vendor/VulkanSDK
+build/
 
 #Files
 *.sln

@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/Buffer.h"
 
 namespace Stulu {
-	class OpenGLVertexBuffer : public VertexBuffer {
+	class STULU_API OpenGLVertexBuffer : public VertexBuffer {
 	public:
 		OpenGLVertexBuffer(uint32_t size);
 		OpenGLVertexBuffer(uint32_t size, float* vertices);
@@ -24,7 +24,7 @@ namespace Stulu {
 	};
 
 
-	class OpenGLIndexBuffer : public IndexBuffer {
+	class STULU_API OpenGLIndexBuffer : public IndexBuffer {
 	public:
 		OpenGLIndexBuffer(uint32_t count, uint32_t* indices);
 		virtual ~OpenGLIndexBuffer();

@@ -1,6 +1,9 @@
 #pragma once
 #include <Stulu.h>
 
+#include <imgui/imgui.h>
+#include <ImGuizmo/ImGuizmo.h>
+
 namespace Stulu {
 	class SceneViewportPanel {
 	public:

@@ -8,7 +8,7 @@ namespace Stulu {
 		glm::vec2 texCoords;
 	};
 
-	class VertexArray {
+	class STULU_API VertexArray {
 	public:
 		virtual ~VertexArray() = default;
 
