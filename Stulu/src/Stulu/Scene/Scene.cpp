@@ -102,12 +102,11 @@ namespace Stulu {
 			calculateLights();
 		}
 		//rendering
-		ST_PROFILING_RENDERDATA_ENABLE();
 		auto view = m_registry.view<CameraComponent>();
+		ST_PROFILING_RENDERDATA_RESET();
 		for (auto gameObject : view) {
 			renderScene(gameObject);
 		}
-		ST_PROFILING_RENDERDATA_DISABLE();
 	}
 
 	void Scene::onRuntimeStart() {
@@ -136,6 +135,53 @@ namespace Stulu {
 			if (!cameraComponent.settings.staticAspect)
 				cameraComponent.onResize(width, height);
 		}
+	}
+
+	GameObject Scene::addModel(Model& model) {
+		ST_PROFILING_FUNCTION();
+		std::vector<MeshAsset>& vec = model.getMeshes();
+		GameObject root = GameObject::null;
+		for (MeshAsset& mesh : vec) {
+			if (mesh.parentMeshAsset != UUID::null)
+				continue;
+			//root node
+			root = addMeshAssetsToScene(mesh, model);
+			root.getComponent<TransformComponent>().parent = GameObject::null;
+		}
+		return root;
+	}
+
+	GameObject Scene::addMeshAssetsToScene(MeshAsset& mesh, Model& model) {
+		ST_PROFILING_FUNCTION();
+		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
+		auto& tc = go.getComponent<TransformComponent>();
+		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
+		if (mesh.hasMesh) {
+			go.addComponent<MeshFilterComponent>().mesh = mesh;
+			go.saveAddComponent<MeshRendererComponent>();
+		}
+		for (MeshAsset& child : model.getMeshes()) {
+			if (child.parentMeshAsset == mesh.uuid) {
+				GameObject c = addMeshAssetsToScene(child, model);
+					go.getComponent<TransformComponent>().addChild(c);
+			}
+				
+		}
+		if (mesh.parentMeshAsset == UUID::null)
+			go.getComponent<TransformComponent>().parent = GameObject::null;
+		return go;
+	}
+
+	GameObject Scene::addMeshAssetToScene(MeshAsset& mesh) {
+		ST_PROFILING_FUNCTION();
+		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
+		if (mesh.hasMesh) {
+			go.addComponent<MeshFilterComponent>().mesh = mesh;
+			go.saveAddComponent<MeshRendererComponent>();
+		}
+		auto& tc = go.getComponent<TransformComponent>();
+		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
+		return go;
 	}
 	
 	GameObject Scene::getMainCamera() {
@@ -206,7 +252,7 @@ namespace Stulu {
 
 			if (!object.hasComponent<MeshFilterComponent>())
 				continue;
-			Ref<Mesh>& mesh = object.getComponent<MeshFilterComponent>().mesh;
+			Ref<Mesh>& mesh = object.getComponent<MeshFilterComponent>().mesh.mesh;
 			if (mesh == nullptr)
 				continue;
 
@@ -295,8 +341,10 @@ namespace Stulu {
 			ST_PROFILING_SCOPE("Rendering Mesh");
 			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 			for (auto gameObject : group) {
-				ST_PROFILING_SCOPE("Rendering Mesh Editor");
-				SceneRenderer::submit(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
+				auto& filter = group.get<MeshFilterComponent>(gameObject);
+				SceneRenderer::submit(group.get<MeshRendererComponent>(gameObject), filter, group.get<TransformComponent>(gameObject));
+				ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh.mesh->getIndicesCount());
+				ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh.mesh->getVerticesCount());
 			}
 		}
 		{
@@ -315,6 +363,7 @@ namespace Stulu {
 			}
 		}
 		SceneRenderer::endScene();
+		ST_PROFILING_RENDERDATA_END();
 	}
 
 	template<typename T>

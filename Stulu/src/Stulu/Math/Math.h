@@ -51,5 +51,18 @@ namespace Stulu {
 		static const glm::quat quaternionFromEulerAngle(const glm::vec3& axis, float angle);
 		static const bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
+		// if count == 0 -> count = vec.size()
+		template<class T>
+		inline static const T avg(const std::vector<T>& vec, int count = 0) {
+			if (count == 0)
+				count = (int)vec.size();
+
+			T total = T();
+			for (int i = 0; i < count; i++) {
+				total += vec[i];
+			}
+
+			return total / count;
+		}
 	};
 }

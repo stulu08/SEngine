@@ -1,0 +1,75 @@
+Scene: Untitled
+GameObjects:
+  - GameObject: 5162171158924129814
+    GameObjectBaseComponent:
+      name: senna_Mesh.089
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17458958407257403932
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 10434609329322519390
+  - GameObject: 245798451728243747
+    GameObjectBaseComponent:
+      name: FL_uploads_files_637554_Wheel_ADV.1_5.002
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17458958407257403932
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 13454694011595344514
+  - GameObject: 13957023529670515010
+    GameObjectBaseComponent:
+      name: RL_uploads_files_637554_Wheel_ADV.1_5.003
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17458958407257403932
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 16832223904657325941
+  - GameObject: 6124799836237142766
+    GameObjectBaseComponent:
+      name: RR_uploads_files_637554_Wheel_ADV.1_5.001
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17458958407257403932
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 9571816860140223264
+  - GameObject: 11544005927170684193
+    GameObjectBaseComponent:
+      name: FR_uploads_files_637554_Wheel_ADV.1_5.0
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17458958407257403932
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 11537973443833065916
+  - GameObject: 17458958407257403932
+    GameObjectBaseComponent:
+      name: car
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]

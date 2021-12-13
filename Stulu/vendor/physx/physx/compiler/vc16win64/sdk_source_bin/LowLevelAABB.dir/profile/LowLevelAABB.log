@@ -1,0 +1,11 @@
+﻿  Building Custom Rule C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/source/compiler/cmake/CMakeLists.txt
+  BpAABBManager.cpp
+  BpBroadPhase.cpp
+  BpBroadPhaseABP.cpp
+  BpBroadPhaseMBP.cpp
+  BpBroadPhaseSap.cpp
+  BpBroadPhaseSapAux.cpp
+  BpBroadPhaseShared.cpp
+  BpMBPTasks.cpp
+  BpSAPTasks.cpp
+  LowLevelAABB.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\compiler\vc16win64\sdk_source_bin\LowLevelAABB.dir\profile\LowLevelAABB.lib

@@ -9,7 +9,7 @@ project "Editor"
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
 	debugdir ("" .. builddir .. "")
-
+	debugargs { "%{wks.location}DebugProject" }
 	defines
 	{
 		"ST_EDITOR",
@@ -42,7 +42,8 @@ project "Editor"
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."",
 		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
-		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. ""
+		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
+		"{COPYDIR} %{ProjectDir.Editor}/Stulu " .. builddir .. "/Stulu"
 	}
 	if(staticBuild == false) then
 		postbuildcommands

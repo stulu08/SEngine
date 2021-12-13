@@ -4,7 +4,6 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu {
 	class STULU_API WindowsWindow : public Window {
@@ -25,7 +24,7 @@ namespace Stulu {
 		bool isVSync() const override;
 
 		virtual void* getNativeWindow() const { return m_window; }
-
+		virtual Scope<GraphicsContext>& getContext() override { return m_graphicsContext; }
 	private:
 		virtual void init(const WindowProps& props);
 		virtual void shutDown();

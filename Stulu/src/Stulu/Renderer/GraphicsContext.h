@@ -1,7 +1,13 @@
 #pragma once
-#include "Stulu/Core/Window.h"
-
+#include "Stulu/Core/Core.h"
 namespace Stulu {
+	class Window;
+	struct API_Infos {
+		const std::string name;
+		const std::string vendor;
+		const std::string version;
+		const std::string device;
+	};
 	class STULU_API GraphicsContext {
 	public:
 		virtual ~GraphicsContext() = default;
@@ -10,6 +16,7 @@ namespace Stulu {
 		virtual void swapBuffers() = 0;
 		virtual void setVSync(bool enabled) = 0;
 
+		virtual API_Infos getApiInfos() = 0;
 
 		static Scope<GraphicsContext> create();
 	};

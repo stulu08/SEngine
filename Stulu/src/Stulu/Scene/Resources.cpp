@@ -1,6 +1,7 @@
 #include "st_pch.h"
 #include "Resources.h"
-#include <Stulu/Renderer/Model.h>
+#include "Stulu/Renderer/Model.h"
+#include "Stulu/Scene/AssetsManager.h"
 
 namespace Stulu {
 	void Resources::load() {
@@ -11,20 +12,32 @@ namespace Stulu {
 		loadBlackTexture();
 	}
 
-	Ref<Mesh>& Resources::getCubeMesh() {
-		return s_cubeMesh;
+	Ref<Mesh> Resources::getCubeMesh() {
+		return std::any_cast<MeshAsset>(AssetsManager::get(UUID(401)).data).mesh;
 	}
-	Ref<Mesh>& Resources::getPlaneMesh() {
-		return s_planeMesh;
+	Ref<Mesh> Resources::getPlaneMesh() {
+		return std::any_cast<MeshAsset>(AssetsManager::get(UUID(402)).data).mesh;
 	}
-	Ref<Mesh>& Resources::getSphereMesh() {
-		return s_sphereMesh;
+	Ref<Mesh> Resources::getSphereMesh() {
+		return std::any_cast<MeshAsset>(AssetsManager::get(UUID(404)).data).mesh;
 	}
-	Ref<Mesh>& Resources::getSkyBoxMesh() {
-		return s_skyBoxMesh;
+	Ref<Mesh> Resources::getSkyBoxMesh() {
+		return std::any_cast<MeshAsset>(AssetsManager::get(UUID(403)).data).mesh;
 	}
-	Ref<Texture2D>& Resources::getBlackTexture() {
-		return s_blackTexture;
+	Ref<Texture2D> Resources::getBlackTexture() {
+		return std::any_cast<Ref<Texture2D>>(AssetsManager::get(UUID(301)).data);
+	}
+	MeshAsset& Resources::getCubeMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(401)).data);
+	}
+	MeshAsset& Resources::getPlaneMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(402)).data);
+	}
+	MeshAsset& Resources::getSphereMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data);
+	}
+	MeshAsset& Resources::getSkyBoxMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(403)).data);
 	}
 	void Resources::loadCubeMesh() {
 		std::vector<Vertex> vertices{
@@ -79,7 +92,8 @@ namespace Stulu {
 			22,21,20,
 			20,23,22
 		};
-		s_cubeMesh = createRef<Mesh>(vertices, indices);
+		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
+		AssetsManager::update(UUID(401), Asset{ AssetType::Mesh, MeshAsset{"Cube",m,UUID(401)},"",UUID(401) });
 	}
 	void Resources::loadPlaneMesh() {
 		std::vector<Vertex> vertices{
@@ -92,10 +106,10 @@ namespace Stulu {
 			2,1,0,
 			0,3,2,
 		};
-		s_planeMesh = createRef<Mesh>(vertices, indices);
+		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
+		AssetsManager::update(UUID(402), Asset{ AssetType::Mesh, MeshAsset{"Plane",m,UUID(402)},"",UUID(402), });
 	}
 	void Resources::loadSphereMesh() {
-		s_sphereMesh = createRef<Mesh>(Model("Stulu/assets/Meshes/sphere.obj").getMeshes()[0]);
 	}
 	void Resources::loadSkyBoxMesh() {
 		std::vector<Vertex> vertices{
@@ -150,11 +164,14 @@ namespace Stulu {
 			20,21,22,
 			22,23,20
 		};
-		s_skyBoxMesh = createRef<Mesh>(vertices, indices);
+		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
+		AssetsManager::update(UUID(403), Asset{ AssetType::Mesh, MeshAsset{"SkyBox Mesh",m,UUID(403)},"",UUID(403),});
+
 	}
 	void Resources::loadBlackTexture() {
-		s_blackTexture = Texture2D::create(1, 1);
+		Ref<Texture2D> tex = Texture2D::create(1, 1);
 		uint32_t datawhite = 0xffffffff;
-		s_blackTexture->setData(&datawhite, sizeof(uint32_t));
+		tex->setData(&datawhite, sizeof(uint32_t));
+		AssetsManager::update(UUID(301), Asset{ AssetType::Texture2D,tex,"",UUID(301), });
 	}
 }

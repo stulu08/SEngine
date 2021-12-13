@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <functional>
 
+#include <any>
 #include <set>
 #include <cstdlib>
 #include <cstring>
@@ -19,6 +20,7 @@
 #include <optional>
 #include <iomanip>
 #include <xhash>
+#include <numeric>
 #include <filesystem>
 
 #include "Stulu/Core/Log.h"
@@ -30,5 +32,6 @@
 	#include <Windows.h>
 	#include <commdlg.h>
 	#include <psapi.h>
+	#include <shlobj_core.h>
 #endif // ST_PLATFORM_WINDOWS
 

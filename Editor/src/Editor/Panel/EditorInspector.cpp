@@ -6,6 +6,7 @@ namespace Stulu {
 	/// <param name="gameObject"></param>
 	/// <returns></returns>
 	bool EditorInspectorPanel::render(GameObject gameObject, bool* open) {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Inspector", open)) {
 			if (gameObject == GameObject::null) {
 				ImGui::End();
@@ -96,6 +97,7 @@ namespace Stulu {
 	}
 	template <typename T>
 	void EditorInspectorPanel::drawComponent(GameObject gameObject, std::string name, bool removeable) {
+		ST_PROFILING_FUNCTION();
 		if (gameObject.hasComponent<T>()) {
 			T& comp = gameObject.getComponent<T>();
 			if (ImGui::TreeNodeEx((void*)typeid(T).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, name.c_str())) {

@@ -29,7 +29,7 @@ namespace Stulu {
         CORE_INFO("Discord: spectate ({0})", secret);
     }
    
-    std::string DiscordRPC::s_state = "3D Mode";
+    std::string DiscordRPC::s_state = "Waiting on loading screen";
     std::string DiscordRPC::s_details = "Editing a scene";
     std::string DiscordRPC::s_largeImageKey = "engine-logo-bg";
 

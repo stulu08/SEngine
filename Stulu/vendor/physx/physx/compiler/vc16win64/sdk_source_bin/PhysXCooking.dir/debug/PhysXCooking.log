@@ -20,4 +20,4 @@
   QuickHullConvexHullLib.cpp
   VolumeIntegration.cpp
   WindowsCookingDelayLoadHook.cpp
-  PhysXCooking.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\debug\PhysXCooking_static_64.lib
+  PhysXCooking.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.mt\debug\PhysXCooking_static_64.lib

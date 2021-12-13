@@ -9,4 +9,4 @@
   CctSweptBox.cpp
   CctSweptCapsule.cpp
   CctSweptVolume.cpp
-  PhysXCharacterKinematic.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\release\PhysXCharacterKinematic_static_64.lib
+  PhysXCharacterKinematic.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.mt\release\PhysXCharacterKinematic_static_64.lib

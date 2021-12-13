@@ -4,6 +4,7 @@
 #include "Stulu/Core/CameraController.h"
 #include "Stulu/Core/Input.h"
 #include "Stulu/Core/Platform.h"
+#include "Stulu/Core/Window.h"
 //#include "Stulu/Core/Application.h"
 //#include "Stulu/Core/Core.h"
 //#include "Stulu/Core/CoreConfig.h"
@@ -12,7 +13,6 @@
 //#include "Stulu/Core/LayerStack.h"
 //#include "Stulu/Core/Log.h"
 //#include "Stulu/Core/Timestep.h"
-//#include "Stulu/Core/Window.h"
 //#include "Stulu/Core/Version.h"
 
 ////////////////////Debug////////////////////
@@ -26,6 +26,7 @@
 //#include "Stulu/Events/Event.h"
 
 ////////////////////ImGui////////////////////
+#include "Stulu/ImGui/Gizmo.h"
 //#include "Stulu/ImGui/ImGuiLayer.h"
 
 ////////////////////Math/////////////////////

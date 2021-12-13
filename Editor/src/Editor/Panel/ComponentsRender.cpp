@@ -10,12 +10,14 @@ namespace Stulu {
 	void ComponentsRender::drawComponent(GameObject gameObject, T& component) {}
 	template<>
 	void ComponentsRender::drawComponent<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) {
+		ST_PROFILING_FUNCTION();
 		drawStringControl("Name", gameObject.getComponent<GameObjectBaseComponent>().name);
 		drawStringControl("Tag", gameObject.getComponent<GameObjectBaseComponent>().tag);
 		ImGui::Separator();
 	}
 	template<>
 	void ComponentsRender::drawComponent<TransformComponent>(GameObject gameObject, TransformComponent& component) {
+		ST_PROFILING_FUNCTION();
 		drawVector3Control("Position", component.position);
 		glm::vec3 rotation = glm::degrees(component.rotation);
 		drawVector3Control("Rotation", rotation);
@@ -24,6 +26,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<CameraComponent>(GameObject gameObject, CameraComponent& component) {
+		ST_PROFILING_FUNCTION();
 		const char* const camTypes[] = { "Perspective","Orthographic" };
 		if (ImGui::Combo("Type", (int*)&component.mode, camTypes, IM_ARRAYSIZE(camTypes)))
 			component.updateMode();
@@ -69,6 +72,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) {
+		ST_PROFILING_FUNCTION();
 		UUID id = UUID::null;
 		if (component.material && AssetsManager::exists(component.material->getUUID())) {
 			ImGui::Text("Material: %s(Shader: %s)", component.material->getName().c_str(), component.material->getShader()->getName().c_str());
@@ -89,16 +93,19 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) {
+		ST_PROFILING_FUNCTION();
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 		drawVector2Control("Tiling", component.tiling);
 		drawTextureEdit("Texture", component.texture);
 	}
 	template<>
 	void ComponentsRender::drawComponent<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) {
+		ST_PROFILING_FUNCTION();
 
 	}
 	template<>
 	void ComponentsRender::drawComponent<LightComponent>(GameObject gameObject, LightComponent& component) {
+		ST_PROFILING_FUNCTION();
 		const char* const lightTypes[] = { "Directional","Area","Spot" };
 		ImGui::Combo("Type", (int*)&component.lightType, lightTypes, IM_ARRAYSIZE(lightTypes));
 		ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
@@ -114,6 +121,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) {
+		ST_PROFILING_FUNCTION();
 		UUID id = UUID::null;
 		if (component.material && AssetsManager::exists(component.material->getUUID())) {
 			ImGui::Text("Material: %s(Shader: %s)", component.material->getName().c_str(), component.material->getShader()->getName().c_str());
@@ -134,10 +142,11 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {
-		Ref<Mesh>& mesh = component.mesh;
+		ST_PROFILING_FUNCTION();
+		Ref<Mesh>& mesh = component.mesh.mesh;
 
 		if (mesh->getSubMeshCount()) {
-			ImGui::Text("SubMesh Count: %d", (int)component.mesh->getSubMeshCount());
+			ImGui::Text("SubMesh Count: %d", (int)component.mesh.mesh->getSubMeshCount());
 			for (int i = 0; i < mesh->getSubMeshCount(); i++) {
 				SubMesh& m = mesh->getSubMesh(i);
 				if (ImGui::TreeNodeEx((void*)(mesh->getSubMeshCount() + i + (uint32_t)gameObject), ImGuiTreeNodeFlags_OpenOnArrow, "Submesh %d", i)) {
@@ -149,13 +158,14 @@ namespace Stulu {
 			}
 		}
 		else {
-			ImGui::Text("Vertices: %d", component.mesh->getVerticesCount());
-			ImGui::Text("Indices: %d", component.mesh->getIndicesCount());
-			ImGui::Text("Triangles: %d", component.mesh->getIndicesCount() / 3);
+			ImGui::Text("Vertices: %d", component.mesh.mesh->getVerticesCount());
+			ImGui::Text("Indices: %d", component.mesh.mesh->getIndicesCount());
+			ImGui::Text("Triangles: %d", component.mesh.mesh->getIndicesCount() / 3);
 		}
 	}
 	template<>
 	void ComponentsRender::drawComponent<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) {
+		ST_PROFILING_FUNCTION();
 		drawComboControl("Type", (int&)component.rbType, "Dynamic\0Static");
 		drawBoolControl("Use gravity", component.useGravity);
 		if (component.rbType == RigidbodyComponent::Dynamic) {
@@ -196,6 +206,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) {
+		ST_PROFILING_FUNCTION();
 		drawFloatControl("Static friction", component.staticFriction);
 		drawFloatControl("Dynamic friction", component.dynamicFriction);
 		drawFloatControl("Restitution", component.restitution);
@@ -204,6 +215,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) {
+		ST_PROFILING_FUNCTION();
 		drawFloatControl("Static friction", component.staticFriction);
 		drawFloatControl("Dynamic friction", component.dynamicFriction);
 		drawFloatControl("Restitution", component.restitution);
@@ -212,6 +224,7 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) {
+		ST_PROFILING_FUNCTION();
 		drawFloatControl("Static friction", component.staticFriction);
 		drawFloatControl("Dynamic friction", component.dynamicFriction);
 		drawFloatControl("Restitution", component.restitution);
@@ -220,6 +233,7 @@ namespace Stulu {
 
 
 	bool ComponentsRender::drawStringControl(const std::string& header, std::string& v) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -238,6 +252,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawBoolControl(const std::string& header, bool& v) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -256,6 +271,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawIntControl(const std::string& header, int& v) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -274,6 +290,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawFloatControl(const std::string& header, float& v) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -292,6 +309,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawFloatSliderControl(const std::string& header, float& v, float min, float max) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -310,6 +328,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawVector2Control(const std::string& header, glm::vec2& vec) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -336,6 +355,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawVector3Control(const std::string& header, glm::vec3& vec) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -365,6 +385,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawVector4Control(const std::string& header, glm::vec4& vec) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -398,6 +419,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -416,6 +438,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawMat4Control(const std::string& header, glm::mat4& v) {
+		ST_PROFILING_FUNCTION();
 		bool change = false;
 		ImGui::Text(header.c_str());
 		for (int i = 0; i < 4; i++) {
@@ -458,6 +481,7 @@ namespace Stulu {
 	}
 
 	bool ComponentsRender::drawTextureEdit(const std::string& header, UUID& uuid, AssetType type) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -504,7 +528,8 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
-	bool ComponentsRender::drawMaterialEdit(const std::string& header,  UUID& uuid) {
+	bool ComponentsRender::drawMaterialEdit(const std::string& header,  UUID& uuid, bool canChange) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool changed = false;
 		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
@@ -520,13 +545,15 @@ namespace Stulu {
 		else {
 			ImGui::Image(reinterpret_cast<void*>((uint64_t)Previewing::get().getMaterial(uuid)->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
-		if (ImGui::BeginDragDropTarget()) {
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str())) {
-				UUID id = *(UUID*)payload->Data;
-				uuid = id;
-				changed = true;
+		if (canChange) {
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str())) {
+					UUID id = *(UUID*)payload->Data;
+					uuid = id;
+					changed = true;
+				}
+				ImGui::EndDragDropTarget();
 			}
-			ImGui::EndDragDropTarget();
 		}
 
 		ImGui::PopItemWidth();
@@ -611,10 +638,12 @@ namespace Stulu {
 	
 	
 	Previewing::Previewing()  {
+		ST_PROFILING_FUNCTION();
 		scene = createRef<Scene>();
 
 	}
 	void Previewing::addMaterial(Asset& asset) {
+		ST_PROFILING_FUNCTION();
 		if (!AssetsManager::existsAndType(asset.uuid, AssetType::Material))
 			return;
 		setUpScene(asset);
@@ -629,21 +658,24 @@ namespace Stulu {
 		scene.reset();
 	}
 	Ref<Texture>& Previewing::getMaterial(UUID id) {
+		ST_PROFILING_FUNCTION();
 		if (!existsMaterial(id)) {
 			addMaterial(AssetsManager::get(id));
 		}
 		return materials[id];
 	}
 	bool Previewing::existsMaterial(UUID id) {
+		ST_PROFILING_FUNCTION();
 		return materials.find(id) != materials.end();
 	}
 	void Previewing::setUpScene(Asset& asset) {
+		ST_PROFILING_FUNCTION();
 		scene = createRef<Scene>();
 		scene->onViewportResize(200, 200);
 
 		sphere = scene->createGameObject("Sphere");
 		sphere.addComponent<MeshRendererComponent>().material = AssetsManager::get(asset.uuid).data._Cast<Material>();
-		sphere.getComponent<MeshFilterComponent>().mesh = Resources::getSphereMesh();
+		sphere.getComponent<MeshFilterComponent>().mesh.mesh = Resources::getSphereMesh();
 		camera = scene->createGameObject("Camera");
 		bool cubeMap = false;
 

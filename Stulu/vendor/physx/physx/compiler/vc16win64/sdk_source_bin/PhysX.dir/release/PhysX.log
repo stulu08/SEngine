@@ -38,4 +38,4 @@
   PxGpu.cpp
   PxPhysXGpuModuleLoader.cpp
   NpWindowsDelayLoadHook.cpp
-  PhysX.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\release\PhysX_static_64.lib
+  PhysX.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.mt\release\PhysX_static_64.lib

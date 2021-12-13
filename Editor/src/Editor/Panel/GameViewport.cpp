@@ -1,17 +1,23 @@
 #include "GameViewport.h"
 #include "Editor/Resources.h"
 #include "ComponentsRender.h"
+#include "Editor/EditorApp.h"
 
 namespace Stulu {
 	void GameViewportPanel::draw(const Ref<Camera>& cam, bool* open) {
+		ST_PROFILING_FUNCTION();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 		if (ImGui::Begin("Game", open, ImGuiWindowFlags_HorizontalScrollbar)) {
-			ComponentsRender::drawComboControl("Sizes", selecteSize,"1920x1080\0 1000x1000\0 1280x720\0 500x500\0 250x250\0 Custom");
+			if(ComponentsRender::drawComboControl("Sizes", m_selectedSize,"1920x1080\0 1000x1000\0 1280x720\0 500x500\0 250x250\0 Custom"))
+				getEditorLayer().savePanelConfig();
+
 			ComponentsRender::drawFloatSliderControl("Size Multiply",zoom,.0f,1.0f);
-			if (selecteSize == 5) {
+			if (m_selectedSize == 5) {
 				glm::vec2 vec = { sizes[5].x, sizes[5].y};
-				ComponentsRender::drawVector2Control("Size",vec);
-				sizes[5] = { vec.x,vec.y };
+				if (ComponentsRender::drawVector2Control("Size", vec)) {
+					sizes[5] = { vec.x,vec.y };
+					getEditorLayer().savePanelConfig();
+				}
 			}
 			if(ImGui::BeginChild("Viewport",ImVec2(0,0),true, ImGuiWindowFlags_HorizontalScrollbar)) {
 				Ref<Texture> viewPortTexture;
@@ -23,7 +29,7 @@ namespace Stulu {
 					else
 						viewPortTexture = cam->getFrameBuffer()->getTexture();
 				}
-				ImVec2 viewportSize = sizes[selecteSize];
+				ImVec2 viewportSize = sizes[m_selectedSize];
 
 
 				width = (uint32_t)viewportSize.x;

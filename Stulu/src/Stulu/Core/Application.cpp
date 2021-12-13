@@ -17,14 +17,13 @@ namespace Stulu {
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-		Renderer::init();
+
 #if OPENGL
+		AssetsManager::loadAllFiles("Stulu");
+		Renderer::init();
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 #endif
-		CORE_INFO("Loading assets");
-		AssetsManager::loadAllFiles("Stulu");
-		AssetsManager::loadAllFiles("assets");
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
@@ -85,6 +84,7 @@ namespace Stulu {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onImguiRender - layerstack");
 					layer->onImguiRender(delta);
+					layer->onRenderGizmo();
 				}
 				m_imguiLayer->End();
 #endif

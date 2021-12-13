@@ -45,4 +45,4 @@
   SnConvX_Output.cpp
   SnConvX_Union.cpp
   SnSerializationContext.cpp
-  PhysXExtensions.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\checked\PhysXExtensions_static_64.lib
+  PhysXExtensions.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.mt\checked\PhysXExtensions_static_64.lib

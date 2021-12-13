@@ -13,6 +13,7 @@ namespace Stulu {
 		virtual void onDetach(){}
 		virtual void onUpdate(Timestep timestep){}
 		virtual void onImguiRender(Timestep timestep) {}
+		virtual void onRenderGizmo() {}
 		virtual void onEvent(Event& e){}
 
 		inline const std::string& getName() const { return m_dName; }

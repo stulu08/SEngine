@@ -1,0 +1,32 @@
+﻿  Building Custom Rule C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/source/compiler/cmake/CMakeLists.txt
+  DyArticulation.cpp
+  DyArticulationContactPrep.cpp
+  DyArticulationContactPrepPF.cpp
+  DyArticulationHelper.cpp
+  DyArticulationScalar.cpp
+  DyArticulationSIMD.cpp
+  DyFeatherstoneArticulation.cpp
+  DyFeatherstoneForwardDynamic.cpp
+  DyFeatherstoneInverseDynamic.cpp
+  DyConstraintPartition.cpp
+  DyConstraintSetup.cpp
+  DyConstraintSetupBlock.cpp
+  DyContactPrep.cpp
+  DyContactPrep4.cpp
+  DyContactPrep4PF.cpp
+  DyContactPrepPF.cpp
+  DyDynamics.cpp
+  DyFrictionCorrelation.cpp
+  DyRigidBodyToSolverBody.cpp
+  DySolverConstraints.cpp
+  DySolverConstraintsBlock.cpp
+  DySolverControl.cpp
+  DySolverControlPF.cpp
+  DySolverPFConstraints.cpp
+  DySolverPFConstraintsBlock.cpp
+  DyThreadContext.cpp
+  DyThresholdTable.cpp
+  DyTGSDynamics.cpp
+  DyTGSContactPrep.cpp
+  DyTGSContactPrepBlock.cpp
+  LowLevelDynamics.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\compiler\vc16win64\sdk_source_bin\LowLevelDynamics.dir\profile\LowLevelDynamics.lib

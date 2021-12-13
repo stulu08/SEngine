@@ -37,8 +37,13 @@ namespace Stulu {
 		static void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
 		static void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);
 		static void StyleColorsDark(ImGuiStyle* dst = NULL);
+
+		static inline void saveAll() { save(); saveColors(); }
 	private:
 		static bool drawStyleSelector();
 		static void drawFontSelector();
+
+		static inline int styleIndex = 0;
+		static inline int fontIndex = 0;
 	};
 }

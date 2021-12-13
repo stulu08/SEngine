@@ -8,21 +8,20 @@ namespace Stulu {
 	public:
 		static void load();
 
-		static Ref<Mesh>& getCubeMesh();
-		static Ref<Mesh>& getPlaneMesh();
-		static Ref<Mesh>& getSphereMesh();
-		static Ref<Mesh>& getSkyBoxMesh();
-		static Ref<Texture2D>& getBlackTexture();
+		static Ref<Mesh> getCubeMesh();
+		static Ref<Mesh> getPlaneMesh();
+		static Ref<Mesh> getSphereMesh();
+		static Ref<Mesh> getSkyBoxMesh();
+		static MeshAsset& getCubeMeshAsset();
+		static MeshAsset& getPlaneMeshAsset();
+		static MeshAsset& getSphereMeshAsset();
+		static MeshAsset& getSkyBoxMeshAsset();
+		static Ref<Texture2D> getBlackTexture();
 	private:
 		static void loadCubeMesh();
-		static inline Ref<Mesh> s_cubeMesh = nullptr;
 		static void loadPlaneMesh();
-		static inline Ref<Mesh> s_planeMesh = nullptr;
 		static void loadSphereMesh();
-		static inline Ref<Mesh> s_sphereMesh = nullptr;
 		static void loadSkyBoxMesh();
-		static inline Ref<Mesh> s_skyBoxMesh = nullptr;
 		static void loadBlackTexture();
-		static inline Ref<Texture2D> s_blackTexture = nullptr;
 	};
 }

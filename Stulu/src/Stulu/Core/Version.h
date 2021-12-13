@@ -13,11 +13,15 @@ struct Version {
 	operator uint32_t() const {
 		return ST_MAKE_VERSION(major, minor, patch);
 	}
+
+	std::string to_string() {
+		return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+	}
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Version& e) {
 	return os << e.major << "." << e.minor << "." << e.patch;
 }
 
-#define ST_ENGINE_VERSION Version(2,1,7)
+#define ST_ENGINE_VERSION Version(2,2,0)
 #define ST_ENGINE_NAME ("Stulu Engine")

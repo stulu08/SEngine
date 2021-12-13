@@ -11,7 +11,7 @@ namespace Stulu {
 	float Platform::getTime() {
 		return (float)glfwGetTime();
 	}
-	std::string Platform::openFile(const char* filter) {
+	std::string Platform::openFile(const char* filter, const char* initialDir) {
 		OPENFILENAMEA ofn;       // common dialog box structure
 		char szFile[260];       // buffer for file name
 		//HWND hwnd;              // owner window
@@ -30,17 +30,15 @@ namespace Stulu {
 		ofn.nFilterIndex = 1;
 		//ofn.lpstrFileTitle = NULL;
 		//ofn.nMaxFileTitle = 0;
-		ofn.lpstrInitialDir = NULL;
+		ofn.lpstrInitialDir = initialDir;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
-
 		// Display the Open dialog box. 
-
 		if (GetOpenFileNameA(&ofn) == TRUE)
 			return ofn.lpstrFile;
-
+		
 		return std::string();
 	}
-	std::string Platform::saveFile(const char* filter){
+	std::string Platform::saveFile(const char* filter, const char* initialDir){
 		OPENFILENAMEA ofn;       // common dialog box structure
 		char szFile[260];       // buffer for file name
 		//HWND hwnd;              // owner window
@@ -49,7 +47,7 @@ namespace Stulu {
 		// Initialize OPENFILENAME
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)Application::get().getWindow().getNativeWindow());;
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)Application::get().getWindow().getNativeWindow());
 		ofn.lpstrFile = szFile;
 		// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
 		// use the contents of szFile to initialize itself.
@@ -59,7 +57,7 @@ namespace Stulu {
 		ofn.nFilterIndex = 1;
 		//ofn.lpstrFileTitle = NULL;
 		//ofn.nMaxFileTitle = 0;
-		ofn.lpstrInitialDir = NULL;
+		ofn.lpstrInitialDir = initialDir;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT;
 
 		// Display the Open dialog box. 
@@ -69,7 +67,24 @@ namespace Stulu {
 
 		return std::string();
 	}
-	
+	std::string Platform::browseFolder() {
+		char szTitle[MAX_PATH];
+		BROWSEINFOA bi;
+		bi.hwndOwner = glfwGetWin32Window((GLFWwindow*)Application::get().getWindow().getNativeWindow());
+		bi.pidlRoot = NULL;
+		bi.pszDisplayName = szTitle;
+		bi.lpszTitle = "Select a folder";
+		bi.ulFlags = BIF_USENEWUI | BIF_RETURNONLYFSDIRS;
+		bi.lpfn = NULL;
+		bi.lParam = 0;
+		LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);
+		if (pidl != NULL) {
+			if (SHGetPathFromIDListA(pidl, szTitle))
+				return szTitle;
+		}
+
+		return std::string();
+	}
 	bool Platform::createDirectory(const char* directory) {	
 		if (CreateDirectoryA(std::string(directory).c_str(), NULL)) {
 			return true;

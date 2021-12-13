@@ -1,6 +1,5 @@
 #pragma once
 #include "Stulu/Renderer/Mesh.h"
-#include "Stulu/Scene/Components.h"
 
 struct aiNode;
 struct aiMesh;
@@ -16,30 +15,19 @@ namespace Stulu {
 		Model(const std::string& path) {
 			load(path);
 		}
-		Model(Mesh& mesh) {
-			meshes.push_back(mesh);
+		Model(Ref<Mesh>& mesh, const std::string& name = "new Mesh") {
+			meshes.push_back({name, mesh });
 		}
 		Model() {
 
 		}
-
-		static GameObject loadModel(const std::string& path, Scene* scene, UUID material = UUID::null);
-
-
-		const std::vector<Mesh>& getMeshes() { return meshes; }
-
-		static Mesh& fromModel(UUID modelUuid, uint32_t mesh = 0);
+		std::vector<MeshAsset>& getMeshes() { return meshes; }
 	private:
-		std::vector<Mesh> meshes;
-		std::string directory = "";
+		std::vector<MeshAsset> meshes;
 		void load(const std::string& path);
-		void processNode(aiNode* node, const aiScene* scene);
+		void processNode(aiNode* node, const aiScene* scene, UUID& parent = UUID::null);
 		static Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 		static SubMesh processSubMesh(aiMesh* mesh, const aiScene* scene);
-
-		static GameObject processNode(aiNode* node, const aiScene* scene, Scene* s_scene, UUID material = UUID::null);
-
-		static const void decompose(const aiMatrix4x4& aMat, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale);
 	};
 }
 

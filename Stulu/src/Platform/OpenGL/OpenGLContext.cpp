@@ -35,4 +35,7 @@ namespace Stulu {
 		else
 			glfwSwapInterval(0);
 	}
+	API_Infos OpenGLContext::getApiInfos() {
+		return API_Infos{ "OpenGL",(char*)glGetString(GL_VENDOR),(char*)glGetString(GL_VERSION),(char*)glGetString(GL_RENDERER) };
+	}
 }

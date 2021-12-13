@@ -9,7 +9,13 @@ namespace Stulu {
 	void SceneRenderer::init() {
 		ST_PROFILING_FUNCTION();
 #if OPENGL
-		m_runtimeData.defaultMaterial = AssetsManager::getFromPath("Stulu/assets/Materials/default.mat");
+		AssetsManager::update(UUID(12), { AssetType::Material,Material(AssetsManager::get(UUID(9)),
+			MaterialData(std::vector<MaterialDataType>{
+			MaterialDataType{ShaderDataType::Float,.0f,"metallic"},
+			MaterialDataType{ShaderDataType::Float3,glm::vec3(.9f),"albedo"},
+			MaterialDataType{ShaderDataType::Float,.0f,"roughness"},
+			MaterialDataType{ShaderDataType::Float,.3f,"ao"},})),"",UUID(12) });
+		m_runtimeData.defaultMaterial = UUID(12);
 		if(m_runtimeData.sceneDataUniformBuffer == nullptr)
 			m_runtimeData.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneRuntimeData), 0);
 #endif
@@ -103,8 +109,8 @@ namespace Stulu {
 		}
 		material->bind();
 		material->getShader()->setMat4("u_transform", transform);
-		filter.mesh->getVertexArray()->bind();
-		RenderCommand::drawIndexed(filter.mesh->getVertexArray(),0);
+		filter.mesh.mesh->getVertexArray()->bind();
+		RenderCommand::drawIndexed(filter.mesh.mesh->getVertexArray(),0);
 
 		if (mesh.material) {
 			material->unbind();

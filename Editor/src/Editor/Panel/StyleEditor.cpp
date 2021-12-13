@@ -1,21 +1,11 @@
 #include "StyleEditor.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <Editor/EditorApp.h>
 
 namespace Stulu {
-    int styleIndex = 0;
-    int fontIndex = 0;
-    bool exists(const std::string& name) {
-        if (FILE* file = fopen(name.c_str(), "r")) {
-            fclose(file);
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    static void HelpMarker(const char* desc)
-    {
+    static void HelpMarker(const char* desc) {
+        ST_PROFILING_FUNCTION();
         ImGui::TextDisabled("(?)");
         if (ImGui::IsItemHovered())
         {
@@ -26,8 +16,8 @@ namespace Stulu {
             ImGui::EndTooltip();
         }
     }
-    static void NodeFont(ImFont* font)
-    {
+    static void NodeFont(ImFont* font) {
+        ST_PROFILING_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();
         ImGuiStyle& style = ImGui::GetStyle();
         bool font_details_opened = ImGui::TreeNode(font, "Font: \"%s\"\n%.2f px, %d glyphs, %d file(s)",
@@ -114,8 +104,11 @@ namespace Stulu {
         ImGui::TreePop();
     }
     void StyleEditor::init() {
+        ST_PROFILING_FUNCTION();
         ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
         ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.IniFilename = "Stulu/imgui.ini";
+        ImGui::LoadIniSettingsFromDisk(io.IniFilename);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 15.0f);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 15.0f);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 15.0f);
@@ -138,9 +131,10 @@ namespace Stulu {
         style.Alpha = data.GlobalAlpha;
     }
     StyleEditor::StyleFileData StyleEditor::load() {
+        ST_PROFILING_FUNCTION();
         StyleFileData data;
-        std::string file = "config/editor-style.ini";
-        if (!exists(file)) {
+        std::string file = EditorApp::getProject().path + "/config/editor-style.ini";
+        if (!FileExists(file)) {
             save();
             return data;
         }
@@ -158,7 +152,7 @@ namespace Stulu {
             count++;
         }
         if (count < ST_STYLE_DATA_FILE_COUNT) {
-            ST_WARN("Loading deafult editor settings, file does not contain needed data");
+            ST_WARN("Loading default editor settings, file does not contain needed data");
             return data;
         }
         data.font = std::stoi(values["font"]);
@@ -180,7 +174,8 @@ namespace Stulu {
         return data;
     }
     void StyleEditor::save() {
-        std::string file = "config/editor-style.ini";
+        ST_PROFILING_FUNCTION();
+        std::string file = EditorApp::getProject().path + "/config/editor-style.ini";
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         ImGuiStyle& style = ImGui::GetStyle();
         std::remove(file.c_str());
@@ -205,6 +200,7 @@ namespace Stulu {
         ST_INFO("Saved Editor style config to {0}", file);
     }
     void StyleEditor::drawStyleEditor(ImGuiStyle* ref, bool* open) {
+        ST_PROFILING_FUNCTION();
         ImGuiStyle& style = ImGui::GetStyle();
         static ImGuiStyle ref_saved_style;
 
@@ -333,11 +329,6 @@ namespace Stulu {
                     const float MIN_SCALE = 0.3f;
                     const float MAX_SCALE = 2.0f;
                     static float fontWindowScale = 1.0f;
-                    HelpMarker(
-                        "Those are old settings provided for convenience.\n"
-                        "However, the _correct_ way of scaling your UI is currently to reload your font at the designed size, "
-                        "rebuild the font atlas, and call style.ScaleAllSizes() on a reference ImGuiStyle structure.\n"
-                        "Using those settings here will give you poor quality results.");
                     if (ImGui::DragFloat("window scale", &fontWindowScale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_ClampOnInput)) // Scale only this window
                         ImGui::SetWindowFontScale(fontWindowScale);
                     ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_ClampOnInput); // Scale everything
@@ -393,14 +384,14 @@ namespace Stulu {
         ImGui::End();
     }
 	bool StyleEditor::drawStyleSelector() {
-        if (ImGui::Combo("Colors##Selector", &styleIndex, "Ocean Dark\0Dark\0Amoled Dark\0Personal\0ImGui Classic\0ImGui Dark\0ImGui Light\0"))
-        {
+        ST_PROFILING_FUNCTION();
+        if (ImGui::Combo("Colors##Selector", &styleIndex, "Ocean Dark\0Dark\0Amoled Dark\0Personal\0ImGui Classic\0ImGui Dark\0ImGui Light\0")) {
             setStyleByInt(styleIndex);
         }
         return false;
 	}
-    void StyleEditor::drawFontSelector()
-    {
+    void StyleEditor::drawFontSelector() {
+        ST_PROFILING_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();
         ImFont* font_current = ImGui::GetFont();
         if (ImGui::BeginCombo("Fonts##Selector", font_current->GetDebugName()))
@@ -426,6 +417,7 @@ namespace Stulu {
         return os << vec4.x << "," << vec4.y << "," << vec4.z << "," << vec4.w;
     }
     ImVec4 ImVec4fromString(std::string str){
+        ST_PROFILING_FUNCTION();
         ImVec4 vec4 = ImVec4(1,1,1,1);
         
         std::stringstream string_stream(str);
@@ -456,7 +448,8 @@ namespace Stulu {
         
     }
     void StyleEditor::saveColors() {
-        std::string file = "config/personal-colors.ini";
+        ST_PROFILING_FUNCTION();
+        std::string file = EditorApp::getProject().path + "/config/personal-colors.ini";
         ImGuiStyle* style = &ImGui::GetStyle();
         ImVec4* colors = style->Colors;
         std::remove(file.c_str());
@@ -468,10 +461,11 @@ namespace Stulu {
         ST_INFO("Saved Editor style colors to {0}", file);
     }
     void StyleEditor::LoadStyleColors(ImGuiStyle* dst) {
-        std::string file = "config/personal-colors.ini";
+        ST_PROFILING_FUNCTION();
+        std::string file = EditorApp::getProject().path + "/config/personal-colors.ini";
         ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
         ImVec4* colors = style->Colors;
-        if (!exists(file)) {
+        if (!FileExists(file)) {
             saveColors();
             return;
         }
@@ -491,6 +485,7 @@ namespace Stulu {
     }
 
     void StyleEditor::setStyleByInt(int style) {
+        ST_PROFILING_FUNCTION();
         styleIndex = style;
         switch (style)
         {
@@ -505,13 +500,13 @@ namespace Stulu {
         }
     }
     void StyleEditor::setFontByInt(int style) {
+        ST_PROFILING_FUNCTION();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         fontIndex = style;
         io.FontDefault = io.Fonts->Fonts[style];
     }
 
-    void StyleEditor::StyleColorsAmoledDark(ImGuiStyle* dst)
-    {
+    void StyleEditor::StyleColorsAmoledDark(ImGuiStyle* dst) {
         ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
         ImVec4* colors = style->Colors;
 

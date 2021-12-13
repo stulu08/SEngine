@@ -173,12 +173,13 @@ namespace Stulu {
 		MeshRendererComponent(const MeshRendererComponent&) = default;
 	};
 	struct MeshFilterComponent {
-		Ref<Mesh> mesh = nullptr;
+		MeshAsset mesh{"",nullptr};
 
 		MeshFilterComponent() = default;
 		MeshFilterComponent(const MeshFilterComponent&) = default;
-		MeshFilterComponent(const Ref<Mesh>&mesh)
-			: mesh(mesh) {};
+		MeshFilterComponent(const Ref<Mesh>& _mesh) {mesh.mesh = _mesh;}
+		MeshFilterComponent(MeshAsset& mesh)
+			: mesh(mesh){}
 	};
 
 	struct RigidbodyComponent {

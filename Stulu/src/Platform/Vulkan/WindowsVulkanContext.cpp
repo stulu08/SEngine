@@ -550,4 +550,28 @@ namespace Stulu {
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		createInfo.pfnUserCallback = debugCallback;
 	}
+	API_Infos WindowsVulkanContext::getApiInfos() {
+		const char* vendor;
+		switch (device.physicalDeviceProps.vendorID)
+		{
+		case 0x1002:
+			vendor = "Advanced Micro Devices, Inc. [AMD/ATI]";
+			break;
+		case 0x10DE:
+			vendor = "NVIDIA Corporation";
+			break;
+		case 0x8086:
+			vendor = "INTEL Corporation";
+			break;
+		case 0x13B5:
+			vendor = "ARM";
+			break;
+		default:
+			vendor = "Unknown";
+			break;
+		}
+		//name, vendor, version, device
+		return API_Infos{"Vulkan",vendor,
+			vulkanVersion.to_string() + " [" + vendor + " " + ST_GET_ST_VERSION(device.physicalDeviceProps.driverVersion).to_string() + "]",device.physicalDeviceProps.deviceName};
+	}
 }

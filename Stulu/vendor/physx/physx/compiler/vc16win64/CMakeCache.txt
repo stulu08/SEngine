@@ -200,7 +200,7 @@ NV_USE_DEBUG_WINCRT:BOOL=TRUE
 NV_USE_GAMEWORKS_OUTPUT_DIRS:BOOL=ON
 
 //Use the statically linked windows CRT
-NV_USE_STATIC_WINCRT:BOOL=FALSE
+NV_USE_STATIC_WINCRT:BOOL=TRUE
 
 //No help, variable specified on the command line.
 PHYSX_ROOT_DIR:UNINITIALIZED=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx
@@ -469,13 +469,13 @@ GPU_DLL_COPIED:INTERNAL=1
 //PhysX CXX
 PHYSX_CXX_FLAGS:INTERNAL=/d2Zi+ /MP /WX /W4 /GF /GS- /GR- /Gd /fp:fast /Oy /wd4514 /wd4820 /wd4127 /wd4710 /wd4711 /wd4577 /wd4996
 //PhysX Checked CXX Flags
-PHYSX_CXX_FLAGS_CHECKED:INTERNAL=/O2 /MD /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG" /Zi
+PHYSX_CXX_FLAGS_CHECKED:INTERNAL=/O2 /MT /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG" /Zi
 //PhysX Debug CXX Flags
-PHYSX_CXX_FLAGS_DEBUG:INTERNAL=/Od /MDd /D "_DEBUG" /RTCu /Zi
+PHYSX_CXX_FLAGS_DEBUG:INTERNAL=/Od /MTd /D "_DEBUG" /RTCu /Zi
 //PhysX Profile CXX Flags
-PHYSX_CXX_FLAGS_PROFILE:INTERNAL=/O2 /MD /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG" /Zi
+PHYSX_CXX_FLAGS_PROFILE:INTERNAL=/O2 /MT /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG" /Zi
 //PhysX Release CXX Flags
-PHYSX_CXX_FLAGS_RELEASE:INTERNAL=/O2 /MD /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG" /Zi
+PHYSX_CXX_FLAGS_RELEASE:INTERNAL=/O2 /MT /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG" /Zi
 //PhysX lib type defs
 PHYSX_LIBTYPE_DEFS:INTERNAL=PX_PHYSX_STATIC_LIB;
 //Checked PhysX preprocessor definitions
@@ -493,19 +493,21 @@ PXSHARED_INSTALL_PREFIX:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/i
 //Path to PxShared
 PXSHARED_PATH:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/../pxshared
 //Directory to put checked exes in
-PX_EXE_OUTPUT_DIRECTORY_CHECKED:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.md/checked
+PX_EXE_OUTPUT_DIRECTORY_CHECKED:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.mt/checked
 //Directory to put debug exes in
-PX_EXE_OUTPUT_DIRECTORY_DEBUG:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.md/debug
+PX_EXE_OUTPUT_DIRECTORY_DEBUG:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.mt/debug
 //Directory to put profile exes in
-PX_EXE_OUTPUT_DIRECTORY_PROFILE:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.md/profile
+PX_EXE_OUTPUT_DIRECTORY_PROFILE:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.mt/profile
 //Directory to put release exes in
-PX_EXE_OUTPUT_DIRECTORY_RELEASE:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.md/release
+PX_EXE_OUTPUT_DIRECTORY_RELEASE:INTERNAL=C:/stulu/dev/SEngine/Stulu/vendor/physx/physx/bin/win.x86_64.vc142.mt/release
 //Relative root dir of the exe output directory
-PX_ROOT_EXE_DIR:INTERNAL=bin/win.x86_64.vc142.md
+PX_ROOT_EXE_DIR:INTERNAL=bin/win.x86_64.vc142.mt
 //Relative root of the lib output directory
-PX_ROOT_LIB_DIR:INTERNAL=bin/win.x86_64.vc142.md
+PX_ROOT_LIB_DIR:INTERNAL=bin/win.x86_64.vc142.mt
 //Path to tinyxml2
 TINYXML2_PATH:INTERNAL=
 //Windows CRT build setting
-WINCRT_DEBUG:INTERNAL=/MDd /D "_DEBUG"
+WINCRT_DEBUG:INTERNAL=/MTd /D "_DEBUG"
+//Windows CRT build setting
+WINCRT_NDEBUG:INTERNAL=/MT /D "_HAS_ITERATOR_DEBUGGING=0" /D "_ITERATOR_DEBUG_LEVEL=0" /D "NDEBUG"
 

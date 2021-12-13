@@ -8,11 +8,15 @@ namespace Stulu {
 		AssetBrowserPanel(const std::filesystem::path& path = "assets");
 		void render(bool* open);
 
-
 		const Ref<Texture>& getIcon(const std::filesystem::directory_entry& directory);
 	private:
 		std::filesystem::path m_path;
+		bool m_inspector = true;
+		Asset selected;
 
-		void drawDirectory(const std::string& path);
+		void renderInspector();
+		void drawDirectory(const std::filesystem::path& path);
+		bool containsDirSubDirs(std::filesystem::path path);
+
 	};
 }

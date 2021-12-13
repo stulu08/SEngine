@@ -41,6 +41,7 @@ IncludeDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc/include"
 
 ProjectDir = {}
 ProjectDir["Stulu"] = "%{wks.location}/Stulu"
+ProjectDir["Editor"] = "%{wks.location}/Editor"
 ProjectDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc"
 
 

@@ -10,4 +10,4 @@
   PxPvdObjectRegistrar.cpp
   PxPvdProfileZoneClient.cpp
   PxPvdUserRenderer.cpp
-  PhysXPvdSDK.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\debug\PhysXPvdSDK_static_64.lib
+  PhysXPvdSDK.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.mt\debug\PhysXPvdSDK_static_64.lib

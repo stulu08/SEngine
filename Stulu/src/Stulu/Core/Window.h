@@ -2,6 +2,7 @@
 #include "st_pch.h"
 
 #include "Stulu/Events/Event.h"
+#include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu{
 	
@@ -33,7 +34,7 @@ namespace Stulu{
 		virtual bool isVSync() const = 0;
 
 		virtual void* getNativeWindow() const = 0;
-
+		virtual Scope<GraphicsContext>& getContext() = 0;
 		static Scope<Window> create(const WindowProps& props = WindowProps());
 	};
 }

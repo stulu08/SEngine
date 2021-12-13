@@ -16,4 +16,4 @@
   PsWindowsSync.cpp
   PsWindowsThread.cpp
   PsWindowsTime.cpp
-  PhysXFoundation.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.md\debug\PhysXFoundation_static_64.lib
+  PhysXFoundation.vcxproj -> C:\stulu\dev\SEngine\Stulu\vendor\physx\physx\bin\win.x86_64.vc142.mt\debug\PhysXFoundation_static_64.lib

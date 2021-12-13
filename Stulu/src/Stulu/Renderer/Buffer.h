@@ -31,6 +31,28 @@ namespace Stulu{
 		CORE_ASSERT(false, "Uknown ShaderDataType");
 		return 0;
 	}
+	static uint32_t shaderDataTypeSize_std140(ShaderDataType type) {
+		switch (type) {
+		case ShaderDataType::Float:		return 4;
+		case ShaderDataType::Float2:	return 8;
+		case ShaderDataType::Float3:	return 16;
+		case ShaderDataType::Float4:	return 16;
+
+		case ShaderDataType::Int:		return 4;
+		case ShaderDataType::Int2:		return 8;
+		case ShaderDataType::Int3:		return 12;
+		case ShaderDataType::Int4:		return 16;
+
+		case ShaderDataType::Mat3:		return 4 * 4 * 3;
+		case ShaderDataType::Mat4:		return 4 * 4 * 4;
+
+		case ShaderDataType::Bool:		return 4;
+
+		case ShaderDataType::Sampler:	return 4;
+		}
+		CORE_ASSERT(false, "Uknown ShaderDataType");
+		return 0;
+	}
 
 	struct BufferElement {
 		std::string name;

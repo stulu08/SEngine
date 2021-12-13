@@ -9,59 +9,6 @@
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
-    GameObject Model::loadModel(const std::string& path, Scene* scene, UUID material) {
-        ST_PROFILING_FUNCTION();
-
-        Assimp::Importer importer;
-        const aiScene* a_scene;
-        {
-            ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            a_scene = importer.ReadFile(path, aiProcess_Triangulate);
-        }
-
-        if (!a_scene || a_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !a_scene->mRootNode) {
-            CORE_ASSERT(false, importer.GetErrorString());
-            return GameObject::null;
-        }
-        a_scene->mRootNode->mName = a_scene->GetShortFilename(path.c_str());
-        return processNode(a_scene->mRootNode, a_scene, scene, material);;
-    }
-    GameObject Stulu::Model::processNode(aiNode* node, const aiScene* scene, Scene* s_scene, UUID material) {
-        ST_PROFILING_FUNCTION();
-        GameObject go = s_scene->createGameObject(std::string(node->mName.data));
-
-        glm::vec3 pos(.0f), rot(.0f), scale(1.0f);
-        decompose(node->mTransformation, pos, rot, scale);
-        go.getComponent<TransformComponent>().position = pos;
-        go.getComponent<TransformComponent>().rotation = rot;
-        go.getComponent<TransformComponent>().scale = scale;
-
-        if (node->mNumMeshes > 0) {
-            Mesh mesh;
-            if (node->mNumMeshes == 1) {
-                aiMesh * a_mesh = scene->mMeshes[node->mMeshes[0]];
-                mesh = processMesh(a_mesh, scene);
-            }
-            else {
-                for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-                    aiMesh* a_mesh = scene->mMeshes[node->mMeshes[i]];
-                    mesh.addSubMesh(processSubMesh(a_mesh, scene));
-                }
-                mesh = Mesh::combine(mesh);
-            }
-            go.addComponent<MeshRendererComponent>();
-            if (AssetsManager::existsAndType(material, AssetType::Material))
-                go.getComponent<MeshRendererComponent>().material = AssetsManager::get(material).data._Cast<Material>();
-
-
-            go.getComponent<MeshFilterComponent>().mesh = createRef<Mesh>(mesh);
-        }
-        for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            GameObject g = processNode(node->mChildren[i], scene, s_scene, material);
-            go.getComponent<TransformComponent>().addChild(g);
-        }
-        return go;
-    }
     SubMesh Stulu::Model::processSubMesh(aiMesh* mesh, const aiScene* scene) {
         ST_PROFILING_FUNCTION();
         std::vector<Vertex> vertices;
@@ -105,28 +52,6 @@ namespace Stulu {
         return SubMesh(vertices, indices);
     }
 
-    const void Model::decompose(const aiMatrix4x4& aMat, glm::vec3& position, glm::vec3& rotation, glm::vec3& scale) {
-        aiVector3D a_pos;
-        aiVector3D a_scale;
-        aiQuaternion a_rot;
-
-        aMat.Decompose(a_scale, a_rot, a_pos);
-        glm::vec3 pos, sca;
-        pos.x = a_pos.x;
-        pos.y = a_pos.y;
-        pos.z = a_pos.z;
-        sca.x = a_scale.x;
-        sca.y = a_scale.y;
-        sca.z = a_scale.z;
-        glm::quat q = glm::quat(a_rot.w, a_rot.x, a_rot.y, a_rot.z);//q is only pitch yaw roll, but we want it in x y z
-        Math::decomposeTransform(Math::createMat4(pos, q, sca), position, rotation, scale);
-
-    }
-
-    Mesh& Model::fromModel(UUID modelUuid, uint32_t mesh) {
-        return AssetsManager::get(modelUuid).data._Cast<Model>()->meshes[mesh];
-    }
-
     void Stulu::Model::load(const std::string& path) {
         ST_PROFILING_FUNCTION();
 
@@ -141,28 +66,47 @@ namespace Stulu {
             CORE_ASSERT(false,import.GetErrorString());
             return;
         }
-        directory = path.substr(0, path.find_last_of('/'));
+        size_t lastS = path.find_last_of("/\\");
+        lastS = lastS == std::string::npos ? 0 : lastS + 1;
+        size_t lastD = path.rfind('.');
+        scene->mRootNode->mName = path.substr(lastS, lastD == std::string::npos ? path.size() - lastS : lastD - lastS).c_str();
         processNode(scene->mRootNode, scene);
     }
-    void Stulu::Model::processNode(aiNode* node, const aiScene* scene) {
+    void Stulu::Model::processNode(aiNode* node, const aiScene* scene, UUID& parent) {
         ST_PROFILING_FUNCTION();
+        MeshAsset mesh = { std::string(node->mName.data)};
         if (node->mNumMeshes > 0) {
-            Mesh mesh;
+            Mesh m;
             if (node->mNumMeshes == 1) {
                 aiMesh* a_mesh = scene->mMeshes[node->mMeshes[0]];
-                mesh = processMesh(a_mesh, scene);
+                m = processMesh(a_mesh, scene);
             }
             else {
                 for (unsigned int i = 0; i < node->mNumMeshes; i++) {
                     aiMesh* a_mesh = scene->mMeshes[node->mMeshes[i]];
-                    mesh.addSubMesh(processSubMesh(a_mesh, scene));
+                    m.addSubMesh(processSubMesh(a_mesh, scene));
                 }
+                m = Mesh::combine(m);
+
             }
-            meshes.push_back(mesh);
+            mesh.mesh = createRef<Mesh>(m);
+            mesh.hasMesh = true;
         }
+        if (parent != UUID::null)
+            mesh.parentMeshAsset = parent;
+
+        //should work but does not work
+        //mesh.transform = *(glm::mat4*)&node->mTransformation;
+        aiVector3D a_pos, a_scale;
+        aiQuaternion a_rot;
+        node->mTransformation.Decompose(a_scale, a_rot, a_pos);
+        glm::vec3 pos(a_pos.x,a_pos.y,a_pos.z), sca(a_scale.x, a_scale.y, a_scale.z), rot;
+        Math::decomposeTransform(Math::createMat4(pos, glm::quat(a_rot.w, a_rot.x, a_rot.y, a_rot.z), sca), pos, rot, sca);
+        mesh.transform = Math::createMat4(pos, glm::degrees(rot), sca);
+
+        meshes.push_back(mesh);
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-           processNode(node->mChildren[i], scene);
-           
+           processNode(node->mChildren[i], scene, mesh.uuid);
         }
     }
     Mesh Stulu::Model::processMesh(aiMesh* mesh, const aiScene* scene) {

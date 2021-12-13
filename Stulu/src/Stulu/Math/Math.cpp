@@ -201,7 +201,6 @@ namespace Stulu {
 			rotation.z = 0;
 		}
 
-
 		return true;
 	}
 }

@@ -20,10 +20,13 @@ namespace Stulu {
 
 	}
 	void VulkanRenderAPI::clear(){
-
+		
 	}
 
 	void VulkanRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count){
+
+	}
+	void VulkanRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count){
 
 	}
 }

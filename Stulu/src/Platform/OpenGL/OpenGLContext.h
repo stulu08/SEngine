@@ -11,7 +11,7 @@ namespace Stulu {
 		virtual void init(Window* window) override;
 		virtual void swapBuffers() override;
 		virtual void setVSync(bool enabled) override;
-
+		virtual API_Infos getApiInfos() override;
 	private:
 		GLFWwindow* m_windowHandle;
 	};

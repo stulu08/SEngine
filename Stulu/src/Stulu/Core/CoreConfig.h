@@ -7,7 +7,6 @@
 #else
 	#define VULKAN 1
 #endif
-
 #ifdef ST_DEBUG
 	#define ST_SHOWCONSOLE 1
 

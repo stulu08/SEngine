@@ -1,0 +1,161 @@
+Scene: Untitled
+GameObjects:
+  - GameObject: 4579224798848515635
+    GameObjectBaseComponent:
+      name: CC_Base_Eye
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 3564934442968546134
+  - GameObject: 14157454720349924799
+    GameObjectBaseComponent:
+      name: CC_Base_Teeth
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 7204667341195740883
+  - GameObject: 2402360163315689721
+    GameObjectBaseComponent:
+      name: CC_Base_Tongue
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 1823422608133691315
+  - GameObject: 2095152362833877233
+    GameObjectBaseComponent:
+      name: Hair
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 3110439035249540239
+  - GameObject: 6028115339261793498
+    GameObjectBaseComponent:
+      name: Bra
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 6935164316954556455
+  - GameObject: 3806673287075590104
+    GameObjectBaseComponent:
+      name: CC_Base_Body
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 8288531901202025388
+  - GameObject: 13563333226188933808
+    GameObjectBaseComponent:
+      name: Underwear_Bottoms
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [1.57079649, -0, 0]
+      scale: [1, 0.999999821, 0.999999821]
+      parent: 17472515818314097266
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 13355903423630395323
+  - GameObject: 17472515818314097266
+    GameObjectBaseComponent:
+      name: human
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+  - GameObject: 8926336264011281864
+    GameObjectBaseComponent:
+      name: Orthographic Camera
+      tag: MainCam
+    TransformComponent:
+      position: [0, -1.89999998, 9.40088272]
+      rotation: [0, -0, 0]
+      scale: [1, 1, 1]
+    CameraComponent:
+      Camera Settings:
+        clearType: 1
+        clearColor: [0, 0, 0, 1]
+        fov: 80
+        zoom: 10.3000002
+        zNear: 0.00999999978
+        zFar: 250
+        staticAspect: false
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
+      mode: 0
+      depth: -1
+    SkyBoxComponent:
+      material: 9682430980351503656
+  - GameObject: 8124876419099808113
+    GameObjectBaseComponent:
+      name: SpriteRenderer
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    SpriteRendererComponent:
+      color: [1, 1, 1, 1]
+      tiling: [1, 1]
+      texture: 10673144691421080725
+  - GameObject: 6325810846967535312
+    GameObjectBaseComponent:
+      name: Ground
+      tag: default
+    TransformComponent:
+      position: [-2.08795571, -3.20856166, 0]
+      rotation: [0, -0, -0.720796049]
+      scale: [9.31375027, 1, 1]
+    SpriteRendererComponent:
+      color: [1, 0, 0, 1]
+      tiling: [1, 1]
+      texture: 14322035509124593424
+  - GameObject: 3045162238483836757
+    GameObjectBaseComponent:
+      name: SpriteRenderer
+      tag: default
+    TransformComponent:
+      position: [0, 0, -2.79999995]
+      rotation: [0, 0, 0]
+      scale: [13.3999996, 9, 1]
+    SpriteRendererComponent:
+      color: [0.256634593, 0.256635129, 0.256637156, 1]
+      tiling: [1, 1]
+      texture: 12474923469449159210

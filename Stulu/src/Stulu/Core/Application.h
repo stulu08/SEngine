@@ -39,6 +39,8 @@ namespace Stulu {
 
 		inline static Application& get(){ return *s_instance; }
 
+		static inline std::vector<std::string>& getStartArgs() { return s_startArgs; }
+
 		static void exit(int code = 0);
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
@@ -53,6 +55,7 @@ namespace Stulu {
 		float m_lastFrameTime;
 
 		static Application* s_instance;
+		static inline std::vector<std::string> s_startArgs;
 	};
 
 	//defined in Client

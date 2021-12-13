@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/VertexArray.h"
+#include "Stulu/Core/UUID.h"
 #include "glm/glm.hpp"
 
 namespace Stulu {
@@ -25,7 +26,7 @@ namespace Stulu {
 	};
 	class STULU_API Mesh {
 	public:
-		Mesh(){}
+		Mesh() {}
 		Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
 
 		const void recalculate();
@@ -64,7 +65,6 @@ namespace Stulu {
 		std::vector<uint32_t> m_indices;
 
 		std::vector<SubMesh> m_subMeshes;
-
 		size_t m_subMeshCount = 0;
 		size_t m_verticesCount = 0;
 		size_t m_indicesCount = 0;
@@ -72,6 +72,18 @@ namespace Stulu {
 		static BufferLayout m_defaultLayout;
 
 		friend class PhysX;
+	};
+	struct MeshAsset {
+		std::string name;
+		Ref<Mesh> mesh;
+		UUID uuid = UUID();
+
+		bool hasMesh = false;
+		UUID parentMeshAsset = UUID::null;
+		glm::mat4 transform = glm::mat4(1.0f);
+
+		MeshAsset() = default;
+		MeshAsset(const MeshAsset&) = default;
 	};
 }
 

@@ -3,6 +3,7 @@
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Shader.h"
+#include "Stulu/Renderer/Model.h"
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Core/UUID.h"
 #include <entt.hpp>
@@ -31,6 +32,10 @@ namespace Stulu {
 		void onRuntimeStart();
 		void onRuntimeStop();
 		void onViewportResize(uint32_t width, uint32_t height);
+
+		GameObject addModel(Model& model);
+		GameObject addMeshAssetsToScene(MeshAsset& mesh, Model& model);
+		GameObject addMeshAssetToScene(MeshAsset& mesh);
 
 		GameObject getMainCamera();
 		SceneData& getData() { return m_data; }

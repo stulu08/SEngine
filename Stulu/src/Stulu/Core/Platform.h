@@ -17,8 +17,9 @@ namespace Stulu {
 	public:
 		static float getTime();
 
-		static std::string openFile(const char* filter);
-		static std::string saveFile(const char* filter);
+		static std::string openFile(const char* filter, const char* initialDir = NULL);
+		static std::string saveFile(const char* filter, const char* initialDir = NULL);
+		static std::string browseFolder();
 
 		static bool createDirectory(const char* directory);
 

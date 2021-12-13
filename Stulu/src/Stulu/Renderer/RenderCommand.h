@@ -26,11 +26,11 @@ namespace Stulu{
 			s_renderAPI->clear();
 		}
 		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
-			ST_PROFILING_RENDERDATA_ADDDRAWCALL();
+			ST_PROFILING_RENDERDATA_ADDDRAWCALLS(1);
 			s_renderAPI->drawIndexed(vertexArray, count);
 		}
 		inline static void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
-			ST_PROFILING_RENDERDATA_ADDDRAWCALL();
+			ST_PROFILING_RENDERDATA_ADDDRAWCALLS(1);
 			s_renderAPI->drawLines(vertexArray, count);
 		}
 	private:

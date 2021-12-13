@@ -84,7 +84,7 @@ namespace Stulu {
 			out << YAML::Key << "MeshFilterComponent";
 			out << YAML::BeginMap;
 			auto& meshren = gameObject.getComponent<MeshFilterComponent>();
-			//out << YAML::Key << "mesh" << YAML::Value << meshren.mesh;
+			out << YAML::Key << "mesh" << YAML::Value << (uint64_t)meshren.mesh.uuid;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<SkyBoxComponent>()) {
@@ -259,8 +259,12 @@ namespace Stulu {
 
 				auto meshFilterComponentNode = gameObject["MeshFilterComponent"];
 				if (meshFilterComponentNode) {
-					//auto& meshFilter = deserialized.saveAddComponent<MeshFilterComponent>();
-					deserialized.removeComponent<MeshFilterComponent>();
+					auto& meshFilter = deserialized.saveAddComponent<MeshFilterComponent>();
+					if (meshFilterComponentNode["mesh"]) {
+						UUID id = meshFilterComponentNode["mesh"].as<uint64_t>();
+						if (AssetsManager::existsAndType(id, AssetType::Mesh))
+							deserialized.getComponent<MeshFilterComponent>().mesh = std::any_cast<MeshAsset>(AssetsManager::get(id).data);
+					}
 				}
 
 				auto skyBoxComponentNode = gameObject["SkyBoxComponent"];

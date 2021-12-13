@@ -7,6 +7,8 @@
 
 
 namespace Stulu {
+	bool FileExists(const std::string& name);
+	class Model;
 	enum class AssetType {
 		Unknown,
 		Texture2D, Texture, CubeMap,
@@ -37,7 +39,7 @@ namespace Stulu {
 		const static AssetType& getAssetType(const UUID uuid);
 		template<typename T>
 		static T* getAs(const UUID uuid);
-
+		static UUID getFromPath(const std::string& path);
 		static const AssetType assetTypeFromExtension(const std::string& extension);
 
 		static void loadAllFiles(const std::string& directory);
@@ -46,15 +48,12 @@ namespace Stulu {
 		static void loadTextures(const std::string& directory);
 		static void loadMaterials(const std::string& directory);
 
-		static UUID getFromPath(const std::string& path);
-
-		template<typename T>
-		static T getProperity(Asset& aseet, const std::string& name, const T& nullReturn = T());
-		template<typename T>
-		static void setProperity(Asset& aseet, const std::string name, const T& value);
 	private:
 		//uuid ,<data, path>
 		static std::unordered_map<UUID, Asset> assets;
+
+		static void createMeshesFromModel(const Asset uuid);
+		static void _createMeshesFromModel(const Asset uuid, Model& model);
 
 		static void createMeta(const UUID uuid, const std::string& path, const AssetType type);
 	};

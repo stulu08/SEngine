@@ -2,10 +2,12 @@ project "VulkanTesting"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	if(staticRuntime) then
+		staticruntime "on"
+	end
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("bin/" .. outputdir .. "")
+	objdir ("bin-int/" .. outputdir .. "")
 	files
 	{
 		"src/**.h",
@@ -21,14 +23,27 @@ project "VulkanTesting"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
 	}
 
+	if(staticBuild == false) then
+		postbuildcommands
+		{
+			"{COPY} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/Stulu.dll bin/" .. outputdir .. ""
+		}
+	end
 	links
 	{
-		"Stulu"
+		"Stulu", 
+		"ImGuizmo",
+		"ImGui",
 	}
-
+	if(staticBuild == false) then
+		defines
+		{
+			"ST_DYNAMIC_LINK",
+		}
+	end
 	filter "system:windows"
 		systemversion "latest"
 

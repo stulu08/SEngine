@@ -26,6 +26,7 @@ namespace Stulu {
 		virtual void setClearColor(const glm::vec4& color) override;
 		virtual void clear() override;
 		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) override;
+		virtual void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) override;
 
 
 

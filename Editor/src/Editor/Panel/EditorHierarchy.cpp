@@ -4,10 +4,12 @@
 
 namespace Stulu {
 	void EditorHierarchyPanel::setScene(const Ref<Scene>& scene) {
+		ST_PROFILING_FUNCTION();
 		m_selectedObject = GameObject::null;
 		m_scene = scene;
 	}
 	void EditorHierarchyPanel::render(bool* open) {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Hierarchy", open)) {
 			if (m_scene == nullptr)
 				return noScene();
@@ -31,17 +33,17 @@ namespace Stulu {
 				if (ImGui::BeginMenu("3D")) {
 					if (ImGui::MenuItem("Cube")) {
 						GameObject g = m_scene->createGameObject("Cube");
-						g.addComponent<MeshFilterComponent>().mesh = Resources::getCubeMesh();
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getCubeMeshAsset();
 						g.addComponent<BoxColliderComponent>();
 					}
 					if (ImGui::MenuItem("Plane")) {
 						GameObject g = m_scene->createGameObject("Plane");
-						g.addComponent<MeshFilterComponent>().mesh = Resources::getPlaneMesh();
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getPlaneMeshAsset();
 						g.addComponent<MeshColliderComponent>();
 					}
 					if (ImGui::MenuItem("Sphere")) {
 						GameObject g = m_scene->createGameObject("Sphere");
-						g.addComponent<MeshFilterComponent>().mesh = Resources::getSphereMesh();
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getSphereMeshAsset();
 						g.addComponent<SphereColliderComponent>();
 					}
 					ImGui::EndMenu();
@@ -79,6 +81,7 @@ namespace Stulu {
 		ImGui::End();
 	}
 	void EditorHierarchyPanel::drawObject(GameObject gameObject, int childIndex) {
+		ST_PROFILING_FUNCTION();
 		auto transform = gameObject.getComponent<TransformComponent>();
 		if (transform.parent && childIndex == 0)
 			return;
@@ -125,6 +128,7 @@ namespace Stulu {
 		}
 	}
 	void EditorHierarchyPanel::noScene() {
+		ST_PROFILING_FUNCTION();
 		ImGui::Text("No Scene loaded");
 		ImGui::End();
 	}

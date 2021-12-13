@@ -48,6 +48,6 @@ namespace Stulu {
 		static bool drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items = -1);
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, AssetType type = AssetType::Texture2D);
-		static bool drawMaterialEdit(const std::string& header, UUID& uuid);
+		static bool drawMaterialEdit(const std::string& header, UUID& uuid, bool canChange = true);
 	};
 }
