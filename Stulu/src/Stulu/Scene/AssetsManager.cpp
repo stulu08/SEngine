@@ -106,7 +106,9 @@ namespace Stulu {
 	}
 	bool AssetsManager::existsAndType(const UUID uuid, const AssetType type) {
 		ST_PROFILING_FUNCTION();
-		return assets.find(uuid) != assets.end() && assets[uuid].type == type;
+		if (uuid == UUID::null)
+			return false;
+		return (assets.find(uuid) != assets.end() && assets[uuid].type == type);
 	}
 
 	Asset& Stulu::AssetsManager::get(const UUID uuid) {

@@ -96,7 +96,15 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 		drawVector2Control("Tiling", component.tiling);
-		UUID uuid = component.texture ? component.texture->uuid : UUID::null;
+		UUID uuid = UUID::null;
+		if (component.texture) {
+			if(AssetsManager::existsAndType(component.texture->uuid, AssetType::Texture2D))
+				uuid = component.texture->uuid;
+			else
+				component.texture = nullptr;
+		}
+		else
+			ImGui::Text("Drag texture");
 		if (drawTextureEdit("Texture", uuid)) {
 			if (AssetsManager::exists(uuid))
 				component.texture = std::any_cast<Ref<Texture2D>&>(AssetsManager::get(uuid).data);
@@ -510,7 +518,7 @@ namespace Stulu {
 			switch (AssetsManager::getAssetType(uuid))
 			{
 			case AssetType::Texture:
-				texture = reinterpret_cast<void*>((uint64_t)std::any_cast<Ref<Texture>>(AssetsManager::get(uuid).data)->getRendererID());
+				texture = reinterpret_cast<void*>((uint64_t)std::any_cast<Ref<Texture2D>>(AssetsManager::get(uuid).data)->getRendererID());
 				break;
 			case AssetType::Texture2D:
 				texture = reinterpret_cast<void*>((uint64_t)std::any_cast<Ref<Texture2D>>(AssetsManager::get(uuid).data)->getRendererID());
