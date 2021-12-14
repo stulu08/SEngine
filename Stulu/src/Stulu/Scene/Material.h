@@ -52,5 +52,7 @@ namespace Stulu {
 		MaterialData m_runtimeData;
 
 		inline static float* materialStorage = new float[2000];
+
+		friend class AssetsManager;
 	};
 }

@@ -10,12 +10,13 @@ namespace Stulu {
 	bool FileExists(const std::string& name);
 	class Model;
 	enum class AssetType {
-		Unknown,
-		Texture2D, Texture, CubeMap,
-		Model, Mesh, 
-		Material, Shader,
-		Scene
+		Unknown = 0,
+		Texture2D = 1, Texture = 2, CubeMap = 3,
+		Model = 4, Mesh = 5, 
+		Material = 6, Shader = 7,
+		Scene = 8
 	};
+	
 	struct Asset {
 		AssetType type;
 		std::any data;
@@ -29,7 +30,7 @@ namespace Stulu {
 		static void add(const UUID uuid, const std::string& path);
 		static void add(const UUID uuid, const std::string& path, const AssetType type);
 
-		static void update(const UUID uuid, Asset data);
+		static void update(const UUID uuid, const Asset& data);
 
 		static bool exists(const UUID uuid);
 		static bool existsAndType(const UUID uuid, const AssetType type);

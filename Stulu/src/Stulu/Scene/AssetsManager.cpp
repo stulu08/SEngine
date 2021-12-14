@@ -42,23 +42,17 @@ namespace Stulu {
 		switch (type)
 		{
 		case Stulu::AssetType::Unknown:
-			assets[uuid] = { type,path,path,uuid };
+			update(uuid, { type,path,path,uuid });
 			break;
 		case Stulu::AssetType::Texture2D:
-			assets[uuid] = { type, Texture2D::create(path),path,uuid };
+			update(uuid, { type,Texture2D::create(path),path,uuid });
 			break;
 		case Stulu::AssetType::Texture:
-			assets[uuid] = { type,(Ref<Texture>)Texture2D::create(path),path,uuid };
+			update(uuid, { type,Texture2D::create(path),path,uuid });
 			break;
 		case Stulu::AssetType::CubeMap:
-			assets[uuid] = { type,CubeMap::create(path),path,uuid };
-			break;/*
-		case Stulu::AssetType::Model:
-			assets[uuid] = { type,Model(path),path,uuid };
+			update(uuid, { type,CubeMap::create(path),path,uuid });
 			break;
-		case Stulu::AssetType::Mesh:
-			//assets[uuid] = { Mesh(path),path };
-			break;*/
 		case Stulu::AssetType::Model:
 			createMeshesFromModel({ type,0,path,uuid });
 			break;
@@ -66,13 +60,13 @@ namespace Stulu {
 			//assets[uuid] = { Mesh(path),path };
 			break;
 		case Stulu::AssetType::Material:
-			assets[uuid] = { type,Material::fromDataStringPath(path,uuid),path,uuid };
+			update(uuid, { type,Material::fromDataStringPath(path,uuid),path,uuid });
 			break;
 		case Stulu::AssetType::Shader:
-			assets[uuid] = { type,Shader::create(path),path,uuid };
+			update(uuid, { type,Shader::create(path),path,uuid });
 			break;
 		case Stulu::AssetType::Scene:
-			assets[uuid] = { type,path,path,uuid };
+			update(uuid,{ type,path,path,uuid });
 			break;
 		default:
 			break;
@@ -80,7 +74,29 @@ namespace Stulu {
 
 	}
 
-	void AssetsManager::update(const UUID uuid, Asset data) {
+	void AssetsManager::update(const UUID uuid, const Asset& data) {
+		switch (data.type)
+		{
+		case Stulu::AssetType::Texture2D:
+			std::any_cast<Ref<Texture2D>>(data.data)->uuid = uuid;
+			break;
+		case Stulu::AssetType::Texture:
+			std::any_cast<Ref<Texture2D>>(data.data)->uuid = uuid;
+			break;
+		case Stulu::AssetType::CubeMap:
+			std::any_cast<Ref<CubeMap>>(data.data)->uuid = uuid;
+			break;
+		case Stulu::AssetType::Mesh:
+			std::any_cast<MeshAsset>(data.data).uuid = uuid;
+			break;
+		case Stulu::AssetType::Material:
+			std::any_cast<Material>(data.data).m_uuid = uuid;
+			break;
+		}
+		//update meta
+		if (FileExists(data.path)) {
+			createMeta(uuid, data.path, data.type);
+		}
 		assets[uuid] = data;
 	}
 
@@ -264,15 +280,30 @@ namespace Stulu {
 			m.uuid = i.first;
 			update(i.first, { AssetType::Mesh, m,"",i.first });
 		}
-		assets[asset.uuid] = { asset.type,model,asset.path,asset.uuid };
+		update(asset.uuid, { asset.type,model,asset.path,asset.uuid });
 	}
 
 	void AssetsManager::createMeta(const UUID uuid, const std::string& path, const AssetType type) {
 		ST_PROFILING_FUNCTION();
+		YAML::Node props;
+		bool hasProps = false;
+		if (FileExists(path + ".meta")) {
+			YAML::Node data = YAML::LoadFile(path + ".meta");
+			if (data["props"]) {
+				props = data["props"];
+				hasProps = true;
+			}
+		}
+
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "uuid" << YAML::Value << (uint64_t)uuid;
 		out << YAML::Key << "type" << YAML::Value << (int)type;
+		if (hasProps) {
+			out << YAML::Key << "props" << YAML::Value;
+			out << props;
+		}
 		out << YAML::EndMap;
 
 		FILE* file = fopen((path + ".meta").c_str(), "w");

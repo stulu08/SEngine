@@ -49,5 +49,6 @@ namespace Stulu {
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, AssetType type = AssetType::Texture2D);
 		static bool drawMaterialEdit(const std::string& header, UUID& uuid, bool canChange = true);
+		static bool drawMeshEdit(const std::string& header, UUID& uuid);
 	};
 }

@@ -1,8 +1,5 @@
 #pragma once
-#include "Stulu/Core/Core.h"
-#include <string>
-#include <vector>
-#include <glm/glm.hpp>
+#include "Stulu/Core/UUID.h"
 
 namespace Stulu {
 	class STULU_API Texture
@@ -18,6 +15,8 @@ namespace Stulu {
 
 		virtual bool operator == (const Texture & other) const = 0;
 		virtual operator int() = 0;
+
+		UUID uuid;
 	};
 	class STULU_API Texture2D : public Texture {
 	public:

@@ -58,7 +58,7 @@ namespace Stulu {
 			out << YAML::Key << "color" << YAML::Value << spriteRendererComponent.color;
 			out << YAML::Key << "tiling" << YAML::Value << spriteRendererComponent.tiling;
 			if (spriteRendererComponent.texture)
-				out << YAML::Key << "texture" << YAML::Value << (uint64_t)spriteRendererComponent.texture;
+				out << YAML::Key << "texture" << YAML::Value << (uint64_t)spriteRendererComponent.texture->uuid;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<LightComponent>()) {
@@ -234,7 +234,7 @@ namespace Stulu {
 					src.color = spriteRendererNode["color"].as<glm::vec4>();
 					src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
 					if(spriteRendererNode["texture"])
-						src.texture = spriteRendererNode["texture"].as<uint64_t>();
+						src.texture = std::any_cast<Ref<Texture2D>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
 				}
 
 				auto lightComponentNode = gameObject["LightComponent"];

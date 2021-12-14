@@ -100,6 +100,8 @@ namespace Stulu {
 	}
 	void SceneRenderer::submit(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
+		if (!filter.mesh.hasMesh)
+			return;
 		Material* material;
 		if (mesh.material) {
 			material = mesh.material;

@@ -135,7 +135,9 @@ namespace Stulu {
 	struct SpriteRendererComponent {
 		glm::vec4 color = COLOR_WHITE;
 		glm::vec2 tiling = glm::vec2(1.0f);
-		UUID texture;
+		
+		Ref<Texture2D> texture = nullptr;
+
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
 		SpriteRendererComponent(const glm::vec4 color)

@@ -42,24 +42,22 @@ namespace Stulu {
 
 				if (ImGui::BeginPopup("AddComponent")) {
 					if (ImGui::MenuItem("Camera")) {
-						if (!gameObject.hasComponent<CameraComponent>())
-							gameObject.addComponent<CameraComponent>();
+						gameObject.saveAddComponent<CameraComponent>();
 					}
 					if (ImGui::MenuItem("SpriteRenderer")) {
-						if (!gameObject.hasComponent<SpriteRendererComponent>())
-							gameObject.addComponent<SpriteRendererComponent>();
+						gameObject.saveAddComponent<SpriteRendererComponent>();
 					}
 					if (ImGui::MenuItem("Light")) {
-						if (!gameObject.hasComponent<LightComponent>())
-							gameObject.addComponent<LightComponent>();
+						gameObject.saveAddComponent<LightComponent>();
 					}
 					if (ImGui::MenuItem("SkyBox")) {
-						if (!gameObject.hasComponent<SkyBoxComponent>())
-							gameObject.addComponent<SkyBoxComponent>();
+						gameObject.saveAddComponent<SkyBoxComponent>();
 					}
 					if (ImGui::MenuItem("Mesh Renderer")) {
-						if (!gameObject.hasComponent<MeshRendererComponent>())
-							gameObject.addComponent<MeshRendererComponent>();
+						gameObject.saveAddComponent<MeshRendererComponent>();
+					}
+					if (ImGui::MenuItem("Mesh Filter")) {
+						gameObject.saveAddComponent<MeshFilterComponent>();
 					}
 					if (ImGui::BeginMenu("Physics")) {
 						if (ImGui::MenuItem("Box Collider")) {

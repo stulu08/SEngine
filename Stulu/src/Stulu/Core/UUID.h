@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Core/Core.h"
+#include "Stulu/Math/Math.h"
 
 namespace Stulu {
 	class STULU_API UUID {

@@ -93,7 +93,7 @@ namespace Stulu {
 			20,23,22
 		};
 		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
-		AssetsManager::update(UUID(401), Asset{ AssetType::Mesh, MeshAsset{"Cube",m,UUID(401)},"",UUID(401) });
+		AssetsManager::update(UUID(401), Asset{ AssetType::Mesh, MeshAsset{"Cube",m,UUID(401),true},"",UUID(401) });
 	}
 	void Resources::loadPlaneMesh() {
 		std::vector<Vertex> vertices{
@@ -107,7 +107,7 @@ namespace Stulu {
 			0,3,2,
 		};
 		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
-		AssetsManager::update(UUID(402), Asset{ AssetType::Mesh, MeshAsset{"Plane",m,UUID(402)},"",UUID(402), });
+		AssetsManager::update(UUID(402), Asset{ AssetType::Mesh, MeshAsset{"Plane",m,UUID(402),true},"",UUID(402), });
 	}
 	void Resources::loadSphereMesh() {
 	}
@@ -165,7 +165,7 @@ namespace Stulu {
 			22,23,20
 		};
 		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
-		AssetsManager::update(UUID(403), Asset{ AssetType::Mesh, MeshAsset{"SkyBox Mesh",m,UUID(403)},"",UUID(403),});
+		AssetsManager::update(UUID(403), Asset{ AssetType::Mesh, MeshAsset{"SkyBox Mesh",m,UUID(403),true},"",UUID(403),});
 
 	}
 	void Resources::loadBlackTexture() {

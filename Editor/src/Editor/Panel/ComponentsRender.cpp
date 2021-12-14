@@ -96,7 +96,11 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 		drawVector2Control("Tiling", component.tiling);
-		drawTextureEdit("Texture", component.texture);
+		UUID uuid = component.texture ? component.texture->uuid : UUID::null;
+		if (drawTextureEdit("Texture", uuid)) {
+			if (AssetsManager::exists(uuid))
+				component.texture = std::any_cast<Ref<Texture2D>&>(AssetsManager::get(uuid).data);
+		}
 	}
 	template<>
 	void ComponentsRender::drawComponent<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) {
@@ -143,24 +147,34 @@ namespace Stulu {
 	template<>
 	void ComponentsRender::drawComponent<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {
 		ST_PROFILING_FUNCTION();
-		Ref<Mesh>& mesh = component.mesh.mesh;
 
-		if (mesh->getSubMeshCount()) {
-			ImGui::Text("SubMesh Count: %d", (int)component.mesh.mesh->getSubMeshCount());
-			for (int i = 0; i < mesh->getSubMeshCount(); i++) {
-				SubMesh& m = mesh->getSubMesh(i);
-				if (ImGui::TreeNodeEx((void*)(mesh->getSubMeshCount() + i + (uint32_t)gameObject), ImGuiTreeNodeFlags_OpenOnArrow, "Submesh %d", i)) {
-					ImGui::Text("Vertices: %d", m.getVerticesCount());
-					ImGui::Text("Indices: %d", m.getIndicesCount());
-					ImGui::Text("Triangles: %d", m.getIndicesCount() / 3);
-					ImGui::TreePop();
+		if (drawMeshEdit("Drag Mesh", component.mesh.uuid)) {
+			if (AssetsManager::existsAndType(component.mesh.uuid, AssetType::Mesh)) {
+				component.mesh = std::any_cast<MeshAsset>(AssetsManager::get(component.mesh.uuid).data);
+			}
+		}
+		if (component.mesh.hasMesh) {
+			Ref<Mesh>& mesh = component.mesh.mesh;
+			if (mesh->getSubMeshCount()) {
+				ImGui::Text("SubMesh Count: %d", (int)component.mesh.mesh->getSubMeshCount());
+				for (int i = 0; i < mesh->getSubMeshCount(); i++) {
+					SubMesh& m = mesh->getSubMesh(i);
+					if (ImGui::TreeNodeEx((void*)(mesh->getSubMeshCount() + i + (uint32_t)gameObject), ImGuiTreeNodeFlags_OpenOnArrow, "Submesh %d", i)) {
+						ImGui::Text("Vertices: %d", m.getVerticesCount());
+						ImGui::Text("Indices: %d", m.getIndicesCount());
+						ImGui::Text("Triangles: %d", m.getIndicesCount() / 3);
+						ImGui::TreePop();
+					}
 				}
+			}
+			else {
+				ImGui::Text("Vertices: %d", component.mesh.mesh->getVerticesCount());
+				ImGui::Text("Indices: %d", component.mesh.mesh->getIndicesCount());
+				ImGui::Text("Triangles: %d", component.mesh.mesh->getIndicesCount() / 3);
 			}
 		}
 		else {
-			ImGui::Text("Vertices: %d", component.mesh.mesh->getVerticesCount());
-			ImGui::Text("Indices: %d", component.mesh.mesh->getIndicesCount());
-			ImGui::Text("Triangles: %d", component.mesh.mesh->getIndicesCount() / 3);
+			ImGui::Text("Not a valid mesh drag one here");
 		}
 	}
 	template<>
@@ -635,6 +649,27 @@ namespace Stulu {
 		}
 		return changed;
 	}
+
+	bool ComponentsRender::drawMeshEdit(const std::string& header, UUID& uuid) {
+		ST_PROFILING_FUNCTION();
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::Text(header.c_str());
+
+		ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getObjectTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Mesh)).c_str())) {
+				UUID id = *(UUID*)payload->Data;
+				uuid = id;
+				change = true;
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::PopID();
+		return change;
+	}
 	
 	
 	Previewing::Previewing()  {
@@ -675,7 +710,7 @@ namespace Stulu {
 
 		sphere = scene->createGameObject("Sphere");
 		sphere.addComponent<MeshRendererComponent>().material = AssetsManager::get(asset.uuid).data._Cast<Material>();
-		sphere.getComponent<MeshFilterComponent>().mesh.mesh = Resources::getSphereMesh();
+		sphere.getComponent<MeshFilterComponent>().mesh = Resources::getSphereMeshAsset();
 		camera = scene->createGameObject("Camera");
 		bool cubeMap = false;
 
