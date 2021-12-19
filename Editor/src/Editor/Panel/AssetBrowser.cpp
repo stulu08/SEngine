@@ -34,7 +34,7 @@ namespace Stulu {
 				auto relativePath = std::filesystem::relative(path, getEditorProject().assetPath);
 
 				{
-					Ref<Texture> ico = getIcon(directory);
+					const Ref<Texture>& ico = getIcon(directory);
 					ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 					if (extension == ".mat") {
 						icoColor = ImVec4(1, 1, 1, 1);
@@ -142,7 +142,7 @@ namespace Stulu {
 			return (Ref<Texture>&)std::any_cast<Ref<Texture2D>&>(asset.data);
 			break;
 		case Stulu::AssetType::Texture:
-			return (Ref<Texture>)std::any_cast<Ref<Texture2D>&>(asset.data);
+			return (Ref<Texture>&)std::any_cast<Ref<Texture2D>&>(asset.data);
 			break;
 		case Stulu::AssetType::Model:
 			return EditorResources::getObjectTexture();
