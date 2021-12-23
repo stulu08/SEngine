@@ -42,6 +42,8 @@ namespace Stulu {
 		AssetsManager::loadAllFiles(s_project.assetPath);
 	}
 	EditorApp::~EditorApp() {
+		getEditorLayer().savePanelConfig(); 
+		StyleEditor::saveAll();
 		DiscordRPC::shutdown();
 	}
 }

@@ -10,7 +10,7 @@ namespace Stulu {
 	class EditorLayer : public Layer {
 	public:
 		EditorLayer();
-		~EditorLayer() { savePanelConfig(); StyleEditor::saveAll(); }
+		~EditorLayer() {  }
 
 		void onAttach() override;
 		void onUpdate(Timestep timestep) override;
@@ -34,7 +34,7 @@ namespace Stulu {
 		bool m_showGameViewport = true;
 		bool m_showSceneViewport = true;
 		bool m_showProfiling = true;
-#define ST_PANEL_SETTINGS_COUNT 11
+#define ST_PANEL_SETTINGS_COUNT 12
 
 		SceneCamera m_sceneCamera;
 		std::string m_currentScenePath;

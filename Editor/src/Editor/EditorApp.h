@@ -10,7 +10,11 @@ namespace Stulu {
 			:path(""),assetPath(path) {
 		}
 		Project(std::string& path)
+#ifdef ST_PLATFORM_WINDOWS
+			:path(path), assetPath(path + "\\assets") {
+#else
 			:path(path), assetPath(path + "/assets") {
+#endif
 		}
 	};
 

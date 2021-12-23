@@ -12,10 +12,10 @@ namespace Stulu {
 	private:
 		std::filesystem::path m_path;
 		bool m_inspector = true;
-		Asset selected;
+		Asset selected = { AssetType::Unknown,"","",UUID::null };
 
 		void renderInspector();
-		void drawDirectory(const std::filesystem::path& path);
+		void drawDirectory(const std::filesystem::path& path, bool includePathDir = false);
 		bool containsDirSubDirs(std::filesystem::path path);
 
 	};

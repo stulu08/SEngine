@@ -8,13 +8,13 @@ namespace Stulu {
 	private:
 		float m_updateTimer = 1.0f;
 
-		std::vector<float> m_fps = { .0f };
+		std::vector<float> m_fps;
 		float m_fAvg = .0f;
-		std::vector<float> m_delta = { .0f };
+		std::vector<float> m_delta;
 		float m_dAvg = .0f;
-		std::vector<float> m_virtualM = { .0f };
+		std::vector<float> m_virtualM;
 		float m_vAvg = .0f;
-		std::vector<float> m_physical = { .0f };
+		std::vector<float> m_physical;
 		float m_pAvg = .0f;
 	};
 }

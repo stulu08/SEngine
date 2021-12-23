@@ -15,15 +15,22 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Assets"), open) {
 			if (m_path != getEditorProject().assetPath) {
-				if (ImGui::Button("<-"))
-					m_path = m_path.parent_path();
+				if (ImGui::Button("<-")) {
+					if (m_path.parent_path() == std::filesystem::path("Stulu/assets")) {
+						m_path = getEditorProject().assetPath;
+					}
+					else {
+						m_path = m_path.parent_path();
+					}
+				}
+				ImGui::SameLine();
 			}
-
+			ImGui::Text("%s", m_path.string().c_str());
 			static float icoSize = 70.0f;
 			float itemSize = icoSize + 22.0f;
 			float width = ImGui::GetContentRegionAvailWidth();
 			int cCount = std::max((int)(width / itemSize), 1);
-
+			ImGui::Separator();
 			ImGui::Columns(cCount, 0, false);
 			for (auto& directory : std::filesystem::directory_iterator(m_path)) {
 				std::string extension = directory.path().extension().string();
@@ -65,7 +72,15 @@ namespace Stulu {
 		}
 		ImGui::End();
 		if (ImGui::Begin("Directorys"), open) {
-			drawDirectory(getEditorProject().assetPath);
+			if (ImGui::CollapsingHeader("Project Assets")) {
+				drawDirectory(getEditorProject().assetPath);
+			}
+			if(ImGui::CollapsingHeader("Engine Assets")) {
+				drawDirectory("Stulu/assets/Materials", true);
+				drawDirectory("Stulu/assets/Meshes", true);
+				drawDirectory("Stulu/assets/Shaders", true);
+				drawDirectory("Stulu/assets/SkyBox", true);
+			}
 		}
 		ImGui::End();
 		if(m_inspector)
@@ -78,8 +93,9 @@ namespace Stulu {
 			vec = std::any_cast<Model>(selected.data).getMeshes();
 		if (ImGui::Begin("Asset Inspector", &m_inspector)) {
 			ImGui::Text("Asset %s", selected.path.c_str());
+			ImGui::Text("UUID %d", selected.uuid);
 			ImGui::Text("Properitys:", selected.path.c_str());
-			if (ImGui::BeginChild("Properitys")) {
+			if (ImGui::BeginChild("Properitys") && selected.uuid != UUID::null) {
 				switch (selected.type)
 				{
 				case Stulu::AssetType::Model:
@@ -164,8 +180,19 @@ namespace Stulu {
 		}
 		return EditorResources::getFileTexture();
 	}
-	void AssetBrowserPanel::drawDirectory(const std::filesystem::path& _path) {
+	void AssetBrowserPanel::drawDirectory(const std::filesystem::path& _path, bool includePathDir) {
 		ST_PROFILING_FUNCTION();
+		if (includePathDir) {
+			ImGuiTreeNodeFlags flags = !containsDirSubDirs(_path) ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+			if (ImGui::TreeNodeEx(_path.filename().string().c_str(), flags)) {
+				drawDirectory(_path);
+				ImGui::TreePop();
+			}
+			if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+				m_path = _path;
+			}
+			return;
+		}
 		for (auto& directory : std::filesystem::directory_iterator(_path)) {
 			std::filesystem::path path = directory.path();
 			if (!directory.is_directory())

@@ -138,6 +138,14 @@ namespace Stulu {
 
 				ImGui::EndMenu();
 			}
+			if (ImGui::BeginMenu("Settings")) {
+
+				if (ImGui::MenuItem("VSync", "",getEditorApp().getWindow().isVSync())) {
+					getEditorApp().getWindow().setVSync(!getEditorApp().getWindow().isVSync());
+				}
+
+				ImGui::EndMenu();
+			}
 			if (ImGui::BeginMenu("View")) {
 				if (ImGui::MenuItem("Style Editor", (const char*)0, m_showStyleEditor)) {
 					m_showStyleEditor = !m_showStyleEditor;
@@ -330,6 +338,8 @@ namespace Stulu {
 		m_gameViewport.sizes[5].y = std::stof(values["m_gameViewport.m_customSizeY"]);
 		m_gameViewport.zoom = std::stof(values["m_gameViewport.zoom"]);
 
+		getEditorApp().getWindow().setVSync(std::stoi(values["setting.vsync"]));
+		
 		ST_INFO("Loaded Editor panel config from {0}", file);
 		return;
 	}
@@ -351,6 +361,8 @@ namespace Stulu {
 		stream << "m_gameViewport.m_customSizeX=" << (float)m_gameViewport.sizes[5].x << "\n";
 		stream << "m_gameViewport.m_customSizeY=" << (float)m_gameViewport.sizes[5].y << "\n";
 		stream << "m_gameViewport.zoom=" << (float)m_gameViewport.zoom << "\n";
+
+		stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
 
 
 
