@@ -8,7 +8,7 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 ***
 ## Install the Engine with Stulu Hub
 
-- Download the [Stulu Hub Setup](https://engine.stulu.de/download/Stulu%20Hub%20Setup.exe)
+- Download the [Stulu Hub Setup](https://engine.stulu.de/download/hub/Stulu%20Hub%20Setup.exe)
 
 - Install it using the setup
 
