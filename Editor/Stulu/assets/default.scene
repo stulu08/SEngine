@@ -23,7 +23,7 @@ GameObjects:
       mode: 0
       depth: -1
     SkyBoxComponent:
-      material: 9682430980351503656
+      material: 500
   - GameObject: 11459647069366141373
     GameObjectBaseComponent:
       name: Plane

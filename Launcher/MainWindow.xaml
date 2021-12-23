@@ -1,0 +1,56 @@
+﻿<Window x:Class="Launcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Launcher"
+        mc:Ignorable="d"
+        Title="Stulu Hub" Height="531" Width="1018.5" ResizeMode="NoResize" FontFamily="Segoe UI Light">
+    <Grid Background="#FF252525">
+        <Menu Height="auto" Margin="10,10,860,10" Background="#FF272727" Foreground="White">
+            <MenuItem x:Name="Menu_Home" Header="Home" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="55" Width="127" Background="#FF1F1F1F" VerticalContentAlignment="Center" Click="Menu_Home_Click"/>
+            <MenuItem x:Name="Menu_Projects" Header="Projects" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="55" Width="127" Background="#FF1F1F1F" Click="Menu_Projects_Click"/>
+            <MenuItem x:Name="Menu_Engine" Header="Engine" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Height="55" Width="127" RenderTransformOrigin="0.614,0.8" Background="#FF1F1F1F" Click="Menu_Engine_Click"/>
+        </Menu>
+        <GroupBox x:Name="group_home" Margin="152,0,0,0" BorderThickness="0" IsEnabled="false" Visibility="Hidden">
+            <WebBrowser x:Name="startpage_web" Source="https://engine.stulu.de/launcher/home" Navigating="startpage_web_Navigating"/>
+        </GroupBox>
+        <GroupBox x:Name="group_projects" Margin="152,0,0,0" BorderThickness="0" IsEnabled="False" Visibility="Hidden">
+            <Grid Margin="0,0,0,0">
+                <Rectangle Fill="#FF3B3D40" Margin="0,0,0,440"/>
+                <Label FontSize="36" Foreground="White" HorizontalAlignment="Center" Height="55" Margin="326,0,329,440" Width="193" Content="Projects" VerticalAlignment="Center" HorizontalContentAlignment="Center" RenderTransformOrigin="0.528,-1" Padding="5,-0.2,5,5"/>
+                <ListBox x:Name="ProjectListBox" SelectionChanged="ProjectListBox_SelectionChanged" HorizontalAlignment="Left" Height="365" Margin="0,120,0,0" VerticalAlignment="Top" Width="838" Background="#FF1F1F1F" Foreground="White" BorderBrush="White"/>
+                <Button x:Name="AddProjectButton" Margin="668,60,10,380" FontSize="24" Content="Add Project" Background="#FF1F1F1F" BorderBrush="White" Foreground="White" Click="AddProjectButton_Click"/>
+                <Button x:Name="CreateProjectButton" Margin="463,60,185,380" FontSize="24" Content="Create Project" Background="#FF1F1F1F" BorderBrush="White" Foreground="White" Click="CreateProjectButton_Click"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="group_engine" Margin="152,0,0,0" BorderThickness="0" IsEnabled="True" Visibility="Visible">
+            <Grid Margin="0,0,0,0">
+                <Rectangle Fill="#FF3B3D40" Margin="0,0,0,440"/>
+                <Label x:Name="EnginesHeader" FontSize="36" Foreground="White" HorizontalAlignment="Center" Height="55" Margin="326,0,329,440" Width="193" Content="Engines" VerticalAlignment="Center" HorizontalContentAlignment="Center" Padding="5,-0.2,5,5" RenderTransformOrigin="0.528,-1"/>
+                <ListBox x:Name="EnginesListBox" SelectionChanged="EngineListBox_SelectionChanged" HorizontalAlignment="Left" Height="365" Margin="0,120,0,0" VerticalAlignment="Top" Width="838" Background="#FF1F1F1F" Foreground="White" BorderBrush="White"/>
+                <Button x:Name="EngineInstallButton" Margin="664,0,0,380" Background="#FF1F1F1F" Foreground="White" BorderBrush="White" Content="Install" FontSize="24" Click="EngineInstallButton_Click" HorizontalAlignment="Left" Width="174" Height="55" VerticalAlignment="Bottom"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="group_installEngine" Margin="152,0,0,0" BorderThickness="0" IsEnabled="False" Visibility="Hidden">
+            <Grid Margin="0,0,0,0">
+                <Rectangle Fill="#FF3B3D40" Margin="0,0,0,440"/>
+                <Label FontSize="36" Foreground="White" Height="55" Width="232" Content="Install Engine" VerticalAlignment="Center" RenderTransformOrigin="0.528,-1" Margin="300,0,316,440" HorizontalAlignment="Center" Padding="5,-0.2,5,5" HorizontalContentAlignment="Center"/>
+                <Label FontSize="36" Foreground="White" Height="55" Width="217" Content="Version" VerticalAlignment="Bottom" HorizontalContentAlignment="Center" RenderTransformOrigin="0.528,-1" Margin="10,0,621,375" HorizontalAlignment="Center"/>
+                <ListBox x:Name="engineInstallVersionSelectList" SelectionChanged="EngineVeriosnInstallVersionListBox_SelectionChanged" HorizontalAlignment="Left" Margin="0,120,0,0" Width="227" Background="#FF1F1F1F" Foreground="White" BorderBrush="White" VerticalAlignment="Top" Height="150"/>
+                <Label FontSize="36" Foreground="White" Height="55" Width="217" Content="Platform" VerticalAlignment="Bottom" HorizontalContentAlignment="Center" RenderTransformOrigin="0.528,-1" Margin="10,0,621,160" HorizontalAlignment="Center"/>
+                <ListBox x:Name="engineInstallPlatformSelectList" SelectionChanged="EnginePlatformInstallListBox_SelectionChanged" HorizontalAlignment="Left" Margin="0,335,0,0" Width="227" Background="#FF1F1F1F" Foreground="White" BorderBrush="White" VerticalAlignment="Top" Height="150"/>
+                <TextBox x:Name="engineInstallDirectory" Margin="300,120,0,0" TextWrapping="Wrap" Text="C:\Program Files\Stulu\Engine" VerticalContentAlignment="Center" Background="#FF1F1F1F" Foreground="White" BorderBrush="White" FontSize="12" AllowDrop="True" HorizontalContentAlignment="Stretch" Height="40" Width="431" HorizontalAlignment="Left" VerticalAlignment="Top" TextChanged="engineInstallDirectory_TextChanged" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"/>
+                <Button x:Name="engineInstallDirectorySelectButton" Content="Select Directory" Margin="736,120,0,0" Background="#FF1F1F1F" BorderBrush="White" Foreground="White" Click="engineInstallDirectorySelectButton_Click" Width="102" Height="40" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                <Button x:Name="EnginePageInstallButton" Click="EnginePageInstallButton_Click" Content="Install Engine" Margin="300,220,0,0" Width="538" Foreground="White" BorderBrush="White" Background="#FF1F1F1F" FontSize="22" RenderTransformOrigin="0.496,-1.08" HorizontalAlignment="Left" VerticalAlignment="Top" Height="50"/>
+                <Grid Margin="300,335,10,10" x:Name="EngineDownloadInfo" Background="#FF1F1F1F" Visibility="Hidden" IsEnabled="False">
+                    <Label x:Name="EngineDownloadInfo_InfoLabel" Content="Downloading..." HorizontalAlignment="Left" VerticalAlignment="Top" Height="50" Width="518" FontSize="32" VerticalContentAlignment="Center" Foreground="White" Margin="10,0,0,0"/>
+                    <Label x:Name="EngineDownloadInfo_ProgressLabel" Content="Finished 1000mb / 1000mb" HorizontalAlignment="Left" VerticalAlignment="Top" Height="37" Width="518" FontSize="22" VerticalContentAlignment="Center" Foreground="White" Margin="10,50,0,0" RenderTransformOrigin="0.5,0.703"/>
+                    <ProgressBar x:Name="EngineDownloadInfo_ProgressBar" HorizontalAlignment="Left" Height="46" Margin="10,94,0,0" VerticalAlignment="Top" Width="421" Background="#FF2C2C2C" Value="50" BorderBrush="Transparent" BorderThickness="0"/>
+
+                </Grid>
+            </Grid>
+        </GroupBox>
+    </Grid>
+
+</Window>

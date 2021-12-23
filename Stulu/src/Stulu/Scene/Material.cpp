@@ -88,7 +88,7 @@ namespace Stulu {
 					asset.data._Cast<Ref<Texture2D>>()->get()->bind(texCount);
 					break;
 				case Stulu::AssetType::Texture:
-					asset.data._Cast<Ref<Texture>>()->get()->bind(texCount);
+					asset.data._Cast<Ref<Texture2D>>()->get()->bind(texCount);
 					break;
 				case Stulu::AssetType::CubeMap:
 					asset.data._Cast<Ref<CubeMap>>()->get()->bind(texCount);
