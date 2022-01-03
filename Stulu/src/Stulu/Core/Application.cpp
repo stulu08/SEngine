@@ -11,13 +11,14 @@ namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(ApplicationInfo appInfo) 
+	Application::Application(ApplicationInfo appInfo, bool hideWindow)
 		:m_appInfo(appInfo)	{
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-
+		if (hideWindow)
+			m_window->hide();
 #if OPENGL
 		AssetsManager::loadAllFiles("Stulu");
 		Renderer::init();

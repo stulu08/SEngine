@@ -10,7 +10,7 @@ namespace Stulu {
 	EditorApp* EditorApp::s_instance = nullptr;
 	Project EditorApp::s_project;
 	EditorApp::EditorApp() 
-		: Application("Stulu Editor") {
+		: Application("Stulu Editor", true) {
 		if (getStartArgs().size() > 1) {
 			ST_INFO("Loading project: {0}", getStartArgs()[1]);
 			s_project = Project(getStartArgs()[1]);
@@ -40,6 +40,7 @@ namespace Stulu {
 
 		CORE_INFO("Loading assets");
 		AssetsManager::loadAllFiles(s_project.assetPath);
+		getWindow().show();
 	}
 	EditorApp::~EditorApp() {
 		getEditorLayer().savePanelConfig(); 

@@ -140,7 +140,7 @@ namespace Stulu {
 			return AssetType::Texture;
 		if (extension == ".skybox")
 			return AssetType::CubeMap;
-		else if (extension == ".glb" || extension == ".obj")
+		else if (extension == ".glb" || extension == ".obj" || extension == ".fbx")
 			return AssetType::Model;
 		else if (extension == ".mat")
 			return AssetType::Material;

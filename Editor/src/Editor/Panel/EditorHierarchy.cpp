@@ -103,6 +103,21 @@ namespace Stulu {
 				GameObject go = *(const GameObject*)payload->Data;
 				transform.addChild(go);
 			}
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str())) {
+				UUID id = *(const UUID*)payload->Data;
+				if (AssetsManager::existsAndType(id, AssetType::Material)) {
+					m_scene->m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
+						if (transform.parent == gameObject) {
+							GameObject child(go, m_scene.get());
+							if (child.hasComponent<MeshRendererComponent>()) {
+								child.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+							}
+						}
+					});
+					if(gameObject.hasComponent<MeshRendererComponent>())
+						gameObject.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+				}
+			}
 			ImGui::EndDragDropTarget();
 		}
 

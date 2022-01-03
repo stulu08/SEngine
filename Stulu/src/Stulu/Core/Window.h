@@ -5,7 +5,11 @@
 #include "Stulu/Renderer/GraphicsContext.h"
 
 namespace Stulu{
-	
+	enum class WindowAttribute {
+		Focused, Iconified, Resizeable, Visible, Decorated,
+		Maximized, AutoIconify, Floating, CenterCursor,
+		TransparentFramebuffer, Hovered, FocusOnShow
+	};
 	struct WindowProps {
 		std::string title;
 		uint32_t width;
@@ -22,6 +26,10 @@ namespace Stulu{
 		virtual ~Window() = default;
 
 		virtual void onUpdate() = 0;
+		virtual void hide() = 0;
+		virtual void show() = 0;
+		virtual void setAttribute(const WindowAttribute, int32_t value) = 0;
+		virtual int getAttribute(const WindowAttribute) = 0;
 
 		virtual uint32_t getWidth() const = 0;
 		virtual uint32_t getHeight() const = 0;

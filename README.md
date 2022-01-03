@@ -1,4 +1,4 @@
-# Stulu Engine [![License](https://img.shields.io/github/license/TheCherno/Hazel.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
+# Stulu Engine [![License](https://img.shields.io/github/license/Stulu08/Sengine.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
 <p align="center">
   <img width="600" height="600" src="https://github.com/stulu08/SEngine/raw/main/resources/logo/engine-logo.png">
 </p>

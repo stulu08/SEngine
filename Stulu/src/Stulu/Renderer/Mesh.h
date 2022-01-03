@@ -82,6 +82,8 @@ namespace Stulu {
 		UUID parentMeshAsset = UUID::null;
 		glm::mat4 transform = glm::mat4(1.0f);
 
+		UUID material = UUID::null;
+
 		MeshAsset() = default;
 		MeshAsset(const MeshAsset&) = default;
 	};

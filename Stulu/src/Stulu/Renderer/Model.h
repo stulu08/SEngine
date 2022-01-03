@@ -28,6 +28,7 @@ namespace Stulu {
 		void processNode(aiNode* node, const aiScene* scene, UUID& parent = UUID::null);
 		static Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 		static SubMesh processSubMesh(aiMesh* mesh, const aiScene* scene);
+		void processMaterials(const aiScene* scene);
 	};
 }
 

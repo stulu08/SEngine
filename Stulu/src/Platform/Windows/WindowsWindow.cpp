@@ -43,8 +43,6 @@ namespace Stulu {
 		m_graphicsContext->init(this);
 
 		glfwSetWindowUserPointer(m_window, &m_runtimeData);
-		
-
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			data.width = width;
@@ -148,6 +146,17 @@ namespace Stulu {
 		m_graphicsContext->setVSync(enabled);
 		m_runtimeData.VSync = enabled;
 	}
-
+	void WindowsWindow::hide() {
+		glfwHideWindow(m_window);
+	}
+	void WindowsWindow::show() {
+		glfwShowWindow(m_window);
+	}
+	void WindowsWindow::setAttribute(const WindowAttribute attribute, int32_t value) {
+		glfwSetWindowAttrib(m_window, 0x00020001 + (int)attribute, value);
+	}
+	int WindowsWindow::getAttribute(const WindowAttribute attribute) {
+		return glfwGetWindowAttrib(m_window, 0x00020001 + (int)attribute);
+	}
 	bool WindowsWindow::isVSync() const { return m_runtimeData.VSync; }
 }

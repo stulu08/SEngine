@@ -24,7 +24,7 @@ namespace Stulu {
 
 	class STULU_API Application {
 	public:
-		Application(ApplicationInfo appInfo);
+		Application(ApplicationInfo appInfo, bool hideWindow = false);
 		virtual ~Application();
 
 		void run();

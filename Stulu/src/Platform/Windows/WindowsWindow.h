@@ -12,6 +12,11 @@ namespace Stulu {
 		virtual ~WindowsWindow();
 
 		void onUpdate() override;
+		void hide() override;
+		void show() override;
+
+		void setAttribute(const WindowAttribute attribute, int32_t value) override;
+		int getAttribute(const WindowAttribute attribute) override;
 
 		inline uint32_t getWidth() const override { return m_runtimeData.width; }
 		inline uint32_t getHeight() const override { return m_runtimeData.height; }
