@@ -19,7 +19,7 @@ namespace Stulu {
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec4& color);
 
-		static void drawTexturedQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(const glm::mat4& transform, const Ref<Texture>& texture, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
