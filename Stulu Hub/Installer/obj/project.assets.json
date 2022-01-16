@@ -147,11 +147,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\Installer.csproj",
+      "projectUniqueName": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\Installer.csproj",
       "projectName": "Installer",
-      "projectPath": "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\Installer.csproj",
+      "projectPath": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\Installer.csproj",
       "packagesPath": "C:\\Users\\derst\\.nuget\\packages\\",
-      "outputPath": "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\obj\\",
+      "outputPath": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\obj\\",
       "projectStyle": "PackageReference",
       "skipContentFileWrite": true,
       "fallbackFolders": [

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj": {}
+    "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj": {}
   },
   "projects": {
-    "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj": {
+    "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj",
+        "projectUniqueName": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj",
         "projectName": "Hub",
-        "projectPath": "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj",
+        "projectPath": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\Hub.csproj",
         "packagesPath": "C:\\Users\\derst\\.nuget\\packages\\",
-        "outputPath": "C:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\obj\\",
+        "outputPath": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Hub\\obj\\",
         "projectStyle": "PackageReference",
         "skipContentFileWrite": true,
         "fallbackFolders": [

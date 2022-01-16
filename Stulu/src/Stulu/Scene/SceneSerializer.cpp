@@ -91,8 +91,8 @@ namespace Stulu {
 			out << YAML::Key << "SkyBoxComponent";
 			out << YAML::BeginMap;
 			auto& meshren = gameObject.getComponent<SkyBoxComponent>();
-			if(meshren.material)
-				out << YAML::Key << "material" << YAML::Value << (uint64_t)meshren.material->getUUID();
+			if(meshren.texture)
+				out << YAML::Key << "texture" << YAML::Value << (uint64_t)meshren.texture->uuid;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<BoxColliderComponent>()) {
@@ -149,6 +149,17 @@ namespace Stulu {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
+		out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
+		out << YAML::Key << "gamma" << YAML::Value << m_scene->m_data.gamma;
+		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.toneMappingExposure;
+		out << YAML::Key << "framebuffer16bit" << YAML::Value << m_scene->m_data.framebuffer16bit;
+		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
+		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
+		out << YAML::Key << "physicsData.length" << YAML::Value << m_scene->m_data.physicsData.length;
+		out << YAML::Key << "physicsData.PhysXGpu" << YAML::Value << m_scene->m_data.physicsData.PhysXGpu;
+		out << YAML::Key << "physicsData.speed" << YAML::Value << m_scene->m_data.physicsData.speed;
+		out << YAML::Key << "physicsData.workerThreads" << YAML::Value << m_scene->m_data.physicsData.workerThreads;
+		out << YAML::EndMap;
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
 		m_scene->m_registry.each([&](entt::entity id) {
 				GameObject go = { id, m_scene.get() };
@@ -177,6 +188,29 @@ namespace Stulu {
 
 		YAML::Node data = YAML::LoadFile(path);
 		std::string name = data["Scene"].as<std::string>();
+
+		if (data["Settings"]) {
+			YAML::Node settings = data["Settings"];
+
+			if (settings["gamma"])
+				m_scene->m_data.gamma = settings["gamma"].as<float>();
+			if (settings["toneMappingExposure"])
+				m_scene->m_data.toneMappingExposure = settings["toneMappingExposure"].as<float>();
+			if (settings["framebuffer16bit"])
+				m_scene->m_data.framebuffer16bit = settings["framebuffer16bit"].as<bool>();
+			if (settings["enablePhsyics3D"])
+				m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
+			if (settings["physicsData.gravity"])
+				m_scene->m_data.physicsData.gravity = settings["physicsData.gravity"].as<glm::vec3>();
+			if (settings["physicsData.length"])
+				m_scene->m_data.physicsData.length = settings["physicsData.length"].as<float>();
+			if (settings["physicsData.PhysXGpu"])
+				m_scene->m_data.physicsData.PhysXGpu = settings["physicsData.PhysXGpu"].as<bool>();
+			if (settings["physicsData.speed"])
+				m_scene->m_data.physicsData.speed = settings["physicsData.speed"].as<float>();
+			if (settings["physicsData.workerThreads"])
+				m_scene->m_data.physicsData.workerThreads = settings["physicsData.workerThreads"].as<uint32_t>();
+		}
 
 		auto gos = data["GameObjects"];
 		if (gos) {
@@ -270,8 +304,8 @@ namespace Stulu {
 				auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
 				if (skyBoxComponentNode) {
 					auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
-					if(skyBoxComponentNode["material"])
-						skyBox.material = AssetsManager::get(UUID(skyBoxComponentNode["material"].as<uint64_t>())).data._Cast<Material>();
+					if(skyBoxComponentNode["texture"])
+						skyBox.texture = std::any_cast<Ref<CubeMap>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
 				}
 
 				auto boxColliderComponentNode = gameObject["BoxColliderComponent"];

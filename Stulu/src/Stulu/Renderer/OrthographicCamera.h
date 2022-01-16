@@ -9,7 +9,7 @@ namespace Stulu {
 		const virtual void setProjection(float left, float right, float bottom, float top, float zNear, float zFar) override;
 		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
 
-		const virtual Ref<FrameBuffer>& getFrameBuffer() const override { return m_frameBuffer; }
+		const virtual Ref<FrameBuffer>& getFrameBuffer() override { return m_frameBuffer; }
 		const virtual void bindFrameBuffer() const override;
 		const virtual void unbindFrameBuffer() const override;
 	private:

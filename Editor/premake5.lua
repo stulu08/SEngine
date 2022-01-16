@@ -37,13 +37,16 @@ project "Editor"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.Discord}"
 	}
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."",
+		"{MKDIR} ".. builddirData .."",
 		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
-		"{COPYDIR} %{ProjectDir.Editor}/Stulu " .. builddir .. "/Stulu"
+		"{COPYDIR} %{ProjectDir.Editor}/Stulu " .. builddir .. "/Stulu",
+		"{COPYDIR} %{physx}/bin/dll " .. builddirData .. ""
 	}
 	if(staticBuild == false) then
 		postbuildcommands

@@ -15,18 +15,16 @@ namespace Stulu {
 		CORE_ERROR("GLFW error {0}: {1}" , error , msg)
 	}
 
-	WindowsWindow::WindowsWindow(const WindowProps& props) {
+	WindowsWindow::WindowsWindow(WindowProps& props) {
 		ST_PROFILING_FUNCTION();
 		init(props);
 	}
 	WindowsWindow::~WindowsWindow() { shutDown(); }
 
 
-	void WindowsWindow::init(const WindowProps& props) {
+	void WindowsWindow::init(WindowProps& props) {
 		ST_PROFILING_FUNCTION();
-		m_runtimeData.title = props.title;
-		m_runtimeData.width = props.width;
-		m_runtimeData.height = props.height;
+		m_runtimeData = &props;
 
 
 		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
@@ -39,24 +37,24 @@ namespace Stulu {
 			s_glfwInitilized = true;
 		}
 		m_graphicsContext = GraphicsContext::create();
-		m_window = glfwCreateWindow((int)props.width, (int)props.height, m_runtimeData.title.c_str(), nullptr, nullptr); 
+		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
 		m_graphicsContext->init(this);
 
-		glfwSetWindowUserPointer(m_window, &m_runtimeData);
+		glfwSetWindowUserPointer(m_window, m_runtimeData);
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			data.width = width;
 			data.height = height;
 			WindowResizeEvent event(width, height);
 			data.eventCallback(event);
 		});
 		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			WindowCloseEvent event;
 			data.eventCallback(event);
 		});
 		glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancodem, int action, int mods) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			
 			switch (action) {
 				case GLFW_PRESS: {
@@ -78,14 +76,13 @@ namespace Stulu {
 
 		});
 		glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			KeyTypedEvent event(keycode);
 			data.eventCallback(event);
 
 		});
-
 		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			switch (action) {
 				case GLFW_PRESS: {
 					MouseButtonDownEvent event(button);
@@ -101,13 +98,13 @@ namespace Stulu {
 		});
 
 		glfwSetScrollCallback(m_window, [](GLFWwindow* window, double x, double y) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			MouseScrollEvent event((float)x, (float)y);
 			data.eventCallback(event);
 		});
 
 		glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double x, double y) {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			MouseMoveEvent event((float)x, (float)y);
 			data.eventCallback(event);
 		});
@@ -121,6 +118,13 @@ namespace Stulu {
 		glfwPollEvents();
 
 		m_graphicsContext->swapBuffers();
+	}
+
+	glm::vec2 WindowsWindow::getWindowPos() const {
+		ST_PROFILING_FUNCTION();
+		int x, y;
+		glfwGetWindowPos(m_window, &x, &y);
+		return glm::vec2(x,y);
 	}
 
 	void WindowsWindow::setWindowIcon(const std::string& path) {
@@ -140,23 +144,28 @@ namespace Stulu {
 	void WindowsWindow::setWindowTitle(const std::string& title) {
 		ST_PROFILING_FUNCTION();
 		glfwSetWindowTitle(m_window, title.c_str());
+		m_runtimeData->title = title;
 	}
 	void WindowsWindow::setVSync(bool enabled) {
 		ST_PROFILING_FUNCTION();
 		m_graphicsContext->setVSync(enabled);
-		m_runtimeData.VSync = enabled;
+		m_runtimeData->VSync = enabled;
 	}
 	void WindowsWindow::hide() {
+		ST_PROFILING_FUNCTION();
 		glfwHideWindow(m_window);
 	}
 	void WindowsWindow::show() {
+		ST_PROFILING_FUNCTION();
 		glfwShowWindow(m_window);
 	}
 	void WindowsWindow::setAttribute(const WindowAttribute attribute, int32_t value) {
+		ST_PROFILING_FUNCTION();
 		glfwSetWindowAttrib(m_window, 0x00020001 + (int)attribute, value);
 	}
 	int WindowsWindow::getAttribute(const WindowAttribute attribute) {
+		ST_PROFILING_FUNCTION();
 		return glfwGetWindowAttrib(m_window, 0x00020001 + (int)attribute);
 	}
-	bool WindowsWindow::isVSync() const { return m_runtimeData.VSync; }
+	bool WindowsWindow::isVSync() const { return m_runtimeData->VSync; }
 }

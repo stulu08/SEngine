@@ -107,11 +107,11 @@ namespace Stulu {
         ST_PROFILING_FUNCTION();
         ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
         ImGuiIO& io = ImGui::GetIO(); (void)io;
-        io.IniFilename = "Stulu/imgui.ini";
         ImGui::LoadIniSettingsFromDisk(io.IniFilename);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 15.0f);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 15.0f);
         io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 15.0f);
+        io.IniFilename = getEditorProject().windowINI.c_str();
         ImGuiStyle& style = ImGui::GetStyle();
         StyleFileData data = load();
         setStyleByInt(data.style);
@@ -133,7 +133,7 @@ namespace Stulu {
     StyleEditor::StyleFileData StyleEditor::load() {
         ST_PROFILING_FUNCTION();
         StyleFileData data;
-        std::string file = EditorApp::getProject().path + "/config/editor-style.ini";
+        std::string file = getEditorProject().configPath + "/editor-style.ini";
         if (!FileExists(file)) {
             save();
             return data;
@@ -175,7 +175,7 @@ namespace Stulu {
     }
     void StyleEditor::save() {
         ST_PROFILING_FUNCTION();
-        std::string file = EditorApp::getProject().path + "/config/editor-style.ini";
+        std::string file = getEditorProject().configPath + "/editor-style.ini";
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         ImGuiStyle& style = ImGui::GetStyle();
         std::remove(file.c_str());
@@ -449,7 +449,7 @@ namespace Stulu {
     }
     void StyleEditor::saveColors() {
         ST_PROFILING_FUNCTION();
-        std::string file = EditorApp::getProject().path + "/config/personal-colors.ini";
+        std::string file = getEditorProject().configPath + "/personal-colors.ini";
         ImGuiStyle* style = &ImGui::GetStyle();
         ImVec4* colors = style->Colors;
         std::remove(file.c_str());
@@ -462,7 +462,7 @@ namespace Stulu {
     }
     void StyleEditor::LoadStyleColors(ImGuiStyle* dst) {
         ST_PROFILING_FUNCTION();
-        std::string file = EditorApp::getProject().path + "/config/personal-colors.ini";
+        std::string file = getEditorProject().configPath + "/personal-colors.ini";
         ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
         ImVec4* colors = style->Colors;
         if (!FileExists(file)) {

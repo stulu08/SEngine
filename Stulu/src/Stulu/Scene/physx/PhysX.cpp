@@ -11,7 +11,7 @@ namespace Stulu {
     {
         virtual const char* getPhysXGpuDllName() const
         {
-            return "PhysXGpu_64.dll";
+            return "data/PhysXGpu_64.dll";
         }
     } gGpuLoadHook;
 
@@ -152,9 +152,8 @@ namespace Stulu {
         m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, *m_foundataion, physx::PxCookingParams(m_physics->getTolerancesScale()));
         if (!m_cooking)
             CORE_ASSERT(false, "PxCreateCooking failed!");
-        
-        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
-
+        if(data.PhysXGpu)
+            PxSetPhysXGpuLoadHook(&gGpuLoadHook);
 
         m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(data.workerThreads);
         if (!m_cpuDispatcher)
@@ -196,7 +195,7 @@ namespace Stulu {
     }
     physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::vec3& rot) {
         physx::PxRigidActor* actor;
-        if (rb.rbType == RigidbodyComponent::Dynamic) {
+        if (rb.rbType == RigidbodyComponent::Type::Dynamic) {
             actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
             actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !rb.useGravity);
             physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();

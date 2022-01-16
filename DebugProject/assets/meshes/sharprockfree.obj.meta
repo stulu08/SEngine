@@ -6,3 +6,4 @@ props:
       index: 0
     - uuid: 11267236082947906107
       index: 1
+  test: tests

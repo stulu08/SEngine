@@ -36,5 +36,24 @@ namespace Stulu {
 		auto [x, y] = getMousePos();
 		return y;
 	}
+	void Input::setCursorMode(CursorMode mode) {
+		ST_PROFILING_FUNCTION();
+		int m = GLFW_CURSOR_NORMAL;
+		switch (mode)
+		{
+		case Stulu::Input::CursorMode::Normal:
+			m = GLFW_CURSOR_NORMAL;
+			break;
+		case Stulu::Input::CursorMode::Hidden:
+			m = GLFW_CURSOR_HIDDEN;
+			break;
+		case Stulu::Input::CursorMode::Disabled:
+			m = GLFW_CURSOR_DISABLED;
+			break;
+		default:
+			break;
+		};
+		glfwSetInputMode(static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow()), GLFW_CURSOR, m);
+	}
 }
 #endif // ST_PLATFORM_WINDOWS

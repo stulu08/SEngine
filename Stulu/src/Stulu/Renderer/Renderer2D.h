@@ -11,7 +11,6 @@ namespace Stulu {
 		static void shutdown();
 		//no rendering
 		static void beginScene();
-		static void beginScene(const Ref<Camera>& cam, const glm::mat4& transform);
 		static void endScene();
 
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);

@@ -7,6 +7,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Stulu/Scene/Resources.h"
+
 namespace Stulu {
 	static GLenum shaderTypeFromString(const std::string& type) {
 		if (type == "vertex" || type == "vert")
@@ -32,15 +34,19 @@ namespace Stulu {
 	OpenGLShader::OpenGLShader(const std::string& path)
 	{
 		ST_PROFILING_FUNCTION();
-		std::string sShaderFile = readFile(path);
-		auto sources = preProcess(sShaderFile, isMultiFile(sShaderFile));
-		compile(sources);
-
 		size_t lastS = path.find_last_of("/\\");
 		lastS = lastS == std::string::npos ? 0 : lastS + 1;
 		size_t lastD = path.rfind('.');
 		m_name = path.substr(lastS, lastD == std::string::npos ? path.size() - lastS : lastD - lastS);
-
+		std::string shaderFile = readFile(path);
+		auto sources = preProcess(shaderFile);
+		compile(sources);
+	}
+	OpenGLShader::OpenGLShader(const std::string& name, const std::string& src) {
+		ST_PROFILING_FUNCTION();
+		m_name = name;
+		auto sources = preProcess(src);
+		compile(sources);
 	}
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment)
 		: m_name(name) {
@@ -68,48 +74,34 @@ namespace Stulu {
 
 		return result;
 	}
-	std::unordered_map<GLenum, std::string> OpenGLShader::preProcess(const std::string src, bool multiFile) {
+	std::unordered_map<GLenum, std::string> OpenGLShader::preProcess(const std::string _src) {
 		ST_PROFILING_FUNCTION();
 		std::unordered_map<GLenum, std::string> shaderSources;
-		if (multiFile) {
-			const char* typeToken = "#include";
-			size_t typeTokenLength = strlen(typeToken);
-			size_t pos = src.find(typeToken, 0);
-			while (pos != std::string::npos)
-			{
-				size_t eol = src.find_first_of("\r\n", pos);
-				size_t typeEnder = src.find_first_of("|", pos);
-				//CORE_ASSERT(eol != std::string::npos, "Syntax error");
-				size_t begin = pos + typeTokenLength + 1;
-				std::string type = src.substr(begin, typeEnder - begin);
-				begin += type.length() + 1;
-				std::string path = src.substr(begin, eol - begin);
-
-				std::string shaderSrc = readFile(path);
-
-				CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
-
-				size_t nextLinePos = src.find_first_not_of("\r\n", eol);
-				pos = src.find(typeToken, nextLinePos);
-				shaderSources[shaderTypeFromString(type)] = shaderSrc;
+		std::string shaderSrc = _src;
+		{
+			for (auto& p : s_preProcessorAdds) {
+				std::string token = p.first;
+				size_t pos = shaderSrc.find(token);
+				if (pos != std::string::npos) {
+					shaderSrc.replace(pos, token.length(), p.second);
+				}
 			}
-			return shaderSources;
 		}
 		const char* typeToken = "##type";
 		size_t typeTokenLength = strlen(typeToken);
-		size_t pos = src.find(typeToken, 0);
+		size_t pos = shaderSrc.find(typeToken, 0);
 		while (pos != std::string::npos)
 		{
-			size_t eol = src.find_first_of("\r\n", pos);
+			size_t eol = shaderSrc.find_first_of("\r\n", pos);
 			CORE_ASSERT(eol != std::string::npos, "Syntax error");
 			size_t begin = pos + typeTokenLength + 1;
-			std::string type = src.substr(begin, eol - begin);
+			std::string type = shaderSrc.substr(begin, eol - begin);
 			CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
 
-			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
+			size_t nextLinePos = shaderSrc.find_first_not_of("\r\n", eol);
 			CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
-			pos = src.find(typeToken, nextLinePos);
-			shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? src.substr(nextLinePos) : src.substr(nextLinePos, pos - nextLinePos);
+			pos = shaderSrc.find(typeToken, nextLinePos);
+			shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? shaderSrc.substr(nextLinePos) : shaderSrc.substr(nextLinePos, pos - nextLinePos);
 		}
 
 		return shaderSources;
@@ -137,9 +129,8 @@ namespace Stulu {
 				std::vector<GLchar> infoLog(maxLength);
 				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
 				glDeleteShader(shader);
-
 				CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
-				CORE_ASSERT(false, "{0} Shader compilation failed", stringFromShaderType(type));
+				CORE_ASSERT(false, stringFromShaderType(type) + " Shader compilation of Shader \"" + m_name + "\" failed");
 				break;
 			}
 			glAttachShader(rendererID, shader);
@@ -169,9 +160,6 @@ namespace Stulu {
 		}
 		m_rendererID = rendererID;
 
-	}
-	bool OpenGLShader::isMultiFile(const std::string src) {
-		return src.rfind("#multifile", 0) == 0;
 	}
 	OpenGLShader::~OpenGLShader() {
 		ST_PROFILING_FUNCTION();

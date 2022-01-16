@@ -4,7 +4,7 @@
 #include "Editor/EditorApp.h"
 
 namespace Stulu {
-	void GameViewportPanel::draw(const Ref<Camera>& cam, bool* open) {
+	void GameViewportPanel::draw(const Ref<FrameBuffer>& frameBuffer, bool* open) {
 		ST_PROFILING_FUNCTION();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 		if (ImGui::Begin("Game", open, ImGuiWindowFlags_HorizontalScrollbar)) {
@@ -21,13 +21,13 @@ namespace Stulu {
 			}
 			if(ImGui::BeginChild("Viewport",ImVec2(0,0),true, ImGuiWindowFlags_HorizontalScrollbar)) {
 				Ref<Texture> viewPortTexture;
-				if (cam == nullptr)
+				if (frameBuffer == nullptr)
 					viewPortTexture = EditorResources::getNoCameraTexture();
 				else {
-					if (cam->getFrameBuffer()->getTexture() == nullptr)
+					if (frameBuffer->getTexture() == nullptr)
 						viewPortTexture = EditorResources::getNoCameraTexture();
 					else
-						viewPortTexture = cam->getFrameBuffer()->getTexture();
+						viewPortTexture = frameBuffer->getTexture();
 				}
 				ImVec2 viewportSize = sizes[m_selectedSize];
 

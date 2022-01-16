@@ -42,6 +42,14 @@ namespace Stulu {
 
 
 	}
+	VulkanShader::VulkanShader(const std::string& name, const std::string& src) {
+		ST_PROFILING_FUNCTION();
+		m_name = name;
+
+		std::string sShaderFile = readFile(src);
+		auto sources = preProcess(sShaderFile, isMultiFile(sShaderFile));
+		compile(compileToSpirv(sources, std::string("unnamed-shaders/") + name + ".glsl"));
+	}
 	VulkanShader::VulkanShader(const std::string& name, const std::string& vertex, const std::string& fragment)
 		: m_name(name) {
 		ST_PROFILING_FUNCTION();
@@ -237,8 +245,7 @@ namespace Stulu {
 	}
 	void VulkanShader::uploadMat4Uniform(const std::string& name, const glm::mat4& matrix) {
 		ST_PROFILING_FUNCTION();
-		/*GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));*/
+		
 	}
 	void VulkanShader::uploadMat3Uniform(const std::string& name, const glm::mat3& matrix) {
 		ST_PROFILING_FUNCTION();

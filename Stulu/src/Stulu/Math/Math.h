@@ -8,8 +8,8 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/hash.hpp>
 #include <glm/glm.hpp>
-
 namespace Stulu {
 	struct Quad {
 		glm::vec2 pos;

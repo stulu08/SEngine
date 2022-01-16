@@ -32,7 +32,6 @@ namespace Stulu {
 		float m_aspectRatio, m_fov, m_zNear, m_zFar, m_lastMouseXPos = 0, m_lastMouseYPos = 0;
 		float m_pitch = 0, m_yaw = 0;
 		Ref<Camera> m_cam;
-
 		TransformComponent m_transform;
 
 		float m_cameraMoveSpeed = 1.0f;

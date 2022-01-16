@@ -52,7 +52,7 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 ***
 ### Next
-- Assets Manager
+- File Watcher
 - Much optimization(my code is garbage)
 - 3D Rendering(Thread, Render queue, Shadows, Reflections)
 - 2D Rendering

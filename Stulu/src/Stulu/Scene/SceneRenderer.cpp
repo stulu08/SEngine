@@ -4,21 +4,16 @@
 #include "Stulu/Scene/Resources.h"
 
 namespace Stulu {
-	SceneRenderer::Data SceneRenderer::m_runtimeData;
-
-	void SceneRenderer::init() {
+	SceneRenderer::RuntimeData SceneRenderer::s_runtimeData;
+	void SceneRenderer::init(Scene* scene) {
 		ST_PROFILING_FUNCTION();
-#if OPENGL
-		AssetsManager::update(UUID(12), { AssetType::Material,Material(AssetsManager::get(UUID(9)),
-			MaterialData(std::vector<MaterialDataType>{
-			MaterialDataType{ShaderDataType::Float,.0f,"metallic"},
-			MaterialDataType{ShaderDataType::Float3,glm::vec3(.9f),"albedo"},
-			MaterialDataType{ShaderDataType::Float,.0f,"roughness"},
-			MaterialDataType{ShaderDataType::Float,.3f,"ao"},})),"",UUID(12) });
-		m_runtimeData.defaultMaterial = UUID(12);
-		if(m_runtimeData.sceneDataUniformBuffer == nullptr)
-			m_runtimeData.sceneDataUniformBuffer = UniformBuffer::create(sizeof(Data::SceneRuntimeData), 0);
-#endif
+		s_scene = scene;
+		if (s_runtimeData.lightBuffer == nullptr)
+			s_runtimeData.lightBuffer = UniformBuffer::create(sizeof(RuntimeData::LightData), 1);
+		if (s_runtimeData.sceneDataBuffer == nullptr)
+			s_runtimeData.sceneDataBuffer = UniformBuffer::create(sizeof(RuntimeData::SceneData), 2);
+		if (Material::s_materialBuffer == nullptr)
+			Material::s_materialBuffer = UniformBuffer::create(sizeof(float)*256, 3);
 	}
 
 	void SceneRenderer::beginScene(GameObject object) {
@@ -34,69 +29,52 @@ namespace Stulu {
 			RenderCommand::setClearColor(glm::vec4(.0f));
 			break;
 		}
-		Renderer2D::beginScene();
-
-		m_runtimeData.sceneData.viewMatrix = glm::inverse(transform.getWorldSpaceTransform());
-		m_runtimeData.sceneData.projMatrix = cam.cam->getProjectionMatrix();
-		m_runtimeData.sceneData.viewProjectionMatrix = m_runtimeData.sceneData.projMatrix * m_runtimeData.sceneData.viewMatrix;
-		glm::vec3 pos, rot, scale;
-		Math::decomposeTransform(transform, pos, rot, scale);
-		m_runtimeData.sceneData.cameraPosition = pos;
-		m_runtimeData.sceneData.cameraRotation = rot;
-		//may use this to upload the material in a ubo
-		/*
-		size_t size = sizeof(glm::mat4) * 3 + sizeof(glm::vec3) * 2;
-		size_t offset = 0;
-		void* data = malloc(size);
-
-		char* p = (char*)data;
-
-		memcpy(p + offset, &m_runtimeData.sceneData.viewProjectionMatrix, sizeof(glm::mat4));
-		offset += sizeof(glm::mat4);
-
-		memcpy(p + offset, &m_runtimeData.sceneData.viewMatrix, sizeof(glm::mat4));
-		offset += sizeof(glm::mat4);
-
-		memcpy(p + offset, &m_runtimeData.sceneData.projMatrix, sizeof(glm::mat4));
-		offset += sizeof(glm::mat4);
-
-		memcpy(p + offset, &m_runtimeData.sceneData.cameraPosition, sizeof(glm::vec3));
-		offset += sizeof(glm::vec3);
-
-		memcpy(p + offset, &m_runtimeData.sceneData.cameraRotation, sizeof(glm::vec3));
-		offset += sizeof(glm::vec3);
-		m_runtimeData.sceneDataUniformBuffer->setData(data, size);
-		free(data);
-		*/ 
-		m_runtimeData.sceneDataUniformBuffer->setData(&m_runtimeData.sceneData, sizeof(Data::SceneRuntimeData));
-		m_runtimeData.cam = cam.cam;
-		cam.cam->bindFrameBuffer();
+		Renderer::beginScene(cam.getProjection(), glm::inverse(transform.getWorldSpaceTransform()), transform.position, transform.rotation);
+		s_runtimeData.cam = cam.getNativeCamera();
+		s_runtimeData.cam->bindFrameBuffer();
 		RenderCommand::clear();
 
 		if (cam.settings.clearType == CameraComponent::Skybox) {
-			if(object.hasComponent<SkyBoxComponent>())
+			if (object.hasComponent<SkyBoxComponent>())
 				drawSkyBox(object.getComponent<SkyBoxComponent>());
 		}
 	}
 	void SceneRenderer::beginScene(const SceneCamera& cam) {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
-		Renderer2D::beginScene();
-
-		m_runtimeData.sceneData.viewMatrix = glm::inverse(cam.getTransform().getTransform());
-		m_runtimeData.sceneData.projMatrix = cam.getCamera()->getProjectionMatrix();
-		m_runtimeData.sceneData.viewProjectionMatrix = m_runtimeData.sceneData.projMatrix * m_runtimeData.sceneData.viewMatrix;
-		m_runtimeData.sceneData.cameraPosition = cam.getTransform().position;
-		m_runtimeData.sceneData.cameraRotation = cam.getTransform().rotation;
-		m_runtimeData.sceneDataUniformBuffer->setData(&m_runtimeData.sceneData, sizeof(Data::SceneRuntimeData));
-		m_runtimeData.cam = cam.getCamera();
+		Renderer::beginScene(cam.getCamera()->getProjectionMatrix(), glm::inverse(cam.getTransform().getTransform()), cam.getTransform().position, cam.getTransform().rotation);
+		s_runtimeData.cam = cam.getCamera();
 		cam.getCamera()->bindFrameBuffer();
 		RenderCommand::clear();
 	}
 	void SceneRenderer::endScene() {
 		ST_PROFILING_FUNCTION();
-		Renderer2D::endScene();
-		m_runtimeData.cam->unbindFrameBuffer();
+		Renderer::endScene();
+		s_lastMaterial = UUID::null;
+		s_runtimeData.cam->unbindFrameBuffer();
+	}
+	void SceneRenderer::calculateLights() {
+		ST_PROFILING_FUNCTION();
+		s_runtimeData.lightData = RuntimeData::LightData();
+		auto view = s_scene->m_registry.view<TransformComponent, LightComponent>();
+		for (auto gameObject : view)
+		{
+			auto [transform, light] = view.get<TransformComponent, LightComponent>(gameObject);
+			if (s_runtimeData.lightData.lightCount < MAXLIGHTS) {
+				s_runtimeData.lightData.lights[s_runtimeData.lightData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
+				s_runtimeData.lightData.lights[s_runtimeData.lightData.lightCount].positionAndType = glm::vec4(transform.position, light.lightType);
+				s_runtimeData.lightData.lights[s_runtimeData.lightData.lightCount].rotation = glm::vec4(transform.forwardDirection(), 1.0f);
+				s_runtimeData.lightData.lights[s_runtimeData.lightData.lightCount].spotLightData = glm::vec4(glm::cos(glm::radians(light.spotLight_cutOff)), glm::cos(glm::radians(light.spotLight_outerCutOff)), 1.0f, light.areaRadius);
+				s_runtimeData.lightData.lightCount++;
+			}
+		}
+	}
+	void SceneRenderer::uploadBuffers(const SceneData& data) {
+		ST_PROFILING_FUNCTION();
+		s_runtimeData.lightBuffer->setData(&s_runtimeData.lightData, sizeof(RuntimeData::LightData));
+		s_runtimeData.bufferData.gamma = data.gamma;
+		s_runtimeData.bufferData.toneMappingExposure = data.toneMappingExposure;
+		s_runtimeData.sceneDataBuffer->setData(&s_runtimeData.bufferData, sizeof(RuntimeData::SceneData));
 	}
 	void SceneRenderer::submit(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
@@ -107,50 +85,25 @@ namespace Stulu {
 			material = mesh.material;
 		}
 		else {
-			material = AssetsManager::get(m_runtimeData.defaultMaterial).data._Cast<Material>();
+			material = Resources::getDefaultMaterial();
 		}
-		material->bind();
-		material->getShader()->setMat4("u_transform", transform);
-		filter.mesh.mesh->getVertexArray()->bind();
-		RenderCommand::drawIndexed(filter.mesh.mesh->getVertexArray(),0);
-
-		if (mesh.material) {
-			material->unbind();
-		}
+		if(s_lastMaterial != material->getUUID())
+			material->bind();
+		Renderer::submit(filter.mesh.mesh->getVertexArray(), transform);
+		s_lastMaterial = material->getUUID();
+		//material->unbind();
 	}
 	void SceneRenderer::drawSkyBox(SkyBoxComponent& skybox) {
 		ST_PROFILING_FUNCTION();
-		if (!skybox.material) {
+		if (!skybox.texture) {
 			return;
 		}
-
-		Material* material = skybox.material;
-
 		auto& mesh = Resources::getSkyBoxMesh();
 		Stulu::RenderCommand::setDepthFunc(true);
-
-		material->bind();
-		for (auto& dataType : material->getData().dataTypes) {
-			if (dataType.type == ShaderDataType::Sampler) {
-				Asset& asset = AssetsManager::get(std::any_cast<UUID>(dataType.data));
-
-				switch (asset.type)
-				{
-				case Stulu::AssetType::CubeMap:
-					asset.data._Cast<Ref<CubeMap>>()->get()->bind(1);
-					break;
-				default:
-					break;
-				}
-				break;
-			}
-		}
-
-
+		skybox.texture->bind(1);
+		Resources::getSkyBoxShader()->bind();
 		mesh->getVertexArray()->bind();
 		RenderCommand::drawIndexed(mesh->getVertexArray(), 0);
-
-		material->unbind();
 		Stulu::RenderCommand::setDepthFunc(false);
 	}
 }
