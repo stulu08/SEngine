@@ -2,9 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Stulu Hub"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.2"
 #define MyAppPublisher "Stulu"
 #define MyAppURL "https://stulu.de"
+#define AppBuildExeName "Hub.exe"
+#define BuildDir "D:\stulu\dev\SEngine\Stulu Hub\bin\Dist-windows-x86_64"
 #define MyAppExeName "Stulu Hub.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".myp"
@@ -16,7 +18,7 @@
 AppId={{3E2FC986-B5BC-4839-B9C5-362F4B70177F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -24,11 +26,11 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={commonpf64}\Stulu/Hub
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-LicenseFile=C:\stulu\dev\SEngine\LICENSE
+LicenseFile=D:\stulu\dev\SEngine\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=admin
 OutputBaseFilename=Stulu Hub
-SetupIconFile=C:\stulu\dev\SEngine\resources\logo\engine-app-icon.ico
+SetupIconFile=D:\stulu\dev\SEngine\resources\logo\engine-app-icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -40,10 +42,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\stulu\website\engine.stulu.de\download\hub\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\stulu\website\engine.stulu.de\download\hub\Microsoft.WindowsAPICodePack.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\stulu\website\engine.stulu.de\download\hub\Microsoft.WindowsAPICodePack.Shell.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\stulu\website\engine.stulu.de\download\hub\Microsoft.WindowsAPICodePack.ShellExtensions.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildDir}\Microsoft.WindowsAPICodePack.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildDir}\Microsoft.WindowsAPICodePack.Shell.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BuildDir}\Microsoft.WindowsAPICodePack.ShellExtensions.dll"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
