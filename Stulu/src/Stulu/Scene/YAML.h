@@ -5,6 +5,9 @@
 #include <Stulu/Renderer/Texture.h>
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Core/UUID.h"
+namespace Stulu {
+	class AssetsManager;
+}
 namespace YAML {
 
 	template<>
@@ -121,7 +124,7 @@ namespace YAML {
 		inline static Node encode(const Stulu::MaterialTexture& rhs) {
 			Node node;
 			node.push_back(rhs.binding);
-			node.push_back((uint64_t)rhs.texture);
+			node.push_back((uint64_t)rhs.uuid);
 			node.SetStyle(EmitterStyle::Flow);
 			return node;
 		}
@@ -130,7 +133,7 @@ namespace YAML {
 			if (!node.IsSequence() || node.size() != 2)
 				return false;
 			rhs.binding = node[0].as<int>();
-			rhs.texture = node[1].as<uint64_t>();
+			rhs.uuid = node[1].as<uint64_t>();
 			return true;
 		}
 	};
@@ -249,7 +252,7 @@ namespace Stulu {
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::MaterialTexture& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq;
-		out << v.binding << (uint64_t)v.texture;
+		out << v.binding << (uint64_t)v.uuid;
 		out << YAML::EndSeq;
 		return out;
 	}

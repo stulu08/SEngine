@@ -91,7 +91,6 @@ namespace Stulu {
 			material->bind();
 		Renderer::submit(filter.mesh.mesh->getVertexArray(), transform);
 		s_lastMaterial = material->getUUID();
-		//material->unbind();
 	}
 	void SceneRenderer::drawSkyBox(SkyBoxComponent& skybox) {
 		ST_PROFILING_FUNCTION();

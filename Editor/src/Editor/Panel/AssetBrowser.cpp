@@ -104,18 +104,13 @@ namespace Stulu {
 			renderInspector();
 	}
 	void AssetBrowserPanel::renderInspector() {
-		std::vector<MeshAsset> vec;
-		int type = (int)selected.type - 1;
-		if (selected.type == AssetType::Model)
-			vec = std::any_cast<Model>(selected.data).getMeshes();
 		if (ImGui::Begin("Asset Inspector", &m_inspector)) {
 			ImGui::TextWrapped("Asset %s", selected.path.c_str());
 			ImGui::Text("UUID %d", selected.uuid);
 			ImGui::Text("Properitys:", selected.path.c_str());
 			if (ImGui::BeginChild("Properitys") && selected.uuid != UUID::null) {
-				switch (selected.type)
-				{
-				case Stulu::AssetType::Model:
+				if (selected.type == AssetType::Model) {
+					std::vector<MeshAsset>& vec = std::any_cast<Model>(selected.data).getMeshes();
 					for (int i = 0; i < vec.size(); i++) {
 						if (vec[i].name.c_str()) {
 							ImGui::Text("Mesh: %s", vec[i].name.c_str());
@@ -131,33 +126,32 @@ namespace Stulu {
 						}
 						ImGui::PopID();
 					}
-					break;
-				case Stulu::AssetType::Material:
+				}
+				else if (selected.type == AssetType::Material) {
 					ComponentsRender::drawMaterialEdit("Material", selected.uuid, false);
-					break;
-				case Stulu::AssetType::Texture:
+				}
+				else if (selected.type == AssetType::Texture) {
+					int type = (int)selected.type - 1;
 					if (ComponentsRender::drawComboControl("Texture type", type, "Texture2D\0Texture")) {
 						selected.type = AssetType::Texture2D;
 						AssetsManager::update(selected.uuid, selected);
-						break;
 					}
-					break;
-				case Stulu::AssetType::Texture2D:
+				}
+				else if (selected.type == AssetType::Texture2D) {
+					int type = (int)selected.type - 1;
 					if (ComponentsRender::drawComboControl("Texture type", type, "Texture2D\0Texture")) {
 						selected.type = AssetType::Texture;
 						AssetsManager::update(selected.uuid, selected);
-						break;
 					}
-					ComponentsRender::drawVector2Control("Tilling", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().tiling);
-					ComponentsRender::drawComboControl("Format", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().format, "RGBA\0RGB\0RG\0A\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0Auto");
-					ComponentsRender::drawComboControl("Wrap Mode", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().wrap, "Clamp\0Repeat");
-					if (ImGui::Button("Update")) {
-						std::any_cast<Ref<Texture2D>>(selected.data)->update();
-						AssetsManager::setProperity<TextureSettings>(selected.path, std::pair<std::string, TextureSettings> {"format", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings()});
+					else {
+						ComponentsRender::drawVector2Control("Tilling", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().tiling);
+						ComponentsRender::drawComboControl("Format", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().format, "RGBA\0RGB\0RG\0A\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0Auto");
+						ComponentsRender::drawComboControl("Wrap Mode", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().wrap, "Clamp\0Repeat");
+						if (ImGui::Button("Update")) {
+							std::any_cast<Ref<Texture2D>>(selected.data)->update();
+							AssetsManager::setProperity<TextureSettings>(selected.path, std::pair<std::string, TextureSettings> {"format", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings()});
+						}
 					}
-					break;
-				default:
-					break;
 				}
 			}
 			ImGui::EndChild();

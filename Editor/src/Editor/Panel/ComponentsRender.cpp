@@ -652,9 +652,9 @@ namespace Stulu {
 					}
 				}
 				else if (type == Stulu::ShaderDataType::Sampler) {
-					UUID tUUID = std::any_cast<MaterialTexture>(dataType.data).texture;
+					auto tUUID = std::any_cast<MaterialTexture&>(dataType.data).uuid;
 					if (drawTextureEdit(name, tUUID, AssetsManager::getAssetType(tUUID))) {
-						dataType.data = tUUID;
+						std::any_cast<MaterialTexture&>(dataType.data).uuid = tUUID;
 						changed |= true;
 					}
 
@@ -665,6 +665,7 @@ namespace Stulu {
 			}
 			if (changed) {
 				Previewing::get().add(asset);
+				mat->update(materialData);
 				mat->toDataStringFile(asset.path);
 			}
 		}

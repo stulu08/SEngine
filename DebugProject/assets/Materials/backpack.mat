@@ -1,5 +1,4 @@
 Shader: 6808072856790236486
-StructName: u_mat
 DataTypes:
   - [12, [2, 14257472525680892980], albedoMap, 0]
   - [12, [3, 9824902063574447093], metallicMap, 1]

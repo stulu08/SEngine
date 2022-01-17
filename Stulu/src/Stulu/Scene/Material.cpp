@@ -51,10 +51,7 @@ namespace Stulu {
 		uint32_t stride = 0;
 		for (int i = 0; i < m_dataTypes.size(); i++) {
 			MaterialDataType& dataType = m_dataTypes[i];
-			//for textures
-			Asset asset;
 			MaterialTexture texture;
-
 			switch (dataType.type) {
 				/*
 				case ShaderDataType::Float:		m_shader->setFloat(name, std::any_cast<float>(dataType.data));			break;
@@ -96,20 +93,8 @@ namespace Stulu {
 					stride += dataTypeSize(dataType.type);
 					break;
 				case ShaderDataType::Sampler:
-					texture = std::any_cast<Stulu::MaterialTexture>(dataType.data);
-					asset = AssetsManager::get(texture.texture);
-					switch (asset.type)
-					{
-					case Stulu::AssetType::Texture2D:
-						asset.data._Cast<Ref<Texture2D>>()->get()->bind(texture.binding);
-						break;
-					case Stulu::AssetType::Texture:
-						asset.data._Cast<Ref<Texture2D>>()->get()->bind(texture.binding);
-						break;
-					case Stulu::AssetType::CubeMap:
-						asset.data._Cast<Ref<CubeMap>>()->get()->bind(texture.binding);
-						break;
-					}
+					texture = std::any_cast<Stulu::MaterialTexture&>(dataType.data);
+					texture.texture->bind(texture.binding);
 					break;
 				default:
 					CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
@@ -123,6 +108,22 @@ namespace Stulu {
 		m_dataTypes = data;
 		std::vector<MaterialDataType> temp(m_dataTypes.size()); 
 		for (auto& d : m_dataTypes) {
+			if (d.type == ShaderDataType::Sampler) {
+				MaterialTexture& tex = std::any_cast<MaterialTexture&>(d.data);
+				Asset& asset = Stulu::AssetsManager::get(tex.uuid);
+				switch (asset.type)
+				{
+				case AssetType::Texture:
+					tex.texture = std::any_cast<Ref<Texture2D>>(asset.data);
+					break;
+				case AssetType::Texture2D:
+					tex.texture = std::any_cast<Ref<Texture2D>>(asset.data);
+					break;
+				case AssetType::CubeMap:
+					tex.texture = std::any_cast<Ref<Texture2D>>(asset.data);
+					break;
+				}
+			}
 			temp[d.order] = d;
 		}
 		m_dataTypes = temp;

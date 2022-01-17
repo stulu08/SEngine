@@ -31,7 +31,8 @@ namespace Stulu {
 	struct Asset;
 	struct MaterialTexture {
 		int binding;
-		UUID texture;
+		Ref<Texture> texture;
+		UUID uuid;
 		bool operator == (const MaterialTexture& other) const {
 			return (other.binding == binding && other.texture == texture);
 		}
