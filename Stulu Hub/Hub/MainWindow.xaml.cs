@@ -388,9 +388,9 @@ namespace Hub
             }
             selectedProject = ProjectListBox.Items.IndexOf(sender);
             ProcessStartInfo info = new ProcessStartInfo();
-            info.FileName = engines[EnginesListBox.SelectedIndex].path + "/Editor.exe";
+            info.FileName = engines[selectedEngine].path + "/Editor.exe";
             info.Arguments = "\"" + projects[selectedProject].path + "\"";
-            info.WorkingDirectory = engines[EnginesListBox.SelectedIndex].path;
+            info.WorkingDirectory = engines[selectedEngine].path;
             Process.Start(info);
         }
         private void ProjectListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

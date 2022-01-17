@@ -23,7 +23,7 @@ namespace Stulu {
 		getWindow().setVSync(false);
 		getWindow().setWindowIcon("Stulu/assets/Textures/Logo/engine-app-icon.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
-		getWindow().setWindowTitle(std::string("Stulu Editor - ") + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
+		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
 		editorLayer = new EditorLayer();
 		pushLayer(editorLayer);
