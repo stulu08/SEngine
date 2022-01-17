@@ -1,6 +1,5 @@
 #pragma once
 #include <Stulu.h>
-
 namespace Stulu {
 	class DiscordRPC {
 	public:

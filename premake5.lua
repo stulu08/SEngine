@@ -1,7 +1,6 @@
+include "./vendor/premake/premake_customization/solution_items.lua"
 workspace "Stulu"
-	architecture "x64"
 	startproject "Editor"
-
 	configurations
 	{
 		"Debug",
@@ -12,6 +11,15 @@ workspace "Stulu"
 	{
 		"MultiProcessorCompile"
 	}
+	solution_items 
+	{
+		"premake5.lua",
+		"Editor/premake5.lua",
+		"Stulu/premake5.lua",
+		"README.md"
+		
+	}
+	architecture "x64"
 
 staticBuild = true
 staticRuntime = true
@@ -19,6 +27,7 @@ staticRuntime = true
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 builddir = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+builddirData = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/data"
 
 vulkanSDK = os.getenv("VULKAN_SDK")
 physx = "%{wks.location}/Stulu/vendor/physx"
@@ -43,6 +52,7 @@ ProjectDir = {}
 ProjectDir["Stulu"] = "%{wks.location}/Stulu"
 ProjectDir["Editor"] = "%{wks.location}/Editor"
 ProjectDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc"
+ProjectDir["Demo"] = "%{wks.location}/Demo"
 
 
 group "Dependencies"
@@ -58,4 +68,5 @@ group ""
 include "Stulu"
 include "Editor"
 include "VulkanTesting"
-include "Launcher"
+include "Stulu Hub"
+include "Demo"

@@ -1,5 +1,7 @@
 #include "ComponentsRender.h"
 
+#include "Editor/EditorApp.h"
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <ImGui/misc/cpp/imgui_stdlib.h>
@@ -67,28 +69,24 @@ namespace Stulu {
 
 		drawIntControl("Depth", component.depth);
 		static float zoom = .1f;
-		ImGui::Image(reinterpret_cast<void*>((uint64_t)component.cam->getFrameBuffer()->getTexture()->getColorAttachmentRendereID()), ImVec2((float)component.settings.textureWidth, (float)component.settings.textureHeight)*zoom, ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::Image(reinterpret_cast<void*>((uint64_t)component.getTexture()->getColorAttachmentRendereID()), ImVec2((float)component.settings.textureWidth, (float)component.settings.textureHeight) * zoom, ImVec2(0, 1), ImVec2(1, 0));
 		drawFloatSliderControl("[Texture Scale]",zoom);
 	}
 	template<>
 	void ComponentsRender::drawComponent<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) {
 		ST_PROFILING_FUNCTION();
-		UUID id = UUID::null;
-		if (component.material && AssetsManager::exists(component.material->getUUID())) {
-			ImGui::Text("Material: %s(Shader: %s)", component.material->getName().c_str(), component.material->getShader()->getName().c_str());
-			id = component.material->getUUID();
+		UUID uuid = UUID::null;
+		if (component.texture) {
+			if (AssetsManager::existsAndType(component.texture->uuid, AssetType::CubeMap))
+				uuid = component.texture->uuid;
+			else
+				component.texture = nullptr;
 		}
-		else {
-			ImGui::Text("Material: Using default Renderer Shader");
-			if (drawMaterialEdit("Drag Material", id)) {
-				component.material = AssetsManager::get(id).data._Cast<Material>();
-				component.material->uploadData();
-			}
-			return;
-		}
-		if (drawMaterialEdit(component.material->getName(), id)) {
-			component.material = AssetsManager::get(id).data._Cast<Material>();
-			component.material->uploadData();
+		else
+			ImGui::Text("Drag texture");
+		if (drawTextureEdit("Texture", uuid, AssetType::CubeMap)) {
+			if (AssetsManager::exists(uuid))
+				component.texture = std::any_cast<Ref<CubeMap>&>(AssetsManager::get(uuid).data);
 		}
 	}
 	template<>
@@ -143,13 +141,13 @@ namespace Stulu {
 			ImGui::Text("Material: Using default Renderer Shader");
 			if (drawMaterialEdit("Drag Material", id)) {
 				component.material = AssetsManager::get(id).data._Cast<Material>();
-				component.material->uploadData();
+				component.material->bind();
 			}
 			return;
 		}
 		if (drawMaterialEdit(component.material->getName(), id)) {
 			component.material = AssetsManager::get(id).data._Cast<Material>();
-			component.material->uploadData();
+			component.material->bind();
 		}
 	}
 	template<>
@@ -190,7 +188,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		drawComboControl("Type", (int&)component.rbType, "Dynamic\0Static");
 		drawBoolControl("Use gravity", component.useGravity);
-		if (component.rbType == RigidbodyComponent::Dynamic) {
+		if (component.rbType == RigidbodyComponent::Type::Dynamic) {
 			//bool 3
 			{
 				ImGui::PushID("Enable rotation");
@@ -304,6 +302,25 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 		change |= ImGui::DragInt("##INT", &v);
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawIntSliderControl(const std::string& header, int& v, int min, int max) {
+		ST_PROFILING_FUNCTION();
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::SliderInt("##INTSLIDER", &v, min, max);
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
 		ImGui::EndColumns();
@@ -525,7 +542,7 @@ namespace Stulu {
 				break;
 			case AssetType::CubeMap:
 				ImGui::Text("SkyBox");
-				texture = reinterpret_cast<void*>((uint64_t)EditorResources::getSkyBoxTexture()->getRendererID());
+				texture = reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID());
 				break;
 			default:
 				break;
@@ -565,7 +582,7 @@ namespace Stulu {
 		if (!exists)
 			ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		else {
-			ImGui::Image(reinterpret_cast<void*>((uint64_t)Previewing::get().getMaterial(uuid)->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
 		if (canChange) {
 			if (ImGui::BeginDragDropTarget()) {
@@ -588,70 +605,67 @@ namespace Stulu {
 		if (exists && !changed) {
 			Asset& asset = AssetsManager::get(uuid);
 			Material* mat = asset.data._Cast<Material>();
-			if (ImGui::TreeNodeEx((void*)typeid(Material).hash_code(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick, header.c_str())) {
-				MaterialData& materialData = mat->getData();
-
-				for (auto& dataType : materialData.dataTypes) {
-					std::string name = dataType.name;
-					Stulu::ShaderDataType type = dataType.type;
-					if (type == Stulu::ShaderDataType::Float) {
-						float v = std::any_cast<float>(dataType.data);
-						if (drawFloatControl(name, v)) {
-							dataType.data = v;
-							changed |= true;
-						}
-					}
-					else if (type == Stulu::ShaderDataType::Float2) {
-						glm::vec2 v = std::any_cast<glm::vec2>(dataType.data);
-						if (drawVector2Control(name, v)) {
-							dataType.data = v;
-							changed |= true;
-						}
-					}
-					else if (type == Stulu::ShaderDataType::Float3) {
-						glm::vec3 v = std::any_cast<glm::vec3>(dataType.data);
-						if (drawVector3Control(name, v)) {
-							dataType.data = v;
-							changed |= true;
-						}
-					}
-					else if (type == Stulu::ShaderDataType::Float4) {
-						glm::vec4 v = std::any_cast<glm::vec4>(dataType.data);
-						if (drawVector4Control(name, v)) {
-							dataType.data = v;
-							changed |= true;
-						}
-					}
-					else if (type == Stulu::ShaderDataType::Mat4) {
-						glm::mat4 v = std::any_cast<glm::mat4>(dataType.data);
-						if (drawMat4Control(name, v)) {
-							dataType.data = v;
-							changed |= true;
-						}
-					}
-					else if (type == Stulu::ShaderDataType::Int) {
-						int v = std::any_cast<int>(dataType.data);
-						if (drawIntControl(name, v)) {
-							dataType.data = v;
-							changed |= true;
-						}
-					}
-					else if (type == Stulu::ShaderDataType::Sampler) {
-						UUID tUUID = std::any_cast<UUID>(dataType.data);
-						if (drawTextureEdit(name, tUUID, AssetsManager::getAssetType(tUUID))) {
-							dataType.data = tUUID;
-							changed |= true;
-						}
-
-					}
-					else {
-						CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
+			std::vector<MaterialDataType>& materialData = mat->getData();
+			for (auto& dataType : materialData) {
+				std::string name = dataType.name;
+				Stulu::ShaderDataType type = dataType.type;
+				if (type == Stulu::ShaderDataType::Float) {
+					float v = std::any_cast<float>(dataType.data);
+					if (drawFloatControl(name, v)) {
+						dataType.data = v;
+						changed |= true;
 					}
 				}
-				ImGui::TreePop();
+				else if (type == Stulu::ShaderDataType::Float2) {
+					glm::vec2 v = std::any_cast<glm::vec2>(dataType.data);
+					if (drawVector2Control(name, v)) {
+						dataType.data = v;
+						changed |= true;
+					}
+				}
+				else if (type == Stulu::ShaderDataType::Float3) {
+					glm::vec3 v = std::any_cast<glm::vec3>(dataType.data);
+					if (drawVector3Control(name, v)) {
+						dataType.data = v;
+						changed |= true;
+					}
+				}
+				else if (type == Stulu::ShaderDataType::Float4) {
+					glm::vec4 v = std::any_cast<glm::vec4>(dataType.data);
+					if (drawVector4Control(name, v)) {
+						dataType.data = v;
+						changed |= true;
+					}
+				}
+				else if (type == Stulu::ShaderDataType::Mat4) {
+					glm::mat4 v = std::any_cast<glm::mat4>(dataType.data);
+					if (drawMat4Control(name, v)) {
+						dataType.data = v;
+						changed |= true;
+					}
+				}
+				else if (type == Stulu::ShaderDataType::Int) {
+					int v = std::any_cast<int>(dataType.data);
+					if (drawIntControl(name, v)) {
+						dataType.data = v;
+						changed |= true;
+					}
+				}
+				else if (type == Stulu::ShaderDataType::Sampler) {
+					auto tUUID = std::any_cast<MaterialTexture&>(dataType.data).uuid;
+					if (drawTextureEdit(name, tUUID, AssetsManager::getAssetType(tUUID))) {
+						std::any_cast<MaterialTexture&>(dataType.data).uuid = tUUID;
+						changed |= true;
+					}
+
+				}
+				else {
+					CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
+				}
 			}
 			if (changed) {
-				Previewing::get().addMaterial(asset);
+				Previewing::get().add(asset);
+				mat->update(materialData);
 				mat->toDataStringFile(asset.path);
 			}
 		}
@@ -685,31 +699,29 @@ namespace Stulu {
 		scene = createRef<Scene>();
 
 	}
-	void Previewing::addMaterial(Asset& asset) {
+	void Previewing::add(Asset& asset) {
 		ST_PROFILING_FUNCTION();
-		if (!AssetsManager::existsAndType(asset.uuid, AssetType::Material))
+		if (!AssetsManager::exists(asset.uuid))
 			return;
 		setUpScene(asset);
-		Material* material = asset.data._Cast<Material>();
-		material->uploadData();
 		scene->getData().enablePhsyics3D = false;
 		scene->onRuntimeStart();
 		scene->onUpdateRuntime(Timestep(.05f));
 		scene->onRuntimeStop();
 
-		materials[asset.uuid] = camera.getComponent<CameraComponent>().cam->getFrameBuffer()->getTexture();
-		scene.reset();
+		items[asset.uuid] = camera.getComponent<CameraComponent>().getTexture();
+		SceneRenderer::init(getEditorScene().get());
 	}
-	Ref<Texture>& Previewing::getMaterial(UUID id) {
+	Ref<Texture>& Previewing::get(const UUID& id) {
 		ST_PROFILING_FUNCTION();
-		if (!existsMaterial(id)) {
-			addMaterial(AssetsManager::get(id));
+		if (!exists(id)) {
+			add(AssetsManager::get(id));
 		}
-		return materials[id];
+		return items[id];
 	}
-	bool Previewing::existsMaterial(UUID id) {
+	bool Previewing::exists(const UUID& id) {
 		ST_PROFILING_FUNCTION();
-		return materials.find(id) != materials.end();
+		return items.find(id) != items.end();
 	}
 	void Previewing::setUpScene(Asset& asset) {
 		ST_PROFILING_FUNCTION();
@@ -717,29 +729,23 @@ namespace Stulu {
 		scene->onViewportResize(200, 200);
 
 		sphere = scene->createGameObject("Sphere");
-		sphere.addComponent<MeshRendererComponent>().material = AssetsManager::get(asset.uuid).data._Cast<Material>();
+		if(asset.type == AssetType::Material)
+			sphere.addComponent<MeshRendererComponent>().material = asset.data._Cast<Material>();
+		else
+			sphere.addComponent<MeshRendererComponent>().material = Resources::getReflectiveMaterial();
 		sphere.getComponent<MeshFilterComponent>().mesh = Resources::getSphereMeshAsset();
 		camera = scene->createGameObject("Camera");
-		bool cubeMap = false;
-
-		for (auto& dataType : AssetsManager::get(asset.uuid).data._Cast<Material>()->getData().dataTypes) {
-			if (dataType.type == ShaderDataType::Sampler) {
-				if(AssetsManager::getAssetType(std::any_cast<UUID>(dataType.data)) == AssetType::CubeMap)
-					cubeMap = true;
-			}
-		}
-
-		if (cubeMap) {
-			camera.addComponent<SkyBoxComponent>().material = AssetsManager::get(asset.uuid).data._Cast<Material>();
-			sphere.getComponent<MeshRendererComponent>().material = AssetsManager::get(UUID(12)).data._Cast<Material>();
-		}
 		light = scene->createGameObject("Light");
 
+
 		camera.addComponent<CameraComponent>(CameraMode::Perspective).settings.clearColor = glm::vec4(.0f);
-		camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::Skybox;
 		camera.getComponent<GameObjectBaseComponent>().tag = "MainCam";
 		camera.getComponent<TransformComponent>().position = glm::vec3(0.0f, 0.0f, 1.2f);
 
 		light.addComponent<LightComponent>(LightComponent::Directional).strength = 4;
+		if (asset.type == AssetType::CubeMap)
+			std::any_cast<Ref<CubeMap>>(asset.data)->bind(1);
+		else if (asset.type == AssetType::Material)
+			sphere.getComponent<MeshRendererComponent>().material->bind();
 	}
 }

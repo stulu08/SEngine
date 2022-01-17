@@ -51,19 +51,23 @@ namespace Stulu {
         }
         return SubMesh(vertices, indices);
     }
+    
+    void Model::processMaterials(const aiScene* scene) {
+        
+    }
 
     void Stulu::Model::load(const std::string& path) {
         ST_PROFILING_FUNCTION();
 
-        Assimp::Importer import;
+        Assimp::Importer importt;
         const aiScene* scene;
         {
             ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            scene = import.ReadFile(path, aiProcess_Triangulate);
+            scene = importt.ReadFile(path, aiProcess_Triangulate);
         }
         
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            CORE_ASSERT(false,import.GetErrorString());
+            CORE_ASSERT(false,importt.GetErrorString());
             return;
         }
         size_t lastS = path.find_last_of("/\\");
@@ -71,6 +75,7 @@ namespace Stulu {
         size_t lastD = path.rfind('.');
         scene->mRootNode->mName = path.substr(lastS, lastD == std::string::npos ? path.size() - lastS : lastD - lastS).c_str();
         processNode(scene->mRootNode, scene);
+        processMaterials(scene);
     }
     void Stulu::Model::processNode(aiNode* node, const aiScene* scene, UUID& parent) {
         ST_PROFILING_FUNCTION();
@@ -95,7 +100,7 @@ namespace Stulu {
         if (parent != UUID::null)
             mesh.parentMeshAsset = parent;
 
-        //should work but does not work
+        //should work but it doesn't work
         //mesh.transform = *(glm::mat4*)&node->mTransformation;
         aiVector3D a_pos, a_scale;
         aiQuaternion a_rot;
@@ -103,7 +108,7 @@ namespace Stulu {
         glm::vec3 pos(a_pos.x,a_pos.y,a_pos.z), sca(a_scale.x, a_scale.y, a_scale.z), rot;
         Math::decomposeTransform(Math::createMat4(pos, glm::quat(a_rot.w, a_rot.x, a_rot.y, a_rot.z), sca), pos, rot, sca);
         mesh.transform = Math::createMat4(pos, glm::degrees(rot), sca);
-
+        
         meshes.push_back(mesh);
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
            processNode(node->mChildren[i], scene, mesh.uuid);

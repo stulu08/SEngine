@@ -19,7 +19,7 @@ namespace physx {
 
 namespace Stulu{
     struct TransformComponent;
-    struct RigidbodyComponent;
+    class RigidbodyComponent;
     class Mesh;
     physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
     glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec);
@@ -34,6 +34,7 @@ namespace Stulu{
         float length = 1.0f;
         glm::vec3 gravity = { 0.f, -9.8f, 0.f };
         uint32_t workerThreads = 4;
+        bool PhysXGpu = false;
     };
     class PxAllocatorCallback {
     public:
@@ -44,6 +45,7 @@ namespace Stulu{
     };
     class STULU_API PhysX {
     public:
+        PhysX(){}
         void startUp(const PhysicsData& data = PhysicsData());
         void shutDown();
 
@@ -54,12 +56,12 @@ namespace Stulu{
         physx::PxPhysics* getPhysics() { return m_physics; };
 
     private:
-        physx::PxFoundation* m_foundataion;
-        physx::PxPvd* m_pvd;
-        physx::PxPhysics* m_physics;
-        physx::PxScene* m_scene;
-        physx::PxDefaultCpuDispatcher* m_cpuDispatcher;
-        physx::PxCudaContextManager* m_cudaContextManager;
-        physx::PxCooking* m_cooking;
+        physx::PxFoundation* m_foundataion = nullptr;
+        physx::PxPvd* m_pvd = nullptr;
+        physx::PxPhysics* m_physics = nullptr;
+        physx::PxScene* m_scene = nullptr;
+        physx::PxDefaultCpuDispatcher* m_cpuDispatcher = nullptr;
+        physx::PxCudaContextManager* m_cudaContextManager = nullptr;
+        physx::PxCooking* m_cooking = nullptr;
     };
 }

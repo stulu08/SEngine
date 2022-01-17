@@ -7,6 +7,7 @@ namespace Stulu {
 	{
 	public:
 		VulkanShader(const std::string& path);
+		VulkanShader(const std::string& name, const std::string& src);
 		VulkanShader(const std::string& name, const std::string& vertex, const std::string& fragment);
 		virtual ~VulkanShader();
 

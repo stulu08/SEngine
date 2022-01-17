@@ -1,0 +1,30 @@
+Scene: Untitled
+Settings:
+  gamma: 2.20000005
+  toneMappingExposure: 1.5
+  framebuffer16bit: true
+  enablePhsyics3D: true
+  physicsData.gravity: [0, -9.80000019, 0]
+  physicsData.length: 1
+  physicsData.PhysXGpu: false
+  physicsData.speed: 9.81000042
+  physicsData.workerThreads: 4
+GameObjects:
+  - GameObject: 869246690311878718
+    GameObjectBaseComponent:
+      name: Cube
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      {}
+    MeshFilterComponent:
+      mesh: 401
+    BoxColliderComponent:
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+      size: [0.5, 0.5, 0.5]
+      offset: [0, 0, 0]

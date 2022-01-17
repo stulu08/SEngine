@@ -6,20 +6,22 @@
 #include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Scene/AssetsManager.h"
+#include "Stulu/Core/Input.h"
 
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(ApplicationInfo appInfo) 
+	Application::Application(ApplicationInfo appInfo, bool hideWindow)
 		:m_appInfo(appInfo)	{
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-
-#if OPENGL
+		if (hideWindow)
+			m_window->hide();
 		AssetsManager::loadAllFiles("Stulu");
+#if OPENGL
 		Renderer::init();
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
@@ -60,6 +62,7 @@ namespace Stulu {
 #endif
 	void Application::run() {
 		ST_PROFILING_FUNCTION();
+		m_lastFrameTime = Platform::getTime();
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Run Loop");
 			float time = Platform::getTime();
@@ -74,6 +77,7 @@ namespace Stulu {
 			}
 			ST_FRAMETIME_LOG += Time::deltaTime.getSeconds();
 #endif
+			Input::update();
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");

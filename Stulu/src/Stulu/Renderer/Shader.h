@@ -11,6 +11,7 @@ namespace Stulu {
 		virtual void unbind() const = 0;
 		virtual const std::string& getName() const = 0;
 		static Ref<Shader> create(const std::string& path);
+		static Ref<Shader> create(const std::string& name, const std::string& src);
 		static Ref<Shader> create(const std::string& name, const std::string& vertex, const std::string& fragment);
 
 		virtual void setMat4(const std::string& name, const glm::mat4& mat) = 0;
@@ -20,6 +21,8 @@ namespace Stulu {
 		virtual void setFloat(const std::string& name, const float Float) = 0;
 		virtual void setInt(const std::string& name, const int32_t Int) = 0;
 		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) = 0;
+	protected:
+		const static std::vector<std::pair<std::string, std::string>> s_preProcessorAdds;
 	};
 	class STULU_API ShaderLibary {
 	public:

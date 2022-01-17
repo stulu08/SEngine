@@ -2,7 +2,7 @@
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Renderer/Mesh.h"
 #include "Stulu/Core/UUID.h"
-
+#include "YAML.h"
 #include <unordered_map>
 
 
@@ -27,19 +27,29 @@ namespace Stulu {
 	public:
 		/// read UUID from .meta file
 		static UUID add(const std::string& path);
-		static void add(const UUID uuid, const std::string& path);
-		static void add(const UUID uuid, const std::string& path, const AssetType type);
+		static void add(const UUID& uuid, const std::string& path);
+		static void add(const UUID& uuid, const std::string& path, const AssetType type);
+		static void addOrReload(const std::string& path);
 
-		static void update(const UUID uuid, const Asset& data);
+		static void update(const UUID& uuid, const Asset& data);
 
-		static bool exists(const UUID uuid);
-		static bool existsAndType(const UUID uuid, const AssetType type);
+		static void remove(const UUID& uuid);
 
-		static Asset& get(const UUID uuid);
-		const static type_info& getType(const UUID uuid);
-		const static AssetType& getAssetType(const UUID uuid);
+		static bool exists(const UUID& uuid);
+		static bool existsAndType(const UUID& uuid, const AssetType type);
+
+		static Asset& get(const UUID& uuid);
+		const static type_info& getType(const UUID& uuid);
+		const static AssetType& getAssetType(const UUID& uuid);
 		template<typename T>
-		static T* getAs(const UUID uuid);
+		static inline T* getAs(const UUID& uuid) {
+			ST_PROFILING_FUNCTION();
+			if (exists)
+				return assets[uuid].first._Cast<T>();
+
+			CORE_ASSERT(exists, "UUID not present in assets");
+			return nullptr;
+		}
 		static UUID getFromPath(const std::string& path);
 		static const AssetType assetTypeFromExtension(const std::string& extension);
 
@@ -49,6 +59,68 @@ namespace Stulu {
 		static void loadTextures(const std::string& directory);
 		static void loadMaterials(const std::string& directory);
 
+		static void reloadShaders(const std::string& directory);
+		template <typename T>
+		static inline T getProperity(const std::string path, const std::string& properity) {
+			ST_PROFILING_FUNCTION();
+			if (FileExists(path + ".meta")) {
+				YAML::Node data = YAML::LoadFile(path + ".meta");
+				if (data["props"]) {
+					YAML::Node props = data["props"];
+					if (props[properity.c_str()]) {
+						return props[properity.c_str()].as<T>();
+					}
+				}
+			}
+			return T();
+		}
+		template <typename T>
+		static inline void setProperitys(const std::string path, const std::vector<std::pair<std::string, T>>& vs) {
+			ST_PROFILING_FUNCTION();
+			if (!FileExists(path + ".meta")) {
+				createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
+			}
+			YAML::Node data = YAML::LoadFile(path + ".meta");
+			UUID uuid(data["uuid"].as<uint64_t>());
+			const AssetType type = (AssetType)data["type"].as<int>();
+
+			YAML::Node props;
+			bool hasProps = false;
+			if (FileExists(path + ".meta")) {
+				YAML::Node data = YAML::LoadFile(path + ".meta");
+				if (data["props"]) {
+					props = data["props"];
+					for (auto& v : vs) {
+						props[v.first.c_str()] = v.second;
+					}
+					hasProps = true;
+				}
+			}
+
+
+			YAML::Emitter out;
+			out << YAML::BeginMap;
+			out << YAML::Key << "uuid" << YAML::Value << (uint64_t)uuid;
+			out << YAML::Key << "type" << YAML::Value << (int)type;
+			out << YAML::Key << "props" << YAML::Value;
+			if (hasProps) {
+				out << props;
+			}
+			else {
+				out << YAML::BeginMap;
+				for (auto& v : vs) {
+					out << YAML::Key << v.first.c_str() << YAML::Value << v.second;
+				}
+				out << YAML::EndMap;
+			}
+			out << YAML::EndMap;
+
+			FILE* file = fopen((path + ".meta").c_str(), "w");
+			fprintf(file, out.c_str());
+			fclose(file);
+		}
+		template <typename T>
+		static inline void setProperity(const std::string path, const std::pair<std::string, T>& s) { setProperitys<T>(path, std::vector<std::pair<std::string, T>>{s}); }
 	private:
 		//uuid ,<data, path>
 		static std::unordered_map<UUID, Asset> assets;
@@ -56,6 +128,6 @@ namespace Stulu {
 		static void createMeshesFromModel(const Asset uuid);
 		static void _createMeshesFromModel(const Asset uuid, Model& model);
 
-		static void createMeta(const UUID uuid, const std::string& path, const AssetType type);
+		static void createMeta(const UUID& uuid, const std::string& path, const AssetType type);
 	};
 }

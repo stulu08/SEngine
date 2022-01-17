@@ -1,4 +1,4 @@
-# Stulu Engine [![License](https://img.shields.io/github/license/TheCherno/Hazel.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
+# Stulu Engine [![License](https://img.shields.io/github/license/Stulu08/Sengine.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
 <p align="center">
   <img width="600" height="600" src="https://github.com/stulu08/SEngine/raw/main/resources/logo/engine-logo.png">
 </p>
@@ -52,7 +52,7 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 ***
 ### Next
-- Assets Manager
+- File Watcher
 - Much optimization(my code is garbage)
 - 3D Rendering(Thread, Render queue, Shadows, Reflections)
 - 2D Rendering
@@ -63,4 +63,4 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 Icons for the Assets Explorer made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/)
 
 Created with the tutorial series by [The Cherno](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) ([License](https://github.com/TheCherno/Hazel/blob/master/LICENSE))
-#### Copyright © 2021 Julian Bents
+#### Copyright © 2022 Julian Bents

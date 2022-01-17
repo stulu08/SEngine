@@ -1,6 +1,6 @@
 #include "st_pch.h"
 #include "OpenGLFramebuffer.h"
-
+#include "OpenGLTexture.h"
 #include "glad/glad.h"
 
 namespace Stulu {
@@ -32,7 +32,7 @@ namespace Stulu {
 		glCreateFramebuffers(1, &m_rendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 
-		m_texture->invalidate();
+		m_texture->invalidate(m_specs.textureFormat);
 
 		glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, m_specs.samples);
 
@@ -62,17 +62,19 @@ namespace Stulu {
 		glDeleteTextures(1, &m_colorAttachment);
 		glDeleteTextures(1, &m_depthAttachment);
 	}
-	void OpenGLFrameBufferTexture::invalidate() {
+	void OpenGLFrameBufferTexture::invalidate(TextureSettings::Format& format) {
 		ST_PROFILING_FUNCTION();
 		if(m_depthAttachment)
 			glDeleteTextures(1, &m_depthAttachment);
 		if (m_colorAttachment)
 			glDeleteTextures(1, &m_colorAttachment);
-
+		std::pair<GLenum, GLenum> f = TextureFormatToGLenum(format, 4);
+		GLenum internalFormat = f.first;
+		GLenum dataFormat = f.second;
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_colorAttachment);
 		glBindTexture(GL_TEXTURE_2D, m_colorAttachment);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_width, m_height, 0, dataFormat, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorAttachment, 0);

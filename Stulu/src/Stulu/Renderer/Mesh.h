@@ -28,6 +28,8 @@ namespace Stulu {
 	public:
 		Mesh() {}
 		Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+		Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount);
+		Mesh(void* vertices, size_t verticesSize, uint32_t* indices, size_t indicesCount, BufferLayout layout = s_defaultLayout);
 
 		const void recalculate();
 
@@ -55,7 +57,7 @@ namespace Stulu {
 		const size_t& getIndicesCount() { return m_indicesCount; }
 		const std::vector<uint32_t>& getIndices() { return m_indices; }
 
-		static BufferLayout getDefaultLayout() { return m_defaultLayout; }
+		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
 		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; }
 
 		static Mesh combine(Mesh& mesh);
@@ -69,7 +71,7 @@ namespace Stulu {
 		size_t m_verticesCount = 0;
 		size_t m_indicesCount = 0;
 
-		static BufferLayout m_defaultLayout;
+		static BufferLayout s_defaultLayout;
 
 		friend class PhysX;
 	};
@@ -81,6 +83,8 @@ namespace Stulu {
 		bool hasMesh = false;
 		UUID parentMeshAsset = UUID::null;
 		glm::mat4 transform = glm::mat4(1.0f);
+
+		UUID material = UUID::null;
 
 		MeshAsset() = default;
 		MeshAsset(const MeshAsset&) = default;

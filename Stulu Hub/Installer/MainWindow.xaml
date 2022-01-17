@@ -1,0 +1,13 @@
+﻿<Window x:Class="Installer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Installer"
+        mc:Ignorable="d"
+        Title="Stulu Hub Installer" Height="531" Width="1018.5" FontFamily="Segoe UI Light" Icon="engine-app-icon.ico" ResizeMode="NoResize" WindowStyle="None" AllowsTransparency="True" WindowStartupLocation="CenterScreen">
+    <Grid Background="#FF252525">
+        <TextBlock x:Name="Text" HorizontalAlignment="Left" Margin="221,144,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="275" Width="640" Foreground="White" FontSize="14"/>
+    </Grid>
+
+</Window>

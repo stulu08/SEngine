@@ -29,12 +29,12 @@ namespace Stulu {
 
 		return uuid;
 	}
-	void AssetsManager::add(const UUID uuid, const std::string& path) {
+	void AssetsManager::add(const UUID& uuid, const std::string& path) {
 		ST_PROFILING_FUNCTION();
 		if(!exists(uuid))
 			add(uuid, path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 	}
-	void AssetsManager::add(const UUID uuid, const std::string& path, const AssetType type) {
+	void AssetsManager::add(const UUID& uuid, const std::string& path, const AssetType type) {
 		ST_PROFILING_FUNCTION();
 		if (!FileExists(path)) {
 			createMeta(uuid, path, type);
@@ -45,7 +45,7 @@ namespace Stulu {
 			update(uuid, { type,path,path,uuid });
 			break;
 		case Stulu::AssetType::Texture2D:
-			update(uuid, { type,Texture2D::create(path),path,uuid });
+			update(uuid, { type,Texture2D::create(path,getProperity<TextureSettings>(path,"format")),path,uuid});
 			break;
 		case Stulu::AssetType::Texture:
 			update(uuid, { type,Texture2D::create(path),path,uuid });
@@ -74,7 +74,20 @@ namespace Stulu {
 
 	}
 
-	void AssetsManager::update(const UUID uuid, const Asset& data) {
+	void AssetsManager::addOrReload(const std::string& path) {
+		ST_PROFILING_FUNCTION();
+		if (!FileExists(path + ".meta")) {
+			createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
+		}
+		YAML::Node data = YAML::LoadFile(path + ".meta");
+		UUID uuid(data["uuid"].as<uint64_t>());
+		if (exists(uuid))
+			remove(uuid);
+		add(uuid, path, (AssetType)data["type"].as<int>());
+	}
+
+	void AssetsManager::update(const UUID& uuid, const Asset& data) {
+		bool update = true;
 		switch (data.type)
 		{
 		case Stulu::AssetType::Texture2D:
@@ -92,47 +105,68 @@ namespace Stulu {
 		case Stulu::AssetType::Material:
 			std::any_cast<Material>(data.data).m_uuid = uuid;
 			break;
+		case Stulu::AssetType::Shader:
+			//check if shader name is present
+			for (auto& i : assets) {
+				if (i.second.type != AssetType::Shader)
+					continue;
+				if (std::any_cast<Ref<Shader>>(i.second.data)->getName() == std::any_cast<Ref<Shader>>(data.data)->getName()) {
+					CORE_ERROR("Shader {0} is allready present, choose another shader name", std::any_cast<Ref<Shader>>(data.data)->getName());
+					update = false;
+					break;
+				}
+			}
+			//change the material which uses the shader
+			if(update)
+			for (auto& i : assets) {
+				if (i.second.type != AssetType::Material)
+					continue;
+				if (std::any_cast<Material&>(i.second.data).m_shader->getName() == std::any_cast<Ref<Shader>>(data.data)->getName()) {
+					std::any_cast<Material&>(i.second.data).m_shader = std::any_cast<Ref<Shader>>(data.data);
+					std::any_cast<Material&>(i.second.data).m_shaderUuid = uuid;
+					std::any_cast<Material&>(i.second.data).toDataStringFile(i.second.path);
+					std::any_cast<Material&>(i.second.data).bind();
+				}
+			}
+			break;
 		}
 		//update meta
 		if (FileExists(data.path)) {
 			createMeta(uuid, data.path, data.type);
 		}
-		assets[uuid] = data;
+		if(update)
+			assets[uuid] = data;
 	}
 
-	bool Stulu::AssetsManager::exists(const UUID uuid) {
+	void AssetsManager::remove(const UUID& uuid) {
+		if (exists(uuid))
+			assets.erase(uuid);
+	}
+
+	bool Stulu::AssetsManager::exists(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
 		return assets.find(uuid) != assets.end();
 	}
-	bool AssetsManager::existsAndType(const UUID uuid, const AssetType type) {
+	bool AssetsManager::existsAndType(const UUID& uuid, const AssetType type) {
 		ST_PROFILING_FUNCTION();
 		if (uuid == UUID::null)
 			return false;
 		return (assets.find(uuid) != assets.end() && assets[uuid].type == type);
 	}
 
-	Asset& Stulu::AssetsManager::get(const UUID uuid) {
+	Asset& Stulu::AssetsManager::get(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
 		CORE_ASSERT(exists(uuid),"UUID not present in assets");
 		return assets[uuid];
 	}
-	const type_info& Stulu::AssetsManager::getType(const UUID uuid) {
+	const type_info& Stulu::AssetsManager::getType(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
 		CORE_ASSERT(exists(uuid),"UUID not present in assets");
 		return assets[uuid].data.type();
 	}
-	const AssetType& AssetsManager::getAssetType(const UUID uuid) {
+	const AssetType& AssetsManager::getAssetType(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
 		return assets[uuid].type;
-	}
-	template<typename T>
-	T* AssetsManager::getAs(const UUID uuid) {
-		ST_PROFILING_FUNCTION();
-		if(exists)
-			return assets[uuid].first._Cast<T>();
-
-		CORE_ASSERT(exists, "UUID not present in assets");
-		return nullptr;
 	}
 	const AssetType AssetsManager::assetTypeFromExtension(const std::string& extension) {
 		ST_PROFILING_FUNCTION();
@@ -140,7 +174,7 @@ namespace Stulu {
 			return AssetType::Texture;
 		if (extension == ".skybox")
 			return AssetType::CubeMap;
-		else if (extension == ".glb" || extension == ".obj")
+		else if (extension == ".glb" || extension == ".obj" || extension == ".fbx")
 			return AssetType::Model;
 		else if (extension == ".mat")
 			return AssetType::Material;
@@ -230,7 +264,19 @@ namespace Stulu {
 				add(path.string());
 		};
 	}
-
+	void AssetsManager::reloadShaders(const std::string& directory) {
+		ST_PROFILING_FUNCTION();
+		CORE_INFO("Reloading Shaders: {0}", directory);
+		for (auto& dir : std::filesystem::directory_iterator(directory)) {
+			const auto& path = dir.path();
+			if (dir.is_directory()) {
+				reloadShaders(path.string());
+				continue;
+			}
+			if (assetTypeFromExtension(path.extension().string()) == AssetType::Shader)
+				addOrReload(path.string());
+		}
+	}
 	void AssetsManager::createMeshesFromModel(const Asset asset) {
 		Model model = Model(asset.path);
 		_createMeshesFromModel(asset, model);
@@ -247,7 +293,7 @@ namespace Stulu {
 		}
 		else {
 
-			YAML::Emitter out;
+			YAML::Emitter out, c;
 
 			out << YAML::BeginMap;
 			out << YAML::Key << "uuid" << YAML::Value << (uint64_t)asset.uuid;
@@ -285,7 +331,7 @@ namespace Stulu {
 		update(asset.uuid, { asset.type,model,asset.path,asset.uuid });
 	}
 
-	void AssetsManager::createMeta(const UUID uuid, const std::string& path, const AssetType type) {
+	void AssetsManager::createMeta(const UUID& uuid, const std::string& path, const AssetType type) {
 		ST_PROFILING_FUNCTION();
 		YAML::Node props;
 		bool hasProps = false;
@@ -296,8 +342,6 @@ namespace Stulu {
 				hasProps = true;
 			}
 		}
-
-
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "uuid" << YAML::Value << (uint64_t)uuid;

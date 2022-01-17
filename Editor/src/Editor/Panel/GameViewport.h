@@ -5,7 +5,7 @@ namespace Stulu {
 	class GameViewportPanel {
 	public:
 		GameViewportPanel() {};
-		void draw(const Ref<Camera>& cam, bool* open);
+		void draw(const Ref<FrameBuffer>& frameBuffer, bool* open);
 
 		uint32_t width = 1;
 		uint32_t height = 1;

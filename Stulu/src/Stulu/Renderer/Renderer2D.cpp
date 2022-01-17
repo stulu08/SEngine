@@ -4,6 +4,7 @@
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Math/Math.h"
+#include "Stulu/Core/Application.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -29,7 +30,7 @@ namespace Stulu {
 		QuadVertex* vertexBufferBase = nullptr;
 		QuadVertex* vertexBufferPtr = nullptr;
 
-		std::array<Ref<Texture2D>, maxTextureSlots> textureSlots;
+		std::array<Ref<Texture>, maxTextureSlots> textureSlots;
 		uint32_t slotIndex = 1;
 
 		glm::vec4 quadVertexPositions[4];
@@ -92,24 +93,13 @@ namespace Stulu {
 	}
 	void Renderer2D::beginScene() {
 		ST_PROFILING_FUNCTION();
-		Renderer::beginScene();
 		s_renderer2Ddata.quadIndexCount = 0;
 		s_renderer2Ddata.slotIndex = 1;
 		s_renderer2Ddata.vertexBufferPtr = s_renderer2Ddata.vertexBufferBase;
-	}
-	void Renderer2D::beginScene(const Ref<Camera>& cam, const glm::mat4& transform) {
-		ST_PROFILING_FUNCTION();
-		Renderer::beginScene(cam, transform);
-		s_renderer2Ddata.quadIndexCount = 0;
-		s_renderer2Ddata.slotIndex = 1;
-		s_renderer2Ddata.vertexBufferPtr = s_renderer2Ddata.vertexBufferBase;
-
 	}
 	void Renderer2D::endScene() {
 		ST_PROFILING_FUNCTION();
-
 		flush();
-		Renderer::endScene();
 	}
 	void Renderer2D::flush() {
 		ST_PROFILING_FUNCTION(); 
@@ -160,7 +150,7 @@ namespace Stulu {
 		drawQuad(Math::createMat4(pos,glm::vec3(.0f,.0f,rotation),glm::vec3(size,1.0f)), color);
 	}
 
-	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec2& tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, const Ref<Texture>& texture, const glm::vec2& tiling, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			FlushReset();
@@ -184,20 +174,20 @@ namespace Stulu {
 			s_renderer2Ddata.vertexBufferPtr->texCoords = texCoords[i];
 			s_renderer2Ddata.vertexBufferPtr->color = color;
 			s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
-			s_renderer2Ddata.vertexBufferPtr->textureTiling = texture->tiling * tiling;
+			s_renderer2Ddata.vertexBufferPtr->textureTiling = tiling;
 			s_renderer2Ddata.vertexBufferPtr++;
 		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
-		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(.0f), glm::vec3(size, 1.0f)),texture, tiling, color);
+		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(.0f), glm::vec3(size, 1.0f)),texture, texture->getSettings().tiling * tiling, color);
 	}
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
-		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), texture, tiling, color);
+		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
 	}
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
-		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f,rotation), glm::vec3(size, 1.0f)), texture, tiling, color);
+		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f,rotation), glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
 	}
 	void Renderer2D::drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
@@ -223,7 +213,7 @@ namespace Stulu {
 			s_renderer2Ddata.vertexBufferPtr->texCoords = texCoords[i];
 			s_renderer2Ddata.vertexBufferPtr->color = color;
 			s_renderer2Ddata.vertexBufferPtr->texture = texureIndex;
-			s_renderer2Ddata.vertexBufferPtr->textureTiling = sprite->getTexture()->tiling * tiling;
+			s_renderer2Ddata.vertexBufferPtr->textureTiling = sprite->getTexture()->getSettings().tiling * tiling;
 			s_renderer2Ddata.vertexBufferPtr++;
 		}
 

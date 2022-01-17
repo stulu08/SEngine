@@ -10,7 +10,7 @@ namespace Stulu {
 	EditorApp* EditorApp::s_instance = nullptr;
 	Project EditorApp::s_project;
 	EditorApp::EditorApp() 
-		: Application("Stulu Editor") {
+		: Application("Stulu Editor", true) {
 		if (getStartArgs().size() > 1) {
 			ST_INFO("Loading project: {0}", getStartArgs()[1]);
 			s_project = Project(getStartArgs()[1]);
@@ -23,7 +23,7 @@ namespace Stulu {
 		getWindow().setVSync(false);
 		getWindow().setWindowIcon("Stulu/assets/Textures/Logo/engine-app-icon.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
-		getWindow().setWindowTitle(std::string("Stulu Editor - ") + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
+		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
 		editorLayer = new EditorLayer();
 		pushLayer(editorLayer);
@@ -40,8 +40,11 @@ namespace Stulu {
 
 		CORE_INFO("Loading assets");
 		AssetsManager::loadAllFiles(s_project.assetPath);
+		getWindow().show();
 	}
 	EditorApp::~EditorApp() {
+		getEditorLayer().savePanelConfig(); 
+		StyleEditor::saveAll();
 		DiscordRPC::shutdown();
 	}
 }

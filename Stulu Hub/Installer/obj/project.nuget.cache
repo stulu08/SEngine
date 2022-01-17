@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "6ayEdW69rRWpScmc4pT1IG26/n5/fh2K8pQSJuj7ojZm0+DPmHNP5gyy5zgcvzhiFkwB+dzvxen5znN7fk6qMQ==",
+  "success": true,
+  "projectFilePath": "D:\\stulu\\dev\\SEngine\\Stulu Hub\\Installer\\Installer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\derst\\.nuget\\packages\\microsoft.windowsapicodepack-core\\1.1.0\\microsoft.windowsapicodepack-core.1.1.0.nupkg.sha512",
+    "C:\\Users\\derst\\.nuget\\packages\\microsoft.windowsapicodepack-shell\\1.1.0\\microsoft.windowsapicodepack-shell.1.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}

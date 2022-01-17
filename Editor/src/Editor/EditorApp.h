@@ -5,12 +5,18 @@ namespace Stulu {
 	struct Project {
 		std::string path;
 		std::string assetPath;
+		std::string configPath;
+		std::string windowINI;
 
 		Project()
-			:path(""),assetPath(path) {
+			:path(""),assetPath(path),configPath(path),windowINI(configPath+"/windowLayout.ini") {
 		}
 		Project(std::string& path)
-			:path(path), assetPath(path + "/assets") {
+#ifdef ST_PLATFORM_WINDOWS
+			:path(path), assetPath(path + "\\assets"), configPath(path + "\\config"), windowINI(configPath + "\\windowLayout.ini") {
+#else
+			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), windowINI(configPath + "/windowLayout.ini") {
+#endif
 		}
 	};
 

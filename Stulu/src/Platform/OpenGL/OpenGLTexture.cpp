@@ -9,7 +9,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		m_width = width;
 		m_height = height;
-
+		m_settings = TextureSettings();
 		GLenum internalFormat = GL_RGBA8;
 		m_dataFormat = GL_RGBA;
 
@@ -22,53 +22,11 @@ namespace Stulu {
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
-	OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
-		:m_path(path) {
-
+	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, const TextureSettings& settings)
+		:m_path(path), m_settings(settings) {
 		ST_PROFILING_FUNCTION();
-		int32_t width, height, channels;
-		stbi_set_flip_vertically_on_load(1);
-		stbi_uc* textureData;
-		{
-			ST_PROFILING_SCOPE("reading file - OpenGLTexture2D::OpenGLTexture2D(const std::string&)");
-			textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		}
-		CORE_ASSERT(textureData, "Texture failed to load: {0}",path);
-		m_width = width;
-		m_height = height;
-		m_dataFormat = 0;
-		GLenum internalFormat = 0;
-		switch (channels) {
-		case 4:
-			internalFormat = GL_RGBA8;
-			m_dataFormat = GL_RGBA;
-			break;
-		case 3:
-			internalFormat = GL_RGB8;
-			m_dataFormat = GL_RGB;
-			break;
-		case 2:
-			internalFormat = GL_RG8;
-			m_dataFormat = GL_RG;
-			break;
-		case 1:
-			internalFormat = GL_ALPHA8;
-			m_dataFormat = GL_ALPHA;
-			break;
-		}
-		CORE_ASSERT(internalFormat, "Texture channel not supported: {0}", path);
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-		glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
-
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, textureData);
-
-		stbi_image_free(textureData);
+		update();
 	}
 	OpenGLTexture2D::~OpenGLTexture2D() {
 		ST_PROFILING_FUNCTION();
@@ -84,6 +42,44 @@ namespace Stulu {
 		uint32_t pixelSize = m_dataFormat == GL_RGBA ? 4 : 3;
 		CORE_ASSERT(size == m_width * m_height * pixelSize, "Data is not entire Texture");
 		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
+	}
+
+	void OpenGLTexture2D::update() {
+		ST_PROFILING_FUNCTION();
+		int32_t width, height, channels;
+		stbi_set_flip_vertically_on_load(1);
+		stbi_uc* textureData;
+		{
+			ST_PROFILING_SCOPE("reading file - OpenGLTexture2D::OpenGLTexture2D(const std::string&)");
+			textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
+		}
+		CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
+		m_width = width;
+		m_height = height;
+		std::pair<GLenum,GLenum> format = TextureFormatToGLenum((TextureSettings::Format&)m_settings.format, channels);
+		GLenum internalFormat = format.first;
+		m_dataFormat = format.second;
+		GLenum wrap = 0;
+		switch (m_settings.wrap)
+		{
+		case (int)TextureSettings::Wrap::Clamp:
+			wrap = GL_CLAMP;
+			break;
+		case (int)TextureSettings::Wrap::Repeat:
+			wrap = GL_REPEAT;
+			break;
+		}
+		glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
+
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, wrap);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, wrap);
+
+		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, textureData);
+
+		stbi_image_free(textureData);
 	}
 
 	uint32_t OpenGLTexture2D::getRendererID() const {
@@ -150,5 +146,68 @@ namespace Stulu {
 	}
 	bool OpenGLCubeMap::operator==(const Texture& other) const {
 		return m_rendererID == other.getRendererID();
+	}
+	std::pair<uint32_t, uint32_t> TextureFormatToGLenum(TextureSettings::Format& format, int channels) {
+		GLenum internalFormat, m_dataFormat;
+		switch (format)
+		{
+		case TextureSettings::Format::A:
+			internalFormat = GL_ALPHA8;
+			m_dataFormat = GL_ALPHA;
+			break;
+		case TextureSettings::Format::RG:
+			internalFormat = GL_RG;
+			m_dataFormat = GL_RG8;
+			break;
+		case TextureSettings::Format::RGB:
+			internalFormat = GL_RGB8;
+			m_dataFormat = GL_RGB;
+			break;
+		case TextureSettings::Format::RGBA:
+			internalFormat = GL_RGBA8;
+			m_dataFormat = GL_RGBA;
+			break;
+		case TextureSettings::Format::SRGB:
+			internalFormat = GL_SRGB8;
+			m_dataFormat = GL_RGB;
+			break;
+		case TextureSettings::Format::SRGBA:
+			internalFormat = GL_SRGB8_ALPHA8;
+			m_dataFormat = GL_RGBA;
+			break;
+		case TextureSettings::Format::RGB16F:
+			internalFormat = GL_RGB16F;
+			m_dataFormat = GL_RGB;
+			break;
+		case TextureSettings::Format::RGBA16F:
+			internalFormat = GL_RGBA16F;
+			m_dataFormat = GL_RGBA;
+			break;
+		case TextureSettings::Format::Auto:
+			switch (channels) {
+			case 4:
+				internalFormat = GL_RGBA8;
+				m_dataFormat = GL_RGBA;
+				format = TextureSettings::Format::RGBA;
+				break;
+			case 3:
+				internalFormat = GL_RGB8;
+				m_dataFormat = GL_RGB;
+				format = TextureSettings::Format::RGB;
+				break;
+			case 2:
+				internalFormat = GL_RG8;
+				m_dataFormat = GL_RG;
+				format = TextureSettings::Format::RG;
+				break;
+			case 1:
+				internalFormat = GL_ALPHA8;
+				m_dataFormat = GL_ALPHA;
+				format = TextureSettings::Format::A;
+				break;
+			}
+			break;
+		}
+		return { internalFormat,m_dataFormat };
 	}
 }

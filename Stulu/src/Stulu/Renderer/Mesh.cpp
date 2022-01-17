@@ -2,7 +2,7 @@
 #include "Mesh.h"
 
 namespace Stulu {
-	BufferLayout Mesh::m_defaultLayout = {
+	BufferLayout Mesh::s_defaultLayout = {
 		{ Stulu::ShaderDataType::Float3, "a_pos" },
 		{ Stulu::ShaderDataType::Float3, "a_normal" },
 		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
@@ -31,6 +31,31 @@ namespace Stulu {
 		m_indices = indices;
 		recalculate();
 	}
+	Mesh::Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount) {
+		ST_PROFILING_FUNCTION();
+		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+		Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+		m_vertexArray = Stulu::VertexArray::create();
+		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(verticesCount * sizeof(Vertex)), vertices);
+		vertexBuffer->setLayout(s_defaultLayout);
+		m_vertexArray->addVertexBuffer(vertexBuffer);
+		indexBuffer = Stulu::IndexBuffer::create((uint32_t)indicesCount, indices);
+		m_vertexArray->setIndexBuffer(indexBuffer);
+		m_vertices = std::vector<Vertex>(vertices, vertices + verticesCount);
+		m_indices = std::vector<uint32_t>(indices, indices + indicesCount);
+		m_verticesCount = verticesCount;
+		m_indicesCount = indicesCount;
+	}
+	Mesh::Mesh(void* vertices, size_t verticesSize, uint32_t* indices, size_t indicesCount, BufferLayout layout) {
+		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+		Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+		m_vertexArray = Stulu::VertexArray::create();
+		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)verticesSize, vertices);
+		vertexBuffer->setLayout(layout);
+		m_vertexArray->addVertexBuffer(vertexBuffer);
+		indexBuffer = Stulu::IndexBuffer::create((uint32_t)indicesCount, indices);
+		m_vertexArray->setIndexBuffer(indexBuffer);
+	}
 	const void Mesh::recalculate() {
 		ST_PROFILING_FUNCTION();
 		m_verticesCount = m_vertices.size();
@@ -40,7 +65,7 @@ namespace Stulu {
 
 		m_vertexArray = Stulu::VertexArray::create();
 		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(m_verticesCount * sizeof(Vertex)), &m_vertices[0]);
-		vertexBuffer->setLayout(m_defaultLayout);
+		vertexBuffer->setLayout(s_defaultLayout);
 		m_vertexArray->addVertexBuffer(vertexBuffer);
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
@@ -62,6 +87,7 @@ namespace Stulu {
 			}
 		}
 		newMesh.recalculate();
+		newMesh.m_subMeshes.clear();
 		return newMesh;
 	}
 }

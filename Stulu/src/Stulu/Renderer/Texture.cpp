@@ -6,12 +6,12 @@
 #include "Platform/OpenGL/OpenGLTexture.h"
 #include "Stulu/Scene/AssetsManager.h"
 namespace Stulu {
-	Ref<Texture2D> Texture2D::create(const std::string& path)
+	Ref<Texture2D> Texture2D::create(const std::string& path, const TextureSettings& settings)
 	{
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return std::make_shared<OpenGLTexture2D>(path);
+			return std::make_shared<OpenGLTexture2D>(path,settings);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;

@@ -18,14 +18,26 @@ namespace Stulu {
 
 		UUID uuid;
 	};
+
+	struct TextureSettings {
+		enum class Format {
+			RGBA, RGB, RG, A, SRGB, SRGBA, RGBA16F, RGB16F ,Auto
+		};
+		int format = (int)Format::Auto;
+		enum class Wrap {
+			Clamp, Repeat,
+		};
+		int wrap = (int)Wrap::Repeat;
+		glm::vec2 tiling = { 1.0f,1.0f };
+	};
 	class STULU_API Texture2D : public Texture {
 	public:
-		static Ref<Texture2D> create(const std::string& path);
+		static Ref<Texture2D> create(const std::string& path, const TextureSettings& settings = TextureSettings());
 		static Ref<Texture2D> create(uint32_t width, uint32_t height);
 		virtual void setData(void* data, uint32_t size) const = 0;
-		glm::vec2 tiling = { 1.0f,1.0f };
+		virtual void update() = 0;
 
-		//temp
+		virtual TextureSettings& getSettings() = 0;
 		virtual std::string getPath() const = 0;
 	};
 	class STULU_API CubeMap : public Texture {

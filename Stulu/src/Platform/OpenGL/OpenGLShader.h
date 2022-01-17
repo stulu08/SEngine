@@ -8,6 +8,7 @@ namespace Stulu {
 	{
 	public:
 		OpenGLShader(const std::string& path);
+		OpenGLShader(const std::string& name, const std::string& src);
 		OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment);
 		virtual ~OpenGLShader();
 
@@ -35,9 +36,8 @@ namespace Stulu {
 		std::string m_name;
 
 		std::string readFile(const std::string& path);
-		std::unordered_map<GLenum,std::string> preProcess(const std::string src, bool multiFile = false);
+		std::unordered_map<GLenum,std::string> preProcess(const std::string src);
 		void compile(const std::unordered_map<unsigned int, std::string>& shaderSrcs);
-		bool isMultiFile(const std::string src);
 	};
 }
 

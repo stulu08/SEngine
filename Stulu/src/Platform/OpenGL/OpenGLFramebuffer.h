@@ -7,7 +7,7 @@ namespace Stulu {
 		OpenGLFrameBufferTexture(uint32_t width, uint32_t height);
 		virtual ~OpenGLFrameBufferTexture();
 
-		virtual void invalidate() override;
+		virtual void invalidate(TextureSettings::Format& format) override;
 		virtual void resize(uint32_t width, uint32_t height) override;
 
 		virtual uint32_t getColorAttachmentRendereID() const override { return m_colorAttachment; };
@@ -37,7 +37,7 @@ namespace Stulu {
 		virtual void resize(uint32_t width, uint32_t height) override;
 
 		virtual FrameBufferSpecs& getSpecs() override;
-		virtual Ref<FrameBufferTexture> getTexture() const override { return m_texture; }
+		virtual Ref<FrameBufferTexture>& getTexture() override { return m_texture; }
 
 
 	private:

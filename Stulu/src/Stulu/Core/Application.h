@@ -24,7 +24,7 @@ namespace Stulu {
 
 	class STULU_API Application {
 	public:
-		Application(ApplicationInfo appInfo);
+		Application(ApplicationInfo appInfo, bool hideWindow = false);
 		virtual ~Application();
 
 		void run();
@@ -52,7 +52,7 @@ namespace Stulu {
 		ApplicationInfo m_appInfo;
 		bool m_runnig = true;
 		bool m_minimized = false;
-		float m_lastFrameTime;
+		float m_lastFrameTime = 0.0f;
 
 		static Application* s_instance;
 		static inline std::vector<std::string> s_startArgs;

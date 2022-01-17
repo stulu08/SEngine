@@ -7,16 +7,64 @@
 namespace Stulu {
 
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f,.1f,100.0f) {
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .1f, 100.0f) {
 		ST_PROFILING_FUNCTION();
 
-		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f),1.0f));
+		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 
 		FrameBufferSpecs fspecs = FrameBufferSpecs();
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
-
+		{
+			m_fbDrawData.m_framebuffer = FrameBuffer::create(fspecs);
+			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+			m_fbDrawData.m_quadVertexArray = Stulu::VertexArray::create();
+			float vertices[20]{
+				-1.0f,-1.0f,.0f, 0.0f,0.0f,
+				1.0f,-1.0f,.0f, 1.0f,0.0f,
+				1.0f,1.0f,.0f, 1.0f,1.0f,
+				-1.0f,1.0f,.0f, 0.0f,1.0f,
+			};
+			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(20 * sizeof(float)), vertices);
+			vertexBuffer->setLayout({
+		{ Stulu::ShaderDataType::Float3, "a_pos" },
+		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
+				});
+			m_fbDrawData.m_quadVertexArray->addVertexBuffer(vertexBuffer);
+			uint32_t indices[6]{
+				0,1,2,
+				2,3,0
+			};
+			indexBuffer = Stulu::IndexBuffer::create((uint32_t)6, indices);
+			m_fbDrawData.m_quadVertexArray->setIndexBuffer(indexBuffer);
+			m_fbDrawData.m_quadShader = Shader::create("quadFullScreen", R"(
+		#version 460
+		layout (location = 0) in vec3 a_pos;
+		layout (location = 1) in vec2 a_texCoords;
+		out vec2 v_tex;
+		void main()
+		{
+			v_tex=a_texCoords;
+			gl_Position=vec4(a_pos, 1.0);
+		}
+		)", R"(
+		#version 460
+		in vec2 v_tex;
+		layout (binding = 0) uniform sampler2D texSampler;
+		out vec4 color;
+		layout(std140, binding = 2) uniform postProcessing
+		{
+			float toneMappingExposure;
+			float gamma;
+		};
+		void main()
+		{
+			color = vec4(texture2D(texSampler, v_tex).rgb, 1.0);
+		}
+		)");
+		}
 		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
 		Resources::load();
 		EditorResources::loadAll();
@@ -40,8 +88,21 @@ namespace Stulu {
 		}
 
 
-		if(s_runtime)
+		if (s_runtime) {
 			m_activeScene->onUpdateRuntime(timestep);
+			//draw scene to texture
+			GameObject cO = m_activeScene->getMainCamera();
+			if (cO) {
+				RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
+				m_fbDrawData.m_framebuffer->bind();
+				RenderCommand::clear();
+				cO.getComponent<CameraComponent>().getTexture()->bind();
+				m_fbDrawData.m_quadShader->bind();
+				m_fbDrawData.m_quadVertexArray->bind();
+				RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
+				m_fbDrawData.m_framebuffer->unbind();
+			}
+		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
 
@@ -54,9 +115,11 @@ namespace Stulu {
 		if (m_showGameViewport) {
 			auto cam = m_activeScene->getMainCamera();
 			if (cam) {
-				m_gameViewport.draw(cam.getComponent<CameraComponent>().cam, &m_showGameViewport);
-				if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height))
+				m_gameViewport.draw(m_fbDrawData.m_framebuffer, &m_showGameViewport);
+				if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height)) {
 					m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
+					m_fbDrawData.m_framebuffer->resize(m_gameViewport.width, m_gameViewport.height);
+				}
 			}
 			else {
 				m_gameViewport.draw(nullptr, &m_showGameViewport);
@@ -84,7 +147,27 @@ namespace Stulu {
 		if (m_showAssetBrowser) {
 			m_assetBrowser.render(&m_showAssetBrowser);
 		}
-
+		if (m_showSceneSettingsPanel) {
+			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
+				SceneData& data = m_activeScene->m_data;
+				ComponentsRender::drawFloatSliderControl("Exposure", data.toneMappingExposure, .0f, 5.0f);
+				ComponentsRender::drawFloatSliderControl("Gamma", data.gamma, .0f, 5.0f);
+				if (ComponentsRender::drawBoolControl("HDR", data.framebuffer16bit)) {
+					m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
+					m_fbDrawData.m_framebuffer->invalidate();
+				}
+				if (ImGui::TreeNodeEx("Physics")) {
+					ComponentsRender::drawBoolControl("Enabled 3D Physics", data.enablePhsyics3D);
+					ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
+					ComponentsRender::drawFloatControl("Speed", data.physicsData.speed);
+					ComponentsRender::drawFloatControl("Length", data.physicsData.length);
+					ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads,0,16);
+					ComponentsRender::drawBoolControl("PhysX Gpu", data.physicsData.PhysXGpu);
+					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		}
 
 	}
 	void EditorLayer::onRenderGizmo() {
@@ -138,6 +221,14 @@ namespace Stulu {
 
 				ImGui::EndMenu();
 			}
+			if (ImGui::BeginMenu("Settings")) {
+
+				if (ImGui::MenuItem("VSync", "",getEditorApp().getWindow().isVSync())) {
+					getEditorApp().getWindow().setVSync(!getEditorApp().getWindow().isVSync());
+				}
+
+				ImGui::EndMenu();
+			}
 			if (ImGui::BeginMenu("View")) {
 				if (ImGui::MenuItem("Style Editor", (const char*)0, m_showStyleEditor)) {
 					m_showStyleEditor = !m_showStyleEditor;
@@ -159,6 +250,9 @@ namespace Stulu {
 				}
 				if (ImGui::MenuItem("Profiling", (const char*)0, m_showProfiling)) {
 					m_showProfiling = !m_showProfiling;
+				}
+				if (ImGui::MenuItem("Rendering", (const char*)0, m_showSceneSettingsPanel)) {
+					m_showSceneSettingsPanel = !m_showSceneSettingsPanel;
 				}
 				ImGui::EndMenu();
 			}
@@ -294,7 +388,7 @@ namespace Stulu {
 	}
 	void EditorLayer::loadPanelConfig() {
 		ST_PROFILING_FUNCTION();
-		std::string file = EditorApp::getProject().path + "/config/editor-panel-config.ini";
+		std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
 		if (!FileExists(file)) {
 			savePanelConfig();
 			return;
@@ -312,30 +406,41 @@ namespace Stulu {
 			values[name] = data;
 			count++;
 		}
-		if (count < ST_PANEL_SETTINGS_COUNT) {
-			ST_WARN("Loading default editor panel settings, file does not contain needed data");
-			savePanelConfig();
-			return;
-		}
-		m_showStyleEditor = std::stoi(values["m_showStyleEditor"]);
-		m_showHierarchy = std::stoi(values["m_showHierarchy"]);
-		m_showInspector = std::stoi(values["m_showInspector"]);
-		m_showAssetBrowser = std::stoi(values["m_showAssetBrowser"]);
-		m_showGameViewport = std::stoi(values["m_showGameViewport"]);
-		m_showSceneViewport = std::stoi(values["m_showSceneViewport"]);
-		m_showProfiling = std::stoi(values["m_showProfiling"]);
+		if (values.find("m_showStyleEditor") != values.end())
+			m_showStyleEditor = std::stoi(values["m_showStyleEditor"]);
+		if (values.find("m_showHierarchy") != values.end())
+			m_showHierarchy = std::stoi(values["m_showHierarchy"]);
+		if (values.find("m_showInspector") != values.end())
+			m_showInspector = std::stoi(values["m_showInspector"]);
+		if (values.find("m_showAssetBrowser") != values.end())
+			m_showAssetBrowser = std::stoi(values["m_showAssetBrowser"]);
+		if (values.find("m_showGameViewport") != values.end())
+			m_showGameViewport = std::stoi(values["m_showGameViewport"]);
+		if (values.find("m_showSceneViewport") != values.end())
+			m_showSceneViewport = std::stoi(values["m_showSceneViewport"]);
+		if (values.find("m_showProfiling") != values.end())
+			m_showProfiling = std::stoi(values["m_showProfiling"]);
+		if (values.find("m_showSceneSettingsPanel") != values.end())
+			m_showSceneSettingsPanel = std::stoi(values["m_showSceneSettingsPanel"]);
 
-		m_gameViewport.m_selectedSize = std::stoi(values["m_gameViewport.m_selectedSize"]);
-		m_gameViewport.sizes[5].x = std::stof(values["m_gameViewport.m_customSizeX"]);
-		m_gameViewport.sizes[5].y = std::stof(values["m_gameViewport.m_customSizeY"]);
-		m_gameViewport.zoom = std::stof(values["m_gameViewport.zoom"]);
+		if (values.find("m_gameViewport.m_selectedSize") != values.end())
+			m_gameViewport.m_selectedSize = std::stoi(values["m_gameViewport.m_selectedSize"]);
+		if (values.find("m_gameViewport.m_customSizeX") != values.end())
+			m_gameViewport.sizes[5].x = std::stof(values["m_gameViewport.m_customSizeX"]);
+		if (values.find("m_gameViewport.m_customSizeY") != values.end())
+			m_gameViewport.sizes[5].y = std::stof(values["m_gameViewport.m_customSizeY"]);
+		if (values.find("m_gameViewport.zoom") != values.end())
+			m_gameViewport.zoom = std::stof(values["m_gameViewport.zoom"]);
 
+		if (values.find("setting.vsync") != values.end())
+			getEditorApp().getWindow().setVSync(std::stoi(values["setting.vsync"]));
+		
 		ST_INFO("Loaded Editor panel config from {0}", file);
 		return;
 	}
 	void EditorLayer::savePanelConfig() {
 		ST_PROFILING_FUNCTION();
-		std::string file = EditorApp::getProject().path + "/config/editor-panel-config.ini";
+		std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
 		std::remove(file.c_str());
 		std::fstream stream(file, std::ios::out);
 
@@ -346,11 +451,14 @@ namespace Stulu {
 		stream << "m_showGameViewport=" << (int)m_showGameViewport << "\n";
 		stream << "m_showSceneViewport=" << (int)m_showSceneViewport << "\n";
 		stream << "m_showProfiling=" << (int)m_showProfiling << "\n";
+		stream << "m_showSceneSettingsPanel=" << (int)m_showSceneSettingsPanel << "\n";
 
 		stream << "m_gameViewport.m_selectedSize=" << (int)m_gameViewport.m_selectedSize << "\n";
 		stream << "m_gameViewport.m_customSizeX=" << (float)m_gameViewport.sizes[5].x << "\n";
 		stream << "m_gameViewport.m_customSizeY=" << (float)m_gameViewport.sizes[5].y << "\n";
 		stream << "m_gameViewport.zoom=" << (float)m_gameViewport.zoom << "\n";
+
+		stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
 
 
 

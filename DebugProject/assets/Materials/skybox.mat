@@ -1,4 +1,0 @@
-Shader: 7
-StructName: u_mat
-DataTypes:
-  - [12, 14454760410579358716, u_skyBox]

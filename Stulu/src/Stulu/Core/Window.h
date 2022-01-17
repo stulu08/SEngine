@@ -3,28 +3,39 @@
 
 #include "Stulu/Events/Event.h"
 #include "Stulu/Renderer/GraphicsContext.h"
+#include "Stulu/Math/Math.h"
 
 namespace Stulu{
-	
+	enum class WindowAttribute {
+		Focused, Iconified, Resizeable, Visible, Decorated,
+		Maximized, AutoIconify, Floating, CenterCursor,
+		TransparentFramebuffer, Hovered, FocusOnShow
+	};
+	using EventCallbackFn = std::function<void(Event&)>;
 	struct WindowProps {
 		std::string title;
-		uint32_t width;
-		uint32_t height;
+		uint32_t width, height;
+		bool VSync;
+		EventCallbackFn eventCallback;
 
 		WindowProps(const std::string& _title = "Stulu Engine", uint32_t _width = 1280, uint32_t _height = 720)
-			: title(_title), width(_width),height(_height){}
+			: title(_title), width(_width),height(_height) {}
 	};
-
 	class STULU_API Window{
 	public:
-		using EventCallbackFn = std::function<void(Event&)>;
 
 		virtual ~Window() = default;
 
 		virtual void onUpdate() = 0;
+		virtual void hide() = 0;
+		virtual void show() = 0;
+		virtual void setAttribute(const WindowAttribute, int32_t value) = 0;
+		virtual int getAttribute(const WindowAttribute) = 0;
 
 		virtual uint32_t getWidth() const = 0;
 		virtual uint32_t getHeight() const = 0;
+
+		virtual glm::vec2 getWindowPos() const = 0;
 
 		//attributes
 		virtual void setEventCallback(const EventCallbackFn& callback) = 0;
@@ -35,6 +46,6 @@ namespace Stulu{
 
 		virtual void* getNativeWindow() const = 0;
 		virtual Scope<GraphicsContext>& getContext() = 0;
-		static Scope<Window> create(const WindowProps& props = WindowProps());
+		static Scope<Window> create(WindowProps& props = WindowProps());
 	};
 }
