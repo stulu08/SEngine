@@ -61,5 +61,6 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 
 Icons for the Assets Explorer made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/)
+
 Created with the tutorial series by [The Cherno](https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT) ([License](https://github.com/TheCherno/Hazel/blob/master/LICENSE))
 #### Copyright © 2022 Julian Bents
