@@ -7,12 +7,11 @@
 #include "Stulu/Renderer/Renderer2D.h"
 
 #include "Stulu/Scene/AssetsManager.h"
-#include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Material.h"
 
 #include "Stulu/Scene/Components/Camera.h"
 
-#include "Stulu/Scene/physx/RigidbodyComponent.h"
+#include "Stulu/Scene/physx/Collider.h"
 
 namespace Stulu {
 	struct GameObjectBaseComponent {
@@ -26,46 +25,38 @@ namespace Stulu {
 			: name(name) { };
 	};
 	struct TransformComponent {
-		glm::vec3 position = glm::vec3(0.0f);
-		glm::vec3 rotation = glm::vec3(0.0f);
+		glm::vec3 position = glm::vec3(.0f);
+		glm::quat rotation = glm::quat(1.0f, .0f, .0f, .0f);
 		glm::vec3 scale = glm::vec3(1.0f);
+
+		//used for rendering, do not change
+		glm::vec3 worldPosition = glm::vec3(0.0f);
+		glm::quat worldRotation = glm::quat(1.0f, .0f, .0f, .0f);
+		glm::vec3 worldScale = glm::vec3(0.0f);
+
+		glm::mat4 transform = glm::mat4(1.0f);
+		
+		glm::vec3 up = TRANSFORM_UP_DIRECTION;
+		glm::vec3 right = TRANSFORM_RIGHT_DIRECTION;
+		glm::vec3 forward = TRANSFORM_FOREWARD_DIRECTION;
 
 		//this GameObject
 		GameObject gameObject = GameObject::null;
 		//Parent GameObject
 		GameObject parent = GameObject::null;
 
-
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const glm::vec3 pos, const glm::vec3 rotation, const glm::vec3 scale)
+		TransformComponent(const glm::vec3 pos, const glm::quat rotation, const glm::vec3 scale)
 			: position(pos), rotation(rotation), scale(scale) { };
 
-		const glm::mat4 getTransform() { return Math::createMat4(position, getOrientation(), scale); }
-		const glm::mat4 getTransform() const { return Math::createMat4(position, getOrientation(), scale); }
-		const glm::quat getOrientation(){ return glm::quat(rotation); }
-		const glm::quat getOrientation() const{ return glm::quat(rotation); }
-
-		const glm::mat4 getWorldSpaceTransform() {
-			ST_PROFILING_FUNCTION();
-			if (parent) {
-				glm::mat4 parentTr = parent.getComponent<TransformComponent>().getWorldSpaceTransform();
-				const glm::vec3 ppos = glm::vec3(parentTr[3]);
-				parentTr[3] = glm::vec4(0, 0, 0, parentTr[3].w);
-
-				return glm::translate(glm::mat4(1.0f), ppos + position) * glm::toMat4(getOrientation()) * glm::scale(glm::mat4(1.0f), scale) * parentTr;
-			}
-			return getTransform();
-		}
-
-		operator const glm::mat4() { return getWorldSpaceTransform(); }
-
-		glm::vec3 upDirection(){ return glm::rotate(getOrientation(), TRANSFORM_UP_DIRECTION); }
-		glm::vec3 rightDirection() { return glm::rotate(getOrientation(), TRANSFORM_RIGHT_DIRECTION); }
-		glm::vec3 forwardDirection() { return glm::rotate(getOrientation(), TRANSFORM_FOREWARD_DIRECTION); }
+		operator const glm::mat4() { return transform; }
 
 		void addChild(GameObject child) { 
 			child.getComponent<TransformComponent>().parent = gameObject;
+		}
+		void addChild(TransformComponent& child) {
+			child.parent = gameObject;
 		}
 	};
 
@@ -101,12 +92,20 @@ namespace Stulu {
 	struct SkyBoxComponent {
 		Ref<CubeMap> texture = nullptr;
 
+		float blur = .0f;
+		enum class MapType {
+			EnvironmentMap =0, IrradianceMap=1, PrefilterMap=2
+		}mapType = MapType::EnvironmentMap;
+
 		SkyBoxComponent() = default;
 		SkyBoxComponent(const SkyBoxComponent&) = default;
 	};
 
 	struct MeshRendererComponent {
 		Material* material;
+		CullMode cullmode = CullMode::Back;
+
+		bool m_enabledStencilBufferNextFrame = false;
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
@@ -120,40 +119,6 @@ namespace Stulu {
 		MeshFilterComponent(MeshAsset& mesh)
 			: mesh(mesh){}
 	};
-
-	struct BoxColliderComponent {
-		float staticFriction = .1f;
-		float dynamicFriction = .1f;
-		float restitution = .0f;
-		glm::vec3 offset = glm::vec3(0.0f);
-		glm::vec3 size = glm::vec3(.5f);
-
-		void* shape = nullptr;
-
-		BoxColliderComponent() = default;
-		BoxColliderComponent(const BoxColliderComponent&) = default;
-	};
-	struct SphereColliderComponent {
-		float staticFriction = .1f;
-		float dynamicFriction = .1f;
-		float restitution = .0f;
-		glm::vec3 offset = glm::vec3(0.0f);
-		float radius = .5f;
-
-		void* shape = nullptr;
-
-		SphereColliderComponent() = default;
-		SphereColliderComponent(const SphereColliderComponent&) = default;
-	};
-	struct MeshColliderComponent {
-		float staticFriction = .1f;
-		float dynamicFriction = .1f;
-		float restitution = .0f;
-
-		MeshColliderComponent() = default;
-		MeshColliderComponent(const MeshColliderComponent&) = default;
-	};
-
 	class Behavior;
 	struct NativeBehaviourComponent {
 		Behavior* instance = nullptr;

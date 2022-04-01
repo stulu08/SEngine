@@ -75,19 +75,5 @@ namespace Stulu {
 
 		friend class PhysX;
 	};
-	struct MeshAsset {
-		std::string name;
-		Ref<Mesh> mesh;
-		UUID uuid = UUID();
-
-		bool hasMesh = false;
-		UUID parentMeshAsset = UUID::null;
-		glm::mat4 transform = glm::mat4(1.0f);
-
-		UUID material = UUID::null;
-
-		MeshAsset() = default;
-		MeshAsset(const MeshAsset&) = default;
-	};
 }
 

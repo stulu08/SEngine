@@ -2,6 +2,7 @@
 #include "Stulu/Core/Layer.h"
 struct ImVec2;
 struct ImGuiContext;
+struct ImDrawList;
 
 STULU_API ImVec2 operator *(const ImVec2& vec, const float v);
 STULU_API ImVec2 operator /(const ImVec2& vec, const float v);

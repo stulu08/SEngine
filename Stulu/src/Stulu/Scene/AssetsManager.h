@@ -14,7 +14,8 @@ namespace Stulu {
 		Texture2D = 1, Texture = 2, CubeMap = 3,
 		Model = 4, Mesh = 5, 
 		Material = 6, Shader = 7,
-		Scene = 8
+		Scene = 8,
+		Directory = 9
 	};
 	
 	struct Asset {
@@ -22,7 +23,9 @@ namespace Stulu {
 		std::any data;
 		std::string path;
 		UUID uuid;
+
 	};
+	static inline Asset NullAsset{ AssetType ::Unknown,nullptr,"",UUID::null};
 	class STULU_API AssetsManager {
 	public:
 		/// read UUID from .meta file
@@ -30,10 +33,11 @@ namespace Stulu {
 		static void add(const UUID& uuid, const std::string& path);
 		static void add(const UUID& uuid, const std::string& path, const AssetType type);
 		static void addOrReload(const std::string& path);
+		static UUID addDirectory(const std::string& path);
 
 		static void update(const UUID& uuid, const Asset& data);
 
-		static void remove(const UUID& uuid);
+		static void remove(const UUID& uuid, bool deleteFile = false, bool deleteMetaFile = false);
 
 		static bool exists(const UUID& uuid);
 		static bool existsAndType(const UUID& uuid, const AssetType type);
@@ -47,7 +51,7 @@ namespace Stulu {
 			if (exists)
 				return assets[uuid].first._Cast<T>();
 
-			CORE_ASSERT(exists, "UUID not present in assets");
+			CORE_EROR(exists, "UUID not present in assets");
 			return nullptr;
 		}
 		static UUID getFromPath(const std::string& path);
@@ -60,6 +64,17 @@ namespace Stulu {
 		static void loadMaterials(const std::string& directory);
 
 		static void reloadShaders(const std::string& directory);
+
+		static inline bool hasProperity(const std::string path, const std::string& properity) {
+			ST_PROFILING_FUNCTION();
+			if (FileExists(path + ".meta")) {
+				YAML::Node data = YAML::LoadFile(path + ".meta");
+				if (data["props"]) {
+					return true;
+				}
+			}
+			return false;
+		}
 		template <typename T>
 		static inline T getProperity(const std::string path, const std::string& properity) {
 			ST_PROFILING_FUNCTION();

@@ -15,7 +15,7 @@ namespace Stulu {
 			return GL_VERTEX_SHADER;
 		else if (type == "fragment" || type == "frag" || type == "pixel")
 			return GL_FRAGMENT_SHADER;
-		CORE_ASSERT(false, "Unknown Shadertype: {0}", type);
+		CORE_ERROR("Unknown Shadertype: {0}", type);
 		return 0;
 	}
 	static std::string stringFromShaderType(GLenum type) {
@@ -27,7 +27,7 @@ namespace Stulu {
 			return "fragment";
 			break;
 		}
-		CORE_ASSERT(false, "Unknown Shadertype: {0}", type);
+		CORE_ERROR("Unknown Shadertype: {0}", type);
 		return 0;
 	}
 
@@ -51,9 +51,8 @@ namespace Stulu {
 	OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment)
 		: m_name(name) {
 		ST_PROFILING_FUNCTION();
-		std::unordered_map<GLenum, std::string> sources;
-		sources[GL_VERTEX_SHADER] = vertex;
-		sources[GL_FRAGMENT_SHADER] = fragment;
+		std::string src = "##type " + stringFromShaderType(GL_VERTEX_SHADER) + "\n" + vertex + "\n" + "##type " + stringFromShaderType(GL_FRAGMENT_SHADER) + "\n" + fragment + "\n";
+		auto sources = preProcess(src);
 		compile(sources);
 	}
 
@@ -78,36 +77,69 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		std::unordered_map<GLenum, std::string> shaderSources;
 		std::string shaderSrc = _src;
-		{
+		{//##add
+			//everyone can only be added once 
 			for (auto& p : s_preProcessorAdds) {
-				std::string token = p.first;
+				std::string token = "##add " + p.first;
 				size_t pos = shaderSrc.find(token);
 				if (pos != std::string::npos) {
 					shaderSrc.replace(pos, token.length(), p.second);
 				}
 			}
 		}
-		const char* typeToken = "##type";
-		size_t typeTokenLength = strlen(typeToken);
-		size_t pos = shaderSrc.find(typeToken, 0);
-		while (pos != std::string::npos)
-		{
-			size_t eol = shaderSrc.find_first_of("\r\n", pos);
-			CORE_ASSERT(eol != std::string::npos, "Syntax error");
-			size_t begin = pos + typeTokenLength + 1;
-			std::string type = shaderSrc.substr(begin, eol - begin);
-			CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
+		{//##properity
+			std::istringstream stream{ shaderSrc };
+			std::string line;
+			const std::string token = "##properity";
+			while (std::getline(stream, line)) {
+				size_t pos = line.find(token);
+				if (pos != std::string::npos) {
+					line.replace(pos, token.length()+1, "");//remove
+					size_t firstBracket = line.find_first_of('(');
+					size_t lastBracket = line.find_first_of(')');
+					std::string values = line.substr(firstBracket+1, lastBracket - firstBracket - 1);
+					ShaderProperity::Type pType = ShaderProperity::typeFromString(line.substr(0, firstBracket));
 
-			size_t nextLinePos = shaderSrc.find_first_not_of("\r\n", eol);
-			CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
-			pos = shaderSrc.find(typeToken, nextLinePos);
-			shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? shaderSrc.substr(nextLinePos) : shaderSrc.substr(nextLinePos, pos - nextLinePos);
+					std::string typeName = line.substr(line.find_first_of('|') + 1);
+					typeName.erase(std::remove(typeName.begin(), typeName.end(), '\r'), typeName.end());
+					typeName.erase(std::remove(typeName.begin(), typeName.end(), '\n'), typeName.end());
+
+					if (pType == ShaderProperity::Type::Color4) {
+						m_properitys[typeName] = createRef<ShaderProperityColor4>();
+					}
+					else if (pType == ShaderProperity::Type::Range) {
+						m_properitys[typeName] = createRef<ShaderProperityRange>(values);
+					}
+					else if (pType == ShaderProperity::Type::Enum) {
+						m_properitys[typeName] = createRef<ShaderProperityEnum>(values);
+					}
+
+				}
+			}
 		}
+		{//##type
+			const char* typeToken = "##type";
+			size_t typeTokenLength = strlen(typeToken);
+			size_t pos = shaderSrc.find(typeToken, 0);
+			while (pos != std::string::npos)
+			{
+				size_t eol = shaderSrc.find_first_of("\r\n", pos);
+				CORE_ASSERT(eol != std::string::npos, "Syntax error");
+				size_t begin = pos + typeTokenLength + 1;
+				std::string type = shaderSrc.substr(begin, eol - begin);
+				CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
 
+				size_t nextLinePos = shaderSrc.find_first_not_of("\r\n", eol);
+				CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
+				pos = shaderSrc.find(typeToken, nextLinePos);
+				shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? shaderSrc.substr(nextLinePos) : shaderSrc.substr(nextLinePos, pos - nextLinePos);
+			}
+		}
+		m_source = _src;
+		m_sourcePreProcessed = shaderSrc;
 		return shaderSources;
 	}
 	void OpenGLShader::compile(const std::unordered_map<GLenum, std::string>& shaderSrcs){
-
 		ST_PROFILING_FUNCTION();
 		GLuint rendererID = glCreateProgram();
 		CORE_ASSERT(shaderSrcs.size() <= 2,"Only 2 shaders are currently supported");
@@ -129,7 +161,7 @@ namespace Stulu {
 				std::vector<GLchar> infoLog(maxLength);
 				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
 				glDeleteShader(shader);
-				CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
+				CORE_ERROR("GLSL {1} compilation error:\n{0}", infoLog.data(), stringFromShaderType(type));
 				CORE_ASSERT(false, stringFromShaderType(type) + " Shader compilation of Shader \"" + m_name + "\" failed");
 				break;
 			}

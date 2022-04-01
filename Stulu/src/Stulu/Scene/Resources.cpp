@@ -1,6 +1,5 @@
 #include "st_pch.h"
 #include "Resources.h"
-#include "Stulu/Renderer/Model.h"
 #include "Stulu/Scene/AssetsManager.h"
 
 namespace Stulu {
@@ -8,7 +7,6 @@ namespace Stulu {
 		loadCubeMesh();
 		loadPlaneMesh();
 		loadSphereMesh();
-		loadSkyBoxMesh();
 		loadBlackTexture();
 		loadSkyBoxShader();
 		loadReflectiveMaterial();
@@ -23,9 +21,6 @@ namespace Stulu {
 	}
 	Ref<Mesh>& Resources::getSphereMesh() {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data).mesh;
-	}
-	Ref<Mesh>& Resources::getSkyBoxMesh() {
-		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(403)).data).mesh;
 	}
 	Ref<Texture2D>& Resources::getBlackTexture() {
 		return std::any_cast<Ref<Texture2D>&>(AssetsManager::get(UUID(301)).data);
@@ -44,9 +39,6 @@ namespace Stulu {
 	}
 	MeshAsset& Resources::getSphereMeshAsset() {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data);
-	}
-	MeshAsset& Resources::getSkyBoxMeshAsset() {
-		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(403)).data);
 	}
 	Material* Resources::getReflectiveMaterial() {
 		return AssetsManager::get(UUID(13)).data._Cast<Material>();
@@ -126,63 +118,6 @@ namespace Stulu {
 	}
 	void Resources::loadSphereMesh() {
 	}
-	void Resources::loadSkyBoxMesh() {
-		std::vector<Vertex> vertices{
-			//top
-			{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-			//bottom														 		 
-			{glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-			//right															 		 
-			{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-			//left															 		 
-			{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-			//front															 		 
-			{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
-			//back															 		 
-			{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-		};
-		std::vector<uint32_t> indices{
-			//top
-			0,1,2,
-			2,3,0,
-			//bottom
-			6,5,4,
-			4,7,6,
-			//right
-			8,9,10,
-			10,11,8,
-			//left
-			14,13,12,
-			12,15,14,
-			//front
-			18,17,16,
-			16,19,18,
-			//back
-			20,21,22,
-			22,23,20
-		};
-		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
-		AssetsManager::update(UUID(403), Asset{ AssetType::Mesh, MeshAsset{"SkyBox Mesh",m,UUID(403),true},"",UUID(403),});
-
-	}
 	void Resources::loadBlackTexture() {
 		Ref<Texture2D> tex = Texture2D::create(1, 1);
 		uint32_t datablack = 0x00000000;
@@ -232,22 +167,63 @@ namespace Stulu {
 		{
 			vec3 texCoords;
 		};
+		layout(std140, binding = 2) uniform postProcessing
+		{
+			float toneMappingExposure;
+			float gamma;
+			uint useSkybox;
+		};
 		layout (location = 0) in vertInput vertex;
-		layout (binding = 1) uniform samplerCube skybox;
+		layout (binding = 0) uniform samplerCube environmentMap;
+		layout (binding = 1) uniform samplerCube irradianceMap;
+		layout (binding = 2) uniform samplerCube prefilterMap;
+		layout (binding = 3) uniform sampler2D BRDFLUTMap;
+		uniform int mapType = 0;
+		uniform float blur = 0;
 		void main() {
-			FragColor = texture(skybox, vertex.texCoords);
+			vec4 color = vec4(.0f);
+			if(useSkybox == 1){
+				vec3 mapColor;
+				if(mapType == 0){
+					mapColor = texture(environmentMap, vertex.texCoords).rgb;
+				}else if(mapType == 1){
+					mapColor = texture(irradianceMap, vertex.texCoords).rgb;
+				}else if(mapType == 2){
+					mapColor = texture(prefilterMap, vertex.texCoords).rgb;
+				}else {
+					mapColor = texture(environmentMap, vertex.texCoords).rgb;
+				}
+				mapColor = vec3(1.0f) - exp(-mapColor * toneMappingExposure);//HDR tonemapping
+				mapColor = pow(mapColor, vec3(1.0/gamma)), 1.0; //gamma correct
+				color = vec4(mapColor, 1.0f);
+			}
+			
+			FragColor = color;
 		})";
 		AssetsManager::update(UUID(7), Asset{ AssetType::Shader, Shader::create("SkyBox",src),"",UUID(7)});
 	}
 	void Resources::loadReflectiveMaterial() {
 		std::string src = R"(
-		##add ST_default
+		##add ST_vertex
+		##type fragment
+		#version 460 core
+		out vec4 FragColor;
+		##add ST_bindings
+		layout (binding = 0) uniform samplerCube environmentMap;
+		layout (binding = 1) uniform samplerCube irradianceMap;
+		layout (binding = 2) uniform samplerCube prefilterMap;
 		void main()
 		{		
-		    vec3 view = normalize(vertex.worldPos.xyz - cameraPosition.xyz);
-		    vec3 refelcted = reflect(view, normalize(vertex.normal));
-		    vec4 relectedColor = texture(skybox, refelcted);
-		    FragColor = relectedColor;
+			vec3 cameraPos = vec3(cameraPosition);
+			vec3 cameraRot = vec3(cameraRotation);
+			vec3 N = normalize(vertex.normal);
+			vec3 V = normalize(cameraPos - vertex.worldPos);
+			vec3 R = reflect(-V, N);
+			
+		    vec3 relectedColor = vec3(.0f);
+			if(useSkybox == 1)
+				relectedColor = texture(environmentMap, R).rgb;
+		    FragColor = vec4(relectedColor, 1.0f);
 		})";
 		AssetsManager::update(UUID(6), Asset{ AssetType::Shader, Shader::create("Reflective",src),"",UUID(6) });
 		AssetsManager::update(UUID(13), { AssetType::Material,Material(AssetsManager::get(UUID(6)),(std::vector<MaterialDataType>{})),"",UUID(13) });
@@ -255,9 +231,18 @@ namespace Stulu {
 	void Resources::loadDefaultMaterial() {
 		AssetsManager::update(UUID(12), { AssetType::Material,Material(AssetsManager::get(UUID(9)),
 		(std::vector<MaterialDataType>{
-		MaterialDataType{ShaderDataType::Float4,glm::vec4(.9f),"albedo",0},
-		MaterialDataType{ShaderDataType::Float,.0f,"metallic",1},
-		MaterialDataType{ShaderDataType::Float,.0f,"roughness",2},
-		MaterialDataType{ShaderDataType::Float,.3f,"ao",3},})),"",UUID(12) });
+			MaterialDataType{ShaderDataType::Float4,glm::vec4(.9f,.9f,.9f,1.0f),"albedo",0},
+			MaterialDataType{ShaderDataType::Float,.0f,"metallic",1},
+			MaterialDataType{ShaderDataType::Float,.5f,"roughness",2},
+			MaterialDataType{ShaderDataType::Float,.1f,"ao",3},
+			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{4,nullptr,1,UUID::null},"albedoMap",4},
+			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{5,nullptr,1,UUID::null},"metallicMap",5},
+			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{6,nullptr,1,UUID::null},"roughnessMap",6},
+			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{7,nullptr,1,UUID::null},"normalMap",7},
+			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{8,nullptr,1,UUID::null},"aoMap",8},
+			MaterialDataType{ShaderDataType::Int,0,"transparencyMode",9},
+			MaterialDataType{ShaderDataType::Float,.0f,"alphaCutOff",10},
+
+		})),"",UUID(12) });
 	}
 }

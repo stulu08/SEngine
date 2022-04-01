@@ -1,4 +1,5 @@
 #pragma once
+#include "Stulu/Math/Math.h"
 #include "Stulu/Core/Core.h"
 #include "Stulu/Core/Keycodes.h"
 #include "Stulu/Core/MouseButtonCodes.h"

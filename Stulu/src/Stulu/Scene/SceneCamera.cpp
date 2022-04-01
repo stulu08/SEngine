@@ -32,13 +32,13 @@ namespace Stulu {
 	void SceneCamera::mouseTranslateMove(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (Input::isMouseDown(MOUSE_BUTTON_1)) {
-			m_transform.position += m_transform.rightDirection() * -m_mouseDelta.x * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
-			m_transform.position += m_transform.upDirection() * m_mouseDelta.y * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
+			m_transform.position += m_transform.right * -m_mouseDelta.x * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
+			m_transform.position += m_transform.up * m_mouseDelta.y * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
 		}
 	}
 	void SceneCamera::mouseLookMove() {
 		if (Input::isMouseDown(MOUSE_BUTTON_2)) {
-			float yawSign = m_transform.upDirection().y < 0 ? -1.0f : 1.0f;
+			float yawSign = m_transform.up.y < 0 ? -1.0f : 1.0f;
 			m_yaw += yawSign * m_mouseDelta.x * m_cameraSensitivity;
 			m_pitch += m_mouseDelta.y * m_cameraSensitivity;
 			m_transform.rotation = glm::vec3(-m_pitch, -m_yaw, .0f);
@@ -59,7 +59,7 @@ namespace Stulu {
 	}
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
 		ST_PROFILING_FUNCTION();
-		m_transform.position += m_transform.forwardDirection() * e.getYOff();
+		m_transform.position += m_transform.forward * e.getYOff();
 		return false;
 	}
 	bool SceneCamera::onMouseMoveEvent(MouseMoveEvent& e) {

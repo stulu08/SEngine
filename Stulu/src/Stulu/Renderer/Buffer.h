@@ -28,7 +28,7 @@ namespace Stulu{
 
 			case ShaderDataType::Sampler:	return 4;
 		}
-		CORE_ASSERT(false, "Uknown ShaderDataType");
+		CORE_ERROR("Uknown ShaderDataType: {0}", (int)type);
 		return 0;
 	}
 
@@ -64,7 +64,7 @@ namespace Stulu{
 
 				case ShaderDataType::Sampler:	return 1;
 			}
-			CORE_ASSERT(false, "Uknown ShaderDataType");
+			CORE_ERROR("Uknown ShaderDataType: {0}", (int)type);
 			return 0;
 		}
 	};

@@ -24,6 +24,7 @@ project "VulkanTesting"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.yaml_cpp}",
 	}
 
 	if(staticBuild == false) then

@@ -1,18 +1,31 @@
 #include "AssetBrowser.h"
-#include "imgui/imgui.h"
 #include "Editor/Resources.h"
 #include "Editor/EditorLayer.h"
 #include "Editor/EditorApp.h"
 #include "Editor/Panel/StyleEditor.h"
-
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <ImGui/misc/cpp/imgui_stdlib.h>
 namespace Stulu {
 	AssetBrowserPanel::AssetBrowserPanel(const std::filesystem::path& path)
 		: m_path(path) {
 		ST_PROFILING_FUNCTION();
 
 	}
+	static std::string createPopUpFileName = "";
+	static std::string createPopUpFileContent = "";
+	static std::function<void()> createPopUpUIFunc = [=] {
+		ImGui::InputText("Name", &createPopUpFileName);
+	};
+	static std::function<void(const std::string&, const std::string&)> onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+		ST_INFO("Creating new File at: {0}", currentDirectory + "/" + fileName);
+		FILE* file = fopen((currentDirectory + "/" + fileName).c_str(), "a");
+		fprintf(file, createPopUpFileContent.c_str());
+		fclose(file);
+	};
 	void AssetBrowserPanel::render(bool* open) {
 		ST_PROFILING_FUNCTION();
+		bool openCreatePopUp = false;
 		if (ImGui::Begin("Assets"), open) {
 			if (m_path != getEditorProject().assetPath) {
 				if (ImGui::Button("<-")) {
@@ -65,30 +78,63 @@ namespace Stulu {
 						m_path /= filename;
 				}
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-					if (!directory.is_directory())
-						selected = AssetsManager::get(AssetsManager::getFromPath(path.string()));
+					selected = AssetsManager::get(AssetsManager::getFromPath(path.string()));
 				}
 				if (ImGui::BeginPopupContextWindow("ASSET_BROWSER_RIGHT_CLICK_PROPS")) {
 					if (ImGui::BeginMenu("Create")) {
 						if (ImGui::MenuItem("Material")) {
-							
+							openCreatePopUp = true;
+							createPopUpFileName = "New Material.mat";
+							createPopUpFileContent = Resources::getDefaultMaterial()->toDataString(true);
+							createPopUpUIFunc = [=] {
+								ImGui::InputText("Name", &createPopUpFileName);
+								ImGui::TextWrapped("Curently you can only edit Materials with an Text Editor");
+							};
+						}
+						if (ImGui::MenuItem("Scene")) {
+							openCreatePopUp = true;
+							createPopUpFileName = "New Scene.scene";
+							createPopUpFileContent = EditorResources::getDefaultSceneSource();
+						}
+						if (ImGui::MenuItem("Shader")) {
+							openCreatePopUp = true;
+							createPopUpFileName = "New Shader.glsl";
+							createPopUpFileContent = Resources::getDefaultMaterial()->getShader()->getSource(true);
+						}
+						if (ImGui::MenuItem("Directory")) {
+							openCreatePopUp = true;
+							createPopUpFileName = "New Directory";
+							onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+								ST_INFO("Creating new Directory at: {0}", currentDirectory + "/" + fileName);
+								Platform::createDirectory((currentDirectory + "/" + fileName).c_str());
+							};
 						}
 						ImGui::EndMenu();
 					}
 					ImGui::Separator();
 					if (ImGui::MenuItem("Delete")) {
-						AssetsManager::remove(selected.uuid);
-						std::remove(selected.path.c_str());
+						AssetsManager::remove(selected.uuid, true, true);
+						selected = NullAsset;
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Recompile Shaders")) {
+						AssetsManager::reloadShaders(getEditorProject().assetPath);
 					}
 					ImGui::EndPopup();
 				}
 				ImGui::TextWrapped(filename.string().c_str());
 				ImGui::NextColumn();
 				ImGui::PopID();
+				
 			}
 			ImGui::Columns(1);
 		}
 		ImGui::End();
+		
+		if (openCreatePopUp)
+			ImGui::OpenPopup("Create File");
+		drawCreateFilePopUp();
+
 		if (ImGui::Begin("Directorys"), open) {
 			if (ImGui::CollapsingHeader("Project Assets")) {
 				drawDirectory(getEditorProject().assetPath);
@@ -102,6 +148,48 @@ namespace Stulu {
 		ImGui::End();
 		if(m_inspector)
 			renderInspector();
+	}
+	void AssetBrowserPanel::drawCreateFilePopUp() {
+		if (ImGui::BeginPopupModal("Create File", 0)) {
+			createPopUpUIFunc();
+			bool disabled = createPopUpFileName.empty();
+			if (disabled) {
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+			if (ImGui::Button("Create")) {
+				onCreatePopUpFile(m_path.string(), createPopUpFileName);
+				createPopUpFileName = "";
+				createPopUpFileContent = "";
+				createPopUpUIFunc = [=] { ImGui::InputText("Name", &createPopUpFileName); };
+				onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+					ST_INFO("Creating new File at: {0}", currentDirectory + "/" + fileName);
+					FILE* file = fopen((currentDirectory + "/" + fileName).c_str(), "a");
+					fprintf(file, createPopUpFileContent.c_str());
+					fclose(file);
+				};
+				ImGui::CloseCurrentPopup();
+			}
+			if (disabled)
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Close")) {
+				createPopUpFileName = "";
+				createPopUpFileContent = "";
+				createPopUpUIFunc = [=] { ImGui::InputText("Name", &createPopUpFileName); };
+				onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+					ST_INFO("Creating new File at: {0}", currentDirectory + "/" + fileName);
+					FILE* file = fopen((currentDirectory + "/" + fileName).c_str(), "a");
+					fprintf(file, createPopUpFileContent.c_str());
+					fclose(file);
+				};
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
 	}
 	void AssetBrowserPanel::renderInspector() {
 		if (ImGui::Begin("Asset Inspector", &m_inspector)) {
@@ -153,12 +241,39 @@ namespace Stulu {
 						}
 					}
 				}
+				else if (selected.type == AssetType::CubeMap) {
+					int type = (int)selected.type - 1;
+					static std::vector<uint32_t> ress = { 64,128,256,512,1024,2048,4096 };
+					uint32_t resolution = AssetsManager::getProperity<uint32_t>(selected.path, "resolution");
+
+					auto pos = std::find(ress.begin(), ress.end(), resolution);
+					int item;
+					if (pos != ress.end())
+						item = (int)std::distance(ress.begin(), pos);
+					else
+						item = 3;
+
+					if (ComponentsRender::drawComboControl("Resolution", item, " 64\0 128\0 256\0 512\0 1024\0 2048\0 4096")) {
+						resolution = ress[item];
+						AssetsManager::setProperity<uint32_t>(selected.path, { "resolution" ,ress[item] });
+					}
+					bool disabled = std::any_cast<Ref<CubeMap>>(selected.data)->getWidth() == resolution;
+					if (disabled)
+					{
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+					}
+					if (ImGui::Button("Update")) {
+						std::any_cast<Ref<CubeMap>>(selected.data)->update(selected.path);
+					}
+					if (disabled)
+					{
+						ImGui::PopItemFlag();
+						ImGui::PopStyleVar();
+					}
+				}
 			}
 			ImGui::EndChild();
-			ImGui::Separator();
-			if (ImGui::Button("Recompile Shaders")) {
-				AssetsManager::reloadShaders(getEditorProject().assetPath);
-			}
 		}
 		ImGui::End();
 	}

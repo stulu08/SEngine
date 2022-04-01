@@ -6,7 +6,7 @@ namespace Stulu {
 		uint32_t width = 1, height = 1;
 		uint32_t samples = 1;
 		bool swapChainTarget = false;
-		TextureSettings::Format textureFormat = TextureSettings::Format::RGBA;
+		TextureSettings::Format textureFormat = TextureSettings::Format::RGBA16F;
 	};
 	class STULU_API FrameBufferTexture : public Texture{
 	public:

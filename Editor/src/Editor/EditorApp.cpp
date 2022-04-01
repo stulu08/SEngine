@@ -16,7 +16,7 @@ namespace Stulu {
 			s_project = Project(getStartArgs()[1]);
 		}
 		else {
-			ST_INFO("No Project, please open a Project");
+			ST_ERROR("No Project, please open a Project");
 			s_project = Project(Platform::browseFolder());
 		}
 
@@ -26,20 +26,20 @@ namespace Stulu {
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
 		editorLayer = new EditorLayer();
-		pushLayer(editorLayer);
 
-		const char* rpcID = "";
+		const char* rpcID = "733733383645167637";
 #if ST_DEBUG
 		if (strcmp(rpcID,"")) {
 			//CORE_ASSERT(false, "Dont publish your id to the internet");
 		}
 #endif
 		DiscordRPC::init(rpcID);
+		DiscordRPC::setDetails("Loading the assets...");
+		DiscordRPC::setState("");
 
-
-
-		CORE_INFO("Loading assets");
+		ST_INFO("Loading all Project assets from: {0}", s_project.assetPath);
 		AssetsManager::loadAllFiles(s_project.assetPath);
+		pushLayer(editorLayer);
 		getWindow().show();
 	}
 	EditorApp::~EditorApp() {

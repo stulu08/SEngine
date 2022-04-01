@@ -2,7 +2,7 @@
 
 #pragma warning(disable:4251)
 
-#include "CoreConfig.h"
+//#include "CoreConfig.h" in Log.h
 //#include "PlatformConfig.h" in Log.h
 #include "Log.h"
 

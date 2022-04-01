@@ -3,7 +3,7 @@
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Shader.h"
-#include "Stulu/Renderer/Model.h"
+#include "Stulu/Scene/Model.h"
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Core/UUID.h"
 #include <entt.hpp>
@@ -18,8 +18,8 @@ namespace Stulu {
 		PhysicsData physicsData;
 	};
 
-	class STULU_API GameObject;
 	class STULU_API SceneCamera;
+	class STULU_API GameObject;
 
 	class STULU_API Scene {
 	public:
@@ -49,11 +49,11 @@ namespace Stulu {
 		SceneData m_data;
 
 		PhysX m_physics;
-		bool updatedLightsThisFrame = false;
 
 		void setupPhysics();
 		void updatePhysics();
-		void calculateLights();
+		void updateAllTransforms();
+		void updateTransform(TransformComponent& tc);
 		void renderScene(entt::entity cam, Timestep ts);
 
 		template<typename T>

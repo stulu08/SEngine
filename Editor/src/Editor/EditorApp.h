@@ -3,13 +3,14 @@
 
 namespace Stulu {
 	struct Project {
-		std::string path;
-		std::string assetPath;
-		std::string configPath;
+		std::string path = "";
+		std::string name = "A Project";
+		std::string assetPath = "";
+		std::string configPath = "";
 		std::string windowINI;
 
 		Project()
-			:path(""),assetPath(path),configPath(path),windowINI(configPath+"/windowLayout.ini") {
+			:windowINI(configPath+"/windowLayout.ini") {
 		}
 		Project(std::string& path)
 #ifdef ST_PLATFORM_WINDOWS
@@ -17,6 +18,9 @@ namespace Stulu {
 #else
 			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), windowINI(configPath + "/windowLayout.ini") {
 #endif
+			size_t lastS = path.find_last_of("/\\");
+			lastS = lastS == std::string::npos ? 0 : lastS + 1;
+			name = path.substr(lastS, path.size() - lastS);
 		}
 	};
 

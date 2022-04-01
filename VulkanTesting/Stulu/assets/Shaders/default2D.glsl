@@ -6,13 +6,14 @@ layout(location = 2) in vec4 a_color;
 layout(location = 3) in float a_textureIndex;
 layout(location = 4) in vec2 a_textureTiling;
 
-layout(std140, binding = 0) uniform data
+layout(std140, binding = 0) uniform matrices
 {
-	mat4 u_viewProjection;
+	mat4 viewProjection;
 	mat4 viewMatrix;
 	mat4 projMatrix;
-	vec3 cameraPosition;
-	vec3 cameraRotation;
+	vec4 cameraPosition;
+	vec4 cameraRotation;
+	mat4 transform;
 };
 struct VertData{
 	vec2 texCoord;
@@ -29,7 +30,7 @@ void main() {
 	textureIndex = a_textureIndex;
 	Output.textureTiling = a_textureTiling;
 
-	gl_Position = u_viewProjection * vec4(a_pos, 1.0);
+	gl_Position = viewProjection * vec4(a_pos, 1.0);
 }
 
 
@@ -47,11 +48,11 @@ struct VertData{
 layout (location = 0) in VertData Input;
 layout (location = 3) in flat float textureIndex;
 
-uniform sampler2D u_textures[32];
+layout(binding = 2)uniform sampler2D u_textures[32];
 
 void main() {
 	//vec4 color = texture(u_textures[int(Input.textureIndex)], Input.texCoord * Input.textureTiling) * Input.color; //amd does not support this
-	vec4 color = vec4(0f);
+	vec4 color = vec4(0.0f);
 	switch(int(textureIndex))
 	{
 		case  0: color = texture(u_textures[ 0], Input.texCoord * Input.textureTiling) * Input.color; break;

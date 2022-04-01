@@ -9,6 +9,19 @@ namespace Stulu {
 		T& getComponent() {
 			return gameObject.getComponent<T>();
 		}
+		template<typename T>
+		T& addComponent() {
+			return gameObject.addComponent<T>();
+		}
+		template<typename T>
+		bool hasComponent() {
+			return gameObject.hasComponent<T>();
+		}
+
+		/// <summary>
+		/// This is called when the component is drawn in the inspector
+		/// </summary>
+		virtual void uiFunc() {}
 	protected:
 		GameObject gameObject;
 
@@ -37,7 +50,6 @@ namespace Stulu {
 		/// When the scene exits
 		/// </summary>
 		virtual void onSceneExit() {}
-	
 	private:
 		friend class Scene;
 	};

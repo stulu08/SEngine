@@ -68,6 +68,7 @@ namespace Stulu {
 			out << YAML::Key << "color" << YAML::Value << light.color;
 			out << YAML::Key << "lightType" << YAML::Value << (int)light.lightType;
 			out << YAML::Key << "strength" << YAML::Value << light.strength;
+			out << YAML::Key << "areaRadius" << YAML::Value << light.areaRadius;
 			out << YAML::Key << "spotLight_cutOff" << YAML::Value << light.spotLight_cutOff;
 			out << YAML::Key << "spotLight_outerCutOff" << YAML::Value << light.spotLight_outerCutOff;
 			out << YAML::EndMap;
@@ -78,6 +79,7 @@ namespace Stulu {
 			auto& meshren = gameObject.getComponent<MeshRendererComponent>();
 			if(meshren.material)
 				out << YAML::Key << "material" << YAML::Value << (uint64_t)meshren.material->getUUID();
+			out << YAML::Key << "cullMode" << YAML::Key << (uint32_t)meshren.cullmode;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<MeshFilterComponent>()) {
@@ -93,6 +95,8 @@ namespace Stulu {
 			auto& meshren = gameObject.getComponent<SkyBoxComponent>();
 			if(meshren.texture)
 				out << YAML::Key << "texture" << YAML::Value << (uint64_t)meshren.texture->uuid;
+			out << YAML::Key << "blur" << YAML::Value << meshren.blur;
+			out << YAML::Key << "mapType" << YAML::Value << (int32_t)meshren.mapType;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<BoxColliderComponent>()) {
@@ -156,7 +160,6 @@ namespace Stulu {
 		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
 		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
 		out << YAML::Key << "physicsData.length" << YAML::Value << m_scene->m_data.physicsData.length;
-		out << YAML::Key << "physicsData.PhysXGpu" << YAML::Value << m_scene->m_data.physicsData.PhysXGpu;
 		out << YAML::Key << "physicsData.speed" << YAML::Value << m_scene->m_data.physicsData.speed;
 		out << YAML::Key << "physicsData.workerThreads" << YAML::Value << m_scene->m_data.physicsData.workerThreads;
 		out << YAML::EndMap;
@@ -176,7 +179,7 @@ namespace Stulu {
 		fclose(file);
 
 	}
-	void SceneSerializer::deSerialze(const std::string& path) {
+	bool SceneSerializer::deSerialze(const std::string& path) {
 		/*FILE* file = fopen(path.c_str(), "rb");
 		fseek(file, 0, SEEK_END);
 		long fileSize = ftell(file);
@@ -185,188 +188,201 @@ namespace Stulu {
 		fread(fileContent, 1, fileSize, file);
 		fclose(file);
 		fileContent[fileSize] = 0;*/
+		try {
+			YAML::Node data = YAML::LoadFile(path);
+			std::string name = data["Scene"].as<std::string>();
 
-		YAML::Node data = YAML::LoadFile(path);
-		std::string name = data["Scene"].as<std::string>();
+			if (data["Settings"]) {
+				YAML::Node settings = data["Settings"];
 
-		if (data["Settings"]) {
-			YAML::Node settings = data["Settings"];
+				if (settings["gamma"])
+					m_scene->m_data.gamma = settings["gamma"].as<float>();
+				if (settings["toneMappingExposure"])
+					m_scene->m_data.toneMappingExposure = settings["toneMappingExposure"].as<float>();
+				if (settings["framebuffer16bit"])
+					m_scene->m_data.framebuffer16bit = settings["framebuffer16bit"].as<bool>();
+				if (settings["enablePhsyics3D"])
+					m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
+				if (settings["physicsData.gravity"])
+					m_scene->m_data.physicsData.gravity = settings["physicsData.gravity"].as<glm::vec3>();
+				if (settings["physicsData.length"])
+					m_scene->m_data.physicsData.length = settings["physicsData.length"].as<float>();
+				if (settings["physicsData.speed"])
+					m_scene->m_data.physicsData.speed = settings["physicsData.speed"].as<float>();
+				if (settings["physicsData.workerThreads"])
+					m_scene->m_data.physicsData.workerThreads = settings["physicsData.workerThreads"].as<uint32_t>();
+			}
 
-			if (settings["gamma"])
-				m_scene->m_data.gamma = settings["gamma"].as<float>();
-			if (settings["toneMappingExposure"])
-				m_scene->m_data.toneMappingExposure = settings["toneMappingExposure"].as<float>();
-			if (settings["framebuffer16bit"])
-				m_scene->m_data.framebuffer16bit = settings["framebuffer16bit"].as<bool>();
-			if (settings["enablePhsyics3D"])
-				m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
-			if (settings["physicsData.gravity"])
-				m_scene->m_data.physicsData.gravity = settings["physicsData.gravity"].as<glm::vec3>();
-			if (settings["physicsData.length"])
-				m_scene->m_data.physicsData.length = settings["physicsData.length"].as<float>();
-			if (settings["physicsData.PhysXGpu"])
-				m_scene->m_data.physicsData.PhysXGpu = settings["physicsData.PhysXGpu"].as<bool>();
-			if (settings["physicsData.speed"])
-				m_scene->m_data.physicsData.speed = settings["physicsData.speed"].as<float>();
-			if (settings["physicsData.workerThreads"])
-				m_scene->m_data.physicsData.workerThreads = settings["physicsData.workerThreads"].as<uint32_t>();
-		}
+			auto gos = data["GameObjects"];
+			if (gos) {
+				for (auto gameObject : gos) {
+					uint64_t uuid = gameObject["GameObject"].as<uint64_t>();
 
-		auto gos = data["GameObjects"];
-		if (gos) {
-			for (auto gameObject : gos) {
-				uint64_t uuid = gameObject["GameObject"].as<uint64_t>();
+					std::string name;
+					std::string tag;
+					auto base = gameObject["GameObjectBaseComponent"];
+					if (base) {
+						tag = base["tag"].as<std::string>();
+						name = base["name"].as<std::string>();
 
-				std::string name;
-				std::string tag;
-				auto base = gameObject["GameObjectBaseComponent"];
-				if (base) {
-					tag = base["tag"].as<std::string>();
-					name = base["name"].as<std::string>();
-
-				}
-
-
-				GameObject deserialized = m_scene->createGameObject(name, uuid);
-				deserialized.getComponent<GameObjectBaseComponent>().tag = tag;
-
-				auto transformComponentNode = gameObject["TransformComponent"];
-				if (transformComponentNode) {
-					auto& tc = deserialized.getComponent<TransformComponent>();
-					tc.position = transformComponentNode["position"].as<glm::vec3>();
-					tc.rotation = transformComponentNode["rotation"].as<glm::vec3>();
-					tc.scale = transformComponentNode["scale"].as<glm::vec3>();
-				}
-
-				auto cameraComponentNode = gameObject["CameraComponent"];
-				if (cameraComponentNode) {
-					auto& cc = deserialized.addComponent<CameraComponent>();
-					auto& settings = cameraComponentNode["Camera Settings"];
-
-					cc.settings.clearType = (CameraComponent::ClearType)settings["clearType"].as<int>();
-					cc.settings.clearColor = settings["clearColor"].as<glm::vec4>();
-					cc.settings.fov = settings["fov"].as<float>();
-					cc.settings.zoom = settings["zoom"].as<float>();
-					cc.settings.zNear = settings["zNear"].as<float>();
-					cc.settings.zFar = settings["zFar"].as<float>();
-					cc.settings.staticAspect = settings["staticAspect"].as<bool>();
-					cc.settings.aspectRatio = settings["aspectRatio"].as<float>();
-					cc.settings.textureWidth = settings["textureWidth"].as<uint32_t>();
-					cc.settings.textureHeight = settings["textureHeight"].as<uint32_t>();
-
-
-					cc.mode = (CameraMode)cameraComponentNode["mode"].as<int>();
-					cc.depth = (CameraMode)cameraComponentNode["depth"].as<int>();
-					cc.updateMode();
-					cc.updateProjection();
-					cc.updateSize();
-				}
-
-				auto spriteRendererNode = gameObject["SpriteRendererComponent"];
-				if (spriteRendererNode) {
-					auto& src = deserialized.addComponent<SpriteRendererComponent>();
-					src.color = spriteRendererNode["color"].as<glm::vec4>();
-					src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
-					if(spriteRendererNode["texture"])
-						src.texture = std::any_cast<Ref<Texture2D>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
-				}
-
-				auto lightComponentNode = gameObject["LightComponent"];
-				if (lightComponentNode) {
-					auto& light = deserialized.addComponent<LightComponent>();
-					light.color = lightComponentNode["color"].as<glm::vec3>();
-					light.lightType = (LightComponent::Type)lightComponentNode["lightType"].as<int>();
-					light.strength = lightComponentNode["strength"].as<float>();
-					light.spotLight_cutOff = lightComponentNode["spotLight_cutOff"].as<float>();
-					light.spotLight_outerCutOff = lightComponentNode["spotLight_outerCutOff"].as<float>();
-				}
-
-				auto meshRendererComponentNode = gameObject["MeshRendererComponent"];
-				if (meshRendererComponentNode) {
-					auto& meshrenC = deserialized.saveAddComponent<MeshRendererComponent>();
-					if (meshRendererComponentNode["material"]) {
-						UUID id = meshRendererComponentNode["material"].as<uint64_t>();
-						if (AssetsManager::existsAndType(id, AssetType::Material))
-							deserialized.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
 					}
-				}
 
-				auto meshFilterComponentNode = gameObject["MeshFilterComponent"];
-				if (meshFilterComponentNode) {
-					auto& meshFilter = deserialized.saveAddComponent<MeshFilterComponent>();
-					if (meshFilterComponentNode["mesh"]) {
-						UUID id = meshFilterComponentNode["mesh"].as<uint64_t>();
-						if (AssetsManager::existsAndType(id, AssetType::Mesh))
-							deserialized.getComponent<MeshFilterComponent>().mesh = std::any_cast<MeshAsset>(AssetsManager::get(id).data);
+
+					GameObject deserialized = m_scene->createGameObject(name, uuid);
+					deserialized.getComponent<GameObjectBaseComponent>().tag = tag;
+
+					auto transformComponentNode = gameObject["TransformComponent"];
+					if (transformComponentNode) {
+						auto& tc = deserialized.getComponent<TransformComponent>();
+						tc.position = transformComponentNode["position"].as<glm::vec3>();
+						tc.rotation = transformComponentNode["rotation"].as<glm::quat>();
+						tc.scale = transformComponentNode["scale"].as<glm::vec3>();
 					}
-				}
 
-				auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
-				if (skyBoxComponentNode) {
-					auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
-					if(skyBoxComponentNode["texture"])
-						skyBox.texture = std::any_cast<Ref<CubeMap>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
-				}
+					auto cameraComponentNode = gameObject["CameraComponent"];
+					if (cameraComponentNode) {
+						auto& cc = deserialized.addComponent<CameraComponent>();
+						auto& settings = cameraComponentNode["Camera Settings"];
 
-				auto boxColliderComponentNode = gameObject["BoxColliderComponent"];
-				if (boxColliderComponentNode) {
-					auto& collider = deserialized.addComponent<BoxColliderComponent>();
-					collider.dynamicFriction = boxColliderComponentNode["dynamicFriction"].as<float>();
-					collider.staticFriction = boxColliderComponentNode["staticFriction"].as<float>();
-					collider.restitution = boxColliderComponentNode["restitution"].as<float>();
+						cc.settings.clearType = (CameraComponent::ClearType)settings["clearType"].as<int>();
+						cc.settings.clearColor = settings["clearColor"].as<glm::vec4>();
+						cc.settings.fov = settings["fov"].as<float>();
+						cc.settings.zoom = settings["zoom"].as<float>();
+						cc.settings.zNear = settings["zNear"].as<float>();
+						cc.settings.zFar = settings["zFar"].as<float>();
+						cc.settings.staticAspect = settings["staticAspect"].as<bool>();
+						cc.settings.aspectRatio = settings["aspectRatio"].as<float>();
+						cc.settings.textureWidth = settings["textureWidth"].as<uint32_t>();
+						cc.settings.textureHeight = settings["textureHeight"].as<uint32_t>();
 
-					collider.size = boxColliderComponentNode["size"].as<glm::vec3>();
-					collider.offset = boxColliderComponentNode["offset"].as<glm::vec3>();
-				}
 
-				auto sphereColliderComponentNode = gameObject["SphereColliderComponent"];
-				if (sphereColliderComponentNode) {
-					auto& collider = deserialized.addComponent<SphereColliderComponent>();
-					collider.dynamicFriction = sphereColliderComponentNode["dynamicFriction"].as<float>();
-					collider.staticFriction = sphereColliderComponentNode["staticFriction"].as<float>();
-					collider.restitution = sphereColliderComponentNode["restitution"].as<float>();
+						cc.mode = (CameraMode)cameraComponentNode["mode"].as<int>();
+						cc.depth = (CameraMode)cameraComponentNode["depth"].as<int>();
+						cc.updateMode();
+						cc.updateProjection();
+						cc.updateSize();
+					}
 
-					collider.radius = sphereColliderComponentNode["radius"].as<float>();
-				}
+					auto spriteRendererNode = gameObject["SpriteRendererComponent"];
+					if (spriteRendererNode) {
+						auto& src = deserialized.addComponent<SpriteRendererComponent>();
+						src.color = spriteRendererNode["color"].as<glm::vec4>();
+						src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
+						if (spriteRendererNode["texture"])
+							src.texture = std::any_cast<Ref<Texture2D>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
+					}
 
-				auto meshColliderComponentNode = gameObject["MeshColliderComponent"];
-				if (meshColliderComponentNode) {
-					auto& collider = deserialized.addComponent<MeshColliderComponent>();
-					collider.dynamicFriction = meshColliderComponentNode["dynamicFriction"].as<float>();
-					collider.staticFriction = meshColliderComponentNode["staticFriction"].as<float>();
-					collider.restitution = meshColliderComponentNode["restitution"].as<float>();
-				}
+					auto lightComponentNode = gameObject["LightComponent"];
+					if (lightComponentNode) {
+						auto& light = deserialized.addComponent<LightComponent>();
+						light.color = lightComponentNode["color"].as<glm::vec3>();
+						light.lightType = (LightComponent::Type)lightComponentNode["lightType"].as<int>();
+						light.strength = lightComponentNode["strength"].as<float>();
+						light.areaRadius = lightComponentNode["areaRadius"].as<float>();
+						light.spotLight_cutOff = lightComponentNode["spotLight_cutOff"].as<float>();
+						light.spotLight_outerCutOff = lightComponentNode["spotLight_outerCutOff"].as<float>();
+					}
 
-				auto rigidbodyComponentNode = gameObject["RigidbodyComponent"];
-				if (rigidbodyComponentNode) {
-					auto& body = deserialized.addComponent<RigidbodyComponent>();
-					body.rbType = (RigidbodyComponent::Type)rigidbodyComponentNode["rbType"].as<int>();
-					body.useGravity = rigidbodyComponentNode["useGravity"].as<bool>();
-					body.rotationX = rigidbodyComponentNode["rotationX"].as<bool>();
-					body.rotationY = rigidbodyComponentNode["rotationY"].as<bool>();
-					body.rotationZ = rigidbodyComponentNode["rotationZ"].as<bool>();
-					body.kinematic = rigidbodyComponentNode["kinematic"].as<bool>();
-					body.retainAccelaration = rigidbodyComponentNode["retainAccelaration"].as<bool>();
-					body.mass = rigidbodyComponentNode["mass"].as<float>();
-					body.massCenterPos = rigidbodyComponentNode["massCenterPos"].as<glm::vec3>();
+					auto meshRendererComponentNode = gameObject["MeshRendererComponent"];
+					if (meshRendererComponentNode) {
+						auto& meshrenC = deserialized.saveAddComponent<MeshRendererComponent>();
+						if (meshRendererComponentNode["material"]) {
+							UUID id = meshRendererComponentNode["material"].as<uint64_t>();
+							if (AssetsManager::existsAndType(id, AssetType::Material))
+								deserialized.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+						}
+						if (meshRendererComponentNode["cullMode"]) {
+							meshrenC.cullmode = (CullMode)meshRendererComponentNode["cullMode"].as<uint32_t>();
+						}
+					}
+
+					auto meshFilterComponentNode = gameObject["MeshFilterComponent"];
+					if (meshFilterComponentNode) {
+						auto& meshFilter = deserialized.saveAddComponent<MeshFilterComponent>();
+						if (meshFilterComponentNode["mesh"]) {
+							UUID id = meshFilterComponentNode["mesh"].as<uint64_t>();
+							if (AssetsManager::existsAndType(id, AssetType::Mesh))
+								deserialized.getComponent<MeshFilterComponent>().mesh = std::any_cast<MeshAsset>(AssetsManager::get(id).data);
+						}
+					}
+
+					auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
+					if (skyBoxComponentNode) {
+						auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
+						if (skyBoxComponentNode["texture"])
+							skyBox.texture = std::any_cast<Ref<CubeMap>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
+						if (skyBoxComponentNode["blur"])
+							skyBox.blur = skyBoxComponentNode["blur"].as<float>();
+						if (skyBoxComponentNode["mapType"])
+							skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();
+					}
+
+					auto boxColliderComponentNode = gameObject["BoxColliderComponent"];
+					if (boxColliderComponentNode) {
+						auto& collider = deserialized.addComponent<BoxColliderComponent>();
+						collider.dynamicFriction = boxColliderComponentNode["dynamicFriction"].as<float>();
+						collider.staticFriction = boxColliderComponentNode["staticFriction"].as<float>();
+						collider.restitution = boxColliderComponentNode["restitution"].as<float>();
+
+						collider.size = boxColliderComponentNode["size"].as<glm::vec3>();
+						collider.offset = boxColliderComponentNode["offset"].as<glm::vec3>();
+					}
+
+					auto sphereColliderComponentNode = gameObject["SphereColliderComponent"];
+					if (sphereColliderComponentNode) {
+						auto& collider = deserialized.addComponent<SphereColliderComponent>();
+						collider.dynamicFriction = sphereColliderComponentNode["dynamicFriction"].as<float>();
+						collider.staticFriction = sphereColliderComponentNode["staticFriction"].as<float>();
+						collider.restitution = sphereColliderComponentNode["restitution"].as<float>();
+
+						collider.radius = sphereColliderComponentNode["radius"].as<float>();
+					}
+
+					auto meshColliderComponentNode = gameObject["MeshColliderComponent"];
+					if (meshColliderComponentNode) {
+						auto& collider = deserialized.addComponent<MeshColliderComponent>();
+						collider.dynamicFriction = meshColliderComponentNode["dynamicFriction"].as<float>();
+						collider.staticFriction = meshColliderComponentNode["staticFriction"].as<float>();
+						collider.restitution = meshColliderComponentNode["restitution"].as<float>();
+					}
+
+					auto rigidbodyComponentNode = gameObject["RigidbodyComponent"];
+					if (rigidbodyComponentNode) {
+						auto& body = deserialized.addComponent<RigidbodyComponent>();
+						body.rbType = (RigidbodyComponent::Type)rigidbodyComponentNode["rbType"].as<int>();
+						body.useGravity = rigidbodyComponentNode["useGravity"].as<bool>();
+						body.rotationX = rigidbodyComponentNode["rotationX"].as<bool>();
+						body.rotationY = rigidbodyComponentNode["rotationY"].as<bool>();
+						body.rotationZ = rigidbodyComponentNode["rotationZ"].as<bool>();
+						body.kinematic = rigidbodyComponentNode["kinematic"].as<bool>();
+						body.retainAccelaration = rigidbodyComponentNode["retainAccelaration"].as<bool>();
+						body.mass = rigidbodyComponentNode["mass"].as<float>();
+						body.massCenterPos = rigidbodyComponentNode["massCenterPos"].as<glm::vec3>();
+					}
 				}
 			}
-		}
 
-		//handle childs and parents
-		if (gos) {
-			for (auto gameObject : gos) {
-				UUID uuid = gameObject["GameObject"].as<uint64_t>();
-				GameObject go = GameObject::getById(uuid, m_scene.get());
+			//handle childs and parents
+			if (gos) {
+				for (auto gameObject : gos) {
+					UUID uuid = gameObject["GameObject"].as<uint64_t>();
+					GameObject go = GameObject::getById(uuid, m_scene.get());
 
-				auto transformComponentNode = gameObject["TransformComponent"];
-				if (transformComponentNode) {
-					if (transformComponentNode["parent"]) {
-						go.getComponent<TransformComponent>().parent = GameObject::getById(UUID(transformComponentNode["parent"].as<uint64_t>()), m_scene.get());
+					auto transformComponentNode = gameObject["TransformComponent"];
+					if (transformComponentNode) {
+						if (transformComponentNode["parent"]) {
+							go.getComponent<TransformComponent>().parent = GameObject::getById(UUID(transformComponentNode["parent"].as<uint64_t>()), m_scene.get());
+						}
 					}
+
 				}
-				
 			}
+			return true;
 		}
+		catch (YAML::Exception ex) {
+			CORE_ERROR("YAML exception:\n{0}", ex.what())
+			return false;
+		}
+		return true;
 	}
 }

@@ -46,7 +46,7 @@ project "Editor"
 		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Editor}/Stulu " .. builddir .. "/Stulu",
-		"{COPYDIR} %{physx}/bin/dll " .. builddirData .. ""
+		"{COPYDIR} %{physx}/bin/dll/".. outputdir .." " .. builddirData .. ""
 	}
 	if(staticBuild == false) then
 		postbuildcommands

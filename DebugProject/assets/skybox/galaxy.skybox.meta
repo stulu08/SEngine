@@ -1,2 +1,4 @@
 uuid: 14454760410579358716
 type: 3
+props:
+  resolution: 512

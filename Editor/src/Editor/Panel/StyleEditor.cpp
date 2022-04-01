@@ -4,18 +4,6 @@
 #include <Editor/EditorApp.h>
 
 namespace Stulu {
-    static void HelpMarker(const char* desc) {
-        ST_PROFILING_FUNCTION();
-        ImGui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(desc);
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-    }
     static void NodeFont(ImFont* font) {
         ST_PROFILING_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();
@@ -30,7 +18,7 @@ namespace Stulu {
         ImGui::Text("The quick brown fox jumps over the lazy dog");
         ImGui::PopFont();
         ImGui::DragFloat("Font scale", &font->Scale, 0.005f, 0.3f, 2.0f, "%.1f");   // Scale only this font
-        ImGui::SameLine(); HelpMarker(
+        ImGui::SameLine(); ComponentsRender::drawHelpMarker(
             "Note than the default embedded font is NOT meant to be scaled.\n\n"
             "Font are currently rendered into bitmaps at a given size at the time of building the atlas. "
             "You may oversample them to get some flexibility with scaling. "
@@ -103,14 +91,69 @@ namespace Stulu {
         }
         ImGui::TreePop();
     }
+    void StyleEditor::loadFonts() {
+        //we need to make sure everytime the fonts have the same index, so we create a file to store the index
+        ST_PROFILING_FUNCTION();
+        ST_TRACE("Loading all Fonts from {0}{1}", Application::getStartDirectory().c_str(), "/Stulu/assets/Fonts/");
+        std::string file = "Stulu/assets/Fonts/fonts.txt";
+        std::vector<std::string> fonts;
+
+        //load fonts
+        if (FileExists(file)) {
+            std::unordered_map<std::string, std::string> values;
+            int count = 0;
+            std::fstream inStream(file, std::ios::in);
+            std::string str;
+            while (getline(inStream, str)) {
+                str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+                size_t seperator = str.find_first_of("=");
+                std::string index = str.substr(0, seperator);
+                std::string path = str.substr(seperator + 1, str.npos);
+                values[index] = path;
+                count++;
+            }
+            inStream.close();
+            //add laoded fonts
+            int fontCount = 0;
+            if (values.find("fontCount") != values.end())
+                fontCount = std::stoi(values["fontCount"]);
+            for (int i = 0; i < fontCount; i++) {
+                fonts.insert(fonts.begin() + i, values[std::to_string(i)]);
+            }
+        }
+        //add all fonts to fonts.txt which are not present
+        for (auto& dir : std::filesystem::directory_iterator("Stulu/assets/Fonts/")) {
+            const auto& path = dir.path();
+            if (path.extension() != ".ttf")
+                continue;
+            if (std::find(fonts.begin(), fonts.end(), path.filename().string()) == fonts.end()) {
+                fonts.push_back(path.filename().string());
+            }
+            
+        }
+        //save and load fonts
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        if(FileExists(file))
+            std::remove(file.c_str());
+        std::fstream stream(file, std::ios::out);
+        stream << "fontCount=" << fonts.size() << "\n";
+        for (int i = 0; i < fonts.size(); i++) {
+            io.Fonts->AddFontFromFileTTF(("Stulu/assets/Fonts/" + fonts[i]).c_str(), 15.0f);
+            stream << i << "=" << fonts[i] << "\n";
+        }
+        stream.close();
+        /*
+        io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 15.0f);
+        io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 15.0f);
+        io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 15.0f);
+        */
+    }
     void StyleEditor::init() {
         ST_PROFILING_FUNCTION();
         ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         ImGui::LoadIniSettingsFromDisk(io.IniFilename);
-        io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Roboto-Light.ttf", 15.0f);
-        io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/Raleway-Light.ttf", 15.0f);
-        io.Fonts->AddFontFromFileTTF("Stulu/assets/Fonts/ArialUnicodeMS.ttf", 15.0f);
+        loadFonts();
         io.IniFilename = getEditorProject().windowINI.c_str();
         ImGuiStyle& style = ImGui::GetStyle();
         StyleFileData data = load();
@@ -170,7 +213,7 @@ namespace Stulu {
         data.CircleSegmentMaxError = std::stof(values["CircleSegmentMaxError"]);
         data.GlobalAlpha = std::stof(values["GlobalAlpha"]);
 
-        ST_INFO("Loaded Editor style config from {0}", file);
+        ST_TRACE("Loaded Editor style config from {0}", file);
         return data;
     }
     void StyleEditor::save() {
@@ -197,7 +240,7 @@ namespace Stulu {
         stream << "GlobalAlpha=" << style.Alpha << "\n";
 
         stream.close();
-        ST_INFO("Saved Editor style config to {0}", file);
+        ST_TRACE("Saved Editor style config to {0}", file);
     }
     void StyleEditor::drawStyleEditor(ImGuiStyle* ref, bool* open) {
         ST_PROFILING_FUNCTION();
@@ -272,7 +315,7 @@ namespace Stulu {
                     if (ImGui::RadioButton("Opaque", alpha_flags == ImGuiColorEditFlags_None)) { alpha_flags = ImGuiColorEditFlags_None; } ImGui::SameLine();
                     if (ImGui::RadioButton("Alpha", alpha_flags == ImGuiColorEditFlags_AlphaPreview)) { alpha_flags = ImGuiColorEditFlags_AlphaPreview; } ImGui::SameLine();
                     if (ImGui::RadioButton("Both", alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) { alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf; } ImGui::SameLine();
-                    HelpMarker(
+                    ComponentsRender::drawHelpMarker(
                         "In the color list:\n"
                         "Left-click on colored square to open color picker,\n"
                         "Right-click to open edit options menu.");
@@ -340,9 +383,9 @@ namespace Stulu {
                 if (ImGui::BeginTabItem("Rendering"))
                 {
                     ImGui::Checkbox("Anti-aliased lines", &style.AntiAliasedLines);
-                    ImGui::SameLine(); HelpMarker("When disabling anti-aliasing lines, you'll probably want to disable borders in your style as well.");
+                    ImGui::SameLine(); ComponentsRender::drawHelpMarker("When disabling anti-aliasing lines, you'll probably want to disable borders in your style as well.");
                     ImGui::Checkbox("Anti-aliased lines use texture", &style.AntiAliasedLinesUseTex);
-                    ImGui::SameLine(); HelpMarker("Faster lines using texture data. Require back-end to render with bilinear filtering (not point/nearest filtering).");
+                    ImGui::SameLine(); ComponentsRender::drawHelpMarker("Faster lines using texture data. Require back-end to render with bilinear filtering (not point/nearest filtering).");
                     ImGui::Checkbox("Anti-aliased fill", &style.AntiAliasedFill);
                     ImGui::PushItemWidth(100);
                     ImGui::DragFloat("Curve Tessellation Tolerance", &style.CurveTessellationTol, 0.02f, 0.10f, 10.0f, "%.2f");
@@ -367,7 +410,7 @@ namespace Stulu {
                         ImGui::EndTooltip();
                     }
                     ImGui::SameLine();
-                    HelpMarker("When drawing circle primitives with \"num_segments == 0\" tesselation will be calculated automatically.");
+                    ComponentsRender::drawHelpMarker("When drawing circle primitives with \"num_segments == 0\" tesselation will be calculated automatically.");
 
                     ImGui::DragFloat("Global Alpha", &style.Alpha, 0.005f, 0.20f, 1.0f, "%.2f"); // Not exposing zero here so user doesn't "lose" the UI (zero alpha clips all widgets). But application code could have a toggle to switch between zero and non-zero.
                     ImGui::PopItemWidth();
@@ -383,7 +426,7 @@ namespace Stulu {
         }
         ImGui::End();
     }
-	bool StyleEditor::drawStyleSelector() {
+    bool StyleEditor::drawStyleSelector() {
         ST_PROFILING_FUNCTION();
         if (ImGui::Combo("Colors##Selector", &styleIndex, "Ocean Dark\0Dark\0Amoled Dark\0Personal\0ImGui Classic\0ImGui Dark\0ImGui Light\0")) {
             setStyleByInt(styleIndex);
@@ -407,11 +450,14 @@ namespace Stulu {
             ImGui::EndCombo();
         }
         ImGui::SameLine();
-        HelpMarker(
+        ComponentsRender::drawHelpMarker(
+            (std::string("- You can use additional fonts by placing TrueType Font files (.ttf) in ") + Application::getStartDirectory().c_str() + "/Stulu/assets/Fonts/").c_str()
+        );
+        /*ComponentsRender::drawHelpMarker(
             "- Load additional fonts with io.Fonts->AddFontFromFileTTF().\n"
             "- The font atlas is built when calling io.Fonts->GetTexDataAsXXXX() or io.Fonts->Build().\n"
             "- Read FAQ and docs/FONTS.md for more details.\n"
-            "- If you need to add/remove fonts at runtime (e.g. for DPI change), do it before calling NewFrame().");
+            "- If you need to add/remove fonts at runtime (e.g. for DPI change), do it before calling NewFrame().");*/
     }
     std::ostream& operator<<(std::ostream& os, const ImVec4& vec4) {
         return os << vec4.x << "," << vec4.y << "," << vec4.z << "," << vec4.w;
@@ -458,7 +504,7 @@ namespace Stulu {
             stream << i << "=" << colors[i] << "\n";
         }
         stream.close();
-        ST_INFO("Saved Editor style colors to {0}", file);
+        ST_TRACE("Saved Editor style colors to {0}", file);
     }
     void StyleEditor::LoadStyleColors(ImGuiStyle* dst) {
         ST_PROFILING_FUNCTION();
@@ -481,7 +527,7 @@ namespace Stulu {
         }
         
         stream.close();
-        ST_INFO("Loaded Editor style colors from {0}", file);
+        ST_TRACE("Loaded Editor style colors from {0}", file);
     }
 
     void StyleEditor::setStyleByInt(int style) {

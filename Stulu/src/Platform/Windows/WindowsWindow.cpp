@@ -6,7 +6,7 @@
 #include <Stulu/Events/ApplicationEvent.h>
 #include <Stulu/Events/KeyEvent.h>
 #include <Stulu/Events/MouseEvent.h>
-
+#include <Stulu/Renderer/Renderer.h>
 
 namespace Stulu {
 	static bool s_glfwInitilized = false;
@@ -25,8 +25,6 @@ namespace Stulu {
 	void WindowsWindow::init(WindowProps& props) {
 		ST_PROFILING_FUNCTION();
 		m_runtimeData = &props;
-
-
 		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
 
 		if (!s_glfwInitilized) {
@@ -35,6 +33,15 @@ namespace Stulu {
 			CORE_ASSERT(succes, "Could not initialize GLFW!");
 			glfwSetErrorCallback(glfwErrorCallback);
 			s_glfwInitilized = true;
+		}
+		if (Renderer::getRendererAPI() == RenderAPI::API::OpenGL) {
+#ifdef ST_DEBUG
+			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+		}
+		if (Renderer::getRendererAPI() == RenderAPI::API::Vulkan){
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		}
 		m_graphicsContext = GraphicsContext::create();
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
@@ -132,7 +139,10 @@ namespace Stulu {
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		CORE_ASSERT(textureData, std::string("Icon failed to load: " + path));
+		if (!textureData) {
+			CORE_ERROR("Icon failed to load: {0}", path);
+			return;
+		}
 		GLFWimage images[1];
 		images[0] = GLFWimage();
 		images[0].height = height;

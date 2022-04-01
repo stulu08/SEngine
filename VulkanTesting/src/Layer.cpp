@@ -5,7 +5,7 @@
 #include <ImGui/misc/cpp/imgui_stdlib.h>
 
 void DefaultLayer::onAttach() {
-	shader = Shader::create("assets/test.glsl");
+	//shader = Shader::create("assets/test.glsl");
 }
 
 void DefaultLayer::onUpdate(Timestep ts) {

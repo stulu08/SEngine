@@ -53,7 +53,7 @@ namespace Stulu {
 	void Renderer::uploadBufferData(const glm::mat4& projection, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();
 		glm::vec3 pos, rot, scale;
-		Math::decomposeTransform(transform, pos, rot, scale);
+		Math::decomposeTransformEuler(transform, pos, rot, scale);
 		uploadBufferData(projection, glm::inverse(transform), pos, rot);
 	}
 	void Renderer::uploadBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation) {

@@ -60,7 +60,7 @@ namespace Stulu {
 #if ST_PROFILING_RENDERDATA
 			if (ImGui::TreeNodeEx("Runtime Render Data", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::Text("Runtime time: %.1f", Time::time.getSeconds());
-				if (ImGui::TreeNodeEx("DrawingforCams", ImGuiTreeNodeFlags_DefaultOpen, "Drawing for %d Camera(s):", ST_PROFILING_RENDERDATA_GETCAMERAS())) {
+				if (ImGui::TreeNodeEx("RenderStats", ImGuiTreeNodeFlags_DefaultOpen, "Render Stats")) {
 					ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
 					ImGui::Text("Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
 					ImGui::Text("Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());

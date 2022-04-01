@@ -7,7 +7,7 @@
 namespace Stulu {
 
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .1f, 100.0f) {
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f) {
 		ST_PROFILING_FUNCTION();
 
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
@@ -54,11 +54,6 @@ namespace Stulu {
 		in vec2 v_tex;
 		layout (binding = 0) uniform sampler2D texSampler;
 		out vec4 color;
-		layout(std140, binding = 2) uniform postProcessing
-		{
-			float toneMappingExposure;
-			float gamma;
-		};
 		void main()
 		{
 			color = vec4(texture2D(texSampler, v_tex).rgb, 1.0);
@@ -69,14 +64,39 @@ namespace Stulu {
 		Resources::load();
 		EditorResources::loadAll();
 		StyleEditor::init();
-		loadPanelConfig();
 		Previewing::init();
-		DiscordRPC::setState("Hanging around");
+		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 	}
 
 	void EditorLayer::onAttach() {
 		ST_PROFILING_FUNCTION();
 		newScene();
+		loadPanelConfig();
+
+#if 0
+		GameObject object = m_activeScene->createGameObject("Cube");
+		object.addComponent<MeshFilterComponent>().mesh = Resources::getCubeMeshAsset();
+
+		class RigidBodyForceTest : public Behavior{
+		public:
+			Keyboard::KeyCode keycode = Keyboard::Space;
+			float force = 8.0f;
+
+			virtual void onAwake() override{
+				addComponent<BoxColliderComponent>();
+				addComponent<RigidbodyComponent>();
+			}
+			virtual void onUpdate() override {
+				if(Input::isKeyDown(keycode))
+					getComponent<RigidbodyComponent>().addForce(TRANSFORM_UP_DIRECTION, RigidbodyComponent::ForceMode::Impulse);
+			}
+			virtual void uiFunc() override {
+				ComponentsRender::drawFloatControl("Force", force);
+				ComponentsRender::drawIntControl("Key", (int&)keycode);
+			}
+		};
+		object.addComponent<NativeBehaviourComponent>().bind<RigidBodyForceTest>();
+#endif
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -85,6 +105,7 @@ namespace Stulu {
 			if(m_sceneViewport.focused)
 				m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
+			m_activeScene->updateTransform(m_sceneCamera.getTransform());
 		}
 
 
@@ -96,8 +117,8 @@ namespace Stulu {
 				RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 				m_fbDrawData.m_framebuffer->bind();
 				RenderCommand::clear();
-				cO.getComponent<CameraComponent>().getTexture()->bind();
-				m_fbDrawData.m_quadShader->bind();
+				cO.getComponent<CameraComponent>().getTexture()->bind(0);
+				m_fbDrawData.m_quadShader->bind(); 
 				m_fbDrawData.m_quadVertexArray->bind();
 				RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
 				m_fbDrawData.m_framebuffer->unbind();
@@ -162,7 +183,6 @@ namespace Stulu {
 					ComponentsRender::drawFloatControl("Speed", data.physicsData.speed);
 					ComponentsRender::drawFloatControl("Length", data.physicsData.length);
 					ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads,0,16);
-					ComponentsRender::drawBoolControl("PhysX Gpu", data.physicsData.PhysXGpu);
 					ImGui::TreePop();
 				}
 			}
@@ -174,17 +194,48 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (m_showSceneViewport) {
 			if (ImGui::Begin("Scene", &m_showSceneViewport)) {
-				ImGuizmo::SetOrthographic(false);
-				ImGuizmo::SetDrawlist();
-				Gizmo::setRect(m_sceneViewport.windowPos, m_sceneViewport.windowWidth, m_sceneViewport.windowHeight);
-				Gizmo::setCamData(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().getTransform()));
-
+				Gizmo::Begin();
 				GameObject& selected = m_editorHierarchy.getCurrentObject();
-				if (selected && !EditorApp::getLayer().isRuntime()) {
+				if (selected) {
 					Gizmo::TransformEdit(selected.getComponent<TransformComponent>(), m_gizmoEditType);
 				}
-				//Gizmo::drawGrid(glm::mat4(1.0f), 100.0f);
+				if (selected != GameObject::null) {
+					auto& tc = selected.getComponent<TransformComponent>();
+					BoxColliderComponent boxCollider;
+					if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
+						glm::vec3 position = tc.worldPosition + boxCollider.offset;
+						glm::vec3 scale = tc.worldScale * (boxCollider.size * 2.0f);
 
+						Gizmo::drawOutlineCube(Math::createMat4(position, tc.worldRotation, scale),1.0f, glm::vec4(0, 1, 0, 1));
+					}
+
+					float scaleAdd = .02f;
+
+					MeshFilterComponent meshFilter;
+					m_sceneCamera.getCamera()->bindFrameBuffer();
+					RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
+					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
+						if (meshFilter.mesh.hasMesh) {
+							selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
+							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(),EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition,tc.worldRotation,tc.worldScale + glm::vec3(scaleAdd)));
+							
+						}
+					}
+					//each child ouline
+					m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
+						entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
+					) {
+						if (transform.parent == selected) {
+							GameObject object = GameObject{ go , m_activeScene.get() };
+							if (meshFilter.mesh.hasMesh) {
+								meshRenderer.m_enabledStencilBufferNextFrame = true;
+								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, transform.worldScale + glm::vec3(scaleAdd)));
+							}
+						}
+					});
+					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
+					m_sceneCamera.getCamera()->unbindFrameBuffer();
+				}
 			}
 			ImGui::End();
 		}
@@ -251,7 +302,7 @@ namespace Stulu {
 				if (ImGui::MenuItem("Profiling", (const char*)0, m_showProfiling)) {
 					m_showProfiling = !m_showProfiling;
 				}
-				if (ImGui::MenuItem("Rendering", (const char*)0, m_showSceneSettingsPanel)) {
+				if (ImGui::MenuItem("Scene Settings", (const char*)0, m_showSceneSettingsPanel)) {
 					m_showSceneSettingsPanel = !m_showSceneSettingsPanel;
 				}
 				ImGui::EndMenu();
@@ -282,6 +333,8 @@ namespace Stulu {
 			}
 			else {
 				m_activeScene->onRuntimeStart();
+				m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
+				m_fbDrawData.m_framebuffer->invalidate();
 				s_runtime = true;
 			}
 		}
@@ -302,38 +355,38 @@ namespace Stulu {
 
 			case Keyboard::Q:
 				m_gizmoEditType = GizmoTransformEditMode::None;
-				DiscordRPC::setState("Hanging around");
+				DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 				break;
 			case Keyboard::G:
 				m_gizmoEditType = GizmoTransformEditMode::Translate;
-				DiscordRPC::setState("Transforming");
+				DiscordRPC::setDetails("Transforming in " + getEditorProject().name);
 				break;
 			case Keyboard::R:
 				m_gizmoEditType = GizmoTransformEditMode::Rotate;
-				DiscordRPC::setState("Rotating");
+				DiscordRPC::setDetails("Rotation in " + getEditorProject().name);
 				break;
 			case Keyboard::S:
 				if (control) {
-					if (shift || m_currentScenePath.empty())
-						SaveScene();
-					else
+					if (shift && !m_currentScenePath.empty())
 						SaveScene(m_currentScenePath);
-					ST_INFO("Saving Scene");
+					else
+						SaveScene();
+					ST_TRACE("Saving Scene");
 					break;
 				}
 				m_gizmoEditType = GizmoTransformEditMode::Scale;
-				DiscordRPC::setState("Scaling");
+				DiscordRPC::setDetails("Scaling in " + getEditorProject().name);
 				break;
 			case Keyboard::O:
 				if (control) {
 					OpenScene();
-					ST_INFO("Opening Scene");
+					ST_TRACE("Opening Scene");
 				}
 				break;
 			case Keyboard::N:
 				if (control) {
 					newScene();
-					ST_INFO("New Scene");
+					ST_TRACE("New Scene");
 				}
 				break;
 		}
@@ -347,6 +400,10 @@ namespace Stulu {
 	}
 	void EditorLayer::OpenScene() {
 		ST_PROFILING_FUNCTION();
+		if (s_runtime) {
+			m_activeScene->onRuntimeStop();
+			s_runtime = false;
+		}
 		std::string path = Platform::openFile("Scene Files\0 * .scene\0", EditorApp::getProject().path.c_str());
 		if (!path.empty())
 			OpenScene(path);
@@ -359,23 +416,32 @@ namespace Stulu {
 		m_currentScenePath = path;
 		SceneSerializer ss(m_activeScene);
 		ss.serialze(path);
-		DiscordRPC::setDetails("Editing " + path.substr(path.find_last_of("/\\")+1, path.npos));
-		ST_INFO("Saved Scene {0}", path);
+		DiscordRPC::setState("Editing " + path.substr(path.find_last_of("/\\")+1, path.npos));
+		ST_TRACE("Saved Scene {0}", path);
 	}
 	void EditorLayer::OpenScene(const std::string& path) {
 		ST_PROFILING_FUNCTION();
 		if (path.empty()) {
 			OpenScene();
 		}
+		if (s_runtime) {
+			m_activeScene->onRuntimeStop();
+			s_runtime = false;
+		}
 		m_currentScenePath = path;
 		Ref<Scene> nScene = createRef<Scene>();
 		SceneSerializer ss(nScene);
-		ss.deSerialze(path);
-		m_activeScene = nScene;
-		m_editorHierarchy.setScene(m_activeScene);
-		m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
-		ST_INFO("Opened Scene {0}", path);
-		DiscordRPC::setDetails("Editing " + path.substr(path.find_last_of("/\\")+1, path.npos));
+		if (ss.deSerialze(path)) {
+			m_activeScene = nScene;
+			m_editorHierarchy.setScene(m_activeScene);
+			m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
+			ST_TRACE("Opened Scene {0}", path);
+			DiscordRPC::setState("Editing " + path.substr(path.find_last_of("/\\") + 1, path.npos));
+		}
+		else {
+			newScene();
+		}
+
 	}
 	void EditorLayer::newScene() {
 		ST_PROFILING_FUNCTION();
@@ -383,8 +449,8 @@ namespace Stulu {
 		m_activeScene = createRef<Scene>();
 		m_editorHierarchy.setScene(m_activeScene);
 		m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
-		DiscordRPC::setDetails("Editing a scene");
-		ST_INFO("New Scene loaded");
+		DiscordRPC::setState("Editing a scene");
+		ST_TRACE("New Scene loaded");
 	}
 	void EditorLayer::loadPanelConfig() {
 		ST_PROFILING_FUNCTION();
@@ -434,8 +500,14 @@ namespace Stulu {
 
 		if (values.find("setting.vsync") != values.end())
 			getEditorApp().getWindow().setVSync(std::stoi(values["setting.vsync"]));
+		if (values.find("setting.lastScene") != values.end()) {
+			if (FileExists(values["setting.lastScene"])) {
+				OpenScene(values["setting.lastScene"]);
+			}
+		}
+			
 		
-		ST_INFO("Loaded Editor panel config from {0}", file);
+		ST_TRACE("Loaded Editor panel config from {0}", file);
 		return;
 	}
 	void EditorLayer::savePanelConfig() {
@@ -459,10 +531,10 @@ namespace Stulu {
 		stream << "m_gameViewport.zoom=" << (float)m_gameViewport.zoom << "\n";
 
 		stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
-
+		stream << "setting.lastScene=" << m_currentScenePath << "\n";
 
 
 		stream.close();
-		ST_INFO("Saved Editor Panel config to {0}", file);
+		ST_TRACE("Saved Editor Panel config to {0}", file);
 	}
 }

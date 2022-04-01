@@ -3,6 +3,7 @@
 #include "Editor/EditorApp.h"
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 
 namespace Stulu {
@@ -14,7 +15,6 @@ namespace Stulu {
 			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 			width = (uint32_t)viewportSize.x;
 			height = (uint32_t)viewportSize.y;
-
 			ImTextureID viewPortTexture;
 
 			viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getRendererID());
@@ -55,9 +55,9 @@ namespace Stulu {
 				cam.onResize((float)width, (float)height);
 
 
-			windowWidth = (float)ImGui::GetWindowWidth();
-			windowHeight = (float)ImGui::GetWindowHeight();
-			windowPos = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+			glm::vec2 windowPos = glm::vec2(ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Min.y);
+			Gizmo::setRect(windowPos.x, windowPos.y, (float)width, (float)height);
+			Gizmo::setCamData(cam.getCamera()->getProjectionMatrix(), glm::inverse(cam.getTransform().transform));
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();

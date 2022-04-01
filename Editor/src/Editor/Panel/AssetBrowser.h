@@ -16,6 +16,7 @@ namespace Stulu {
 		bool m_inspector = true;
 		Asset selected = { AssetType::Unknown,"","",UUID::null };
 
+		void drawCreateFilePopUp();
 		void renderInspector();
 		void drawDirectory(const std::filesystem::path& path, bool includePathDir = false);
 		bool containsDirSubDirs(std::filesystem::path path);

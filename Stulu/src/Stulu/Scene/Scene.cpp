@@ -51,23 +51,24 @@ namespace Stulu {
 
 	void Scene::onUpdateEditor(Timestep ts, const SceneCamera& camera) {
 		ST_PROFILING_FUNCTION();
-		calculateLights();
+		ST_PROFILING_RENDERDATA_RESET();
+		ST_PROFILING_RENDERDATA_BEGIN();
+
+		updateAllTransforms();
+		SceneRenderer::calculateLights();
+
 		if (camera.getCamera()) {
 			ST_PROFILING_SCOPE("Scene Camera Rendering");
 			SceneRenderer::beginScene(camera);
-			{
-				auto group = m_registry.view<CameraComponent, SkyBoxComponent>();
-				for (auto gameObject : group) {
-					if (group.get<CameraComponent>(gameObject).settings.clearType == CameraComponent::Skybox) {
-						SceneRenderer::drawSkyBox(group.get<SkyBoxComponent>(gameObject));
-					}
-				}
-			}
+			SceneRenderer::uploadBuffers(m_data);
 			{
 				auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 				for (auto gameObject : group) {
 					ST_PROFILING_SCOPE("Rendering Mesh Editor");
 					SceneRenderer::submit(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
+					group.get<MeshRendererComponent>(gameObject).m_enabledStencilBufferNextFrame = false;
+					ST_PROFILING_RENDERDATA_ADDINDICES(group.get<MeshFilterComponent>(gameObject).mesh.mesh->getIndicesCount());
+					ST_PROFILING_RENDERDATA_ADDVERTICES(group.get<MeshFilterComponent>(gameObject).mesh.mesh->getVerticesCount());
 				}
 			}
 			{
@@ -81,16 +82,20 @@ namespace Stulu {
 					else
 						Renderer2D::drawQuad(transform, sprite.color);
 
+					ST_PROFILING_RENDERDATA_ADDINDICES(6);
+					ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 				}
 			}
 			SceneRenderer::endScene();
 		}
+		ST_PROFILING_RENDERDATA_END();
 	}
 
 	void Scene::onRuntimeStart() {
 		ST_PROFILING_FUNCTION();
 		Time::time = .0f;
 		//create rigidbodys3d
+		updateAllTransforms();
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
@@ -106,9 +111,15 @@ namespace Stulu {
 			}
 			behaviour.instance->onStart();
 		});
+		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
+			cam.getFrameBuffer()->getSpecs().textureFormat = (m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA);
+			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
+			});
 	}
 	void Scene::onUpdateRuntime(Timestep ts) {
 		ST_PROFILING_FUNCTION();
+		Time::time += ts;
+		updateAllTransforms();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
 			if (!behaviour.instance) {
 				behaviour.instance = behaviour.InstantiateBehaviour();
@@ -117,35 +128,28 @@ namespace Stulu {
 			}
 			behaviour.instance->onUpdate();
 		});
-		Time::time += ts;
-		updatedLightsThisFrame = false;
+		//calculations
 		if(m_data.enablePhsyics3D)
 			updatePhysics();
-		//calculations
-		if (!updatedLightsThisFrame) {
-			calculateLights();
-		}
+		else
+			SceneRenderer::calculateLights();//otherwise we do it in m_physics.getScene()->fetchResults()
 		//rendering
 		auto view = m_registry.view<CameraComponent>();
-		ST_PROFILING_RENDERDATA_RESET();
 		for (auto gameObject : view) {
 			renderScene(gameObject,ts);
 		}
 	}
 	void Scene::renderScene(entt::entity cam, Timestep ts) {
 		ST_PROFILING_FUNCTION();
-		ST_PROFILING_RENDERDATA_BEGIN();
-		ST_PROFILING_RENDERDATA_ADDCAMERAS(1);
 
 		SceneRenderer::beginScene({ cam,this });
+		SceneRenderer::uploadBuffers(m_data);
 		{
 			ST_PROFILING_SCOPE("Rendering Mesh");
 			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 			for (auto gameObject : group) {
 				auto& filter = group.get<MeshFilterComponent>(gameObject);
 				SceneRenderer::submit(group.get<MeshRendererComponent>(gameObject), filter, group.get<TransformComponent>(gameObject));
-				ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh.mesh->getIndicesCount());
-				ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh.mesh->getVerticesCount());
 			}
 		}
 		{
@@ -158,9 +162,6 @@ namespace Stulu {
 					Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.tiling * sprite.texture->getSettings().tiling, sprite.color);
 				else
 					Renderer2D::drawQuad(transform, sprite.color);
-
-				ST_PROFILING_RENDERDATA_ADDINDICES(6);
-				ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 			}
 		}
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
@@ -168,7 +169,6 @@ namespace Stulu {
 				behaviour.instance->onRender(ts);
 			});
 		SceneRenderer::endScene();
-		ST_PROFILING_RENDERDATA_END();
 	}
 	void Scene::onRuntimeStop() {
 		ST_PROFILING_FUNCTION();
@@ -179,85 +179,40 @@ namespace Stulu {
 				behaviour.DestroyBehaviour(&behaviour);
 			}
 			});
+
 		if (m_data.enablePhsyics3D) {
 			m_physics.shutDown();
+			for (auto id : m_registry.view<RigidbodyComponent>()) {
+				GameObject object = { id, this };
+				object.getComponent<RigidbodyComponent>().destroy(object, m_physics);
+			}
+			for (auto id : m_registry.view<BoxColliderComponent>()) {
+				GameObject object = { id, this };
+				object.getComponent<BoxColliderComponent>().destroy(object, m_physics);
+			}
+			for (auto id : m_registry.view<SphereColliderComponent>()) {
+				GameObject object = { id, this };
+				object.getComponent<SphereColliderComponent>().destroy(object, m_physics);
+			}
+			for (auto id : m_registry.view<MeshColliderComponent>()) {
+				GameObject object = { id, this };
+				object.getComponent<MeshColliderComponent>().destroy(object, m_physics);
+			}
 		}
-	}
-
-	void Scene::calculateLights() {
-		ST_PROFILING_FUNCTION();
-		SceneRenderer::calculateLights();
-		SceneRenderer::uploadBuffers(m_data);
-		updatedLightsThisFrame = true;
 	}
 	void Scene::setupPhysics() {
 		m_physics.startUp(m_data.physicsData);
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
-			glm::mat4 trans = object.getComponent<TransformComponent>().getWorldSpaceTransform();
-			glm::vec3 scale, pos, rot;
-			Math::decomposeTransform(trans, pos, rot, scale);
-
-			auto& bCollide = object.getComponent<BoxColliderComponent>();
-
-			physx::PxRigidActor* actor;
-			if (object.hasComponent<RigidbodyComponent>()) {
-				actor = m_physics.createActor(object.getComponent<RigidbodyComponent>(), pos, rot);
-			}
-			else {
-				actor = m_physics.getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-				actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, true);
-			}
-			physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
-			physx::PxMaterial* aMaterial = m_physics.getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
-			physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxBoxGeometry(PhysicsVec3fromglmVec3(scale * bCollide.size)), *aMaterial);
-			shape->setLocalPose(relativePose);
-			bCollide.shape = (void*)shape;
-			m_physics.getScene()->addActor(*actor);
+			object.getComponent<BoxColliderComponent>().create(object, m_physics);
 		}
 		for (auto id : m_registry.view<SphereColliderComponent>()) {
 			GameObject object = { id, this };
-			glm::mat4 trans = object.getComponent<TransformComponent>().getWorldSpaceTransform();
-			glm::vec3 scale, pos, rot;
-			Math::decomposeTransform(trans, pos, rot, scale);
-
-			auto& bCollide = object.getComponent<SphereColliderComponent>();
-
-			physx::PxRigidActor* actor;
-			if (object.hasComponent<RigidbodyComponent>()) {
-				actor = m_physics.createActor(object.getComponent<RigidbodyComponent>(), pos, rot);
-			}
-			else {
-				actor = m_physics.getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-				actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, true);
-			}
-			physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
-			physx::PxMaterial* aMaterial = m_physics.getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
-			physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxSphereGeometry(scale.x * bCollide.radius), *aMaterial);
-			shape->setLocalPose(relativePose);
-			bCollide.shape = (void*)shape;
-			m_physics.getScene()->addActor(*actor);
+			object.getComponent<SphereColliderComponent>().create(object, m_physics);
 		}
 		for (auto id : m_registry.view<MeshColliderComponent>()) {
 			GameObject object = { id, this };
-			glm::mat4 trans = object.getComponent<TransformComponent>().getWorldSpaceTransform();
-			glm::vec3 scale, pos, rot;
-			Math::decomposeTransform(trans, pos, rot, scale);
-
-			auto& bCollide = object.getComponent<MeshColliderComponent>();
-
-			if (!object.hasComponent<MeshFilterComponent>())
-				continue;
-			Ref<Mesh>& mesh = object.getComponent<MeshFilterComponent>().mesh.mesh;
-			if (mesh == nullptr)
-				continue;
-
-			physx::PxRigidActor* actor = m_physics.getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-
-			physx::PxMaterial* aMaterial = m_physics.getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
-			physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxTriangleMeshGeometry(m_physics.createTriangleMesh(mesh),
-				physx::PxMeshScale(PhysicsVec3fromglmVec3(scale))), *aMaterial);
-			m_physics.getScene()->addActor(*actor);
+			object.getComponent<MeshColliderComponent>().create(object, m_physics);
 		}
 	}
 	void Scene::updatePhysics() {
@@ -265,44 +220,90 @@ namespace Stulu {
 		m_physics.getScene()->simulate(Time::deltaTime);
 		//we do as much ass possible here
 		while (!m_physics.getScene()->fetchResults()) {
-			if (!updatedLightsThisFrame) {
-				calculateLights();
-			}
+			SceneRenderer::calculateLights();
 		}
 		auto view = m_registry.view<RigidbodyComponent>();
 		for (auto id : view) {
 			GameObject object = { id, this };
 			auto& rb = object.getComponent<RigidbodyComponent>();
+			auto& tc = object.getComponent<TransformComponent>();
+			if (rb.body == nullptr)
+				continue;
 			physx::PxRigidActor* actor = (physx::PxRigidActor*)rb.body;
-
 			if (rb.rbType == RigidbodyComponent::Type::Dynamic) {
-				auto& tc = object.getComponent<TransformComponent>();
 				physx::PxTransform tr = actor->getGlobalPose();
 
-				if (rb.rotationX && rb.rotationY && rb.rotationZ) {
-					glm::mat4 transform = glm::translate(glm::mat4(1.0f), PhysicsVec3toglmVec3(tr.p)) * glm::toMat4(glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z));
-					if (tc.parent) {
-						glm::vec3 worldPos, worldRotation, worldScale;
-						Math::decomposeTransform(transform, worldPos, worldRotation, worldScale);
-						glm::mat4 parent = tc.parent.getComponent<TransformComponent>().getWorldSpaceTransform();
-						const glm::vec3 parentPos = glm::vec3(parent[3]);
-						parent[3] = glm::vec4(0, 0, 0, parent[3].w);
-						transform = glm::translate(glm::mat4(1.0f), worldPos - parentPos) * glm::toMat4(glm::quat(worldRotation)) * glm::scale(glm::mat4(1.0f), worldScale) / parent;
-					}
-					glm::vec3 pos, rotation, scale;
-					Math::decomposeTransform(transform, pos, rotation, scale);
+				glm::vec3 pos = PhysicsVec3toglmVec3(tr.p);
+				glm::quat rot = glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z);
+				if (pos != tc.worldPosition || rot != tc.worldRotation) {
+					glm::mat4 transform;//new local
 
-					tc.position = pos;
-					tc.rotation = rotation;
+					if (tc.parent) {
+						auto& parent = tc.parent.getComponent<TransformComponent>();
+
+						transform =
+							glm::translate(glm::mat4(1.0f), pos - parent.worldPosition) *
+							(glm::toMat4(rot) / glm::toMat4(parent.worldRotation)) *
+							glm::scale(glm::mat4(1.0f), tc.scale / parent.worldScale);
+						glm::vec3 s;
+						Math::decomposeTransform(transform, tc.position, tc.rotation, s);
+					}
+					else {
+						tc.position = pos;
+						tc.rotation = rot;
+					}
 				}
 				else {
-					tc.position = PhysicsVec3toglmVec3(tr.p);
+					actor->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition),PhysicsQuatfromglmQuat(tc.worldRotation)));
 				}
+			}
+			else {
+				actor->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
 			}
 		}
 
 	}
+	std::unordered_map<entt::entity, bool> st_transform_updated;
+	void Scene::updateAllTransforms() {
+		ST_PROFILING_FUNCTION();
+		auto view = m_registry.view<TransformComponent>();
+		for (auto id : view) {
+			GameObject object = { id, this };
+			auto& tc = object.getComponent<TransformComponent>();
+			tc.gameObject = object;
+			if (st_transform_updated.find(id) == st_transform_updated.end())
+				updateTransform(tc);
+		}
+		st_transform_updated.clear();
+	}
+	void Scene::updateTransform(TransformComponent& tc) {
+		ST_PROFILING_FUNCTION();
+		if (tc.parent) {
+			TransformComponent& ptc = tc.parent.getComponent<TransformComponent>();
+			if (st_transform_updated.find(tc.parent.m_entity) == st_transform_updated.end())
+				updateTransform(tc.parent.getComponent<TransformComponent>());
 
+			tc.transform = 
+				glm::translate(glm::mat4(1.0f), tc.position + ptc.worldPosition) * 
+				(glm::toMat4(tc.rotation) * glm::toMat4(ptc.worldRotation)) * 
+				glm::scale(glm::mat4(1.0f), tc.scale * ptc.worldScale);
+
+			Math::decomposeTransform(tc.transform, tc.worldPosition, tc.worldRotation, tc.worldScale);
+		}
+		else {
+			tc.worldPosition = tc.position;
+			tc.worldRotation = tc.rotation;
+			tc.worldScale = tc.scale;
+			tc.transform = Math::createMat4(tc.worldPosition, tc.worldRotation, tc.worldScale);
+		}
+
+		tc.forward = glm::rotate(tc.worldRotation, TRANSFORM_FOREWARD_DIRECTION);
+		tc.up = glm::rotate(tc.worldRotation, TRANSFORM_UP_DIRECTION);
+		tc.right = glm::rotate(tc.worldRotation, TRANSFORM_RIGHT_DIRECTION);
+
+		if(tc.gameObject)
+			st_transform_updated[tc.gameObject.m_entity] = true;
+	}
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
 		ST_PROFILING_FUNCTION();
 		m_viewportWidth = width;
@@ -359,7 +360,6 @@ namespace Stulu {
 		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
 		return go;
 	}
-
 	GameObject Scene::getMainCamera() {
 		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();

@@ -32,9 +32,6 @@ void main() {
 
 	gl_Position = viewProjection * vec4(a_pos, 1.0);
 }
-
-
-
 ##type fragment
 #version 460 core
 layout(location = 0) out vec4 a_color;
@@ -48,10 +45,10 @@ struct VertData{
 layout (location = 0) in VertData Input;
 layout (location = 3) in flat float textureIndex;
 
-uniform sampler2D u_textures[32];
+
+layout (binding = 0) uniform sampler2D u_textures[32];
 
 void main() {
-	//vec4 color = texture(u_textures[int(Input.textureIndex)], Input.texCoord * Input.textureTiling) * Input.color; //amd does not support this
 	vec4 color = vec4(0f);
 	switch(int(textureIndex))
 	{

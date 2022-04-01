@@ -46,10 +46,8 @@ namespace Stulu {
 	}
 	
 	
-	WindowsVulkanContext::WindowsVulkanContext()
+	WindowsVulkanContext::WindowsVulkanContext() 
 		: applicationInfo(Application::get().getApplicationInfo()) {
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	}
 	WindowsVulkanContext::~WindowsVulkanContext() {
 		ST_PROFILING_FUNCTION();
@@ -67,6 +65,7 @@ namespace Stulu {
 	}
 	void WindowsVulkanContext::init(Window* window) {
 		ST_PROFILING_FUNCTION();
+		
 		{
 			GLFWwindow* windowHandle = static_cast<GLFWwindow*>(window->getNativeWindow());
 			CORE_ASSERT(windowHandle, "Window handle is null");
@@ -540,13 +539,13 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-#if ST_VULKAN_VERBOSE_LOGGING
-		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-#elif ST_VULKAN_INFO_LOGGING
-		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-#else
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-#endif // VULKAN_VERBOSE_LOGGING
+#if ST_GRAPHICS_API_VERBOSE_LOGGING
+		createInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+#endif
+#if ST_GRAPHICS_API_INFO_LOGGING
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
+#endif
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		createInfo.pfnUserCallback = debugCallback;
 	}

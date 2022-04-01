@@ -147,7 +147,7 @@ namespace Stulu {
 		drawQuad(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), color);
 	}
 	void Renderer2D::drawQuad(const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec4& color) {
-		drawQuad(Math::createMat4(pos,glm::vec3(.0f,.0f,rotation),glm::vec3(size,1.0f)), color);
+		drawQuad(Math::createMat4(pos,glm::vec3(.0f,.0f,glm::radians(rotation)),glm::vec3(size,1.0f)), color);
 	}
 
 	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, const Ref<Texture>& texture, const glm::vec2& tiling, const glm::vec4& color) {
@@ -187,7 +187,7 @@ namespace Stulu {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
 	}
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
-		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f,rotation), glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
+		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f, glm::radians(rotation)), glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
 	}
 	void Renderer2D::drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
@@ -226,7 +226,7 @@ namespace Stulu {
 		drawFromSpriteSheet(Math::createMat4(pos, glm::vec3(.0f), glm::vec3(size, 1.0f)), sprite, tiling, color);
 	}
 	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
-		drawFromSpriteSheet(Math::createMat4(pos, glm::vec3(.0f, .0f, rotation), glm::vec3(size, 1.0f)), sprite, tiling, color);
+		drawFromSpriteSheet(Math::createMat4(pos, glm::vec3(.0f, .0f, glm::radians(rotation)), glm::vec3(size, 1.0f)), sprite, tiling, color);
 	}
 
 }

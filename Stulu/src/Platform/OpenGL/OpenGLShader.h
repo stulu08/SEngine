@@ -15,6 +15,7 @@ namespace Stulu {
 		virtual void bind() const override;
 		virtual void unbind() const override;
 		virtual const std::string& getName() const override { return m_name; }
+		virtual const std::string& getSource(bool afterPreProcessing = true) const override { return afterPreProcessing ? m_sourcePreProcessed : m_source; }
 		virtual void setMat4(const std::string& name, const glm::mat4& mat) override;
 		virtual void setFloat4(const std::string& name, const glm::vec4& vec) override;
 		virtual void setFloat3(const std::string& name, const glm::vec3& vec) override;
@@ -31,9 +32,15 @@ namespace Stulu {
 		virtual void uploadIntUniform(const std::string& name, const int32_t _int);
 		virtual void uploadIntArrayUniform(const std::string& name, const int* values, uint32_t count);
 
+		virtual std::unordered_map<std::string, Ref<ShaderProperity>> getProperitys() override { return m_properitys; }
+		virtual Ref<ShaderProperity> getProperity(std::string properityName) override { return m_properitys[properityName]; }
+		virtual bool hasProperity(std::string properityName) override { return m_properitys.find(properityName) != m_properitys.end(); }
 	private:
 		uint32_t m_rendererID;
 		std::string m_name;
+		std::string m_source = "";
+		std::string m_sourcePreProcessed = "";
+		std::unordered_map<std::string, Ref<ShaderProperity>> m_properitys;
 
 		std::string readFile(const std::string& path);
 		std::unordered_map<GLenum,std::string> preProcess(const std::string src);

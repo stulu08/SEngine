@@ -4,13 +4,9 @@
 namespace Stulu {
 	void VulkanRenderAPI::init(){
 	}
+	void VulkanRenderAPI::setDefault(){
+	}
 	void VulkanRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
-
-	}
-	void VulkanRenderAPI::setDepthFunc(bool lequalLess){
-
-	}
-	void VulkanRenderAPI::setDepthMask(bool value){
 
 	}
 	void VulkanRenderAPI::setWireFrame(bool v){

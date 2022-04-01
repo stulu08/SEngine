@@ -1,7 +1,7 @@
 #include "st_pch.h"
 #include "AssetsManager.h"
 #include "Stulu/Scene/YAML.h"
-#include "Stulu/Renderer/Model.h"
+#include "Stulu/Scene/Model.h"
 
 namespace Stulu {
 	std::unordered_map<UUID, Asset> AssetsManager::assets;
@@ -19,6 +19,8 @@ namespace Stulu {
 
 	UUID AssetsManager::add(const std::string& path) {
 		ST_PROFILING_FUNCTION();
+		if (std::filesystem::is_directory(path))
+			return addDirectory(path);
 		if (!FileExists(path + ".meta")) {
 			createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 		}
@@ -84,6 +86,19 @@ namespace Stulu {
 		if (exists(uuid))
 			remove(uuid);
 		add(uuid, path, (AssetType)data["type"].as<int>());
+
+	}
+
+	UUID AssetsManager::addDirectory(const std::string& path) {
+		if (!FileExists(path + ".meta")) {
+			createMeta(UUID(), path, AssetType::Directory);
+		}
+		YAML::Node data = YAML::LoadFile(path + ".meta");
+		UUID uuid(data["uuid"].as<uint64_t>());
+
+		if (!exists(uuid))
+			assets[uuid] = Asset{ AssetType::Directory ,path,path,uuid};
+		return uuid;
 	}
 
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
@@ -138,9 +153,22 @@ namespace Stulu {
 			assets[uuid] = data;
 	}
 
-	void AssetsManager::remove(const UUID& uuid) {
-		if (exists(uuid))
+	void AssetsManager::remove(const UUID& uuid, bool deleteFile, bool deleteMetaFile) {
+		if (exists(uuid)) {
+			try {
+				std::string path = get(uuid).path;
+
+				std::filesystem::remove_all(path.c_str());
+
+				if (deleteMetaFile && FileExists(path + ".meta")) {
+					std::remove((path + ".meta").c_str());
+				}
+			}
+			catch (std::exception ex) {
+				CORE_ERROR("Couldn't delete Files/Directory with UUID: {0}\n	:{1}", uuid, ex.what())
+			}
 			assets.erase(uuid);
+		}
 	}
 
 	bool Stulu::AssetsManager::exists(const UUID& uuid) {
@@ -156,13 +184,17 @@ namespace Stulu {
 
 	Asset& Stulu::AssetsManager::get(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
-		CORE_ASSERT(exists(uuid),"UUID not present in assets");
-		return assets[uuid];
+		if(exists(uuid))
+			return assets[uuid];
+		CORE_ERROR("UUID not present in assets");
+		return NullAsset;
 	}
 	const type_info& Stulu::AssetsManager::getType(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
-		CORE_ASSERT(exists(uuid),"UUID not present in assets");
-		return assets[uuid].data.type();
+		if (exists(uuid))
+			return assets[uuid].data.type();
+		CORE_ERROR("UUID not present in assets");
+		return NullAsset.data.type();
 	}
 	const AssetType& AssetsManager::getAssetType(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
@@ -170,9 +202,9 @@ namespace Stulu {
 	}
 	const AssetType AssetsManager::assetTypeFromExtension(const std::string& extension) {
 		ST_PROFILING_FUNCTION();
-		if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga" || extension == ".hdr")
+		if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga")
 			return AssetType::Texture;
-		if (extension == ".skybox")
+		if (extension == ".skybox" || extension == ".hdr")
 			return AssetType::CubeMap;
 		else if (extension == ".glb" || extension == ".obj" || extension == ".fbx")
 			return AssetType::Model;
@@ -182,6 +214,8 @@ namespace Stulu {
 			return AssetType::Shader;
 		else if (extension == ".scene" || extension == ".stulu")
 			return AssetType::Scene;
+		else if (extension == "")
+			return AssetType::Directory;
 		return AssetType::Unknown;
 	}
 	UUID AssetsManager::getFromPath(const std::string& path) {
@@ -190,13 +224,14 @@ namespace Stulu {
 			if(path == i.second.path)
 				return i.first;
 		}
-		
+		if (std::filesystem::is_directory(path))
+			return addDirectory(path);
 		return add(path);
 	}
 
 	void AssetsManager::loadAllFiles(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
-		CORE_INFO("Loading all files from directory: {0}", directory);
+		CORE_TRACE("Loading all files from directory: {0}", directory);
 		//at first shaders and textures need to be loaded for the materials 
 		loadShaders(directory);
 		loadTextures(directory);
@@ -205,20 +240,21 @@ namespace Stulu {
 	}
 	void AssetsManager::loadDirectory(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
-		CORE_INFO("Loading Files: {0}", directory);
+		CORE_TRACE("Loading Files: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
+				addDirectory(path.string());
 				loadDirectory(path.string());
 				continue;
 			}
-			if(path.extension() != ".meta")
+			if (path.extension() != ".meta")
 				add(path.string());
 		}
 	}
 	void AssetsManager::loadShaders(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
-		CORE_INFO("Loading Shaders: {0}", directory);
+		CORE_TRACE("Loading Shaders: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
@@ -231,7 +267,7 @@ namespace Stulu {
 	}
 	void AssetsManager::loadTextures(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
-		CORE_INFO("Loading Textures: {0}", directory);
+		CORE_TRACE("Loading Textures: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
@@ -253,7 +289,7 @@ namespace Stulu {
 	}
 	void AssetsManager::loadMaterials(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
-		CORE_INFO("Loading Material: {0}", directory);
+		CORE_TRACE("Loading Material: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
@@ -266,7 +302,7 @@ namespace Stulu {
 	}
 	void AssetsManager::reloadShaders(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
-		CORE_INFO("Reloading Shaders: {0}", directory);
+		CORE_TRACE("Reloading Shaders: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {

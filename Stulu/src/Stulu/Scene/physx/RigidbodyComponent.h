@@ -1,5 +1,7 @@
 #pragma once
 #include "Stulu/Math/Math.h"
+#include "Stulu/Scene/GameObject.h"
+
 namespace Stulu {
 	class STULU_API RigidbodyComponent {
 	public:
@@ -29,8 +31,15 @@ namespace Stulu {
 	private:
 		//runtime
 		void* body = nullptr;
+		RigidbodyComponent(void* body);
+
+		void destroy(GameObject object, PhysX& physics);
 
 		friend class Scene;
 		friend class PhysX;
+		friend class Collider;
+		friend class BoxColliderComponent;
+		friend class SphereColliderComponent;
+		friend class MeshColliderComponent;
 	};
 }

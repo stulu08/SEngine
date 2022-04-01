@@ -21,7 +21,9 @@ namespace Stulu {
 		static Ref<Texture>& getPauseTexture();
 		static Ref<Texture>& getStopTexture();
 		static Ref<Texture>& getSkyBoxTexture();
+		static const std::string getDefaultSceneSource();
 
+		static Ref<Shader>& getOutlineShader();
 	private:
 		static inline Ref<Texture> s_emptyTexture = nullptr;
 		static inline Ref<Texture> s_fileTexture = nullptr;
@@ -33,5 +35,7 @@ namespace Stulu {
 		static inline Ref<Texture> s_pauseTexture = nullptr;
 		static inline Ref<Texture> s_stopTexture = nullptr;
 		static inline Ref<Texture> s_skyboxTexture = nullptr;
+
+		static inline Ref<Shader> s_outlineShader = nullptr;
 	};
 }

@@ -40,6 +40,8 @@ namespace Stulu {
 
 		static inline void saveAll() { save(); saveColors(); }
 	private:
+		static void loadFonts();
+
 		static bool drawStyleSelector();
 		static void drawFontSelector();
 

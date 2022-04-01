@@ -5,6 +5,23 @@
 namespace Stulu {
 	class STULU_API SceneRenderer {
 	public:
+		struct RenderObject {
+			Material* material;
+			Ref<VertexArray> vertexArray;
+			glm::mat4 transform;
+			CullMode cullmode = CullMode::Back;
+			float camDistance = .0f;
+
+			inline RenderObject& operator=(RenderObject& b) {
+				material = b.material;
+				vertexArray = b.vertexArray;
+				transform = b.transform;
+				cullmode = b.cullmode;
+				camDistance = b.camDistance;
+				return *this;
+			}
+		};
+
 		static void init(Scene* scene);
 
 		static void beginScene(GameObject object);
@@ -15,8 +32,12 @@ namespace Stulu {
 		static void uploadBuffers(const SceneData& data);
 
 		static void submit(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
+		static void submit(const Ref<VertexArray>& vertexArray, Material* material, const glm::mat4& transform);
+		static void submit(const RenderObject& object);
 
-		static void drawSkyBox(SkyBoxComponent& skybox);
+		static void flush();
+		static void drawScene();
+		static void drawSkyBox();
 	private:
 		static struct RuntimeData {
 			struct LightData {
@@ -31,14 +52,24 @@ namespace Stulu {
 			struct SceneData {
 				float toneMappingExposure = 1.0f;
 				float gamma = 2.2f;
+				uint32_t useSkybox = 0;
 			} bufferData;
-
+			inline static struct RenderObjectSkyBox{
+				Ref<CubeMap> texture = nullptr;
+				float blur = .0f;
+				uint32_t mapType = 0;
+			} camSkyBox;
 			inline static Ref<Camera> cam = nullptr;
 			inline static Ref<UniformBuffer> sceneDataBuffer = nullptr;
 			inline static Ref<UniformBuffer> lightBuffer = nullptr;
+			inline static glm::vec3 camPos;
+
 		} s_runtimeData;
+		inline static std::vector<RenderObject> s_drawList;
+		//distance
+		inline static std::vector<RenderObject> s_transparentDrawList;
+		inline static std::vector<RenderObject> s_stencilDrawList;
 		static inline Scene* s_scene = nullptr;
-		static inline UUID s_lastMaterial = UUID::null;
 	};
 }
 

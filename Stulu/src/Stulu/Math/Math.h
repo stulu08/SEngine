@@ -27,8 +27,6 @@ namespace Stulu {
 #define M_RAD2DEG	360.0f / (PI * 2.0f)
 	class STULU_API Math {
 	public:
-		static const float radiansToDegree(float radians);
-		static const float degreeToRadians(float angle);
 		static const glm::vec3 QuaternionToEuler(const glm::quat& q);
 		static const glm::quat EulerToQuaternion(const glm::vec3& euler);
 		static const float clamp(float& v, float min, float max);
@@ -42,14 +40,15 @@ namespace Stulu {
 		static const bool isPosOverQuad(Quad& quad, glm::vec2& pos);
 		static const bool isQuadOverQuad(Quad& quad, Quad& quad2);
 
-		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale);
 		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale);
-		static const glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize);
+		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& scale);
 
+		static const glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize);
 		static const float lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
 		static const glm::quat lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
 		static const glm::quat quaternionFromEulerAngle(const glm::vec3& axis, float angle);
-		static const bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
+		static const bool decomposeTransformEuler(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
+		static const bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale);
 
 		// if count == 0 -> count = vec.size()
 		template<class T>

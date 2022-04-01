@@ -15,7 +15,10 @@ namespace Stulu {
 		}
 		template<typename T, typename... Args>
 		T& addComponent(Args&&... args) {
-			ST_ASSERT(!hasComponent<T>(), "GameObject already has component");
+			if (hasComponent<T>()) {
+				CORE_WARN("GameObject already has component, returning component");
+				return getComponent<T>();
+			}
 			T& component = m_scene->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
 			m_scene->onComponentAdded<T>(*this, component);
 			return component;
@@ -30,12 +33,23 @@ namespace Stulu {
 		}
 		template<typename T>
 		T& getComponent() {
-			ST_ASSERT(hasComponent<T>(), "GameObject does not have component");
+			CORE_ASSERT(hasComponent<T>(), "GameObject does not have component");
 			return m_scene->m_registry.get<T>(m_entity);
 		}
 		template<typename T>
+		bool saveGetComponent(T& t) {
+			if (m_scene->m_registry.has<T>(m_entity)) {
+				t = m_scene->m_registry.get<T>(m_entity);
+				return true;
+			}
+			return false;
+		}
+		template<typename T>
 		void removeComponent() {
-			ST_ASSERT(hasComponent<T>(), "GameObject does not have component");
+			if (!hasComponent<T>()) {
+				CORE_ERROR("GameObject does not have component");
+				return;
+			}
 			m_scene->onComponentRemove<T>(*this, getComponent<T>());
 			m_scene->m_registry.remove<T>(m_entity);
 		}

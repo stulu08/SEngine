@@ -74,6 +74,29 @@ namespace YAML {
 		}
 	};
 	template<>
+	struct convert<glm::quat> {
+		inline static Node encode(const glm::quat& rhs) {
+			Node node;
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.push_back(rhs.z);
+			node.push_back(rhs.w);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		inline static bool decode(const Node& node, glm::quat& rhs) {
+			if (!node.IsSequence() || node.size() != 4)
+				return false;
+
+			rhs.x = node[0].as<float>();
+			rhs.y = node[1].as<float>();
+			rhs.z = node[2].as<float>();
+			rhs.w = node[3].as<float>();
+			return true;
+		}
+	};
+	template<>
 	struct convert<glm::mat4> {
 		inline static Node encode(const glm::mat4& rhs) {
 			Node node;
@@ -99,6 +122,7 @@ namespace YAML {
 			return true;
 		}
 	};
+
 	template<>
 	struct convert<Stulu::TextureSettings> {
 		inline static Node encode(const Stulu::TextureSettings& rhs) {
@@ -125,15 +149,17 @@ namespace YAML {
 			Node node;
 			node.push_back(rhs.binding);
 			node.push_back((uint64_t)rhs.uuid);
+			node.push_back(rhs.type);
 			node.SetStyle(EmitterStyle::Flow);
 			return node;
 		}
 
 		inline static bool decode(const Node& node, Stulu::MaterialTexture& rhs) {
-			if (!node.IsSequence() || node.size() != 2)
+			if (!node.IsSequence() || node.size() != 3)
 				return false;
 			rhs.binding = node[0].as<int>();
 			rhs.uuid = node[1].as<uint64_t>();
+			rhs.type = node[2].as<uint32_t>();
 			return true;
 		}
 	};
@@ -160,7 +186,7 @@ namespace YAML {
 
 				case  Stulu::ShaderDataType::Sampler:		node.push_back(std::any_cast<Stulu::MaterialTexture>(rhs.data));	break;
 				default:
-					CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
+					CORE_ERROR("Uknown ShaderDataType or not supported!");
 			}
 			node.push_back(rhs.name);
 			node.push_back(rhs.order);
@@ -202,7 +228,7 @@ namespace YAML {
 				rhs.data = v;
 			}
 			else {
-				CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
+				CORE_ERROR("Uknown ShaderDataType or not supported!");
 				return false;
 			}
 
@@ -231,6 +257,11 @@ namespace Stulu {
 		out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
 		return out;
 	}
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& v) {
+		out << YAML::Flow;
+		out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
+		return out;
+	}
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq;
@@ -252,7 +283,7 @@ namespace Stulu {
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::MaterialTexture& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq;
-		out << v.binding << (uint64_t)v.uuid;
+		out << v.binding << (uint64_t)v.uuid << v.type;
 		out << YAML::EndSeq;
 		return out;
 	}
@@ -277,7 +308,7 @@ namespace Stulu {
 
 			case  Stulu::ShaderDataType::Sampler:		out << std::any_cast<Stulu::MaterialTexture>(rhs.data);	break;
 			default:
-				CORE_ASSERT(false, "Uknown ShaderDataType or not supported!");
+				CORE_ERROR("Uknown ShaderDataType or not supported!");
 		}
 		out << rhs.name << rhs.order << YAML::EndSeq;
 		return out;

@@ -34,7 +34,6 @@ namespace Stulu{
         float length = 1.0f;
         glm::vec3 gravity = { 0.f, -9.8f, 0.f };
         uint32_t workerThreads = 4;
-        bool PhysXGpu = false;
     };
     class PxAllocatorCallback {
     public:
@@ -49,7 +48,7 @@ namespace Stulu{
         void startUp(const PhysicsData& data = PhysicsData());
         void shutDown();
 
-        physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::vec3& rot);
+        physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
 
         physx::PxScene* getScene() { return m_scene; };

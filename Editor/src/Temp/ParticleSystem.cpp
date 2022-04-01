@@ -65,7 +65,7 @@ void ParticleSystem::draw(Stulu::Timestep ts, glm::vec3& rotation) {
 			p->cSize = glm::lerp(p->beginSize, p->endSize, life);
 			
 			//Stulu::Renderer2D::drawQuad(p->pos, p->cSize, p->rotation, p->cColor);
-			Stulu::Renderer2D::drawQuad(Stulu::Math::createMat4(p->pos, p->rotation, p->cSize), p->cColor);
+			Stulu::Renderer2D::drawQuad(Stulu::Math::createMat4(p->pos, glm::radians(p->rotation), p->cSize), p->cColor);
 			continue;
 		}
 

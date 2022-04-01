@@ -4,6 +4,14 @@
 #include "physx/PxPhysicsAPI.h"
 
 namespace Stulu {
+	RigidbodyComponent::RigidbodyComponent(void* body) {
+		this->body = body;
+	}
+	void RigidbodyComponent::destroy(GameObject object, PhysX& physics) {
+		if (body) {
+			body = nullptr;
+		}
+	}
 	void RigidbodyComponent::addForce(glm::vec3 force, ForceMode mode) {
 		physx::PxRigidActor* actor = (physx::PxRigidActor*)body;
 		if (rbType == Type::Dynamic) {

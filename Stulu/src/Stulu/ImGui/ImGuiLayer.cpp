@@ -64,6 +64,7 @@ namespace Stulu {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
+		
 	}
 	void ImGuiLayer::End()
 	{
@@ -83,6 +84,7 @@ namespace Stulu {
 		}
 	}
 	void ImGuiLayer::onImguiRender(Timestep timestep) {
+		
 	}
 
 	void ImGuiLayer::onEvent(Event& e) {

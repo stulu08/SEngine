@@ -1,6 +1,14 @@
 Shader: 9
+isTransparent: false
 DataTypes:
-  - [4, [0.899999976, 0.0500000007, 0.0500000007, 0], albedo, 0]
-  - [1, 0.100000001, metallic, 1]
-  - [1, 0.100000001, roughness, 2]
-  - [1, 0.300000012, ao, 3]
+  - [4, [1, 0, 0, 1], albedo, 0]
+  - [1, 0, metallic, 1]
+  - [1, 0.5, roughness, 2]
+  - [1, 0.100000001, ao, 3]
+  - [12, [4, 0, 1], albedoMap, 4]
+  - [12, [5, 0, 1], metallicMap, 5]
+  - [12, [6, 0, 1], roughnessMap, 6]
+  - [12, [7, 0, 1], normalMap, 7]
+  - [12, [8, 0, 1], aoMap, 8]
+  - [5, 0, transparencyMode, 9]
+  - [1, 0.5, alphaCutOff, 10]

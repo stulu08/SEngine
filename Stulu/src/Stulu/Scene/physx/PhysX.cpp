@@ -83,7 +83,7 @@ namespace Stulu {
     
     physx::PxTransform PhysicsTransformfromTransformComponent(const glm::mat4& transform) {
         glm::vec3 position, rotation, scale;
-        Math::decomposeTransform(transform, position, rotation, scale);
+        Math::decomposeTransformEuler(transform, position, rotation, scale);
         return physx::PxTransform(PhysicsVec3fromglmVec3(position), PhysicsQuatfromglmQuat(rotation));
     }
     
@@ -113,7 +113,7 @@ namespace Stulu {
                 CORE_ERROR("Phys internal error({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eABORT:
-                CORE_ERROR("Phys Abort({1}:{2}): {0}", message, file, line);
+                CORE_CRITICAL("Phys Abort({1}:{2}): {0}", message, file, line);
                 CORE_ASSERT(false, "PhysX error");
                 break;
             case physx::PxErrorCode::ePERF_WARNING:
@@ -134,8 +134,10 @@ namespace Stulu {
 
         m_foundataion = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback,
             gDefaultErrorCallback);
-        if (!m_foundataion)
-            CORE_ASSERT(false,"PxCreateFoundation failed!");
+        if (!m_foundataion) {
+            CORE_ERROR("PxCreateFoundation failed!");
+            return;
+        }
 
         bool recordMemoryAllocations = true;
 
@@ -145,26 +147,33 @@ namespace Stulu {
 
         m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundataion,
             tollerantScale, recordMemoryAllocations, m_pvd);
-        if (!m_physics)
-            CORE_ASSERT(false, "PxCreatePhysics failed!");
-        if (!PxInitExtensions(*m_physics, m_pvd))
-            CORE_ASSERT(false,"PxInitExtensions failed!");
+        if (!m_physics) {
+            CORE_ERROR("PxCreatePhysics failed!");
+            return;
+        }
+        if (!PxInitExtensions(*m_physics, m_pvd)) {
+            CORE_ERROR("PxInitExtensions failed!");
+            return;
+        }
         m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, *m_foundataion, physx::PxCookingParams(m_physics->getTolerancesScale()));
-        if (!m_cooking)
-            CORE_ASSERT(false, "PxCreateCooking failed!");
-        if(data.PhysXGpu)
-            PxSetPhysXGpuLoadHook(&gGpuLoadHook);
+        if (!m_cooking) {
+            CORE_ERROR("PxCreateCooking failed!");
+            return;
+        }
+        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
 
         m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(data.workerThreads);
-        if (!m_cpuDispatcher)
-            CORE_ASSERT(false,"PxDefaultCpuDispatcherCreate failed!");
+        if (!m_cpuDispatcher) {
+            CORE_ERROR("PxDefaultCpuDispatcherCreate failed!");
+            return;
+        }
 
         physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
 
 #if PX_WINDOWS
         // create GPU dispatcher
         physx::PxCudaContextManagerDesc cudaContextManagerDesc;
-        m_cudaContextManager = PxCreateCudaContextManager(*m_foundataion,cudaContextManagerDesc);
+        m_cudaContextManager = PxCreateCudaContextManager(*m_foundataion, cudaContextManagerDesc);
         sceneDesc.cudaContextManager = m_cudaContextManager;
 #endif
 
@@ -175,8 +184,10 @@ namespace Stulu {
         sceneDesc.flags |= physx::PxSceneFlag::eENABLE_STABILIZATION;
 
         m_scene = m_physics->createScene(sceneDesc);
-        if (!m_scene)
-            CORE_ASSERT(false,"Physics Scene creation failed!");
+        if (!m_scene) {
+            CORE_ERROR("Physics Scene creation failed!");
+            return;
+        }
     }
     void PhysX::shutDown() {
         if(m_scene)
@@ -192,8 +203,15 @@ namespace Stulu {
             m_pvd->release();
         if(m_foundataion)
             m_foundataion->release();
+
+        m_scene = nullptr;
+        m_cpuDispatcher = nullptr;
+        m_cooking = nullptr;
+        m_physics = nullptr;
+        m_pvd = nullptr;
+        m_foundataion = nullptr;
     }
-    physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::vec3& rot) {
+    physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot) {
         physx::PxRigidActor* actor;
         if (rb.rbType == RigidbodyComponent::Type::Dynamic) {
             actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
@@ -226,6 +244,7 @@ namespace Stulu {
         meshDesc.triangles.count = (uint32_t)theMesh->m_indices.size()/3;
         meshDesc.triangles.stride = 3 * sizeof(uint32_t);
         meshDesc.triangles.data = theMesh->m_indices.data();
+        
 
         physx::PxDefaultMemoryOutputStream writeBuffer;
         physx::PxTriangleMeshCookingResult::Enum result;

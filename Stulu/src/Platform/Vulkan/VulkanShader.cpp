@@ -37,7 +37,7 @@ namespace Stulu {
 		m_name = path.substr(lastS, lastD == std::string::npos ? path.size() - lastS : lastD - lastS);
 
 		std::string sShaderFile = readFile(path);
-		auto sources = preProcess(sShaderFile, isMultiFile(sShaderFile));
+		auto sources = preProcess(sShaderFile);
 		compile(compileToSpirv(sources, path));
 
 
@@ -45,17 +45,15 @@ namespace Stulu {
 	VulkanShader::VulkanShader(const std::string& name, const std::string& src) {
 		ST_PROFILING_FUNCTION();
 		m_name = name;
-
 		std::string sShaderFile = readFile(src);
-		auto sources = preProcess(sShaderFile, isMultiFile(sShaderFile));
+		auto sources = preProcess(sShaderFile);
 		compile(compileToSpirv(sources, std::string("unnamed-shaders/") + name + ".glsl"));
 	}
 	VulkanShader::VulkanShader(const std::string& name, const std::string& vertex, const std::string& fragment)
 		: m_name(name) {
 		ST_PROFILING_FUNCTION();
-		std::unordered_map<VkShaderStageFlagBits, std::string> sources;
-		sources[VK_SHADER_STAGE_VERTEX_BIT] = vertex;
-		sources[VK_SHADER_STAGE_FRAGMENT_BIT] = fragment;
+		std::string src = "##type " + stringFromShaderType(VK_SHADER_STAGE_VERTEX_BIT) + "\n" + vertex + "\n" + "##type " + stringFromShaderType(VK_SHADER_STAGE_FRAGMENT_BIT) + "\n" + fragment + "\n";
+		auto sources = preProcess(src);
 		compile(compileToSpirv(sources, std::string("unnamed-shaders/") + name + ".glsl"));
 	}
 
@@ -104,51 +102,70 @@ namespace Stulu {
 
 		return result;
 	}
-	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::preProcess(const std::string src, bool multiFile) {
+	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::preProcess(const std::string& _src) {
 		ST_PROFILING_FUNCTION();
 		std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources;
-		if (multiFile) {
-			const char* typeToken = "#include";
+		std::string shaderSrc = _src;
+		{//##add
+			//everyone can only be added once 
+			for (auto& p : s_preProcessorAdds) {
+				std::string token = "##add " + p.first;
+				size_t pos = shaderSrc.find(token);
+				if (pos != std::string::npos) {
+					shaderSrc.replace(pos, token.length(), p.second);
+				}
+			}
+		}
+		{//##properity
+			std::istringstream stream{ shaderSrc };
+			std::string line;
+			const std::string token = "##properity";
+			while (std::getline(stream, line)) {
+				size_t pos = line.find(token);
+				if (pos != std::string::npos) {
+					line.replace(pos, token.length() + 1, "");//remove
+					size_t firstBracket = line.find_first_of('(');
+					size_t lastBracket = line.find_first_of(')');
+					std::string values = line.substr(firstBracket + 1, lastBracket - firstBracket - 1);
+					ShaderProperity::Type pType = ShaderProperity::typeFromString(line.substr(0, firstBracket));
+
+					std::string typeName = line.substr(line.find_first_of('|') + 1);
+					typeName.erase(std::remove(typeName.begin(), typeName.end(), '\r'), typeName.end());
+					typeName.erase(std::remove(typeName.begin(), typeName.end(), '\n'), typeName.end());
+
+					if (pType == ShaderProperity::Type::Color4) {
+						m_properitys[typeName] = createRef<ShaderProperityColor4>();
+					}
+					else if (pType == ShaderProperity::Type::Range) {
+						m_properitys[typeName] = createRef<ShaderProperityRange>(values);
+					}
+					else if (pType == ShaderProperity::Type::Enum) {
+						m_properitys[typeName] = createRef<ShaderProperityEnum>(values);
+					}
+
+				}
+			}
+		}
+		{//##type
+			const char* typeToken = "##type";
 			size_t typeTokenLength = strlen(typeToken);
-			size_t pos = src.find(typeToken, 0);
+			size_t pos = shaderSrc.find(typeToken, 0);
 			while (pos != std::string::npos)
 			{
-				size_t eol = src.find_first_of("\r\n", pos);
-				size_t typeEnder = src.find_first_of("|", pos);
-				//CORE_ASSERT(eol != std::string::npos, "Syntax error");
+				size_t eol = shaderSrc.find_first_of("\r\n", pos);
+				CORE_ASSERT(eol != std::string::npos, "Syntax error");
 				size_t begin = pos + typeTokenLength + 1;
-				std::string type = src.substr(begin, typeEnder - begin);
-				begin += type.length() + 1;
-				std::string path = src.substr(begin, eol - begin);
-
-				std::string shaderSrc = readFile(path);
-
+				std::string type = shaderSrc.substr(begin, eol - begin);
 				CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
 
-				size_t nextLinePos = src.find_first_not_of("\r\n", eol);
-				pos = src.find(typeToken, nextLinePos);
-				shaderSources[shaderTypeFromString(type)] = shaderSrc;
+				size_t nextLinePos = shaderSrc.find_first_not_of("\r\n", eol);
+				CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
+				pos = shaderSrc.find(typeToken, nextLinePos);
+				shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? shaderSrc.substr(nextLinePos) : shaderSrc.substr(nextLinePos, pos - nextLinePos);
 			}
-			//dont ask why
-			return shaderSources;
 		}
-		const char* typeToken = "##type";
-		size_t typeTokenLength = strlen(typeToken);
-		size_t pos = src.find(typeToken, 0);
-		while (pos != std::string::npos)
-		{
-			size_t eol = src.find_first_of("\r\n", pos);
-			CORE_ASSERT(eol != std::string::npos, "Syntax error");
-			size_t begin = pos + typeTokenLength + 1;
-			std::string type = src.substr(begin, eol - begin);
-			CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
-
-			size_t nextLinePos = src.find_first_not_of("\r\n", eol);
-			CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
-			pos = src.find(typeToken, nextLinePos);
-			shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? src.substr(nextLinePos) : src.substr(nextLinePos, pos - nextLinePos);
-		}
-
+		m_source = _src;
+		m_sourcePreProcessed = shaderSrc;
 		return shaderSources;
 	}
 	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::compileToSpirv(const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSrcs, std::string shaderPath) {
@@ -206,9 +223,6 @@ namespace Stulu {
 		for (auto shader : shaderModules) {
 			vkDestroyShaderModule(VulkanRenderAPI::getDevice().device, shader, nullptr);
 		}
-	}
-	bool VulkanShader::isMultiFile(const std::string src) {
-		return src.rfind("#multifile", 0) == 0;
 	}
 	VulkanShader::~VulkanShader() {
 		ST_PROFILING_FUNCTION();

@@ -7,6 +7,7 @@
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Core/Input.h"
+#include "Stulu/Scene/Resources.h"
 
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -20,6 +21,7 @@ namespace Stulu {
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		if (hideWindow)
 			m_window->hide();
+		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"Stulu");
 		AssetsManager::loadAllFiles("Stulu");
 #if OPENGL
 		Renderer::init();
@@ -57,9 +59,6 @@ namespace Stulu {
 		}
 
 	}
-#if ST_LOG_FPS
-	float ST_FRAMETIME_LOG = 0;
-#endif
 	void Application::run() {
 		ST_PROFILING_FUNCTION();
 		m_lastFrameTime = Platform::getTime();
@@ -70,13 +69,6 @@ namespace Stulu {
 			Time::applicationRuntime = time;
 			m_lastFrameTime = time;
 			Time::deltaTime = delta * Time::Scale;
-#if ST_LOG_FPS
-			if (ST_FRAMETIME_LOG > 1.0f) {
-				CORE_INFO("FPS: {0}({1}ms)", 1.0f / Time::deltaTime, Time::deltaTime.getMilliseconds());
-				ST_FRAMETIME_LOG = 0;
-			}
-			ST_FRAMETIME_LOG += Time::deltaTime.getSeconds();
-#endif
 			Input::update();
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
@@ -103,7 +95,7 @@ namespace Stulu {
 			CORE_INFO("Force Exit: {0}", code);
 			return;
 		}
-		CORE_ERROR("Application can't shut down! It hasn't been created yet")
+		CORE_CRITICAL("Application can't shut down! It hasn't been created yet")
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
 		ST_PROFILING_FUNCTION();

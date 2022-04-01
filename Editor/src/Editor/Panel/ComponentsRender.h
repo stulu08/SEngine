@@ -43,7 +43,9 @@ namespace Stulu {
 		static bool drawVector3Control(const std::string& header, glm::vec3& vec);
 		static bool drawVector4Control(const std::string& header, glm::vec4& vec);
 		static bool drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items = -1);
+		static bool drawComboControl(const std::string& header, int& current_item, const std::vector<std::string>& items);
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
+		static void drawHelpMarker(const char* desc);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, AssetType type = AssetType::Texture2D);
 		static bool drawMaterialEdit(const std::string& header, UUID& uuid, bool canChange = true);
 		static bool drawMeshEdit(const std::string& header, UUID& uuid);
