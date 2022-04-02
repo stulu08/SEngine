@@ -38,7 +38,8 @@ project "Editor"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.Discord}"
+		"%{IncludeDir.mono}/mono-2.0",
+		"%{IncludeDir.Discord}",
 	}
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."",

@@ -7,6 +7,10 @@
 #include "Stulu/Core/Version.h"
 #include "Stulu/Core/Time.h"
 
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/debug-helpers.h>
+
 namespace Stulu {
 	struct ApplicationInfo {
 		const char* ApplicationName;
@@ -27,6 +31,7 @@ namespace Stulu {
 		Application(ApplicationInfo appInfo, bool hideWindow = false);
 		virtual ~Application();
 
+		void createMono(const std::string& name);
 		void run();
 		void onEvent(Event& e);
 		void pushLayer(Layer* layer);
@@ -54,6 +59,11 @@ namespace Stulu {
 		bool m_runnig = true;
 		bool m_minimized = false;
 		float m_lastFrameTime = 0.0f;
+
+		MonoDomain* m_monoDomain;
+		MonoAssembly* m_monoAssembly;
+		MonoImage* m_monoImage;
+
 
 		static Application* s_instance;
 		static inline std::vector<std::string> s_startArgs;

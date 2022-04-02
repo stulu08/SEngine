@@ -40,6 +40,9 @@ namespace Stulu {
 		ST_INFO("Loading all Project assets from: {0}", s_project.assetPath);
 		AssetsManager::loadAllFiles(s_project.assetPath);
 		pushLayer(editorLayer);
+
+		createMono(s_project.name);
+
 		getWindow().show();
 	}
 	EditorApp::~EditorApp() {

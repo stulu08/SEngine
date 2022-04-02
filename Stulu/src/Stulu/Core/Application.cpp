@@ -9,9 +9,6 @@
 #include "Stulu/Core/Input.h"
 #include "Stulu/Scene/Resources.h"
 
-#include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
-
 
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -32,11 +29,12 @@ namespace Stulu {
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 #endif
-
-		
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
+		if (m_monoDomain) {
+			mono_jit_cleanup(m_monoDomain);
+		}
 		Renderer2D::shutdown();
 		m_window.reset();
 	}
@@ -64,6 +62,14 @@ namespace Stulu {
 				break;
 		}
 
+	}
+	void Application::createMono(const std::string& name) {
+		mono_set_dirs(".", ".");
+
+		m_monoDomain = mono_jit_init(name.c_str());
+		if (m_monoDomain) {
+			return;
+		}
 	}
 	void Application::run() {
 		ST_PROFILING_FUNCTION();
