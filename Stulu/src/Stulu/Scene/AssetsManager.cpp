@@ -3,6 +3,7 @@
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Scene/Model.h"
 
+
 namespace Stulu {
 	std::unordered_map<UUID, Asset> AssetsManager::assets;
 

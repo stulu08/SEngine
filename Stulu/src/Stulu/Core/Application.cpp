@@ -9,6 +9,10 @@
 #include "Stulu/Core/Input.h"
 #include "Stulu/Scene/Resources.h"
 
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
+
+
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
@@ -28,6 +32,8 @@ namespace Stulu {
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 #endif
+
+		
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();

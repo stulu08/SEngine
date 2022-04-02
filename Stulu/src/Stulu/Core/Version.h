@@ -24,4 +24,5 @@ inline std::ostream& operator<<(std::ostream& os, const Version& e) {
 }
 
 #define ST_ENGINE_VERSION Version(2,4,0)
+#define ST_ENGINE_VERSION_STR "2.4.0"
 #define ST_ENGINE_NAME ("Stulu Engine")

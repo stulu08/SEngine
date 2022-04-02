@@ -27,9 +27,10 @@ staticRuntime = true
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 builddir = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-builddirData = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/data"
+
 
 vulkanSDK = os.getenv("VULKAN_SDK")
+monoDir = os.getenv("PATH_MONO")
 physx = "%{wks.location}/Stulu/vendor/physx"
 
 IncludeDir = {}
@@ -46,6 +47,7 @@ IncludeDir["noise"] = "%{wks.location}/Stulu/vendor/ReputelessPerlinNoise"
 IncludeDir["entt"] = "%{wks.location}/Stulu/vendor/entt"
 IncludeDir["Vulkan"] = "%{vulkanSDK}/Include"
 IncludeDir["PhysX"] = "%{physx}/include"
+IncludeDir["mono"] = "%{monoDir}/include"
 IncludeDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc/include"
 
 ProjectDir = {}

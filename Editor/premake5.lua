@@ -42,18 +42,13 @@ project "Editor"
 	}
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."",
-		"{MKDIR} ".. builddirData .."",
 		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Editor}/Stulu " .. builddir .. "/Stulu",
-		"{COPYDIR} %{physx}/bin/dll/".. outputdir .." " .. builddirData .. ""
+		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. " " .. builddir .. "",
+		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and there are huge and i dont have a lot of space left
+		"{DELETE} " .. builddir .. "/Stulu.idb" --we dont need these files and there are huge and i dont have a lot of space left
 	}
-	if(staticBuild == false) then
-		postbuildcommands
-		{
-			"{COPY} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/Stulu.dll " .. builddir .. ""
-		}
-	end
 	links
 	{
 		"Stulu", 

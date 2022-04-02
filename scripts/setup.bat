@@ -1,4 +1,6 @@
 @echo off
+IF "%PATH_MONO%"=="" mono.bat
+
 python --version 3>NUL
 if errorlevel 1 goto errorNoPython
 
