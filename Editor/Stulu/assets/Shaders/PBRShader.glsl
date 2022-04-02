@@ -4,6 +4,7 @@
 ##properity Range(0.0,1.0)	|ao
 ##properity Range(0.0,1.0)	|alphaCutOff
 ##properity Enum(Opaque,Cutout,Transparent) |transparencyMode
+##properity Marker(Does not apply for normal map)		|textureTilling
 
 #version 460
 ##add ST_default
@@ -18,6 +19,7 @@ layout(std140, binding = 3) uniform material {
 	uint has_roughnessMap;
 	uint has_normalMap;
 	uint has_aoMap;
+	vec2 textureTilling;
 	uint transparencyMode;
 	float alphaCutOff;
 };
@@ -37,16 +39,16 @@ void main (){
 
 	
 	if(has_albedoMap == 1)
-		a_albedo *= pow(texture(albedoMap, vertex.texCoords).rgba, vec4(vec3(2.2),1.0));
+		a_albedo *= pow(texture(albedoMap, vertex.texCoords * textureTilling).rgba, vec4(vec3(2.2),1.0));
 
 	data.albedo = a_albedo.rgb;
 
 	if(has_metallicMap == 1)
-		data.metallic = texture(metallicMap, vertex.texCoords).r;
+		data.metallic = texture(metallicMap, vertex.texCoords * textureTilling).r;
 	if(has_roughnessMap == 1)
-		data.roughness = texture(roughnessMap, vertex.texCoords).r;
+		data.roughness = texture(roughnessMap, vertex.texCoords * textureTilling).r;
 	if(has_aoMap == 1)
-		data.ao = texture(aoMap, vertex.texCoords).r;
+		data.ao = texture(aoMap, vertex.texCoords * textureTilling).r;
 
 	if(has_normalMap == 1)
 		data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords, vertex.normal, normalMap);

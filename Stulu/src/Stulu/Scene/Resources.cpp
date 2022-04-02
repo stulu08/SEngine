@@ -240,8 +240,9 @@ namespace Stulu {
 			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{6,nullptr,1,UUID::null},"roughnessMap",6},
 			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{7,nullptr,1,UUID::null},"normalMap",7},
 			MaterialDataType{ShaderDataType::Sampler,MaterialTexture{8,nullptr,1,UUID::null},"aoMap",8},
-			MaterialDataType{ShaderDataType::Int,0,"transparencyMode",9},
-			MaterialDataType{ShaderDataType::Float,.0f,"alphaCutOff",10},
+			MaterialDataType{ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",9},
+			MaterialDataType{ShaderDataType::Int,0,"transparencyMode",10},
+			MaterialDataType{ShaderDataType::Float,.0f,"alphaCutOff",11},
 
 		})),"",UUID(12) });
 	}

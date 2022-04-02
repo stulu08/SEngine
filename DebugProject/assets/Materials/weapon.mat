@@ -10,5 +10,6 @@ DataTypes:
   - [12, [6, 12297624649680559029, 1], roughnessMap, 6]
   - [12, [7, 4191279122311221234, 1], normalMap, 7]
   - [12, [8, 9814046087324379088, 1], aoMap, 8]
-  - [5, 0, transparencyMode, 9]
-  - [1, 0.469999999, alphaCutOff, 10]
+  - [2, [1, 1], textureTilling, 9]
+  - [5, 0, transparencyMode, 10]
+  - [1, 0, alphaCutOff, 11]

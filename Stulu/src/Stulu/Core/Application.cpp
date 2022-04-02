@@ -69,6 +69,7 @@ namespace Stulu {
 			Time::applicationRuntime = time;
 			m_lastFrameTime = time;
 			Time::deltaTime = delta * Time::Scale;
+			Time::frameTime = delta;
 			Input::update();
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {

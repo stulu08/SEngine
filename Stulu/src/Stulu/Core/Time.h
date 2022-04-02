@@ -3,6 +3,8 @@
 namespace Stulu {
 	class Time {
 	public:
+		static inline Timestep frameTime = .0f;
+		//frame time scaled by Scale
 		static inline Timestep deltaTime = .0f;
 		//time since scene runtime started
 		static inline Timestep time = .0f;

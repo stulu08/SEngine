@@ -420,6 +420,9 @@ layout(std140, binding = 1) uniform lightData
 		if (str == "Enum" || str == "enum" || str == "Combo" || str == "combo") {
 			return Type::Enum;
 		}
+		if (str == "Marker" || str == "marker" || str == "Help" || str == "help") {
+			return Type::Marker;
+		}
 		CORE_WARN("Uknown Shader Properity type: {0}", str);
 		return Type::None;
 	}
@@ -448,4 +451,17 @@ layout(std140, binding = 1) uniform lightData
 			m_names.push_back(segment);
 		}
 	}
+	ShaderProperityMarker::ShaderProperityMarker(const std::string& text){
+		m_text = text;
+		size_t index = 0;
+		while (true) {
+			index = m_text.find("\\n", index);
+			if (index == std::string::npos) break;
+
+			m_text.replace(index, 2, "\n");
+
+			index += 2;
+		}
+	}
+
 }

@@ -6,7 +6,7 @@ namespace Stulu {
 	class STULU_API ShaderProperity {
 	public:
 		enum class Type{
-			None,Color4,Range,Enum
+			None,Color4,Range,Enum,Marker
 		};
 		virtual Type getType() const = 0;
 
@@ -84,5 +84,15 @@ namespace Stulu {
 		virtual Type getType() const override { return Type::Enum; }
 	private:
 		std::vector<std::string> m_names;
+	};
+	class STULU_API ShaderProperityMarker : public ShaderProperity {
+	public:
+		ShaderProperityMarker(const std::string& text);
+
+		const std::string& getText() { return m_text; }
+
+		virtual Type getType() const override { return Type::Marker; }
+	private:
+		std::string m_text;
 	};
 }

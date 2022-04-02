@@ -15,9 +15,12 @@
 #include "physx/PxPhysicsAPI.h"
 
 namespace Stulu {
+	static bool startedPhysics = false;
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
 		SceneRenderer::init(this);
+		if(!s_physics.started())
+			s_physics.startUp();
 	}
 	Scene::~Scene() {
 		m_registry.clear();
@@ -181,45 +184,47 @@ namespace Stulu {
 			});
 
 		if (m_data.enablePhsyics3D) {
-			m_physics.shutDown();
+			s_physics.releasePhysics();
 			for (auto id : m_registry.view<RigidbodyComponent>()) {
 				GameObject object = { id, this };
-				object.getComponent<RigidbodyComponent>().destroy(object, m_physics);
+				object.getComponent<RigidbodyComponent>().destroy(object, s_physics);
 			}
 			for (auto id : m_registry.view<BoxColliderComponent>()) {
 				GameObject object = { id, this };
-				object.getComponent<BoxColliderComponent>().destroy(object, m_physics);
+				object.getComponent<BoxColliderComponent>().destroy(object, s_physics);
 			}
 			for (auto id : m_registry.view<SphereColliderComponent>()) {
 				GameObject object = { id, this };
-				object.getComponent<SphereColliderComponent>().destroy(object, m_physics);
+				object.getComponent<SphereColliderComponent>().destroy(object, s_physics);
 			}
 			for (auto id : m_registry.view<MeshColliderComponent>()) {
 				GameObject object = { id, this };
-				object.getComponent<MeshColliderComponent>().destroy(object, m_physics);
+				object.getComponent<MeshColliderComponent>().destroy(object, s_physics);
 			}
 		}
 	}
 	void Scene::setupPhysics() {
-		m_physics.startUp(m_data.physicsData);
+		s_physics.createPhysics(m_data.physicsData);
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
-			object.getComponent<BoxColliderComponent>().create(object, m_physics);
+			object.getComponent<BoxColliderComponent>().create(object, s_physics);
 		}
 		for (auto id : m_registry.view<SphereColliderComponent>()) {
 			GameObject object = { id, this };
-			object.getComponent<SphereColliderComponent>().create(object, m_physics);
+			object.getComponent<SphereColliderComponent>().create(object, s_physics);
 		}
 		for (auto id : m_registry.view<MeshColliderComponent>()) {
 			GameObject object = { id, this };
-			object.getComponent<MeshColliderComponent>().create(object, m_physics);
+			object.getComponent<MeshColliderComponent>().create(object, s_physics);
 		}
 	}
 	void Scene::updatePhysics() {
 		ST_PROFILING_FUNCTION();
-		m_physics.getScene()->simulate(Time::deltaTime);
+		if (Time::deltaTime == 0.0f)
+			return;
+		s_physics.getScene()->simulate(Time::deltaTime);
 		//we do as much ass possible here
-		while (!m_physics.getScene()->fetchResults()) {
+		while (!s_physics.getScene()->fetchResults()) {
 			SceneRenderer::calculateLights();
 		}
 		auto view = m_registry.view<RigidbodyComponent>();
@@ -314,6 +319,11 @@ namespace Stulu {
 			if (!cameraComponent.settings.staticAspect)
 				cameraComponent.onResize(width, height);
 		}
+	}
+
+	void Scene::onApplicationQuit() {
+		if (s_physics.started())
+			s_physics.shutDown();
 	}
 
 	GameObject Scene::addModel(Model& model) {

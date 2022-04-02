@@ -104,14 +104,20 @@ namespace Stulu {
 					typeName.erase(std::remove(typeName.begin(), typeName.end(), '\r'), typeName.end());
 					typeName.erase(std::remove(typeName.begin(), typeName.end(), '\n'), typeName.end());
 
-					if (pType == ShaderProperity::Type::Color4) {
+					switch (pType)
+					{
+					case Stulu::ShaderProperity::Type::Color4:
 						m_properitys[typeName] = createRef<ShaderProperityColor4>();
-					}
-					else if (pType == ShaderProperity::Type::Range) {
+						break;
+					case Stulu::ShaderProperity::Type::Range:
 						m_properitys[typeName] = createRef<ShaderProperityRange>(values);
-					}
-					else if (pType == ShaderProperity::Type::Enum) {
+						break;
+					case Stulu::ShaderProperity::Type::Enum:
 						m_properitys[typeName] = createRef<ShaderProperityEnum>(values);
+						break;
+					case Stulu::ShaderProperity::Type::Marker:
+						m_properitys[typeName] = createRef<ShaderProperityMarker>(values);
+						break;
 					}
 
 				}

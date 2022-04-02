@@ -319,6 +319,11 @@ namespace Hub
         }
         private void CreateProjectButton_Click(object sender, RoutedEventArgs e)
         {
+            if (EnginesListBox.SelectedIndex < 0) {
+                MessageBox.Show("Please select an Engine", "No Engine", MessageBoxButton.OK, MessageBoxImage.Error);
+                setSelectedMenu(Menu.Engine);
+                return;
+            }
             string path = null;
             if (!CommonFileDialog.IsPlatformSupported)
             {
@@ -347,16 +352,23 @@ namespace Hub
             }
             if (path == null)
                 return;
+            /*
             Directory.CreateDirectory(path + "/assets/scenes");
             Directory.CreateDirectory(path + "/config");
 
             if (Download.CheckForInternetConnection())
             {
+                
                 Download.DownloadFile("http://engine.stulu.de/download/default/config/editor-panel-config.ini", path + "/config/editor-panel-config.ini");
                 Download.DownloadFile("http://engine.stulu.de/download/default/config/editor-style.ini", path + "/config/editor-style.ini");
+
                 Download.DownloadFile("http://engine.stulu.de/download/default/config/personal-colors.ini", path + "/config/personal-colors.ini");
                 Download.DownloadFile("http://engine.stulu.de/download/default//assets/scenes/default.scene", path + "/assets/scenes/default.scene");
+                
             }
+            */
+            ZipFile.ExtractToDirectory(engines[selectedEngine].path + "/project.zip", path);
+
             addProject(path);
         }
         private void startpage_web_Navigating(object sender, NavigatingCancelEventArgs e) {

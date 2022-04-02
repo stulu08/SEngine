@@ -56,6 +56,7 @@ namespace Stulu {
 
 		void drawMenuBar();
 		bool onShortCut(KeyDownEvent& e);
+		bool onApplicationQuit(WindowCloseEvent& e);
 		void SaveScene();
 		void OpenScene();
 		void newScene();

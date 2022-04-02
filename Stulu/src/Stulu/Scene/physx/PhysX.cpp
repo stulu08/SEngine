@@ -5,6 +5,24 @@
 #include "Stulu/Core/Time.h"
 #include "Stulu/Scene/Components.h"
 
+namespace physx {
+    class StDefaultAllocator : public physx::PxAllocatorCallback
+    {
+    public:
+        void* allocate(size_t size, const char*, const char*, int)
+        {
+            void* ptr = platformAlignedAlloc(size);
+            PX_ASSERT((reinterpret_cast<size_t>(ptr) & 15) == 0);
+            return ptr;
+        }
+
+        void deallocate(void* ptr)
+        {
+            platformAlignedFree(ptr);
+        }
+    };
+}
+
 //https://gameworksdocs.nvidia.com/PhysX/4.0/documentation/PhysXGuide/Manual/API.html
 namespace Stulu {
     class SnippetGpuLoadHook : public PxGpuLoadHook
@@ -124,13 +142,10 @@ namespace Stulu {
             }
         }
     };
-    void PhysX::startUp(const PhysicsData& data) {
+    void PhysX::startUp() {
         static UserErrorCallback gDefaultErrorCallback;
-        static physx::PxDefaultAllocator gDefaultAllocatorCallback;
-
-        physx::PxTolerancesScale tollerantScale = physx::PxTolerancesScale();
-        tollerantScale.length = data.length;
-        tollerantScale.speed = data.speed;
+        //static physx::PxDefaultAllocator gDefaultAllocatorCallback;
+        static physx::StDefaultAllocator gDefaultAllocatorCallback;
 
         m_foundataion = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback,
             gDefaultErrorCallback);
@@ -138,12 +153,40 @@ namespace Stulu {
             CORE_ERROR("PxCreateFoundation failed!");
             return;
         }
-
-        bool recordMemoryAllocations = true;
-
         m_pvd = physx::PxCreatePvd(*m_foundataion);
         physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10);
         m_pvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
+
+        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
+
+#if PX_WINDOWS
+        // create GPU dispatcher
+        physx::PxCudaContextManagerDesc cudaContextManagerDesc;
+        m_cudaContextManager = PxCreateCudaContextManager(*m_foundataion, cudaContextManagerDesc);
+#endif
+    }
+    void PhysX::shutDown() {
+        if (m_cudaContextManager) {
+            if (m_scene)
+                m_scene->release();
+            m_cudaContextManager->releaseContext();
+            m_cudaContextManager->release();
+        }
+        if(m_pvd)
+            m_pvd->release();
+        if(m_foundataion)
+            m_foundataion->release();
+
+        m_scene = nullptr;
+        m_pvd = nullptr;
+        m_foundataion = nullptr;
+        m_cudaContextManager = nullptr;
+    }
+    void PhysX::createPhysics(const PhysicsData& data) {
+        bool recordMemoryAllocations = true;
+        physx::PxTolerancesScale tollerantScale = physx::PxTolerancesScale();
+        tollerantScale.length = data.length;
+        tollerantScale.speed = data.speed;
 
         m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundataion,
             tollerantScale, recordMemoryAllocations, m_pvd);
@@ -160,20 +203,14 @@ namespace Stulu {
             CORE_ERROR("PxCreateCooking failed!");
             return;
         }
-        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
-
         m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(data.workerThreads);
         if (!m_cpuDispatcher) {
             CORE_ERROR("PxDefaultCpuDispatcherCreate failed!");
             return;
         }
-
         physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
 
 #if PX_WINDOWS
-        // create GPU dispatcher
-        physx::PxCudaContextManagerDesc cudaContextManagerDesc;
-        m_cudaContextManager = PxCreateCudaContextManager(*m_foundataion, cudaContextManagerDesc);
         sceneDesc.cudaContextManager = m_cudaContextManager;
 #endif
 
@@ -189,27 +226,20 @@ namespace Stulu {
             return;
         }
     }
-    void PhysX::shutDown() {
-        if(m_scene)
+    void PhysX::releasePhysics() {
+        if (m_scene)
             m_scene->release();
-        if(m_cpuDispatcher)
+        if (m_cpuDispatcher)
             m_cpuDispatcher->release();
         if (m_cooking)
             m_cooking->release();
         PxCloseExtensions();
-        if(m_physics)
-            m_physics->release(); 
-        if(m_pvd)
-            m_pvd->release();
-        if(m_foundataion)
-            m_foundataion->release();
-
+        if (m_physics)
+            m_physics->release();
         m_scene = nullptr;
         m_cpuDispatcher = nullptr;
         m_cooking = nullptr;
         m_physics = nullptr;
-        m_pvd = nullptr;
-        m_foundataion = nullptr;
     }
     physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot) {
         physx::PxRigidActor* actor;

@@ -43,7 +43,7 @@ namespace Hub
             if (CheckForInternetConnection())
                 return readwebFile("http://engine.stulu.de/download/all.version").Split('\n');
             else
-                return new Version[2]{ "2.2.2","2.2.3"};
+                return new Version[2]{ "2.4.0","2.3.0"};
         }
         public static void DownloadFile(string downloadURL, string fileName, DownloadProgressChangedEventHandler eventProgressChanged, System.ComponentModel.AsyncCompletedEventHandler eventFinish)
         {

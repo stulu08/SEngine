@@ -35,18 +35,17 @@ namespace Stulu{
         glm::vec3 gravity = { 0.f, -9.8f, 0.f };
         uint32_t workerThreads = 4;
     };
-    class PxAllocatorCallback {
-    public:
-        virtual ~PxAllocatorCallback() {}
-        virtual void* allocate(size_t size, const char* typeName, const char* filename,
-            int line) = 0;
-        virtual void deallocate(void* ptr) = 0;
-    };
     class STULU_API PhysX {
     public:
         PhysX(){}
-        void startUp(const PhysicsData& data = PhysicsData());
+        ~PhysX() { shutDown(); }
+        //call this on application startup
+        void startUp();
+        //call this on application shutdown
         void shutDown();
+
+        void createPhysics(const PhysicsData& data = PhysicsData());
+        void releasePhysics();
 
         physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
@@ -54,6 +53,8 @@ namespace Stulu{
         physx::PxScene* getScene() { return m_scene; };
         physx::PxPhysics* getPhysics() { return m_physics; };
 
+
+        bool started() { return m_foundataion != nullptr; }
     private:
         physx::PxFoundation* m_foundataion = nullptr;
         physx::PxPvd* m_pvd = nullptr;

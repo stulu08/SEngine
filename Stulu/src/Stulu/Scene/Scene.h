@@ -35,6 +35,7 @@ namespace Stulu {
 		void onRuntimeStop();
 
 		void onViewportResize(uint32_t width, uint32_t height);
+		void onApplicationQuit();
 
 		GameObject addModel(Model& model);
 		GameObject addMeshAssetsToScene(MeshAsset& mesh, Model& model);
@@ -47,8 +48,6 @@ namespace Stulu {
 
 		entt::registry m_registry;
 		SceneData m_data;
-
-		PhysX m_physics;
 
 		void setupPhysics();
 		void updatePhysics();
@@ -67,6 +66,10 @@ namespace Stulu {
 		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class EditorHierarchyPanel;
+
+
+
+		static inline PhysX s_physics;
 	};
 }
 

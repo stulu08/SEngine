@@ -248,6 +248,7 @@ namespace Stulu {
 		EventDispatcher dispacther(e);
 
 		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
+		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(EditorLayer::onApplicationQuit));
 	}
 	void EditorLayer::drawMenuBar() {
 		ST_PROFILING_FUNCTION();
@@ -274,7 +275,7 @@ namespace Stulu {
 			}
 			if (ImGui::BeginMenu("Settings")) {
 
-				if (ImGui::MenuItem("VSync", "",getEditorApp().getWindow().isVSync())) {
+				if (ImGui::MenuItem("VSync", "", getEditorApp().getWindow().isVSync())) {
 					getEditorApp().getWindow().setVSync(!getEditorApp().getWindow().isVSync());
 				}
 
@@ -322,22 +323,40 @@ namespace Stulu {
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
 		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar);
+
 		float size = ImGui::GetWindowHeight() - 4.0f;
 		ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size));
-		Ref<Texture> tex = s_runtime ? EditorResources::getStopTexture() : EditorResources::getPlayTexture();
-		if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), {size, size}, {0, 1}, {1, 0}, 0, {0,0,0,0}, icoColor)) {
-			if (s_runtime) {
-				m_activeScene->onRuntimeStop();
-				s_runtime = false;
+
+		{
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) + 10.0f);
+			Ref<Texture> tex = s_runtime ? EditorResources::getStopTexture() : EditorResources::getPlayTexture();
+			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
+				if (s_runtime) {
+					m_activeScene->onRuntimeStop();
+					s_runtime = false;
+				}
+				else {
+					Time::Scale = 1.0f;
+					m_activeScene->onRuntimeStart();
+					m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
+					m_fbDrawData.m_framebuffer->invalidate();
+					s_runtime = true;
+				}
 			}
-			else {
-				m_activeScene->onRuntimeStart();
-				m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
-				m_fbDrawData.m_framebuffer->invalidate();
-				s_runtime = true;
+		}ImGui::SameLine();
+		{
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) - 10.0f);
+			Ref<Texture> tex = EditorResources::getPauseTexture();
+			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
+				if (Time::Scale == 0.0f) {
+					Time::Scale = 1.0f;
+				}
+				else {
+					Time::Scale = 0.0f;
+				}
 			}
 		}
+
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
 		ImGui::End();
@@ -390,6 +409,12 @@ namespace Stulu {
 				}
 				break;
 		}
+		return false;
+	}
+	bool EditorLayer::onApplicationQuit(WindowCloseEvent& e) {
+		if (s_runtime)
+			m_activeScene->onRuntimeStop();
+		m_activeScene->onApplicationQuit();
 		return false;
 	}
 	void EditorLayer::SaveScene() {

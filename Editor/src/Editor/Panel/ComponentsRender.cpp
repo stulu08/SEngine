@@ -764,6 +764,12 @@ namespace Stulu {
 				else {
 					ST_WARN("Uknown ShaderDataType or not supported: {0}", name);
 				}
+				if (mat->getShader()->hasProperity(name)) {
+					Ref<ShaderProperity> prop = mat->getShader()->getProperity(name);
+					if (prop->getType() == ShaderProperity::Type::Marker) {
+						ImGui::SameLine(); ComponentsRender::drawHelpMarker(std::static_pointer_cast<ShaderProperityMarker>(prop)->getText().c_str());
+					}
+				}
 			}
 
 			changed |= drawBoolControl("Is Transparent",mat->isTransparent);
