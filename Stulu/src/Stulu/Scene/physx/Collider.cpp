@@ -6,7 +6,7 @@
 #include "physx/PxPhysicsAPI.h"
 
 #include "Stulu/Scene/GameObject.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 
 
 namespace Stulu {

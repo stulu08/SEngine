@@ -2,7 +2,7 @@
 #include "SceneSerializer.h"
 #include "Stulu/Scene/YAML.h"
 
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 namespace Stulu {
 
 	static void SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {

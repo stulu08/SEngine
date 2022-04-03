@@ -9,12 +9,15 @@
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/Material.h"
 
-#include "Stulu/Scene/Components/Camera.h"
+#include "Stulu/Scene/Components/Component.h"
 
+#include "Stulu/Scene/Components/Camera.h"
 #include "Stulu/Scene/physx/Collider.h"
 
 namespace Stulu {
-	struct GameObjectBaseComponent {
+
+	class GameObjectBaseComponent : public Component {
+	public:
 		UUID uuid;
 		std::string name = "GameObject";
 		std::string tag = "default";
@@ -24,7 +27,8 @@ namespace Stulu {
 		GameObjectBaseComponent(const std::string& name)
 			: name(name) { };
 	};
-	struct TransformComponent {
+	class TransformComponent : public Component {
+	public:
 		glm::vec3 position = glm::vec3(.0f);
 		glm::quat rotation = glm::quat(1.0f, .0f, .0f, .0f);
 		glm::vec3 scale = glm::vec3(1.0f);
@@ -60,7 +64,8 @@ namespace Stulu {
 		}
 	};
 
-	struct SpriteRendererComponent {
+	class SpriteRendererComponent : public Component {
+	public:
 		glm::vec4 color = COLOR_WHITE;
 		glm::vec2 tiling = glm::vec2(1.0f);
 		
@@ -72,7 +77,8 @@ namespace Stulu {
 			: color(color) {};
 	};
 
-	struct LightComponent {
+	class LightComponent : public Component {
+	public:
 		enum Type{ Directional = 0, Area = 1, Spot = 2 };
 
 		Type lightType = Type::Directional;
@@ -89,7 +95,8 @@ namespace Stulu {
 		LightComponent(const Type& type)
 			: lightType(type) {};
 	};
-	struct SkyBoxComponent {
+	class SkyBoxComponent : public Component {
+	public:
 		Ref<CubeMap> texture = nullptr;
 
 		float blur = .0f;
@@ -101,7 +108,8 @@ namespace Stulu {
 		SkyBoxComponent(const SkyBoxComponent&) = default;
 	};
 
-	struct MeshRendererComponent {
+	class MeshRendererComponent : public Component {
+	public:
 		Material* material;
 		CullMode cullmode = CullMode::Back;
 
@@ -110,7 +118,8 @@ namespace Stulu {
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
 	};
-	struct MeshFilterComponent {
+	class MeshFilterComponent : public Component {
+	public:
 		MeshAsset mesh{"",nullptr};
 
 		MeshFilterComponent() = default;
@@ -120,7 +129,8 @@ namespace Stulu {
 			: mesh(mesh){}
 	};
 	class Behavior;
-	struct NativeBehaviourComponent {
+	class NativeBehaviourComponent : public Component {
+	public:
 		Behavior* instance = nullptr;
 		std::string behaviorName = "";
 

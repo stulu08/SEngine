@@ -2,7 +2,7 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Events/ApplicationEvent.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Events/MouseEvent.h"
 #include "Stulu/Events/KeyEvent.h"
 

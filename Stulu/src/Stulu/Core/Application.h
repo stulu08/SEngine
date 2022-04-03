@@ -6,10 +6,7 @@
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Core/Version.h"
 #include "Stulu/Core/Time.h"
-
-#include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
-#include <mono/metadata/debug-helpers.h>
+#include "Stulu/ScriptCore/ScriptCore.h"
 
 namespace Stulu {
 	struct ApplicationInfo {
@@ -24,14 +21,12 @@ namespace Stulu {
 		ApplicationInfo(const char* applicationName, const Version applicationVersion, WindowProps windowProps)
 			: ApplicationName(applicationName), ApplicationVersion(applicationVersion), windowProps(windowProps) {}
 	};
-
-
+	class STULU_API ScriptCore;
 	class STULU_API Application {
 	public:
 		Application(ApplicationInfo appInfo, bool hideWindow = false);
 		virtual ~Application();
 
-		void createMono(const std::string& name);
 		void run();
 		void onEvent(Event& e);
 		void pushLayer(Layer* layer);
@@ -43,11 +38,13 @@ namespace Stulu {
 		inline const ApplicationInfo& getApplicationInfo() { return m_appInfo; }
 
 		inline static Application& get(){ return *s_instance; }
+		inline static uint32_t getWidth(){ return s_instance->m_window->getWidth(); }
+		inline static uint32_t getHeight(){ return s_instance->m_window->getWidth(); }
 
 		static inline std::vector<std::string>& getStartArgs() { return s_startArgs; }
 		static inline std::string getStartDirectory() { return s_startArgs[0].substr((size_t)0, s_startArgs[0].find_last_of("/\\")); }
 
-		static void exit(int code = 0);
+		static void exit(int32_t code = 0);
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
@@ -56,14 +53,11 @@ namespace Stulu {
 		ImGuiLayer* m_imguiLayer;
 		LayerStack m_layerStack;
 		ApplicationInfo m_appInfo;
-		bool m_runnig = true;
+		bool m_runnig = false;
 		bool m_minimized = false;
 		float m_lastFrameTime = 0.0f;
 
-		MonoDomain* m_monoDomain;
-		MonoAssembly* m_monoAssembly;
-		MonoImage* m_monoImage;
-
+		Ref<ScriptCore> m_scriptCore = nullptr;
 
 		static Application* s_instance;
 		static inline std::vector<std::string> s_startArgs;

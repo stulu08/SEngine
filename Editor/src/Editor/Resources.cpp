@@ -3,16 +3,16 @@
 namespace Stulu {
 
 	void EditorResources::loadAll() {
-		s_emptyTexture = Texture2D::create("Stulu/assets/Textures/Icons/empty.png");
-		s_fileTexture = Texture2D::create("Stulu/assets/Textures/Icons/file.png");
-		s_folderTexture = Texture2D::create("Stulu/assets/Textures/Icons/folder.png");
-		s_objectTexture = Texture2D::create("Stulu/assets/Textures/Icons/object.png");
-		s_sceneTexture = Texture2D::create("Stulu/assets/Textures/Icons/scene.png");
-		s_noCameraTexture = Texture2D::create("Stulu/assets/Textures/Icons/nocam.png");
-		s_playTexture = Texture2D::create("Stulu/assets/Textures/Icons/play.png");
-		s_pauseTexture = Texture2D::create("Stulu/assets/Textures/Icons/pause.png");
-		s_stopTexture = Texture2D::create("Stulu/assets/Textures/Icons/stop.png");
-		s_skyboxTexture = Texture2D::create("Stulu/assets/Textures/Icons/skybox.png");
+		s_emptyTexture = Texture2D::create("assets/Textures/Icons/empty.png");
+		s_fileTexture = Texture2D::create("assets/Textures/Icons/file.png");
+		s_folderTexture = Texture2D::create("assets/Textures/Icons/folder.png");
+		s_objectTexture = Texture2D::create("assets/Textures/Icons/object.png");
+		s_sceneTexture = Texture2D::create("assets/Textures/Icons/scene.png");
+		s_noCameraTexture = Texture2D::create("assets/Textures/Icons/nocam.png");
+		s_playTexture = Texture2D::create("assets/Textures/Icons/play.png");
+		s_pauseTexture = Texture2D::create("assets/Textures/Icons/pause.png");
+		s_stopTexture = Texture2D::create("assets/Textures/Icons/stop.png");
+		s_skyboxTexture = Texture2D::create("assets/Textures/Icons/skybox.png");
 
 		std::string src = R"(
 		##add ST_vertex

@@ -9,7 +9,6 @@
 #include "Stulu/Core/Input.h"
 #include "Stulu/Scene/Resources.h"
 
-
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
@@ -22,19 +21,22 @@ namespace Stulu {
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		if (hideWindow)
 			m_window->hide();
-		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"Stulu");
-		AssetsManager::loadAllFiles("Stulu");
+		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"assets");
+		AssetsManager::loadAllFiles("assets");
 #if OPENGL
 		Renderer::init();
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 #endif
+		m_scriptCore = createRef<ScriptCore>(".",".");
+		float e = 1.0f;
+		void* p[1];
+		p[0] = &e;
+		m_scriptCore->getEngineObject()->callConstructor("(single)", p);
+		
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
-		if (m_monoDomain) {
-			mono_jit_cleanup(m_monoDomain);
-		}
 		Renderer2D::shutdown();
 		m_window.reset();
 	}
@@ -63,26 +65,20 @@ namespace Stulu {
 		}
 
 	}
-	void Application::createMono(const std::string& name) {
-		mono_set_dirs(".", ".");
-
-		m_monoDomain = mono_jit_init(name.c_str());
-		if (m_monoDomain) {
-			return;
-		}
-	}
 	void Application::run() {
 		ST_PROFILING_FUNCTION();
 		m_lastFrameTime = Platform::getTime();
+		m_runnig = true;
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Run Loop");
 			float time = Platform::getTime();
 			Timestep delta = time - m_lastFrameTime;
 			Time::applicationRuntime = time;
 			m_lastFrameTime = time;
-			Time::deltaTime = delta * Time::Scale;
 			Time::frameTime = delta;
+			Time::deltaTime = delta * Time::Scale;
 			Input::update();
+			m_scriptCore->getEngineObject()->call("onUpdate()");
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
@@ -101,14 +97,21 @@ namespace Stulu {
 			m_window->onUpdate();
 		}
 	}
-	void Application::exit(int code) {
+	void Application::exit(int32_t code) {
 		ST_PROFILING_FUNCTION();
-		if (s_instance != nullptr) {
-			s_instance->m_runnig = false;
-			CORE_INFO("Force Exit: {0}", code);
+		if (s_instance == nullptr) {
+			CORE_CRITICAL("Application can't shut down! It hasn't been created yet");
 			return;
 		}
-		CORE_CRITICAL("Application can't shut down! It hasn't been created yet")
+		if (s_instance->m_runnig == false) {
+			CORE_WARN("Shutting down while loading!");
+			CORE_INFO("Force Exit: {0}", code);
+			::exit(code);
+			return;
+		}
+		s_instance->m_runnig = false;
+		CORE_INFO("Force Exit: {0}", code);
+		return;
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
 		ST_PROFILING_FUNCTION();

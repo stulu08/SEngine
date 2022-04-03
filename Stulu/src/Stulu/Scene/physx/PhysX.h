@@ -18,7 +18,7 @@ namespace physx {
 }
 
 namespace Stulu{
-    struct TransformComponent;
+    class TransformComponent;
     class RigidbodyComponent;
     class Mesh;
     physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);

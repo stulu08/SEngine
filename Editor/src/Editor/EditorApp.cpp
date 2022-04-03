@@ -21,7 +21,7 @@ namespace Stulu {
 		}
 
 		getWindow().setVSync(false);
-		getWindow().setWindowIcon("Stulu/assets/Textures/Logo/engine-app-icon.png");
+		getWindow().setWindowIcon("assets/Textures/Logo/engine-app-icon.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
@@ -41,7 +41,6 @@ namespace Stulu {
 		AssetsManager::loadAllFiles(s_project.assetPath);
 		pushLayer(editorLayer);
 
-		createMono(s_project.name);
 
 		getWindow().show();
 	}

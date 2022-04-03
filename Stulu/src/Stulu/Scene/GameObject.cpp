@@ -1,6 +1,6 @@
 #include "st_pch.h"
 #include "GameObject.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 
 namespace Stulu {
 	GameObject GameObject::null = { entt::entity{ entt::null }, nullptr};

@@ -3,7 +3,7 @@
 
 namespace Stulu {
 
-	class STULU_API Collider {
+	class STULU_API Collider : public Component {
 	public:
 		float staticFriction = .1f;
 		float dynamicFriction = .1f;
@@ -28,7 +28,7 @@ namespace Stulu {
 		virtual void create(GameObject object, PhysX& physics) override;
 		friend class Scene;
 	};
-	class STULU_API SphereColliderComponent : public Collider {
+	class STULU_API SphereColliderComponent : public Collider{
 	public:
 		SphereColliderComponent() = default;
 		SphereColliderComponent(const SphereColliderComponent&) = default;

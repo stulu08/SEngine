@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Renderer/Renderer.h"
 #include "SceneCamera.h"
 namespace Stulu {

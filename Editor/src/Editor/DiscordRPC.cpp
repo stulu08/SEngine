@@ -37,7 +37,12 @@ namespace Stulu {
     bool DiscordRPC::s_activated = false;
 
     void DiscordRPC::init(const char* applicationID) {
-        rpc = std::async(DiscordRPC::threadLoop, applicationID);
+        try {
+            rpc = std::async(DiscordRPC::threadLoop, applicationID);
+        }
+        catch (std::exception ex) {
+            ST_CRITICAL("Error in Discord RPC thead loop: {0}", ex.what());
+        }
         s_activated = true;
     }
     void DiscordRPC::shutdown() {
@@ -60,7 +65,6 @@ namespace Stulu {
     }
 
     void DiscordRPC::threadLoop(const char* applicationID) {
-        try {
             int64_t startTime = time(0);
             int sendPresence = 1;
             s_running = true;
@@ -85,9 +89,6 @@ namespace Stulu {
 #endif
                 Discord_RunCallbacks();
             }
-        }
-        catch (std::exception ex) {
-            ST_CRITICAL("Error in Discord RPC thead loop: {0}", ex.what());
-        }
+        
     }
 }

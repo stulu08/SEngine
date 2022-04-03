@@ -20,6 +20,7 @@ namespace Stulu {
 				return getComponent<T>();
 			}
 			T& component = m_scene->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
+			component.gameObject = { m_entity,m_scene };
 			m_scene->onComponentAdded<T>(*this, component);
 			return component;
 		}
@@ -29,6 +30,7 @@ namespace Stulu {
 				return getComponent<T>();
 			T& component = m_scene->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
 			m_scene->onComponentAdded<T>(*this, component);
+			component.gameObject = {m_entity,m_scene};
 			return component;
 		}
 		template<typename T>

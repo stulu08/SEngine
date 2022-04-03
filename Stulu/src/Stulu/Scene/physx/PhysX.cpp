@@ -3,7 +3,7 @@
 #define PX_PHYSX_STATIC_LIB
 #include "physx/PxPhysicsAPI.h"
 #include "Stulu/Core/Time.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 
 namespace physx {
     class StDefaultAllocator : public physx::PxAllocatorCallback
@@ -29,7 +29,7 @@ namespace Stulu {
     {
         virtual const char* getPhysXGpuDllName() const
         {
-            return "data/PhysXGpu_64.dll";
+            return "data/PhysX/PhysXGpu_64.dll";
         }
     } gGpuLoadHook;
 

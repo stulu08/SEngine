@@ -55,7 +55,7 @@
 ////////////////////Scene////////////////////
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/Behavior.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Scene/Resources.h"
 #include "Stulu/Scene/SceneCamera.h"
@@ -63,5 +63,5 @@
 #include "Stulu/Scene/SceneSerializer.h"
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Scene/GameObject.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Scene.h"

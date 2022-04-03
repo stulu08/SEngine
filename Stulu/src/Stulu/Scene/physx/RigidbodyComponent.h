@@ -1,9 +1,10 @@
 #pragma once
 #include "Stulu/Math/Math.h"
 #include "Stulu/Scene/GameObject.h"
+#include "Stulu/Scene/Components/Component.h"
 
 namespace Stulu {
-	class STULU_API RigidbodyComponent {
+	class STULU_API RigidbodyComponent : public Component {
 	public:
 		enum class Type { Dynamic = 0, Static = 1 };
 		enum class ForceMode {

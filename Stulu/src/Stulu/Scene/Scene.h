@@ -43,6 +43,8 @@ namespace Stulu {
 
 		GameObject getMainCamera();
 		SceneData& getData() { return m_data; }
+
+		static inline Scene* activeScene() { return s_activeScene; }
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 
@@ -68,7 +70,7 @@ namespace Stulu {
 		friend class EditorHierarchyPanel;
 
 
-
+		static inline Scene* s_activeScene = nullptr;
 		static inline PhysX s_physics;
 	};
 }

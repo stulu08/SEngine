@@ -1,6 +1,6 @@
 #pragma once
 #include <Stulu.h>
-#include <Stulu/Scene/Components.h>
+#include <Stulu/Scene/Components/Components.h>
 namespace Stulu {
 	enum class GizmoTransformEditMode {
 		None = -1,

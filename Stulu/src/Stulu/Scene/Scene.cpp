@@ -4,8 +4,9 @@
 #include "Stulu/Scene/SceneRenderer.h"
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Scene/SceneCamera.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Behavior.h"
+#include "Stulu/ScriptCore/ScriptCore.h"
 #include "Stulu/Math/Math.h"
 #include "Stulu/Core/Time.h"
 #include "GameObject.h"
@@ -56,7 +57,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		ST_PROFILING_RENDERDATA_RESET();
 		ST_PROFILING_RENDERDATA_BEGIN();
-
+		s_activeScene = this;
 		updateAllTransforms();
 		SceneRenderer::calculateLights();
 
@@ -121,6 +122,7 @@ namespace Stulu {
 	}
 	void Scene::onUpdateRuntime(Timestep ts) {
 		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
 		Time::time += ts;
 		updateAllTransforms();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
@@ -131,6 +133,7 @@ namespace Stulu {
 			}
 			behaviour.instance->onUpdate();
 		});
+
 		//calculations
 		if(m_data.enablePhsyics3D)
 			updatePhysics();

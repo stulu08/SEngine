@@ -12,7 +12,9 @@ project "Stulu"
 
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
-
+	
+	dependson { "Stulu-ScriptCore" }
+	
 	pchheader "st_pch.h"
 	pchsource "src/st_pch.cpp"
 
@@ -102,10 +104,13 @@ project "Stulu"
 	end
 	
 	postbuildcommands{
-		"{MKDIR} %{ProjectDir.Stulu}/bin/".. outputdir .."/data",
-		"{COPYDIR} %{physx}/bin/dll/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data",
+		"{MKDIR} %{ProjectDir.Stulu}/bin/".. outputdir .."/data/PhysX",
+		"{COPYDIR} %{physx}/bin/dll/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/PhysX",
+		
 		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.5\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.5\"",
+		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.8-Api\"",
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data",
 	}
 	
 	filter "system:windows"

@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/fmt/ostr.h>
@@ -10,10 +9,59 @@
 namespace Stulu {
 	class STULU_API Log {
 	public:
+		enum class Level {
+			trace=0,info=1,warn=2,error=3,critical=4
+		};
+
 		static void init();
 
 		static std::shared_ptr<spdlog::logger>& GetCoreLogger();
 		static std::shared_ptr<spdlog::logger>& GetClientLogger();
+
+		static inline void engine_log(int32_t level, const char* msg) {
+			switch (level)
+			{
+#if ST_ENABLE_TRACE_LOGGING
+			case (int32_t)Stulu::Log::Level::trace:
+				GetCoreLogger()->trace(msg);
+				break;
+#endif
+			case (int32_t)Stulu::Log::Level::info:
+				GetCoreLogger()->info(msg);
+				break;
+			case (int32_t)Stulu::Log::Level::warn:
+				GetCoreLogger()->warn(msg);
+				break;
+			case (int32_t)Stulu::Log::Level::error:
+				GetCoreLogger()->error(msg);
+				break;
+			case (int32_t)Stulu::Log::Level::critical:
+				GetCoreLogger()->critical(msg);
+				break;
+			}
+		}
+		static inline void client_log(int32_t level, const char* msg) {
+			switch (level)
+			{
+#if ST_ENABLE_TRACE_LOGGING
+			case (int32_t)Stulu::Log::Level::trace:
+				GetClientLogger()->trace(msg);
+				break;
+#endif
+			case (int32_t)Stulu::Log::Level::info:
+				GetClientLogger()->info(msg);
+				break;
+			case (int32_t)Stulu::Log::Level::warn:
+				GetClientLogger()->warn(msg);
+				break;
+			case (int32_t)Stulu::Log::Level::error:
+				GetClientLogger()->error(msg);
+				break;
+			case (int32_t)Stulu::Log::Level::critical:
+				GetClientLogger()->critical(msg);
+				break;
+			}
+		}
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;

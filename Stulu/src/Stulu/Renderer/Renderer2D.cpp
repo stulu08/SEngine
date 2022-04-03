@@ -74,7 +74,7 @@ namespace Stulu {
 		s_renderer2Ddata.whiteTexture = Texture2D::create(1,1);
 		uint32_t datawhite = 0xffffffff;
 		s_renderer2Ddata.whiteTexture->setData(&datawhite, sizeof(uint32_t));
-		s_renderer2Ddata.shader = Shader::create("Stulu/assets/Shaders/default2D.glsl");
+		s_renderer2Ddata.shader = Shader::create("assets/Shaders/default2D.glsl");
 		int samplers[s_renderer2Ddata.maxTextureSlots];
 		for (int i = 0; i < s_renderer2Ddata.maxTextureSlots; i++) {
 			samplers[i] = i;
