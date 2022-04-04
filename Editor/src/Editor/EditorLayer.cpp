@@ -412,6 +412,7 @@ namespace Stulu {
 		return false;
 	}
 	bool EditorLayer::onApplicationQuit(WindowCloseEvent& e) {
+		DiscordRPC::shutdown();
 		if (s_runtime)
 			m_activeScene->onRuntimeStop();
 		m_activeScene->onApplicationQuit();

@@ -47,6 +47,5 @@ namespace Stulu {
 	EditorApp::~EditorApp() {
 		getEditorLayer().savePanelConfig(); 
 		StyleEditor::saveAll();
-		DiscordRPC::shutdown();
 	}
 }

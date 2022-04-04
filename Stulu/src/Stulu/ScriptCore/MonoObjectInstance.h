@@ -1,36 +1,31 @@
 #pragma once
 #include "Stulu/Core/Core.h"
 
-#include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
-#include <mono/metadata/debug-helpers.h>
-#include <mono/metadata/object.h>
+#include "ScriptAssembly.h"
+
 
 namespace Stulu {
-	struct MonoFunction {
-		MonoClass* classPtr;
-		MonoMethod* methodPtr;
-
-		std::string name = "";
-	};
 	class STULU_API MonoObjectInstance {
 	public:
-		MonoObjectInstance() {};
-		MonoObjectInstance(const std::string& nameSpace, const std::string& className);
+		MonoObjectInstance(const std::string& m_nameSpace, const std::string& m_className, const ScriptAssembly* assembly);
 		~MonoObjectInstance();
 
 		void addFunction(const std::string& fnName, const MonoFunction& mfn);
 
-		void callConstructor(const std::string& params, void** args = nullptr);
-		MonoObject* call(const std::string& func, void** args = NULL, bool isStatic = false);
+		void callConstructor(const std::string& params, void** args = nullptr) const;
+		MonoObject* call(const std::string& func, void** args = NULL, bool isStatic = false) const;
 	private:
 		void load();
 
-		uint32_t m_gCHandle = 0;//to prevent garbage collection
-		MonoClass* classPtr = nullptr;
-		MonoObject* objectPtr = nullptr;
+		uint32_t m_gCHandle = 0;
+		MonoClass* m_classPtr = nullptr;
+		MonoObject* m_objectPtr = nullptr;
+
+		const ScriptAssembly* m_assembly;
+		
+		std::string m_nameSpace = "", m_className = "";
+
 		//function name: print(int)
-		std::unordered_map<std::string, MonoFunction> functions;
-		std::string nameSpace = "", className = "";
+		std::unordered_map<std::string, MonoFunction> m_functions;
 	};
 }

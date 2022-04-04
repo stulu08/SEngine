@@ -6,7 +6,7 @@
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Core/Version.h"
 #include "Stulu/Core/Time.h"
-#include "Stulu/ScriptCore/ScriptCore.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
 
 namespace Stulu {
 	struct ApplicationInfo {
@@ -21,7 +21,7 @@ namespace Stulu {
 		ApplicationInfo(const char* applicationName, const Version applicationVersion, WindowProps windowProps)
 			: ApplicationName(applicationName), ApplicationVersion(applicationVersion), windowProps(windowProps) {}
 	};
-	class STULU_API ScriptCore;
+	class STULU_API AssemblyManager;
 	class STULU_API Application {
 	public:
 		Application(ApplicationInfo appInfo, bool hideWindow = false);
@@ -57,7 +57,8 @@ namespace Stulu {
 		bool m_minimized = false;
 		float m_lastFrameTime = 0.0f;
 
-		Ref<ScriptCore> m_scriptCore = nullptr;
+		Ref<AssemblyManager> m_assembly = nullptr;
+		Ref<MonoObjectInstance> m_engineObject = nullptr;
 
 		static Application* s_instance;
 		static inline std::vector<std::string> s_startArgs;

@@ -28,11 +28,12 @@ namespace Stulu {
 		m_imguiLayer = new ImGuiLayer();
 		pushOverlay(m_imguiLayer);
 #endif
-		m_scriptCore = createRef<ScriptCore>(".",".");
+		m_assembly = createRef<AssemblyManager>(".",".");
+		m_engineObject = createRef<MonoObjectInstance>("Stulu","Engine", m_assembly->getScriptCoreAssembly().get());
 		float e = 1.0f;
 		void* p[1];
 		p[0] = &e;
-		m_scriptCore->getEngineObject()->callConstructor("(single)", p);
+		m_engineObject->callConstructor("(single)", p);
 		
 	}
 	Application::~Application() {
@@ -78,7 +79,7 @@ namespace Stulu {
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
 			Input::update();
-			m_scriptCore->getEngineObject()->call("onUpdate()");
+			m_engineObject->call("onUpdate()");
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");

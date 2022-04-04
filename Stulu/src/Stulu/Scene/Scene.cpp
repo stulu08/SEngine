@@ -6,7 +6,6 @@
 #include "Stulu/Scene/SceneCamera.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Behavior.h"
-#include "Stulu/ScriptCore/ScriptCore.h"
 #include "Stulu/Math/Math.h"
 #include "Stulu/Core/Time.h"
 #include "GameObject.h"
