@@ -1,22 +1,34 @@
 #include "st_pch.h"
 #include "ScriptAssembly.h"
 
+#include "MonoObjectInstance.h"
+
 namespace Stulu {
-	ScriptAssembly::ScriptAssembly(const std::string& name, const std::string& assembly) {
-		CORE_INFO("Loading Assembly: {0}", name);
-		m_monoDomain = mono_jit_init(name.c_str());
-		if (!m_monoDomain) {
-			CORE_ERROR("Mono Domain creation failed for {0}", name);
+	char* constStringToCharPtr(const std::string& src) {
+		return strcpy(new char[src.length() + 1], src.c_str());
+	}
+
+
+	ScriptAssembly::ScriptAssembly(MonoDomain* rootDomain, const std::string& assembly) 
+		: m_monoRootDomain(rootDomain),m_assembly(assembly) {
+		CORE_INFO("Loading Assembly: {0}", m_assembly);
+
+		m_monoScriptDomain = mono_domain_create_appdomain(constStringToCharPtr(m_assembly), NULL);
+		if (!m_monoScriptDomain) {
+			CORE_ERROR("Mono Scripting Domain creation failed for {0}", m_assembly);
 			return;
 		}
-		m_monoAssembly = mono_domain_assembly_open(m_monoDomain, assembly.c_str());
+
+		mono_domain_set(m_monoScriptDomain, 0);
+
+		m_monoAssembly = mono_domain_assembly_open(mono_domain_get(), m_assembly.c_str());
 		if (!m_monoAssembly) {
-			CORE_ERROR("Mono Assembly creation failed for {0}", assembly);
+			CORE_ERROR("Mono Assembly creation failed for {0}", m_assembly);
 			return;
 		}
 		m_monoImage = mono_assembly_get_image(m_monoAssembly);
 		if (!m_monoImage) {
-			CORE_ERROR("Mono Image creation failed for {0}", assembly);
+			CORE_ERROR("Mono Image creation failed for {0}", m_assembly);
 			return;
 		}
 		m_errorCallBack = [=](const std::string& msg, const MonoFunction& func) {
@@ -26,9 +38,11 @@ namespace Stulu {
 	}
 
 	ScriptAssembly::~ScriptAssembly() {
-		if (m_monoDomain) {
-			mono_jit_cleanup(m_monoDomain);
+		for (auto object : m_objects) {
+			object->m_assembly = nullptr;
 		}
+		mono_domain_set(m_monoRootDomain, 0);
+		mono_domain_unload(m_monoScriptDomain);
 	}
 
 	MonoClass* ScriptAssembly::createClass(const std::string& m_nameSpace, const std::string& m_className) const {
@@ -44,7 +58,7 @@ namespace Stulu {
 		MonoFunction function;
 		function.name = functionName;
 
-		std::string classStr = (std::string(".") + m_className + functionName);
+		std::string classStr = (std::string(".") + m_className + ":" + functionName);
 
 		function.classPtr = mono_class_from_name(m_monoImage, m_nameSpace.c_str(), m_className.c_str());
 		if (function.classPtr) {
@@ -70,7 +84,7 @@ namespace Stulu {
 
 		function.name = functionName;
 
-		std::string classStr = (std::string(".") + m_className + functionName);
+		std::string classStr = (std::string(".") + m_className + ":" + functionName);
 
 		if (function.classPtr) {
 			MonoMethodDesc* descPtr = mono_method_desc_new(classStr.c_str(), false);
@@ -96,6 +110,119 @@ namespace Stulu {
 		}
 
 		return re;
+	}
+
+	void ScriptAssembly::loadAllClasses(MonoClass* _parentClass) {
+		const MonoTableInfo* table_info = mono_image_get_table_info(m_monoImage, MONO_TABLE_TYPEDEF);
+
+		std::string parent = mono_class_get_namespace(_parentClass) + std::string(".") + mono_class_get_name(_parentClass);
+		
+
+		int rows = mono_table_info_get_rows(table_info);
+		/* For each row, get some of its values */
+		for (int i = 0; i < rows; i++)
+		{
+			MonoClass* _class = nullptr;
+			uint32_t cols[MONO_TYPEDEF_SIZE];
+			mono_metadata_decode_row(table_info, i, cols, MONO_TYPEDEF_SIZE);
+			const char* name = mono_metadata_string_heap(m_monoImage, cols[MONO_TYPEDEF_NAME]);
+			const char* name_space = mono_metadata_string_heap(m_monoImage, cols[MONO_TYPEDEF_NAMESPACE]);
+			_class = mono_class_from_name(m_monoImage, name_space, name);
+
+			std::string n = mono_class_get_name(_class);
+
+			
+
+			if (_parentClass) {
+				MonoClass* parentCl = mono_class_get_parent(_class);
+				if (!parentCl)
+					continue;
+				std::string classParent = parent = mono_class_get_namespace(parentCl) + std::string(".") + mono_class_get_name(parentCl);
+				if(classParent == parent)
+					m_classes.push_back({ mono_class_get_name(_class), mono_class_get_namespace(_class)});
+			}
+			else {
+				m_classes.push_back({ mono_class_get_name(_class), mono_class_get_namespace(_class) });
+			}
+		}
+	}
+
+	void ScriptAssembly::reload(std::function<bool(const std::string&)>& recompileFinished, std::function<bool(const std::string&)>& recompile) {
+		CORE_INFO("Reloading Assembly: {0}", m_assembly);
+
+		for (auto object : m_objects) {
+			object->m_assembly = nullptr;
+		}
+
+		mono_domain_set(m_monoRootDomain, 0);
+		mono_domain_unload(m_monoScriptDomain);
+
+
+
+		//delete m_assembly but safe a copy if build fails
+		if(std::filesystem::exists(m_assembly + ".temp"))
+			std::filesystem::remove(m_assembly + ".temp");
+
+		std::filesystem::copy_file(m_assembly,m_assembly+".temp");
+		std::filesystem::remove(m_assembly);
+		
+		//recompile c# code with postbuildcommands to move files
+		CORE_INFO("Recompiling {0}", m_assembly);
+		if (recompile(m_assembly)) {
+			CORE_ERROR("Recompiling failed: {0}", m_assembly);
+			CORE_WARN("Using old Assembly");
+			std::filesystem::copy_file(m_assembly + ".temp", m_assembly);
+			std::filesystem::remove(m_assembly + ".temp");
+		}
+		while (true) {
+			if (recompileFinished(m_assembly)) {
+				if (std::filesystem::exists(m_assembly)) {
+					std::filesystem::remove(m_assembly + ".temp");
+					CORE_INFO("Recompiling finished");
+					break;
+				}
+				else {
+					CORE_ERROR("File not found: {0}", m_assembly);
+					CORE_WARN("Using old Assembly");
+					std::filesystem::copy_file(m_assembly + ".temp", m_assembly);
+					std::filesystem::remove(m_assembly + ".temp");
+					break;
+				}
+				
+			}
+		}
+		//load assembly
+
+
+		CORE_INFO("Reloading Assembly: {0}", m_assembly);
+		m_monoScriptDomain = mono_domain_create_appdomain(constStringToCharPtr(m_assembly), NULL);
+		if (!m_monoScriptDomain) {
+			CORE_ERROR("Mono Scripting Domain creation failed for {0}", m_assembly);
+			return;
+		}
+
+		mono_domain_set(m_monoScriptDomain, 0);
+
+		m_monoAssembly = mono_domain_assembly_open(mono_domain_get(), m_assembly.c_str());
+		if (!m_monoAssembly) {
+			CORE_ERROR("Mono Assembly creation failed for {0}", m_assembly);
+			return;
+		}
+		m_monoImage = mono_assembly_get_image(m_monoAssembly);
+		if (!m_monoImage) {
+			CORE_ERROR("Mono Image creation failed for {0}", m_assembly);
+			return;
+		}
+		m_errorCallBack = [=](const std::string& msg, const MonoFunction& func) {
+			CORE_ERROR("C# Runtime Error:\n{0}\nCaused in function: {1}", msg, mono_method_full_name(func.methodPtr, 1));//default error callback
+		};
+		CORE_INFO("Reloading Assembly finished")
+
+
+		for (auto object : m_objects) {
+			object->m_assembly = this;
+			object->reload();
+		}
 	}
 
 }

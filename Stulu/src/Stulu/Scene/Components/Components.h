@@ -44,8 +44,6 @@ namespace Stulu {
 		glm::vec3 right = TRANSFORM_RIGHT_DIRECTION;
 		glm::vec3 forward = TRANSFORM_FOREWARD_DIRECTION;
 
-		//this GameObject
-		GameObject gameObject = GameObject::null;
 		//Parent GameObject
 		GameObject parent = GameObject::null;
 
@@ -150,4 +148,29 @@ namespace Stulu {
 			}
 		}
 	};
+	class STULU_API MonoObjectInstance;
+	class ScriptingComponent : public Component {
+	public:
+		std::vector<Ref<MonoObjectInstance>> runtimeScripts;
+	};
+
+
+	template<typename... Component>
+	struct ComponentGroup {};
+	using AllComponents = ComponentGroup
+		<
+		TransformComponent,
+		SpriteRendererComponent,
+		LightComponent,
+		SkyBoxComponent,
+		MeshRendererComponent,
+		MeshFilterComponent,
+		NativeBehaviourComponent,
+		ScriptingComponent,
+		CameraComponent,
+		RigidbodyComponent,
+		BoxColliderComponent,
+		SphereColliderComponent,
+		MeshColliderComponent
+		>;
 }

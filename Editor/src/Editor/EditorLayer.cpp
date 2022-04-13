@@ -77,17 +77,17 @@ namespace Stulu {
 		GameObject object = m_activeScene->createGameObject("Cube");
 		object.addComponent<MeshFilterComponent>().mesh = Resources::getCubeMeshAsset();
 
-		class RigidBodyForceTest : public Behavior{
+		class RigidBodyForceTest : public Behavior {
 		public:
 			Keyboard::KeyCode keycode = Keyboard::Space;
 			float force = 8.0f;
 
-			virtual void onAwake() override{
+			virtual void onAwake() override {
 				addComponent<BoxColliderComponent>();
 				addComponent<RigidbodyComponent>();
 			}
 			virtual void onUpdate() override {
-				if(Input::isKeyDown(keycode))
+				if (Input::isKeyDown(keycode))
 					getComponent<RigidbodyComponent>().addForce(TRANSFORM_UP_DIRECTION, RigidbodyComponent::ForceMode::Impulse);
 			}
 			virtual void uiFunc() override {
@@ -102,7 +102,7 @@ namespace Stulu {
 	void EditorLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (!ImGuizmo::IsUsing()) {
-			if(m_sceneViewport.focused)
+			if (m_sceneViewport.focused)
 				m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
 			m_activeScene->updateTransform(m_sceneCamera.getTransform());
@@ -118,7 +118,7 @@ namespace Stulu {
 				m_fbDrawData.m_framebuffer->bind();
 				RenderCommand::clear();
 				cO.getComponent<CameraComponent>().getTexture()->bind(0);
-				m_fbDrawData.m_quadShader->bind(); 
+				m_fbDrawData.m_quadShader->bind();
 				m_fbDrawData.m_quadVertexArray->bind();
 				RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
 				m_fbDrawData.m_framebuffer->unbind();
@@ -131,8 +131,10 @@ namespace Stulu {
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		ImGui::DockSpaceOverViewport();
-		drawMenuBar();
 
+		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
+
+		drawMenuBar();
 		if (m_showGameViewport) {
 			auto cam = m_activeScene->getMainCamera();
 			if (cam) {
@@ -214,6 +216,7 @@ namespace Stulu {
 					MeshFilterComponent meshFilter;
 					m_sceneCamera.getCamera()->bindFrameBuffer();
 					RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
+					RenderCommand::setCullMode(CullMode::BackAndFront);
 					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
 						if (meshFilter.mesh.hasMesh) {
 							selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
@@ -233,6 +236,7 @@ namespace Stulu {
 							}
 						}
 					});
+					RenderCommand::setCullMode(CullMode::BackAndFront);
 					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
 					m_sceneCamera.getCamera()->unbindFrameBuffer();
 				}
@@ -328,24 +332,19 @@ namespace Stulu {
 		ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 
 		{
-			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) + 10.0f);
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) + (size));
 			Ref<Texture> tex = s_runtime ? EditorResources::getStopTexture() : EditorResources::getPlayTexture();
 			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
 				if (s_runtime) {
-					m_activeScene->onRuntimeStop();
-					s_runtime = false;
+					onRuntimeStop();
 				}
 				else {
-					Time::Scale = 1.0f;
-					m_activeScene->onRuntimeStart();
-					m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
-					m_fbDrawData.m_framebuffer->invalidate();
-					s_runtime = true;
+					onRuntimeStart();
 				}
 			}
 		}ImGui::SameLine();
 		{
-			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) - 10.0f);
+			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) - (size));
 			Ref<Texture> tex = EditorResources::getPauseTexture();
 			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
 				if (Time::Scale == 0.0f) {
@@ -430,6 +429,7 @@ namespace Stulu {
 			m_activeScene->onRuntimeStop();
 			s_runtime = false;
 		}
+
 		std::string path = Platform::openFile("Scene Files\0 * .scene\0", EditorApp::getProject().path.c_str());
 		if (!path.empty())
 			OpenScene(path);
@@ -458,7 +458,8 @@ namespace Stulu {
 		Ref<Scene> nScene = createRef<Scene>();
 		SceneSerializer ss(nScene);
 		if (ss.deSerialze(path)) {
-			m_activeScene = nScene;
+			m_editorScene = nScene;
+			m_activeScene = m_editorScene;
 			m_editorHierarchy.setScene(m_activeScene);
 			m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
 			ST_TRACE("Opened Scene {0}", path);
@@ -472,11 +473,38 @@ namespace Stulu {
 	void EditorLayer::newScene() {
 		ST_PROFILING_FUNCTION();
 		m_currentScenePath = "";
-		m_activeScene = createRef<Scene>();
-		m_editorHierarchy.setScene(m_activeScene);
+		m_editorScene = createRef<Scene>();
+		m_activeScene = m_editorScene;
 		m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
+		m_editorHierarchy.setScene(m_activeScene);
 		DiscordRPC::setState("Editing a scene");
 		ST_TRACE("New Scene loaded");
+	}
+	void EditorLayer::onRuntimeStart() {
+		Time::Scale = 1.0f;
+		s_runtime = true;
+		m_runtimeScene = Scene::copy(m_editorScene);
+		m_activeScene = m_runtimeScene;
+		m_activeScene->onRuntimeStart();
+		m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
+		m_fbDrawData.m_framebuffer->invalidate();
+
+		GameObject selected = m_editorHierarchy.getCurrentObject();//in editor scene
+		m_editorHierarchy.setScene(m_activeScene);
+		if (selected)
+			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().uuid, m_activeScene.get()));
+	}
+	void EditorLayer::onRuntimeStop() {
+		s_runtime = false;
+		m_activeScene->onRuntimeStop();
+		m_activeScene = m_editorScene;
+
+		GameObject selected = m_editorHierarchy.getCurrentObject();//in runtime scene
+		m_editorHierarchy.setScene(m_activeScene);
+		if (selected)
+			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().uuid, m_activeScene.get()));
+
+		m_runtimeScene = nullptr;
 	}
 	void EditorLayer::loadPanelConfig() {
 		ST_PROFILING_FUNCTION();

@@ -1,0 +1,9 @@
+D:\stulu\dev\SEngine\DebugProject\Data\EdiorProjectAssembly.dll
+D:\stulu\dev\SEngine\DebugProject\Data\EdiorProjectAssembly.pdb
+D:\stulu\dev\SEngine\DebugProject\Data\Stulu.EditorScriptCore.pdb
+D:\stulu\dev\SEngine\DebugProject\Data\Stulu.ScriptCore.pdb
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Debug\EdiorProjectAssembly\EdiorProjectAssembly.csproj.AssemblyReference.cache
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Debug\EdiorProjectAssembly\EdiorProjectAssembly.csproj.CoreCompileInputs.cache
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Debug\EdiorProjectAssembly\EdiorProjectAssembly.csproj.CopyComplete
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Debug\EdiorProjectAssembly\EdiorProjectAssembly.dll
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Debug\EdiorProjectAssembly\EdiorProjectAssembly.pdb

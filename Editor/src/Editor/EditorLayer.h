@@ -18,7 +18,7 @@ namespace Stulu {
 		void onRenderGizmo() override;
 		void onEvent(Event& e) override;
 
-		inline static Ref<Scene>& getActiveScene() { return m_activeScene; }
+		Ref<Scene>& getActiveScene() { return m_activeScene; }
 
 		void SaveScene(const std::string& path);
 		void OpenScene(const std::string& path);
@@ -60,9 +60,13 @@ namespace Stulu {
 		void SaveScene();
 		void OpenScene();
 		void newScene();
+		void onRuntimeStart();
+		void onRuntimeStop();
+
+		Ref<Scene> m_activeScene = nullptr;
+		Ref<Scene> m_editorScene = nullptr, m_runtimeScene = nullptr;
 
 
-		inline static Ref<Scene> m_activeScene = nullptr;
 		inline static bool s_runtime = false;
 	};
 }

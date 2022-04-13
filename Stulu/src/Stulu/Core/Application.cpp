@@ -13,8 +13,8 @@ namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(ApplicationInfo appInfo, bool hideWindow)
-		:m_appInfo(appInfo)	{
+	Application::Application(ApplicationInfo appInfo, bool hideWindow, bool enableImgui)
+		:m_appInfo(appInfo), m_enableImgui(enableImgui){
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
@@ -23,18 +23,12 @@ namespace Stulu {
 			m_window->hide();
 		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"assets");
 		AssetsManager::loadAllFiles("assets");
-#if OPENGL
+
 		Renderer::init();
-		m_imguiLayer = new ImGuiLayer();
-		pushOverlay(m_imguiLayer);
-#endif
-		m_assembly = createRef<AssemblyManager>(".",".");
-		m_engineObject = createRef<MonoObjectInstance>("Stulu","Engine", m_assembly->getScriptCoreAssembly().get());
-		float e = 1.0f;
-		void* p[1];
-		p[0] = &e;
-		m_engineObject->callConstructor("(single)", p);
-		
+		if (m_enableImgui) {
+			m_imguiLayer = new ImGuiLayer();
+			pushOverlay(m_imguiLayer);
+		}
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
@@ -79,27 +73,30 @@ namespace Stulu {
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
 			Input::update();
-			m_engineObject->call("onUpdate()");
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(delta);
 				}
-#if OPENGL
-				m_imguiLayer->Begin();
-				for (Layer* layer : m_layerStack) {
-					ST_PROFILING_SCOPE("onImguiRender - layerstack");
-					layer->onImguiRender(delta);
-					layer->onRenderGizmo();
+				if (m_enableImgui) {
+					m_imguiLayer->Begin();
+					for (Layer* layer : m_layerStack) {
+						ST_PROFILING_SCOPE("onImguiRender - layerstack");
+						layer->onImguiRender(delta);
+					}
+					for (Layer* layer : m_layerStack) {
+						ST_PROFILING_SCOPE("onRenderGizmo - layerstack");
+						layer->onRenderGizmo();
+					}
+					m_imguiLayer->End();
 				}
-				m_imguiLayer->End();
-#endif
 			}
 			m_window->onUpdate();
 		}
 	}
 	void Application::exit(int32_t code) {
 		ST_PROFILING_FUNCTION();
+
 		if (s_instance == nullptr) {
 			CORE_CRITICAL("Application can't shut down! It hasn't been created yet");
 			return;
@@ -116,7 +113,7 @@ namespace Stulu {
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
 		ST_PROFILING_FUNCTION();
-		m_runnig = false;
+		exit(0);
 		return m_runnig;
 	}
 	bool Application::onWindowResize(WindowResizeEvent& e)

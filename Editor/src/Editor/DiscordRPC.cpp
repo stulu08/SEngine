@@ -3,7 +3,8 @@
 
 namespace Stulu {
 
-    std::future<void> rpc;
+    std::thread rpc;
+    //std::future<void> rpc;
 
     static void handleDiscordReady(const DiscordUser* connectedUser)
     {
@@ -38,7 +39,8 @@ namespace Stulu {
 
     void DiscordRPC::init(const char* applicationID) {
         try {
-            rpc = std::async(DiscordRPC::threadLoop, applicationID);
+            //rpc = std::async(DiscordRPC::threadLoop, applicationID);
+            rpc = std::thread(DiscordRPC::threadLoop, applicationID);
         }
         catch (std::exception ex) {
             ST_CRITICAL("Error in Discord RPC thead loop: {0}", ex.what());
@@ -48,7 +50,8 @@ namespace Stulu {
     void DiscordRPC::shutdown() {
         s_running = false;
         if (s_activated) {
-            rpc.wait();
+            rpc.join();
+            //rpc.wait();
             Discord_Shutdown();
             s_activated = false;
         }

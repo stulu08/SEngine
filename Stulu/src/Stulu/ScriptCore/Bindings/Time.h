@@ -20,5 +20,8 @@ namespace StuluBindings {
 		static inline float time_scale() {
 			return Stulu::Time::Scale;
 		}
+		static inline void time_setScale(float v) {
+			Stulu::Time::Scale = v;
+		}
 	};
 }

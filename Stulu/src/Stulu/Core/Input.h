@@ -7,7 +7,7 @@
 namespace Stulu {
 	class STULU_API Input {
 	public:
-		enum class CursorMode{Normal,Hidden,Disabled};
+		enum class CursorMode{Normal=0,Hidden=1,Disabled=2};
 		static bool isKeyDown(uint32_t keycode);
 		static bool isMouseDown(uint32_t button);
 		static std::pair<float, float> getMousePos();

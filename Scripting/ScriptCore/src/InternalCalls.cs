@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 
 namespace Stulu {
-	public class InternalCalls {
+	public static class InternalCalls {
 		//Stulu/Core/Application.h
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		public extern static void application_exit(int code);
@@ -30,7 +30,17 @@ namespace Stulu {
 		public extern static float time_getScale();
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		public extern static float time_getTime();
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		public extern static void time_setScale(float scale);
 
+
+		//Stulu/Core/Input.h
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		public extern static bool input_keyDown(uint keycode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		public extern static bool input_mouseDown(uint mouseCode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		public extern static void input_setCursorMode(uint mode); 
 
 		//Stulu/Scene/GameObject.h
 		//todo: find out how

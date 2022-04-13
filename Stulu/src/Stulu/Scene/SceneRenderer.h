@@ -22,13 +22,13 @@ namespace Stulu {
 			}
 		};
 
-		static void init(Scene* scene);
+		static void init();
 
 		static void beginScene(GameObject object);
-		static void beginScene(const SceneCamera& cam);
+		static void beginScene(const SceneCamera& cam, GameObject mainCam);
 		static void endScene();
 
-		static void calculateLights();
+		static void calculateLights(entt::basic_view<entt::entity, entt::exclude_t<>, TransformComponent, LightComponent> view);
 		static void uploadBuffers(const SceneData& data);
 
 		static void submit(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
@@ -65,11 +65,11 @@ namespace Stulu {
 			inline static glm::vec3 camPos;
 
 		} s_runtimeData;
+
 		inline static std::vector<RenderObject> s_drawList;
 		//distance
 		inline static std::vector<RenderObject> s_transparentDrawList;
 		inline static std::vector<RenderObject> s_stencilDrawList;
-		static inline Scene* s_scene = nullptr;
 	};
 }
 

@@ -325,6 +325,27 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
+	bool ComponentsRender::drawUIntControl(const std::string& header, uint32_t& v) {
+		ST_PROFILING_FUNCTION();
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		int i = v;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		change |= ImGui::DragInt("##UINT", &i,1,0);
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+		if (change)
+			v = glm::max(i,0);
+		ImGui::PopID();
+		return change;
+	}
 	bool ComponentsRender::drawIntSliderControl(const std::string& header, int& v, int min, int max) {
 		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
@@ -805,8 +826,29 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
-	
-	
+
+	template<typename T>
+	bool ComponentsRender::drawControl(const std::string& header, T& value) {}
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, float& value) { return drawFloatControl(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, int32_t& value) { return drawIntControl(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, uint32_t& value) { return drawUIntControl(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, std::string& value) { return drawStringControl(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, glm::vec2& value) { return drawVector2Control(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, glm::vec3& value) { return drawVector3Control(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, glm::vec4& value) { return drawVector4Control(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, glm::mat4& value) { return drawMat4Control(header, value); }
+	template<>
+	bool ComponentsRender::drawControl(const std::string& header, bool& value) { return drawBoolControl(header, value); }
+
+
 	Previewing::Previewing()  {
 		ST_PROFILING_FUNCTION();
 		scene = createRef<Scene>();
@@ -823,7 +865,7 @@ namespace Stulu {
 		scene->onRuntimeStop();
 
 		items[asset.uuid] = camera.getComponent<CameraComponent>().getTexture();
-		SceneRenderer::init(getEditorScene().get());
+		SceneRenderer::init();
 	}
 	Ref<Texture>& Previewing::get(const UUID& id) {
 		ST_PROFILING_FUNCTION();

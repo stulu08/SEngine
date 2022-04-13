@@ -1,5 +1,5 @@
 ﻿namespace Stulu {
-	public class Time {
+	public static class Time {
 		static public float frameTime => InternalCalls.time_getFrameTime();
 		//frame time scaled by Scale
 		static public float deltaTime => InternalCalls.time_getDeltaTime();
@@ -8,6 +8,6 @@
 		//time since application startup
 		static public float applicationRuntime => InternalCalls.time_getApplicationRuntime();
 		//deltatime is multiplied with this but not runtime
-		static public float Scale => InternalCalls.time_getScale();
+		static public float Scale { get => InternalCalls.time_getScale(); set => InternalCalls.time_setScale(value); }
 	}
 }

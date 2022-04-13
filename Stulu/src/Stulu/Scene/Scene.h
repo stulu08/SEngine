@@ -45,17 +45,21 @@ namespace Stulu {
 		SceneData& getData() { return m_data; }
 
 		static inline Scene* activeScene() { return s_activeScene; }
+
+		static Ref<Scene> copy(Ref<Scene> scene);
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
+		SceneData m_data;
 
 		entt::registry m_registry;
-		SceneData m_data;
 
 		void setupPhysics();
 		void updatePhysics();
 		void updateAllTransforms();
 		void updateTransform(TransformComponent& tc);
 		void renderScene(entt::entity cam, Timestep ts);
+
+		void updateAssemblyScripts(const std::string& function, bool forceConstructNew = false);
 
 		template<typename T>
 		void onComponentAdded(GameObject gameObject, T& component);

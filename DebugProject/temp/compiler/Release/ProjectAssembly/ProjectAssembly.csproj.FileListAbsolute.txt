@@ -1,0 +1,8 @@
+D:\stulu\dev\SEngine\DebugProject\Data\ProjectAssembly.dll
+D:\stulu\dev\SEngine\DebugProject\Data\ProjectAssembly.pdb
+D:\stulu\dev\SEngine\DebugProject\Data\Stulu.ScriptCore.pdb
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Release\ProjectAssembly\ProjectAssembly.csproj.AssemblyReference.cache
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Release\ProjectAssembly\ProjectAssembly.csproj.CoreCompileInputs.cache
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Release\ProjectAssembly\ProjectAssembly.csproj.CopyComplete
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Release\ProjectAssembly\ProjectAssembly.dll
+D:\stulu\dev\SEngine\DebugProject\temp\compiler\Release\ProjectAssembly\ProjectAssembly.pdb

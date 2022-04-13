@@ -23,6 +23,7 @@
 #include <xhash>
 #include <numeric>
 #include <filesystem>
+#include <variant>
 
 #include <stdlib.h>
 #include <stdio.h>

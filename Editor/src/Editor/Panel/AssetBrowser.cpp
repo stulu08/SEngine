@@ -120,6 +120,19 @@ namespace Stulu {
 					if (ImGui::MenuItem("Recompile Shaders")) {
 						AssetsManager::reloadShaders(getEditorProject().assetPath);
 					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Reload Assembly")) {
+						//will soon switch to mono xbuild or something else
+						static const std::string buildCmd = getEditorProject().toolsPath + "/msbuild.bat " + getEditorProject().path;
+
+						static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
+							return std::filesystem::exists(getEditorProject().dataPath + "/EdiorProjectAssembly.dll");
+						};
+						static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
+							return system(buildCmd.c_str());
+						};
+						getEditorProject().assembly->reload(recompileFinished, recompile);
+					}
 					ImGui::EndPopup();
 				}
 				ImGui::TextWrapped(filename.string().c_str());

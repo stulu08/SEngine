@@ -1,5 +1,14 @@
 #include "EditorInspector.h"
+#include "Editor/EditorApp.h"
 namespace Stulu {
+
+#define SCRIPTING_UI_FUNCTION(TYPE) \
+	{TYPE & value = *((TYPE*)field.value); \
+	if (ComponentsRender::drawControl<TYPE>(name, value)) { \
+		script->getFields()[name].value = (void*)&value; \
+		script->setClassField(name); \
+	}} \
+
 	/// <summary>
 	/// Returns false if gameobject was deleted
 	/// </summary>
@@ -33,10 +42,49 @@ namespace Stulu {
 				drawComponent<SphereColliderComponent>(gameObject, "Sphere Collider");
 				drawComponent<MeshColliderComponent>(gameObject, "Mesh Collider");
 
-
 				if (gameObject.hasComponent<NativeBehaviourComponent>())
 					drawComponent<NativeBehaviourComponent>(gameObject, gameObject.getComponent<NativeBehaviourComponent>().behaviorName);
 
+				if (gameObject.hasComponent<ScriptingComponent>()) {
+					ScriptingComponent& comp = gameObject.getComponent<ScriptingComponent>();
+					for (auto script : comp.runtimeScripts) {
+						if (ImGui::TreeNodeEx(script->getClassName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+							//for (auto& field : script->getFields()) {
+							for (auto[name,field] : script->getFields()) {
+								script->reloadClassFieldValue(name);
+								switch (field.type) {
+								case MonoObjectInstance::MonoClassMember::Type::Vector4_t:
+									SCRIPTING_UI_FUNCTION(glm::vec4);
+									break;
+								case MonoObjectInstance::MonoClassMember::Type::Vector3_t:
+									SCRIPTING_UI_FUNCTION(glm::vec3);
+									break;
+								case MonoObjectInstance::MonoClassMember::Type::Vector2_t:
+									SCRIPTING_UI_FUNCTION(glm::vec2);
+									break;
+								case MonoObjectInstance::MonoClassMember::Type::float_t:
+									SCRIPTING_UI_FUNCTION(float);
+									break;
+								case MonoObjectInstance::MonoClassMember::Type::int_t:
+									SCRIPTING_UI_FUNCTION(int32_t);
+									break;
+								case MonoObjectInstance::MonoClassMember::Type::uint_t:
+									SCRIPTING_UI_FUNCTION(uint32_t);
+									break;
+								}
+							}
+							if (ImGui::Button("Remove")) {
+								comp.runtimeScripts.erase(std::find(comp.runtimeScripts.begin(), comp.runtimeScripts.end(), script));
+								ImGui::TreePop();
+								ImGui::Separator();
+								break;
+							}
+							ImGui::TreePop();
+						}
+						ImGui::Separator();
+					}
+				}
+				
 				if (ImGui::Button("Add Component"))
 					ImGui::OpenPopup("AddComponent");
 
@@ -75,6 +123,20 @@ namespace Stulu {
 						if (ImGui::MenuItem("Rigidbody")) {
 							if (!gameObject.hasComponent<RigidbodyComponent>())
 								gameObject.addComponent<RigidbodyComponent>();
+						}
+						ImGui::EndMenu();
+					}
+					if (ImGui::BeginMenu("Scripts")) {
+						for (auto& cl : getEditorApp().getProject().assembly->getClasses()) {
+							std::string name = (cl.nameSpace.empty() ? "" : cl.nameSpace + ".") + cl.name;
+							if (ImGui::MenuItem(name.c_str())) {
+								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(cl.nameSpace, cl.name, getEditorApp().getProject().assembly.get());
+								object->loadAll();
+								getEditorApp().getProject().assembly->registerObject(object);
+
+								auto& comp = gameObject.getComponent<ScriptingComponent>();
+								comp.runtimeScripts.push_back(object);
+							}
 						}
 						ImGui::EndMenu();
 					}

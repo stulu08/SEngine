@@ -4,19 +4,23 @@
 #include "AssemblyManager.h"
 
 namespace Stulu {
-	MonoObjectInstance::MonoObjectInstance(const std::string& nameSpace, const std::string& className, const ScriptAssembly* assembly)
-		:m_nameSpace(nameSpace),m_className(className), m_assembly(assembly) {
+	MonoObjectInstance::MonoObjectInstance(const std::string& nameSpace, const std::string& className, ScriptAssembly* assembly)
+		:m_nameSpace(nameSpace),m_className(className), m_assembly(assembly),m_constructed(false) {
 		m_classPtr = m_assembly->createClass(m_nameSpace, m_className);
 		if (m_classPtr) {
-			load();
 			m_objectPtr = mono_object_new(m_assembly->getDomain(), m_classPtr);
 			m_gCHandle = mono_gchandle_new(m_objectPtr, false);
 			return;
 		}
-		CORE_ERROR("Could not create MonoObjectInstance from {0}{1}", m_nameSpace, m_className);
+		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
 	}
 
 	MonoObjectInstance::~MonoObjectInstance() {
+		for (auto i : m_fields) {
+			if (i.second.value) {
+				delete(i.second.value);
+			}
+		}
 		if (m_gCHandle) {
 			mono_gchandle_free(m_gCHandle);
 			m_gCHandle = 0;
@@ -27,19 +31,57 @@ namespace Stulu {
 		m_functions[fnName] = mfn;
 	}
 
-	void MonoObjectInstance::callConstructor(const std::string& params, void** args) const {
-		call((std::string(".ctor") + params), args, false);
+	void MonoObjectInstance::loadAll() {
+		loadAllClassFunctions();
+		loadAllVirtualParentFunctions();
+		callDefaultConstructor();
+		loadAllClassFields();
+		setAllClassFields();
 	}
 
-	MonoObject* MonoObjectInstance::call(const std::string& func, void** args, bool isStatic) const {
-		const std::string name = m_nameSpace + "." + m_className + ":" + func;
-		if (m_functions.find(name) != m_functions.end()) {
-			return m_assembly->invokeFunction(m_functions.at(name), isStatic ? NULL : m_objectPtr, args);
+	void MonoObjectInstance::loadFunction(const std::string& fnName) {
+		if (!m_classPtr) {
+			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
+			return;
 		}
-		CORE_ERROR("Function not found: {0}", name);
-		return nullptr;
+		m_functions[fnName] = m_assembly->createFunction(m_classPtr, fnName);
+		m_functions[fnName].name = m_nameSpace + "." + m_className + ":" + fnName;
 	}
-	void MonoObjectInstance::load() {
+
+	void MonoObjectInstance::loadVirtualFunction(const std::string& fnName, MonoClass* functionClass) {
+		if (!m_classPtr) {
+			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
+			return;
+		}
+		MonoFunction function;
+		function.classPtr = m_classPtr;
+		if(m_nameSpace.empty())
+			function.name = m_className + ":" + fnName;
+		else
+			function.name = m_nameSpace + "." + m_className + ":" + fnName;
+
+		std::string IclassName = mono_class_get_name(functionClass);
+
+		if (function.classPtr) {
+			std::string m = m_nameSpace + "." + IclassName + ":" + fnName;
+			MonoMethodDesc* descPtr = mono_method_desc_new(m.c_str(), true);
+			if (descPtr) {
+				MonoMethod* virtualMethod = mono_method_desc_search_in_class(descPtr, functionClass);
+				if (virtualMethod) {
+					function.methodPtr = mono_object_get_virtual_method(m_objectPtr, virtualMethod);
+					m_functions[function.name] = function;
+					mono_method_desc_free(descPtr);
+					return;
+				}
+			}
+		}
+		CORE_ERROR("Could not create Monofunction from {0}", function.name);
+	}
+	void MonoObjectInstance::loadAllClassFunctions() {
+		if (!m_classPtr) {
+			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
+			return;
+		}
 		void* iter = NULL;
 		MonoMethod* method;
 		while (method = mono_class_get_methods(m_classPtr, &iter)) {
@@ -54,8 +96,183 @@ namespace Stulu {
 				mono_method_desc_free(desc);
 			}
 			func.classPtr = m_classPtr;
-			
+
 			m_functions[func.name] = func;
 		}
+	}
+	void MonoObjectInstance::loadAllVirtualParentFunctions() {
+		if (!m_classPtr) {
+			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
+			return;
+		}
+		void* iter = NULL;
+		MonoClass* interf;
+		interf = mono_class_get_parent(m_classPtr);
+		if (interf) {
+			MonoMethod* virtualMethod;
+			while (virtualMethod = mono_class_get_methods(interf, &iter)) {
+				std::string fnName = mono_method_full_name(virtualMethod, true);//Stulu.Component:onStart () -> onStart()
+				if (fnName.find_first_of(" (") != fnName.npos)
+					fnName.replace(fnName.find_first_of(" ("), 1, "");//remove space befor the parameters "Stulu.Component:onStart ()" -> "Stulu.Component:onStart()"
+				size_t ld = fnName.find_last_of(':');
+				loadVirtualFunction(fnName.substr(ld+1,fnName.size()), interf);
+			}
+			
+		}
+		
+	}
+	template<typename T>
+	T* assignFieldValue(MonoClassField* src, MonoObject* object) {
+		T value;
+		mono_field_get_value(object,src,&value);
+		
+		//T* dst = (T*)malloc(sizeof(T));
+		T* dst = new T();
+		*dst = value;
+		return dst;
+	}
+	template<typename T>
+	T* updateFieldValue(void* dest, MonoClassField* src, MonoObject* object) {
+		T value;
+		mono_field_get_value(object, src, &value);
+
+		T* dst = (T*)dest;
+		*dst = value;
+		return dst;
+	}
+	void MonoObjectInstance::loadAllClassFields() {
+		void* iter = NULL;
+		MonoClassField* field;
+		while (field = mono_class_get_fields(m_classPtr, &iter)) {
+			MonoClassMember mem;
+			mem.m_fieldPtr = field;
+			mem.m_typePtr = mono_field_get_type(field);
+			mem.name = mono_field_get_name(field);;
+			mem.typeName = mono_type_get_name_full(mem.m_typePtr,MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_REFLECTION);
+
+			if (mem.typeName.empty())
+				mem.type = MonoClassMember::Type::Other;
+			else if (mem.typeName == "Stulu.Vector4") {
+				mem.type = MonoClassMember::Type::Vector4_t;
+				mem.value = assignFieldValue<glm::vec4>(field, m_objectPtr);
+			}
+			else if (mem.typeName == "Stulu.Vector3") {
+				mem.type = MonoClassMember::Type::Vector3_t;
+				mem.value = assignFieldValue<glm::vec3>(field, m_objectPtr);
+			}
+			else if (mem.typeName == "Stulu.Vector2") {
+				mem.type = MonoClassMember::Type::Vector2_t;
+				mem.value = assignFieldValue<glm::vec2>(field, m_objectPtr);
+			}
+			else if (mem.typeName == "System.Single") {
+				mem.type = MonoClassMember::Type::float_t;
+				mem.value = assignFieldValue<float>(field, m_objectPtr);
+			}
+			else if (mem.typeName == "System.Int32") {
+				mem.type = MonoClassMember::Type::int_t;
+				mem.value = assignFieldValue<int32_t>(field, m_objectPtr);
+			}
+			else if (mem.typeName == "System.UInt32") {
+				mem.type = MonoClassMember::Type::uint_t;
+				mem.value = assignFieldValue<uint32_t>(field, m_objectPtr);
+			}
+			else
+				mem.type = MonoClassMember::Type::Other;
+			m_fields[mem.name] = mem;
+		}
+	}
+
+	void MonoObjectInstance::reloadClassFieldValue(const std::string& field) {
+		if (m_fields.find(field) == m_fields.end())
+			return;
+		auto& mem = m_fields.at(field);
+
+		switch (mem.type) {
+		case MonoClassMember::Type::Vector4_t:
+			mem.value = updateFieldValue<glm::vec4>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		case MonoClassMember::Type::Vector3_t:
+			mem.value = updateFieldValue<glm::vec3>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		case MonoClassMember::Type::Vector2_t:
+			mem.value = updateFieldValue<glm::vec2>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		case MonoClassMember::Type::float_t:
+			mem.value = updateFieldValue<float>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		case MonoClassMember::Type::int_t:
+			mem.value = updateFieldValue<int32_t>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		case MonoClassMember::Type::uint_t:
+			mem.value = updateFieldValue<uint32_t>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		}
+	}
+
+	void MonoObjectInstance::setClassField(const std::string& field) const {
+		if (m_fields.find(field) == m_fields.end())
+			return;
+		auto& i = m_fields.at(field);
+		if (i.value != nullptr && i.type != MonoClassMember::Type::Other) {
+			mono_field_set_value(m_objectPtr, i.m_fieldPtr, i.value);
+		}
+	}
+
+	void MonoObjectInstance::setAllClassFields() const {
+		for (auto& i : m_fields) {
+			if (i.second.value != nullptr && i.second.type != MonoClassMember::Type::Other) {
+				mono_field_set_value(m_objectPtr, i.second.m_fieldPtr, i.second.value);
+			}
+		}
+	}
+
+	void MonoObjectInstance::callDefaultConstructor() const {
+		mono_runtime_object_init(m_objectPtr);
+		m_constructed = true;
+	}
+
+	void MonoObjectInstance::callConstructor(const std::string& params, void** args) const {
+		call((std::string(".ctor") + params), args, false);
+		m_constructed = true;
+	}
+
+	MonoObject* MonoObjectInstance::call(const std::string& func, void** args, bool isStatic) const {
+		if (!m_classPtr) {
+			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
+			return nullptr;
+		}
+		const std::string name = (m_nameSpace.empty() ? "" : m_nameSpace + ".") + m_className + ":" + func;
+		if (m_functions.find(name) != m_functions.end()) {
+			return m_assembly->invokeFunction(m_functions.at(name), isStatic ? NULL : m_objectPtr, args);
+		}
+		CORE_ERROR("Function not found: {0}", name);
+		return nullptr;
+	}
+	void MonoObjectInstance::reload() {
+		std::unordered_map<std::string, MonoClassMember> fieldsChache = m_fields;
+		m_fields.clear();
+		if (m_gCHandle) {
+			mono_gchandle_free(m_gCHandle);
+			m_gCHandle = 0;
+		}
+		m_constructed = false;
+
+
+		m_classPtr = m_assembly->createClass(m_nameSpace, m_className);
+		if (m_classPtr) {
+			m_objectPtr = mono_object_new(m_assembly->getDomain(), m_classPtr);
+			m_gCHandle = mono_gchandle_new(m_objectPtr, false);
+
+			loadAll();
+			for (auto [name, field] : fieldsChache) {
+				if (m_fields.find(name) == m_fields.end())
+					continue;
+				if (field.type == m_fields[name].type)
+					m_fields[name].value = field.value;
+			}
+			setAllClassFields();
+			return;
+		}
+		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
 	}
 }

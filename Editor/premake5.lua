@@ -10,7 +10,7 @@ project "Editor"
 	objdir ("bin-int/" .. outputdir .. "")
 	debugdir ("" .. builddir .. "")
 	debugargs { "%{wks.location}DebugProject" }
-	dependson { "Stulu" }
+	dependson { "EditorScriptCore" }
 	defines
 	{
 		"ST_EDITOR",
@@ -51,7 +51,6 @@ project "Editor"
 		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and there are huge and i dont have a lot of space left
 		"{DELETE} " .. builddir .. "/Stulu.idb",
 		"{DELETE} " .. builddir .. "/Stulu.pdb",
-		"{DELETE} " .. builddir .. "/data/Stulu-ScriptCore.pdb" 
 	}
 	links
 	{
