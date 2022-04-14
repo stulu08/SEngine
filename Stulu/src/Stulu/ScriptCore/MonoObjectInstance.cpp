@@ -124,8 +124,8 @@ namespace Stulu {
 	template<typename T>
 	T* assignFieldValue(MonoClassField* src, MonoObject* object) {
 		T value;
-		mono_field_get_value(object,src,&value);
-		
+		mono_field_get_value(object, src, &value);
+
 		//T* dst = (T*)malloc(sizeof(T));
 		T* dst = new T();
 		*dst = value;

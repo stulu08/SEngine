@@ -55,6 +55,7 @@ namespace Stulu {
 		getWindow().show();
 	}
 	EditorApp::~EditorApp() {
+		s_project.assembly = nullptr;
 		getEditorLayer().savePanelConfig(); 
 		StyleEditor::saveAll();
 	}

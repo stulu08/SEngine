@@ -8,7 +8,6 @@ namespace Stulu {
 		std::string assetPath = "";
 		std::string configPath = "";
 		std::string dataPath = "";
-		std::string toolsPath = "";
 		std::string windowINI;
 
 		Ref<ScriptAssembly> assembly;
@@ -18,9 +17,9 @@ namespace Stulu {
 		}
 		Project(const std::string& path)
 #ifdef ST_PLATFORM_WINDOWS
-			:path(path), assetPath(path + "\\assets"), configPath(path + "\\config"), dataPath(path + "\\data"), toolsPath(path + "\\tools"), windowINI(configPath + "\\windowLayout.ini") {
+			:path(path), assetPath(path + "\\assets"), configPath(path + "\\config"), dataPath(path + "\\data"), windowINI(configPath + "\\windowLayout.ini") {
 #else
-			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), dataPath(path + "/data"), toolsPath(path + "/tools"), windowINI(configPath + "/windowLayout.ini") {
+			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), dataPath(path + "/data"), windowINI(configPath + "/windowLayout.ini") {
 #endif
 			size_t lastS = path.find_last_of("/\\");
 			lastS = lastS == std::string::npos ? 0 : lastS + 1;

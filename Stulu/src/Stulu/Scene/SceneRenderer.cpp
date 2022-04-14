@@ -35,7 +35,6 @@ namespace Stulu {
 			auto& s = object.getComponent<SkyBoxComponent>();
 			s_runtimeData.camSkyBox.texture = s.texture;
 			s_runtimeData.camSkyBox.mapType = (uint32_t)s.mapType;
-			s_runtimeData.camSkyBox.blur = s.blur;
 		}
 
 	}
@@ -51,7 +50,6 @@ namespace Stulu {
 				auto& s = mainCam.getComponent<SkyBoxComponent>();
 				s_runtimeData.camSkyBox.texture = s.texture;
 				s_runtimeData.camSkyBox.mapType = (uint32_t)s.mapType;
-				s_runtimeData.camSkyBox.blur = s.blur;
 			}
 		}
 	}
@@ -86,6 +84,7 @@ namespace Stulu {
 		s_runtimeData.bufferData.gamma = data.gamma;
 		s_runtimeData.bufferData.toneMappingExposure = data.toneMappingExposure;
 		s_runtimeData.bufferData.useSkybox = (s_runtimeData.camSkyBox.texture == nullptr ? 0 : 1);
+		s_runtimeData.bufferData.env_lod = data.env_lod;
 
 		s_runtimeData.sceneDataBuffer->setData(&s_runtimeData.bufferData, sizeof(RuntimeData::SceneData));
 	}
@@ -171,7 +170,6 @@ namespace Stulu {
 			auto& shader = Resources::getSkyBoxShader();
 			shader->bind();
 			shader->setInt("mapType", (int32_t)s_runtimeData.camSkyBox.mapType);
-			shader->setFloat("blur", s_runtimeData.camSkyBox.blur);
 			s_runtimeData.camSkyBox.texture->bind();
 			s_runtimeData.camSkyBox.texture->draw();
 		}

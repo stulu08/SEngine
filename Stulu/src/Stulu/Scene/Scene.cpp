@@ -34,7 +34,6 @@ namespace Stulu {
 		base.uuid = uuid;
 
 		go.addComponent<TransformComponent>();
-		go.addComponent<ScriptingComponent>();
 		return go;
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
@@ -347,7 +346,10 @@ namespace Stulu {
 		m_registry.view<ScriptingComponent>().each([=](auto gameObject, ScriptingComponent& comp) {
 			for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
 				if (!i->isContructed() || forceConstructNew) {
-					i->loadAll();
+					i->loadAllClassFunctions();
+					i->loadAllVirtualParentFunctions();
+					i->callDefaultConstructor();
+					i->setAllClassFields();
 					i->call("onAwake()");
 				}
 				i->call(function);

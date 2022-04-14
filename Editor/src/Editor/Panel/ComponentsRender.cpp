@@ -96,7 +96,6 @@ namespace Stulu {
 			else
 				component.texture = nullptr;
 		}
-		drawFloatControl("Blur", component.blur);
 		drawComboControl("Map Type", (int&)component.mapType, "Environment Map\0Irradiance Map\0Prefilter Map");
 
 	}

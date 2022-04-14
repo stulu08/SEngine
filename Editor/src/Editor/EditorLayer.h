@@ -10,7 +10,7 @@ namespace Stulu {
 	class EditorLayer : public Layer {
 	public:
 		EditorLayer();
-		~EditorLayer() {  }
+		~EditorLayer();
 
 		void onAttach() override;
 		void onUpdate(Timestep timestep) override;

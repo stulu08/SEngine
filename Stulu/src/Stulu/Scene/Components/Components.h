@@ -97,7 +97,6 @@ namespace Stulu {
 	public:
 		Ref<CubeMap> texture = nullptr;
 
-		float blur = .0f;
 		enum class MapType {
 			EnvironmentMap =0, IrradianceMap=1, PrefilterMap=2
 		}mapType = MapType::EnvironmentMap;

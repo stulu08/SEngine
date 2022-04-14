@@ -134,7 +134,7 @@ namespace Stulu {
 								object->loadAll();
 								getEditorApp().getProject().assembly->registerObject(object);
 
-								auto& comp = gameObject.getComponent<ScriptingComponent>();
+								auto& comp = gameObject.saveAddComponent<ScriptingComponent>();
 								comp.runtimeScripts.push_back(object);
 							}
 						}

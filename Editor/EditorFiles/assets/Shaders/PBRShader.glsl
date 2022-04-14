@@ -62,6 +62,7 @@ void main (){
 
 	data.toneMappingExposure = toneMappingExposure;
 	data.gamma = gamma;
+	data.env_lod = env_lod;
 
 	data.useSkybox = useSkybox == 1;
 	data.toneMappingAndGammaCorrection = true;
@@ -123,6 +124,7 @@ struct PBRData {
 
 	float toneMappingExposure;
 	float gamma;
+	float env_lod;
 
 	bool toneMappingAndGammaCorrection;
 	bool useSkybox;

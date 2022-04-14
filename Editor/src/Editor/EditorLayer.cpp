@@ -68,6 +68,10 @@ namespace Stulu {
 		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 	}
 
+	EditorLayer::~EditorLayer() {
+
+	}
+
 	void EditorLayer::onAttach() {
 		ST_PROFILING_FUNCTION();
 		newScene();
@@ -175,6 +179,7 @@ namespace Stulu {
 				SceneData& data = m_activeScene->m_data;
 				ComponentsRender::drawFloatSliderControl("Exposure", data.toneMappingExposure, .0f, 5.0f);
 				ComponentsRender::drawFloatSliderControl("Gamma", data.gamma, .0f, 5.0f);
+				ComponentsRender::drawFloatSliderControl("Enviroment Lod", data.env_lod, .0f, 5.0f);
 				if (ComponentsRender::drawBoolControl("HDR", data.framebuffer16bit)) {
 					m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
 					m_fbDrawData.m_framebuffer->invalidate();

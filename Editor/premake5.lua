@@ -46,7 +46,7 @@ project "Editor"
 		"{MKDIR} ".. builddir .."",
 		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
-		"{COPYDIR} %{ProjectDir.Editor}/assets " .. builddir .. "/assets",
+		"{COPYDIR} %{ProjectDir.Editor}/EditorFiles " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. " " .. builddir .. "",
 		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and there are huge and i dont have a lot of space left
 		"{DELETE} " .. builddir .. "/Stulu.idb",

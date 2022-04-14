@@ -39,6 +39,7 @@ namespace Stulu {
 		void setAllClassFields() const;
 		void setClassField(const std::string& field) const;
 
+		MonoObject* getObjectPtr() const { return m_objectPtr; }
 		const std::string& getClassName() const { return m_className; }
 		const std::string& getNameSpace() const { return m_nameSpace; }
 		const std::unordered_map<std::string, MonoFunction>& getFunctions() const { return m_functions; }

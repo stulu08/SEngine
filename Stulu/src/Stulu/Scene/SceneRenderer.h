@@ -52,11 +52,11 @@ namespace Stulu {
 			struct SceneData {
 				float toneMappingExposure = 1.0f;
 				float gamma = 2.2f;
+				float env_lod = 4.0f;
 				uint32_t useSkybox = 0;
 			} bufferData;
 			inline static struct RenderObjectSkyBox{
 				Ref<CubeMap> texture = nullptr;
-				float blur = .0f;
 				uint32_t mapType = 0;
 			} camSkyBox;
 			inline static Ref<Camera> cam = nullptr;

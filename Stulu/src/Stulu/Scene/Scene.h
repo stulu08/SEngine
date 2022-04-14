@@ -14,6 +14,7 @@ namespace Stulu {
 		float toneMappingExposure = 1.0f;
 		float gamma = 2.2f;
 		bool framebuffer16bit = false;
+		float env_lod = 4.0f;
 		bool enablePhsyics3D = true;
 		PhysicsData physicsData;
 	};
