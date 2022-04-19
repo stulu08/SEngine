@@ -30,11 +30,9 @@ namespace Stulu {
 			load(path);
 		}
 		Model(Ref<Mesh>& mesh, const std::string& name = "new Mesh") {
-			meshes.push_back({name, mesh });
+			meshes.push_back({ name, mesh });
 		}
-		Model() {
 
-		}
 		std::vector<MeshAsset>& getMeshes() { return meshes; }
 	private:
 		std::vector<MeshAsset> meshes;

@@ -10,6 +10,6 @@ namespace Stulu {
 		public static uint height => InternalCalls.application_getHeight();
 		public static uint aspectRatio => width / height;
 
-		public static void exit(int code) { InternalCalls.application_exit(code); }
+		public static void exit(int code = 0) { InternalCalls.application_exit(code); }
 	}
 }

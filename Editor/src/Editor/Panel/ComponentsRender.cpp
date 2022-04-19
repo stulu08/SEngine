@@ -13,17 +13,18 @@ namespace Stulu {
 	template<>
 	void ComponentsRender::drawComponent<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) {
 		ST_PROFILING_FUNCTION();
+		ImGui::Text(std::to_string((uint32_t)gameObject).c_str());
 		drawStringControl("Name", gameObject.getComponent<GameObjectBaseComponent>().name);
 		drawStringControl("Tag", gameObject.getComponent<GameObjectBaseComponent>().tag);
+		
 		ImGui::Separator();
 	}
 	template<>
 	void ComponentsRender::drawComponent<TransformComponent>(GameObject gameObject, TransformComponent& component) {
 		ST_PROFILING_FUNCTION();
 		drawVector3Control("Position", component.position);
-		glm::vec3 rotation = glm::degrees(Math::QuaternionToEuler(component.rotation));
-		if(drawVector3Control("Rotation", rotation))
-			component.rotation = Math::EulerToQuaternion(glm::radians(rotation));
+		if(drawVector3Control("Rotation", component.eulerAnglesDegrees))
+			component.rotation = Math::EulerToQuaternion(glm::radians(component.eulerAnglesDegrees));
 		drawVector3Control("Scale", component.scale);
 	}
 	template<>
@@ -201,43 +202,40 @@ namespace Stulu {
 	template<>
 	void ComponentsRender::drawComponent<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) {
 		ST_PROFILING_FUNCTION();
-		drawComboControl("Type", (int&)component.rbType, "Dynamic\0Static");
 		drawBoolControl("Use gravity", component.useGravity);
-		if (component.rbType == RigidbodyComponent::Type::Dynamic) {
-			//bool 3
-			{
-				ImGui::PushID("Enable rotation");
-				bool change = false;
-				ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
-				ImGui::SetColumnWidth(0, 100.0f);
-				ImGui::Text("Enable rotation");
-				ImGui::NextColumn();
+		//bool 3
+		{
+			ImGui::PushID("Enable rotation");
+			bool change = false;
+			ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+			ImGui::SetColumnWidth(0, 100.0f);
+			ImGui::Text("Enable rotation");
+			ImGui::NextColumn();
 
-				ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+			ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 
-				change |= ImGui::Checkbox("##X", &component.rotationX);
-				ImGui::PopItemWidth();
+			change |= ImGui::Checkbox("##X", &component.rotationX);
+			ImGui::PopItemWidth();
 
-				ImGui::SameLine();
-				change |= ImGui::Checkbox("##>", &component.rotationY);
-				ImGui::PopItemWidth();
+			ImGui::SameLine();
+			change |= ImGui::Checkbox("##>", &component.rotationY);
+			ImGui::PopItemWidth();
 
-				ImGui::SameLine();
-				change |= ImGui::Checkbox("##Z", &component.rotationZ);
-				ImGui::PopItemWidth();
+			ImGui::SameLine();
+			change |= ImGui::Checkbox("##Z", &component.rotationZ);
+			ImGui::PopItemWidth();
 
-				ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
 
-				ImGui::EndColumns();
+			ImGui::EndColumns();
 
-				ImGui::PopID();
-			}
-			drawFloatControl("Mass", component.mass);
-			drawVector3Control("Center of mass", component.massCenterPos);
-			drawBoolControl("Kinematic", component.kinematic);
-			drawBoolControl("Retain acceleration", component.retainAccelaration);
+			ImGui::PopID();
 		}
+		drawFloatControl("Mass", component.mass);
+		drawVector3Control("Center of mass", component.massCenterPos);
+		drawBoolControl("Kinematic", component.kinematic);
+		drawBoolControl("Retain acceleration", component.retainAccelaration);
 	}
 	template<>
 	void ComponentsRender::drawComponent<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) {

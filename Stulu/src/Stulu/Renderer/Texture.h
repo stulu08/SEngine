@@ -65,7 +65,5 @@ namespace Stulu {
 		virtual uint32_t getIrradianceMap() const = 0;
 		virtual uint32_t getPrefilterMap() const = 0;
 		virtual uint32_t getBRDFLUT() const = 0;
-
-
 	};
 }

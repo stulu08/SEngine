@@ -35,34 +35,34 @@
 		}
 
 
-		public static void EngineCritical(string message) {
+		internal static void EngineCritical(string message) {
 			InternalCalls.log_engine_log((int)Level.critical, message);
 		}
-		public static void EngineError(string message) {
+		internal static void EngineError(string message) {
 			InternalCalls.log_engine_log((int)Level.error, message);
 		}
-		public static void EngineWarn(string message) {
+		internal static void EngineWarn(string message) {
 			InternalCalls.log_engine_log((int)Level.warn, message);
 		}
-		public static void EngineInfo(string message) {
+		internal static void EngineInfo(string message) {
 			InternalCalls.log_engine_log((int)Level.info, message);
 		}
-		public static void EngineTrace(string message) {
+		internal static void EngineTrace(string message) {
 			InternalCalls.log_engine_log((int)Level.trace, message);
 		}
-		public static void EngineCritical(object message) {
+		internal static void EngineCritical(object message) {
 			InternalCalls.log_engine_log((int)Level.critical, message.ToString());
 		}
-		public static void EngineError(object message) {
+		internal static void EngineError(object message) {
 			InternalCalls.log_engine_log((int)Level.error, message.ToString());
 		}
-		public static void EngineWarn(object message) {
+		internal static void EngineWarn(object message) {
 			InternalCalls.log_engine_log((int)Level.warn, message.ToString());
 		}
-		public static void EngineInfo(object message) {
+		internal static void EngineInfo(object message) {
 			InternalCalls.log_engine_log((int)Level.info, message.ToString());
 		}
-		public static void EngineTrace(object message) {
+		internal static void EngineTrace(object message) {
 			InternalCalls.log_engine_log((int)Level.trace, message.ToString());
 		}
 	}

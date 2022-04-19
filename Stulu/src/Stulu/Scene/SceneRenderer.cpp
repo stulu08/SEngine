@@ -2,6 +2,7 @@
 #include "SceneRenderer.h"
 
 #include "Stulu/Scene/Resources.h"
+#include <imgui.h>
 
 namespace Stulu {
 	SceneRenderer::RuntimeData SceneRenderer::s_runtimeData;

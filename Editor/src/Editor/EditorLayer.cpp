@@ -4,6 +4,8 @@
 
 #include <ImGuizmo/ImGuizmo.h>
 
+#include "Stulu/ScriptCore/Bindings/Input.h"
+
 namespace Stulu {
 
 	EditorLayer::EditorLayer()
@@ -62,10 +64,28 @@ namespace Stulu {
 		}
 		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
 		Resources::load();
-		EditorResources::loadAll();
 		StyleEditor::init();
 		Previewing::init();
 		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
+
+		//load licenses
+		for (auto fileDir : std::filesystem::directory_iterator("Licenses")) {
+			if (fileDir.is_directory())
+				continue;
+
+			std::ifstream inStream(fileDir.path().string(), std::ios::in | std::ios::binary);
+			if (inStream) {
+				std::string result;
+				inStream.seekg(0, std::ios::end);
+				result.resize(inStream.tellg());
+				inStream.seekg(0, std::ios::beg);
+				inStream.read(&result[0], result.size());
+				inStream.close();
+				m_licenses[fileDir.path().filename().string()] = result;
+			}
+			else
+				CORE_ERROR("Could not open File: {0}", fileDir.path().string());
+		}
 	}
 
 	EditorLayer::~EditorLayer() {
@@ -106,10 +126,11 @@ namespace Stulu {
 	void EditorLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (!ImGuizmo::IsUsing()) {
-			if (m_sceneViewport.focused)
-				m_sceneCamera.updateMove(timestep);
+			Input::s_enabled = m_sceneViewport.hovered || m_sceneViewport.focused;
+			m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
 			m_activeScene->updateTransform(m_sceneCamera.getTransform());
+			Input::s_enabled = true;
 		}
 
 
@@ -130,7 +151,6 @@ namespace Stulu {
 		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
-
 	}
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
@@ -155,7 +175,10 @@ namespace Stulu {
 		if (m_showSceneViewport) {
 			m_sceneViewport.draw(m_sceneCamera, &m_showSceneViewport);
 		}
-		Application::get().getImGuiLayer()->blockEvents(!m_sceneViewport.hovered && !m_sceneViewport.focused);
+		Application::get().getImGuiLayer()->blockEvents(
+		!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused)
+		);
+		StuluBindings::Input::s_enabled = m_gameViewport.focused;
 
 		if (m_showProfiling) {
 			m_profilingPanel.draw(timestep, &m_showProfiling);
@@ -173,6 +196,9 @@ namespace Stulu {
 		}
 		if (m_showAssetBrowser) {
 			m_assetBrowser.render(&m_showAssetBrowser);
+		}
+		if (m_showLicensesWindow) {
+			drawLicenseWindow();
 		}
 		if (m_showSceneSettingsPanel) {
 			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
@@ -202,7 +228,7 @@ namespace Stulu {
 		if (m_showSceneViewport) {
 			if (ImGui::Begin("Scene", &m_showSceneViewport)) {
 				Gizmo::Begin();
-				GameObject& selected = m_editorHierarchy.getCurrentObject();
+				GameObject selected = m_editorHierarchy.getCurrentObject();
 				if (selected) {
 					Gizmo::TransformEdit(selected.getComponent<TransformComponent>(), m_gizmoEditType);
 				}
@@ -251,11 +277,12 @@ namespace Stulu {
 	}
 	void EditorLayer::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
-
-		m_sceneCamera.onEvent(e);
-
+		if(m_sceneViewport.focused && m_sceneViewport.hovered)
+			m_sceneCamera.onEvent(e);
+		if (e.getEventType() == EventType::WindowResize)
+			m_sceneCamera.onResize((float)static_cast<WindowResizeEvent&>(e).getWidth(), (float)static_cast<WindowResizeEvent&>(e).getHeight());
+		
 		EventDispatcher dispacther(e);
-
 		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
 		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(EditorLayer::onApplicationQuit));
 	}
@@ -317,9 +344,14 @@ namespace Stulu {
 				}
 				ImGui::EndMenu();
 			}
+			if (ImGui::BeginMenu("About")) {
+				if (ImGui::MenuItem("Licenses/3rd Party/Dependencies", (const char*)0, m_showLicensesWindow)) {
+					m_showLicensesWindow = !m_showLicensesWindow;
+				}
+				ImGui::EndMenu();
+			}
 			ImGui::EndMainMenuBar();
 		}
-
 		//toolbar
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
@@ -363,6 +395,16 @@ namespace Stulu {
 
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
+		ImGui::End();
+	}
+	void EditorLayer::drawLicenseWindow() {
+		if (ImGui::Begin("Licenses/3rd Party/Dependencies", &m_showLicensesWindow)) {
+			for (auto& [name, content] : m_licenses) {
+				if (ImGui::CollapsingHeader(name.c_str())) {
+					ImGui::Text(content.c_str());
+				}
+			}
+		}
 		ImGui::End();
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
@@ -485,11 +527,14 @@ namespace Stulu {
 		DiscordRPC::setState("Editing a scene");
 		ST_TRACE("New Scene loaded");
 	}
+	static std::unordered_map <MonoObjectInstance::MonoClassMember, void* > scriptFieldList;
 	void EditorLayer::onRuntimeStart() {
+		scriptFieldList.clear();
 		Time::Scale = 1.0f;
 		s_runtime = true;
 		m_runtimeScene = Scene::copy(m_editorScene);
 		m_activeScene = m_runtimeScene;
+
 		m_activeScene->onRuntimeStart();
 		m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
 		m_fbDrawData.m_framebuffer->invalidate();

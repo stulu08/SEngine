@@ -39,8 +39,9 @@ project "ProjectAssembly"
 	}
 	files
 	{
-		"Scripts/**.cs"
+		"assets/**.cs"
 	}
+	removefiles { "assets/Editor/**.cs" }
 	filter "configurations:Debug"
 		runtime "Debug"
 		optimize "off"
@@ -76,8 +77,8 @@ project "EdiorProjectAssembly"
 	}
 	files
 	{
-		"Scripts/**.cs",
-		"Editor/Scripts/**.cs"
+		"assets/**.cs",
+		"assets/Editor/**.cs"
 	}
 	filter "configurations:Debug"
 		runtime "Debug"

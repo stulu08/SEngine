@@ -37,6 +37,7 @@ namespace Stulu {
 		glm::vec3 worldPosition = glm::vec3(0.0f);
 		glm::quat worldRotation = glm::quat(1.0f, .0f, .0f, .0f);
 		glm::vec3 worldScale = glm::vec3(0.0f);
+		glm::vec3 eulerAnglesDegrees = glm::vec3(.0f);//in degrees
 
 		glm::mat4 transform = glm::mat4(1.0f);
 		
@@ -165,8 +166,8 @@ namespace Stulu {
 		MeshRendererComponent,
 		MeshFilterComponent,
 		NativeBehaviourComponent,
-		ScriptingComponent,
 		CameraComponent,
+		ScriptingComponent,
 		RigidbodyComponent,
 		BoxColliderComponent,
 		SphereColliderComponent,

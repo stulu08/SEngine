@@ -54,17 +54,18 @@ namespace Stulu {
 			return false;
 		}
 		template<typename T>
-		void removeComponent() {
+		bool removeComponent() {
 			if (!hasComponent<T>()) {
 				CORE_ERROR("GameObject does not have component");
-				return;
+				return false;
 			}
 			m_scene->onComponentRemove<T>(*this, getComponent<T>());
 			m_scene->m_registry.remove<T>(m_entity);
+			return true;
 		}
 
 		UUID getId();
-		static GameObject getById(UUID& id, Scene* scene);
+		static GameObject getById(const UUID& id, Scene* scene);
 
 		operator bool() const { 
 			return m_scene != nullptr || m_entity != entt::null; 

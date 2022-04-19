@@ -29,8 +29,6 @@ namespace Stulu {
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-        if (m_brdfLUT)
-            glDeleteTextures(1, &m_brdfLUT);
         if (m_captureFBO)
             glDeleteFramebuffers(1, &m_captureFBO);
         if (m_captureRBO)
@@ -71,8 +69,6 @@ namespace Stulu {
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-        if (m_brdfLUT)
-            glDeleteTextures(1, &m_brdfLUT);
         if (m_captureFBO)
             glDeleteFramebuffers(1, &m_captureFBO);
         if (m_captureRBO)
@@ -121,8 +117,6 @@ namespace Stulu {
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-        if (m_brdfLUT)
-            glDeleteTextures(1, &m_brdfLUT);
         if (m_captureFBO)
             glDeleteFramebuffers(1, &m_captureFBO);
         if (m_captureRBO)
@@ -213,7 +207,6 @@ namespace Stulu {
 		glDeleteTextures(1, &m_envCubemap);
 		glDeleteTextures(1, &m_irradianceMap);
 		glDeleteTextures(1, &m_prefilterMap);
-		glDeleteTextures(1, &m_brdfLUT);
         glDeleteFramebuffers(1, &m_captureFBO);
         glDeleteRenderbuffers(1, &m_captureRBO);
 	}
@@ -369,34 +362,34 @@ namespace Stulu {
             }
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (!s_brdfLUT) {
+            // pbr: generate a 2D LUT from the BRDF equations used.
+            // ----------------------------------------------------
+            glGenTextures(1, &s_brdfLUT);
 
-        // pbr: generate a 2D LUT from the BRDF equations used.
-        // ----------------------------------------------------
-        glGenTextures(1, &m_brdfLUT);
+            // pre-allocate enough memory for the LUT texture.
+            glBindTexture(GL_TEXTURE_2D, s_brdfLUT);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, m_resolution, m_resolution, 0, GL_RG, GL_FLOAT, 0);
+            // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        // pre-allocate enough memory for the LUT texture.
-        glBindTexture(GL_TEXTURE_2D, m_brdfLUT);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, m_resolution, m_resolution, 0, GL_RG, GL_FLOAT, 0);
-        // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+            glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
+            glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_resolution, m_resolution);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_brdfLUT, 0);
 
-        // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
-        glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_resolution, m_resolution);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_brdfLUT, 0);
-
-        glViewport(0, 0, m_resolution, m_resolution);
-        if(!s_brdfShader)
-            s_brdfShader = Shader::create("brdfShader", getBrdfShaderSource());
-        s_brdfShader->bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        renderQuad();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+            glViewport(0, 0, m_resolution, m_resolution);
+            if (!s_brdfShader)
+                s_brdfShader = Shader::create("brdfShader", getBrdfShaderSource());
+            s_brdfShader->bind();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderQuad();
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        }
         bind(0);
     }
 
@@ -421,10 +414,11 @@ namespace Stulu {
     }
     void OpenGLCubeMap::bindBRDFLUT(uint32_t slot) const {
         ST_PROFILING_FUNCTION();
-        glBindTextureUnit(slot, m_brdfLUT);
+        glBindTextureUnit(slot, s_brdfLUT);
     }
 
     void OpenGLCubeMap::draw() {
+        ST_PROFILING_FUNCTION();
         glDepthFunc(GL_LEQUAL);
         glCullFace(GL_BACK);
         renderCube();

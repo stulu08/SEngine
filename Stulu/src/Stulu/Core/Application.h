@@ -6,7 +6,6 @@
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Core/Version.h"
 #include "Stulu/Core/Time.h"
-#include "Stulu/ScriptCore/AssemblyManager.h"
 
 namespace Stulu {
 	struct ApplicationInfo {

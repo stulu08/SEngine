@@ -10,9 +10,18 @@ namespace Stulu {
 		public static bool isMouseDown(MouseCode button) => InternalCalls.input_mouseDown((uint)button);
 		public static bool isMouseDown(MouseButton button) => InternalCalls.input_mouseDown((uint)button);
 		public static void setCursorMode(CursorMode mode) => InternalCalls.input_setCursorMode((uint)mode);
-
-		//static Vector2 getMousePos();
-		//public static Vector2 getMouseDelta();
+		public static CursorMode getCursorMode() => (CursorMode)InternalCalls.input_getCursorMode();
+		public static Vector2 getMousePos() { Vector2 val; InternalCalls.input_getMousePos(out val); return val; }
+		public static Vector2 getMouseDelta() { Vector2 val; InternalCalls.input_getMouseDelta(out val); return val; }
+		public static float getAxis(KeyCode positive, KeyCode negative) {
+			return (Input.isKeyDown(positive) ? 1f : 0f) - (Input.isKeyDown(negative) ? 1f : 0f);
+		}
+		public static Vector2 getAxis(KeyCode xPositive, KeyCode xNegative, KeyCode yPositive, KeyCode yNegative) {
+			return new Vector2(getAxis(xPositive, xNegative), getAxis(yPositive, yNegative));
+		}
+		public static Vector3 getAxis(KeyCode xPositive, KeyCode xNegative, KeyCode yPositive, KeyCode yNegative,KeyCode zPositive, KeyCode zNegative) {
+			return new Vector3(getAxis(xPositive, xNegative), getAxis(yPositive, yNegative), getAxis(zPositive, zNegative));
+		}
 	}
 	public enum CursorMode { Normal = 0, Hidden = 1, Disabled = 2 };
 

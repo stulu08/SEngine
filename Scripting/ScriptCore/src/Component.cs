@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stulu {
 	[System.Serializable]
-	public abstract class Component {
+	public abstract class Component : GameObjectAttached {
 		/// <summary>
 		/// On Scribt initilization
 		/// </summary>
@@ -35,5 +35,9 @@ namespace Stulu {
 		/// When the scene exits
 		/// </summary>
 		public virtual void onSceneExit() { }
+
+		public TransformComponent transform => gameObject.transform;
+		public string name { get => this.gameObject.Name; set => this.gameObject.Name = value; }
+		public string tag { get => this.gameObject.Tag; set => this.gameObject.Tag = value; }
 	}
 }

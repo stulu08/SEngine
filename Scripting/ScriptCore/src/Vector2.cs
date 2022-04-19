@@ -1,8 +1,5 @@
 ﻿using System;
-// Decompiled with JetBrains decompiler
-// Type: Hazel.Mathf
-// Assembly: Hazel-ScriptCore, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: C14E7322-EDE5-4F3C-9776-FE9C2723B8FF
+
 namespace Stulu {
 	public struct Vector2 {
         public static Vector2 Zero = new Vector2(0.0f, 0.0f);
@@ -82,5 +79,8 @@ namespace Stulu {
         public static Vector2 operator -(Vector2 vector) => new Vector2(-vector.X, -vector.Y);
 
         public override string ToString() => "Vector2[" + this.X.ToString() + ", " + this.Y.ToString() + "]";
+
+        public float x { get => this.X; set { this.X = value; } }
+        public float y { get => this.Y; set { this.Y = value; } }
     }
 }

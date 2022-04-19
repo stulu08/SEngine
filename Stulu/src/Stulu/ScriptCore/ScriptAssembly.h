@@ -39,13 +39,14 @@ namespace Stulu {
 		static MonoFunction createFunction(MonoClass* classPtr, const std::string& functionName);
 
 		MonoObject* invokeFunction(const MonoFunction& function, void* obj, void** args) const;
+		MonoObject* invokeFunction(MonoMethod* function, void* obj, void** args) const;
 
 		MonoDomain* getDomain() const { return m_monoScriptDomain; }
 		MonoDomain* getRootDomain() const { return m_monoRootDomain; }
 		MonoAssembly* getAssembly() const { return m_monoAssembly; }
 		MonoImage* getImage() const { return m_monoImage; }
 
-		void setErrorCallback(std::function<void(const std::string&, const MonoFunction&)>& ca) { m_errorCallBack = ca; };
+		void setErrorCallback(std::function<void(const std::string&, MonoMethod*)>& ca) { m_errorCallBack = ca; };
 
 		//for reloading the assembly
 		void registerObject(Ref<MonoObjectInstance> object) { m_objects.push_back(object); }
@@ -69,6 +70,6 @@ namespace Stulu {
 		std::vector<Ref<MonoObjectInstance>> m_objects;
 
 
-		std::function<void(const std::string&, const MonoFunction&)> m_errorCallBack;
+		std::function<void(const std::string&, MonoMethod* func)> m_errorCallBack;
 	};
 }

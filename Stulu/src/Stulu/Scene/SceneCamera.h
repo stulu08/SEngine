@@ -29,7 +29,7 @@ namespace Stulu {
 
 	private:
 		glm::vec2 m_mouseDelta = glm::vec2(0.0f);
-		float m_aspectRatio, m_fov, m_zNear, m_zFar, m_lastMouseXPos = 0, m_lastMouseYPos = 0;
+		float m_aspectRatio, m_fov, m_zNear, m_zFar;
 		float m_pitch = 0, m_yaw = 0;
 		Ref<Camera> m_cam;
 		TransformComponent m_transform;
@@ -42,8 +42,5 @@ namespace Stulu {
 		void mouseLookMove();
 
 		bool onMouseScrolledEvent(MouseScrollEvent& e);
-		bool onMouseMoveEvent(MouseMoveEvent& e);
-		bool onResizeEvent(WindowResizeEvent& e);
-
 	};
 }

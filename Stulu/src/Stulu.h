@@ -65,3 +65,6 @@
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Scene.h"
+
+//Scripting
+#include "Stulu/ScriptCore/AssemblyManager.h"

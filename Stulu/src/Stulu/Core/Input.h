@@ -14,20 +14,13 @@ namespace Stulu {
 		static float getMouseX();
 		static float getMouseY();
 		static void setCursorMode(CursorMode mode);
-		static inline glm::vec2 getMouseDelta() {
-			return m_mouseDelta;
-		}
+		static CursorMode getCursorMode();
+		static glm::vec2 getMouseDelta();
 	private:
+		static void update();
+		static inline bool s_enabled;
 
-		static inline glm::vec2 m_mouseDelta = glm::vec2(0.0f);
-		static inline  float m_lastMouseXPos = 0, m_lastMouseYPos = 0;
-
-		static inline void update() {
-			m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos);
-			m_lastMouseXPos = Input::getMouseX();
-			m_lastMouseYPos = Input::getMouseY();
-		}
-
+		friend class EditorLayer;
 		friend class Application;
 	};
 }

@@ -9,8 +9,6 @@
 namespace Stulu {
 	class EditorResources {
 	public:
-		static void loadAll();
-
 		static Ref<Texture>& getEmptySlotTexture();
 		static Ref<Texture>& getFileTexture();
 		static Ref<Texture>& getFolderTexture();
@@ -21,21 +19,9 @@ namespace Stulu {
 		static Ref<Texture>& getPauseTexture();
 		static Ref<Texture>& getStopTexture();
 		static Ref<Texture>& getSkyBoxTexture();
+		static Ref<Texture>& getScriptTexture();
 		static const std::string getDefaultSceneSource();
 
 		static Ref<Shader>& getOutlineShader();
-	private:
-		static inline Ref<Texture> s_emptyTexture = nullptr;
-		static inline Ref<Texture> s_fileTexture = nullptr;
-		static inline Ref<Texture> s_folderTexture = nullptr;
-		static inline Ref<Texture> s_objectTexture = nullptr;
-		static inline Ref<Texture> s_sceneTexture = nullptr;
-		static inline Ref<Texture> s_noCameraTexture = nullptr;
-		static inline Ref<Texture> s_playTexture = nullptr;
-		static inline Ref<Texture> s_pauseTexture = nullptr;
-		static inline Ref<Texture> s_stopTexture = nullptr;
-		static inline Ref<Texture> s_skyboxTexture = nullptr;
-
-		static inline Ref<Shader> s_outlineShader = nullptr;
 	};
 }

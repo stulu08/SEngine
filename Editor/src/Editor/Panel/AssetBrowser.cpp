@@ -331,6 +331,9 @@ namespace Stulu {
 		case Stulu::AssetType::Scene:
 			return EditorResources::getSceneTexture();
 			break;
+		case Stulu::AssetType::Script:
+			return EditorResources::getScriptTexture();
+			break;
 		default:
 			break;
 		}

@@ -21,7 +21,8 @@
     <OutputPath>bin\Debug-windows-x86_64\</OutputPath>
     <BaseIntermediateOutputPath>bin-int\Debug-windows-x86_64\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,7 +34,8 @@
     <OutputPath>bin\Release-windows-x86_64\</OutputPath>
     <BaseIntermediateOutputPath>bin-int\Release-windows-x86_64\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -45,7 +47,8 @@
     <OutputPath>bin\Dist-windows-x86_64\</OutputPath>
     <BaseIntermediateOutputPath>bin-int\Dist-windows-x86_64\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -81,12 +84,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\Application.cs" />
+    <Compile Include="src\ShowInEditorAttribute.cs" />
     <Compile Include="src\Component.cs" />
+    <Compile Include="src\GameObject.cs" />
+    <Compile Include="src\GameObjectAttached.cs" />
     <Compile Include="src\Input.cs" />
     <Compile Include="src\InternalCalls.cs" />
     <Compile Include="src\Log.cs" />
     <Compile Include="src\Mathf.cs" />
+    <Compile Include="src\Quaternion.cs" />
     <Compile Include="src\Time.cs" />
+    <Compile Include="src\TransformComponent.cs" />
     <Compile Include="src\Vector2.cs" />
     <Compile Include="src\Vector3.cs" />
     <Compile Include="src\Vector4.cs" />

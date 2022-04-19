@@ -3,6 +3,8 @@
 #include <mono/metadata/object.h>
 #include <imgui/imgui_internal.h>
 
+#include "Stulu/ScriptCore/Bindings/Types.h"
+
 namespace StuluBindings::Editor {
 	class Gui {
 	public:
@@ -51,8 +53,7 @@ namespace StuluBindings::Editor {
 			Stulu::ComponentsRender::drawFloatControl(mono_string_to_utf8(str), b);
 			return b;
 		}
-		struct vector3 { float x, y, z; };
-		static inline int Vector3(MonoString* str, struct vector3* vec) {
+		static inline int Vector3(MonoString* str, struct Vector3* vec) {
 			/*glm::vec3 t = {(vec)->x,(vec)->y,(vec)->z};
 			Stulu::ComponentsRender::drawVector3Control(mono_string_to_utf8(str), t);
 			return vector3{t.x,t.y,t.z};

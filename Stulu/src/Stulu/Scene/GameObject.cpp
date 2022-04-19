@@ -12,12 +12,13 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		return getComponent<GameObjectBaseComponent>().uuid;
 	}
-	GameObject GameObject::getById(UUID& id, Scene* scene) {
+	GameObject GameObject::getById(const UUID& id, Scene* scene) {
 		ST_PROFILING_FUNCTION();
 		GameObject object = GameObject::null;
 		scene->m_registry.view<GameObjectBaseComponent>().each([&](entt::entity ent, GameObjectBaseComponent& comp) {
-			if (!object && comp.uuid == id) {
-				object = {ent, scene };
+			if (comp.uuid == id) {
+				object = GameObject(ent,scene);
+				return;
 			}
 		});
 		return object;

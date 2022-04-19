@@ -15,7 +15,8 @@ namespace Stulu {
 		Model = 4, Mesh = 5, 
 		Material = 6, Shader = 7,
 		Scene = 8,
-		Directory = 9
+		Directory = 9,
+		Script = 10
 	};
 	
 	struct Asset {

@@ -21,6 +21,7 @@ namespace Stulu {
 
 	class STULU_API SceneCamera;
 	class STULU_API GameObject;
+	class STULU_API MonoObjectInstance;
 
 	class STULU_API Scene {
 	public:
@@ -44,6 +45,9 @@ namespace Stulu {
 
 		GameObject getMainCamera();
 		SceneData& getData() { return m_data; }
+
+		bool initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& instance);
+
 
 		static inline Scene* activeScene() { return s_activeScene; }
 

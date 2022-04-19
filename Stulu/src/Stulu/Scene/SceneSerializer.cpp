@@ -5,6 +5,8 @@
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/ScriptCore/MonoObjectInstance.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
+
 namespace Stulu {
 
 	static void SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
@@ -177,7 +179,6 @@ namespace Stulu {
 			out << YAML::Key << "RigidbodyComponent";
 			out << YAML::BeginMap;
 			auto& component = gameObject.getComponent<RigidbodyComponent>();
-			out << YAML::Key << "rbType" << YAML::Value << (int)component.rbType;
 			out << YAML::Key << "useGravity" << YAML::Value << component.useGravity;
 			out << YAML::Key << "rotationX" << YAML::Value << component.rotationX;
 			out << YAML::Key << "rotationY" << YAML::Value << component.rotationY;
@@ -290,35 +291,41 @@ namespace Stulu {
 					if (scriptingComponent) {
 						for (auto inst : scriptingComponent["Scripts"]) {
 							auto& comp = deserialized.saveAddComponent<ScriptingComponent>();
-
-							Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
-							object->loadAll();
-							Application::get().getAssemblyManager()->getAssembly()->registerObject(object);
-
-							for (auto field : inst["Fields"]) {
-								std::string name = field["Name"].as<std::string>();
-								auto& fieldList = object->getFields();
-								if (fieldList.find(name) != fieldList.end()) {
-									auto type = (MonoObjectInstance::MonoClassMember::Type)field["Type"].as<int32_t>();
-									if (fieldList[name].type == type) {
-										if (type == MonoObjectInstance::MonoClassMember::Type::float_t) {
-											*((float*)fieldList[name].value) = field["Value"].as<float>();
-										}else if (type == MonoObjectInstance::MonoClassMember::Type::int_t) {
-											*((int32_t*)fieldList[name].value) = field["Value"].as<int32_t>();
-										}else if (type == MonoObjectInstance::MonoClassMember::Type::uint_t) {
-											*((uint32_t*)fieldList[name].value) = field["Value"].as<uint32_t>();
-										}else if (type == MonoObjectInstance::MonoClassMember::Type::Vector2_t) {
-											*((glm::vec2*)fieldList[name].value) = field["Value"].as<glm::vec2>();
-										}else if (type == MonoObjectInstance::MonoClassMember::Type::Vector3_t) {
-											*((glm::vec3*)fieldList[name].value) = field["Value"].as<glm::vec3>();
-										}else if (type == MonoObjectInstance::MonoClassMember::Type::Vector4_t) {
-											*((glm::vec4*)fieldList[name].value) = field["Value"].as<glm::vec4>();
+							MonoClass* exists = mono_class_from_name(Application::get().getAssemblyManager()->getAssembly()->getImage(), inst["Namespace"].as<std::string>().c_str(), inst["Name"].as<std::string>().c_str());
+							if (exists) {
+								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
+								object->loadAll();
+								Application::get().getAssemblyManager()->getAssembly()->registerObject(object);
+								for (auto field : inst["Fields"]) {
+									std::string name = field["Name"].as<std::string>();
+									auto& fieldList = object->getFields();
+									if (fieldList.find(name) != fieldList.end()) {
+										auto type = (MonoObjectInstance::MonoClassMember::Type)field["Type"].as<int32_t>();
+										if (fieldList[name].type == type) {
+											if (type == MonoObjectInstance::MonoClassMember::Type::float_t) {
+												*((float*)fieldList[name].value) = field["Value"].as<float>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::int_t) {
+												*((int32_t*)fieldList[name].value) = field["Value"].as<int32_t>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::uint_t) {
+												*((uint32_t*)fieldList[name].value) = field["Value"].as<uint32_t>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector2_t) {
+												*((glm::vec2*)fieldList[name].value) = field["Value"].as<glm::vec2>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector3_t) {
+												*((glm::vec3*)fieldList[name].value) = field["Value"].as<glm::vec3>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector4_t) {
+												*((glm::vec4*)fieldList[name].value) = field["Value"].as<glm::vec4>();
+											}
 										}
 									}
 								}
+								object->setAllClassFields();
+								comp.runtimeScripts.push_back(object);
 							}
-							object->setAllClassFields();
-							comp.runtimeScripts.push_back(object);
 						}
 					}
 
@@ -430,7 +437,6 @@ namespace Stulu {
 					auto rigidbodyComponentNode = gameObject["RigidbodyComponent"];
 					if (rigidbodyComponentNode) {
 						auto& body = deserialized.addComponent<RigidbodyComponent>();
-						body.rbType = (RigidbodyComponent::Type)rigidbodyComponentNode["rbType"].as<int>();
 						body.useGravity = rigidbodyComponentNode["useGravity"].as<bool>();
 						body.rotationX = rigidbodyComponentNode["rotationX"].as<bool>();
 						body.rotationY = rigidbodyComponentNode["rotationY"].as<bool>();

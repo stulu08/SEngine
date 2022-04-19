@@ -35,6 +35,11 @@ namespace Stulu {
 		bool m_showSceneViewport = true;
 		bool m_showProfiling = true;
 		bool m_showSceneSettingsPanel = true;
+		bool m_showLicensesWindow = false;
+
+
+		//name, text
+		std::unordered_map<std::string, std::string> m_licenses;
 
 		SceneCamera m_sceneCamera;
 		std::string m_currentScenePath;
@@ -55,6 +60,7 @@ namespace Stulu {
 
 
 		void drawMenuBar();
+		void drawLicenseWindow();
 		bool onShortCut(KeyDownEvent& e);
 		bool onApplicationQuit(WindowCloseEvent& e);
 		void SaveScene();

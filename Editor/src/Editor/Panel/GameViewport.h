@@ -15,6 +15,7 @@ namespace Stulu {
 		void drawErrorImage();
 		int m_selectedSize = 1;
 		float zoom = 0.5f;
+		glm::vec2 windowPos;
 		ImVec2 sizes[6] = {
 			ImVec2{ 1920,1080 }, ImVec2{ 1000,1000 },
 			ImVec2{ 1280,720 }, ImVec2{ 500,500 },

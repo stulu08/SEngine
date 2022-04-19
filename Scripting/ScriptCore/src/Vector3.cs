@@ -1,8 +1,5 @@
 ﻿using System;
-// Decompiled with JetBrains decompiler
-// Type: Hazel.Vector3
-// Assembly: Hazel-ScriptCore, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: C14E7322-EDE5-4F3C-9776-FE9C2723B8FF
+
 namespace Stulu {
 	public struct Vector3 {
         public static Vector3 Zero = new Vector3(0.0f, 0.0f, 0.0f);
@@ -140,6 +137,10 @@ namespace Stulu {
 
         public override string ToString() => string.Format("Vector3[{0}, {1}, {2}]", (object)this.X, (object)this.Y, (object)this.Z);
 
+        public float x { get => this.X; set { this.X = value; } }
+        public float y { get => this.Y; set { this.Y = value; } }
+        public float z { get => this.Z; set { this.Z = value; } }
+
         public Vector2 XY {
             get => new Vector2(this.X, this.Y);
             set {
@@ -157,6 +158,29 @@ namespace Stulu {
         }
 
         public Vector2 YZ {
+            get => new Vector2(this.Y, this.Z);
+            set {
+                this.Y = value.X;
+                this.Z = value.Y;
+            }
+        }
+        public Vector2 xy {
+            get => new Vector2(this.X, this.Y);
+            set {
+                this.X = value.X;
+                this.Y = value.Y;
+            }
+        }
+
+        public Vector2 xz {
+            get => new Vector2(this.X, this.Z);
+            set {
+                this.X = value.X;
+                this.Z = value.Y;
+            }
+        }
+
+        public Vector2 yz {
             get => new Vector2(this.Y, this.Z);
             set {
                 this.Y = value.X;

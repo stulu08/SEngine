@@ -2,6 +2,7 @@
 #include "MonoObjectInstance.h"
 
 #include "AssemblyManager.h"
+#include <Stulu.h>
 
 namespace Stulu {
 	MonoObjectInstance::MonoObjectInstance(const std::string& nameSpace, const std::string& className, ScriptAssembly* assembly)
@@ -76,6 +77,29 @@ namespace Stulu {
 			}
 		}
 		CORE_ERROR("Could not create Monofunction from {0}", function.name);
+	}
+	MonoMethod* MonoObjectInstance::getVirtualFunction(const std::string& fnName, MonoClass* functionClass) {
+		if (!m_classPtr) {
+			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
+			return nullptr;
+		}
+
+		std::string IclassName = mono_class_get_name(functionClass);
+
+		if (m_classPtr) {
+			std::string m = m_nameSpace + "." + IclassName + ":" + fnName;
+			MonoMethodDesc* descPtr = mono_method_desc_new(m.c_str(), true);
+			if (descPtr) {
+				MonoMethod* virtualMethod = mono_method_desc_search_in_class(descPtr, functionClass);
+				if (virtualMethod) {
+					MonoMethod* meth = mono_object_get_virtual_method(m_objectPtr, virtualMethod);
+					mono_method_desc_free(descPtr);
+					return meth;
+				}
+			}
+		}
+		CORE_ERROR("Could not create Monofunction from {0}.{1}", fnName, m_nameSpace);
+		return nullptr;
 	}
 	void MonoObjectInstance::loadAllClassFunctions() {
 		if (!m_classPtr) {
@@ -219,16 +243,20 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::setAllClassFields() const {
-		for (auto& i : m_fields) {
-			if (i.second.value != nullptr && i.second.type != MonoClassMember::Type::Other) {
-				mono_field_set_value(m_objectPtr, i.second.m_fieldPtr, i.second.value);
+		if (m_objectPtr && m_classPtr) {
+			for (auto& i : m_fields) {
+				if (i.second.value != nullptr && i.second.type != MonoClassMember::Type::Other) {
+					mono_field_set_value(m_objectPtr, i.second.m_fieldPtr, i.second.value);
+				}
 			}
 		}
 	}
 
 	void MonoObjectInstance::callDefaultConstructor() const {
-		mono_runtime_object_init(m_objectPtr);
-		m_constructed = true;
+		if (m_objectPtr) {
+			mono_runtime_object_init(m_objectPtr);
+			m_constructed = true;
+		}
 	}
 
 	void MonoObjectInstance::callConstructor(const std::string& params, void** args) const {
@@ -249,6 +277,11 @@ namespace Stulu {
 		return nullptr;
 	}
 	void MonoObjectInstance::reload() {
+		for (auto [name, field] : m_fields) {
+			field.atrributeList.clear();
+			field.m_fieldPtr = nullptr;
+			field.m_typePtr = nullptr;
+		}
 		std::unordered_map<std::string, MonoClassMember> fieldsChache = m_fields;
 		m_fields.clear();
 		if (m_gCHandle) {
@@ -274,5 +307,37 @@ namespace Stulu {
 			return;
 		}
 		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
+	}
+	bool MonoObjectInstance::fieldHasAttribute(MonoClassMember& field, MonoClass* attribute) {
+		if (attribute) {
+			if (field.atrributeList.find(attribute) != field.atrributeList.end())
+				return field.atrributeList.at(attribute);
+
+			field.atrributeList[attribute] = false;
+			if (field.m_typePtr) {
+				MonoClass* parent = mono_field_get_parent(field.m_fieldPtr);
+				MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_field(parent, field.m_fieldPtr);
+				
+				if (attrInfo) {
+					//field.atrributeList[attribute] = mono_custom_attrs_has_attr(attrInfo, attribute) != 0; idk why, but wont work so i make my own way because mono bad and me sad
+					bool value = false;
+					for (int i = 0; i < attrInfo->num_attrs; ++i) {
+						MonoCustomAttrEntry* centry = &attrInfo->attrs[i];
+						if (centry->ctor == NULL)
+							continue;
+						MonoClass* klass = mono_method_get_class(centry->ctor);
+						std::string cAttrClassName = std::string(mono_class_get_namespace(klass)) + "." + std::string(mono_class_get_name(klass));
+						std::string sAttrClassName = std::string(mono_class_get_namespace(klass)) + "." + std::string(mono_class_get_name(klass));
+						value = cAttrClassName == sAttrClassName;
+					}
+
+					field.atrributeList[attribute] = value;
+					mono_custom_attrs_free(attrInfo);
+				}
+			}
+			return field.atrributeList[attribute];
+		}
+
+		return false;
 	}
 }

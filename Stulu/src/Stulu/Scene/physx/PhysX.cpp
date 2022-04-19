@@ -243,21 +243,24 @@ namespace Stulu {
     }
     physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot) {
         physx::PxRigidActor* actor;
-        if (rb.rbType == RigidbodyComponent::Type::Dynamic) {
-            actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-            actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !rb.useGravity);
-            physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
-            mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, rb.kinematic);
-            if (!rb.kinematic) {
-                mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, rb.retainAccelaration);
-            }
-            physx::PxRigidBodyExt::updateMassAndInertia(*mactor, rb.mass, &PhysicsVec3fromglmVec3(rb.massCenterPos));
+        actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
+        actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !rb.useGravity);
+        physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
+        mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, rb.kinematic);
+        if (!rb.kinematic) {
+            mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, rb.retainAccelaration);
         }
-        else {
-            actor = m_physics->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-            actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !rb.useGravity);
-        }
+        physx::PxRigidBodyExt::updateMassAndInertia(*mactor, rb.mass, &PhysicsVec3fromglmVec3(rb.massCenterPos));
         rb.body = (void*)actor;
+        return actor;
+    }
+    physx::PxRigidActor* PhysX::createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter) {
+        physx::PxRigidActor* actor;
+        actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
+        actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !gravity);
+        physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
+        mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, kinematic);
+        physx::PxRigidBodyExt::updateMassAndInertia(*mactor, mass, &PhysicsVec3fromglmVec3(massLocalCenter));
         return actor;
     }
     //mesh needs to be combined

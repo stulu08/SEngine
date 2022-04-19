@@ -41,5 +41,75 @@ namespace Stulu {
                 t = 1f;
             return (1f - t) * a + t * b;
         }
+        public override string ToString() => "Vector4[" + this.X.ToString() + ", " + this.Y.ToString() + ", " + this.Z.ToString() + ", " + this.W.ToString() + "]";
+
+        public float x { get => this.X; set { this.X = value; } }
+        public float y { get => this.Y; set { this.Y = value; } }
+        public float z { get => this.Z; set { this.Z = value; } }
+        public float w { get => this.W; set { this.W = value; } }
+        public float a { get => this.W; set { this.W = value; } }
+
+        public Vector3 xyz {
+            get => new Vector3(this.X, this.Y, this.X);
+            set {
+                this.X = value.X;
+                this.Y = value.Y;
+                this.Z = value.Z;
+            }
+        }
+        public Vector2 xy {
+            get => new Vector2(this.X, this.Y);
+            set {
+                this.X = value.X;
+                this.Y = value.Y;
+            }
+        }
+
+        public Vector2 xz {
+            get => new Vector2(this.X, this.Z);
+            set {
+                this.X = value.X;
+                this.Z = value.Y;
+            }
+        }
+
+        public Vector2 yz {
+            get => new Vector2(this.Y, this.Z);
+            set {
+                this.Y = value.X;
+                this.Z = value.Y;
+            }
+        }
+        public Vector3 XYZ {
+            get => new Vector3(this.X, this.Y, this.X);
+            set {
+                this.X = value.X;
+                this.Y = value.Y;
+                this.Z = value.Z;
+            }
+        }
+        public Vector2 XY {
+            get => new Vector2(this.X, this.Y);
+            set {
+                this.X = value.X;
+                this.Y = value.Y;
+            }
+        }
+
+        public Vector2 XZ {
+            get => new Vector2(this.X, this.Z);
+            set {
+                this.X = value.X;
+                this.Z = value.Y;
+            }
+        }
+
+        public Vector2 YZ {
+            get => new Vector2(this.Y, this.Z);
+            set {
+                this.Y = value.X;
+                this.Z = value.Y;
+            }
+        }
     }
 }

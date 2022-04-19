@@ -64,7 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Scripts\Test.cs" />
+    <Compile Include="assets\Scripts\SpectatorCamera.cs" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

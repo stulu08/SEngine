@@ -2,58 +2,49 @@
 
 namespace Stulu {
 
-	void EditorResources::loadAll() {
-		s_emptyTexture = Texture2D::create("assets/Textures/Icons/empty.png");
-		s_fileTexture = Texture2D::create("assets/Textures/Icons/file.png");
-		s_folderTexture = Texture2D::create("assets/Textures/Icons/folder.png");
-		s_objectTexture = Texture2D::create("assets/Textures/Icons/object.png");
-		s_sceneTexture = Texture2D::create("assets/Textures/Icons/scene.png");
-		s_noCameraTexture = Texture2D::create("assets/Textures/Icons/nocam.png");
-		s_playTexture = Texture2D::create("assets/Textures/Icons/play.png");
-		s_pauseTexture = Texture2D::create("assets/Textures/Icons/pause.png");
-		s_stopTexture = Texture2D::create("assets/Textures/Icons/stop.png");
-		s_skyboxTexture = Texture2D::create("assets/Textures/Icons/skybox.png");
-
-		std::string src = R"(
-		##add ST_vertex
-		##type fragment
-		#version 460 core
-		out vec4 FragColor;
-		void main()
-		{
-		    FragColor = vec4(1.0f,0.541f,.0f, 1.0f);
-		})";
-		s_outlineShader = Shader::create("Editor Outline",src);
-	}
 	Ref<Texture>& EditorResources::getEmptySlotTexture() {
-		return s_emptyTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/empty.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getFileTexture() {
-		return s_fileTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/file.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getFolderTexture() {
-		return s_folderTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/folder.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getObjectTexture() {
-		return s_objectTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/object.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getSceneTexture() {
-		return s_sceneTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/scene.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getNoCameraTexture() {
-		return s_noCameraTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/nocam.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getPlayTexture() {
-		return s_playTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/play.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getPauseTexture() {
-		return s_pauseTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/pause.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getStopTexture() {
-		return s_stopTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/stop.png");
+		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getSkyBoxTexture() {
-		return s_skyboxTexture;
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/skybox.png");
+		return s_texture;
+	}
+	Ref<Texture>& EditorResources::getScriptTexture() {
+		static Ref<Texture> s_texture = Texture2D::create("assets/Textures/Icons/code.png");
+		return s_texture;
 	}
 	const std::string EditorResources::getDefaultSceneSource()
 	{
@@ -130,6 +121,15 @@ GameObjects:
       offset: [0, 0, 0])";
 	}
 	Ref<Shader>& EditorResources::getOutlineShader() {
+		static Ref<Shader> s_outlineShader = Shader::create("Editor Outline", R"(
+		##add ST_vertex
+		##type fragment
+		#version 460 core
+		out vec4 FragColor;
+		void main()
+		{
+		    FragColor = vec4(1.0f,0.541f,.0f, 1.0f);
+		})");;
 		return s_outlineShader;
 	}
 }

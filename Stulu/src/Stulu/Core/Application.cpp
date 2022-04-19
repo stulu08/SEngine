@@ -8,6 +8,7 @@
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Core/Input.h"
 #include "Stulu/Scene/Resources.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
 
 namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -52,11 +53,10 @@ namespace Stulu {
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
-
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
-			(*--it)->onEvent(e);
 			if (e.handled)
 				break;
+			(*--it)->onEvent(e);
 		}
 
 	}

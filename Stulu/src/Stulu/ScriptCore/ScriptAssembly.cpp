@@ -31,8 +31,8 @@ namespace Stulu {
 			CORE_ERROR("Mono Image creation failed for {0}", m_assembly);
 			return;
 		}
-		m_errorCallBack = [=](const std::string& msg, const MonoFunction& func) {
-			CORE_ERROR("C# Runtime Error:\n{0}\nCaused in function: {1}", msg, mono_method_full_name(func.methodPtr, 1));//default error callback
+		m_errorCallBack = [=](const std::string& msg, MonoMethod* func) {
+			CORE_ERROR("C# Runtime Error:\n{0}\nCaused in function: {1}", msg, mono_method_full_name(func, 1));//default error callback
 		};
 		CORE_INFO("Loading Assembly finished")
 	}
@@ -103,6 +103,17 @@ namespace Stulu {
 	MonoObject* ScriptAssembly::invokeFunction(const MonoFunction& function, void* obj, void** args) const {
 		MonoObject* ex = nullptr;
 		MonoObject* re = mono_runtime_invoke(function.methodPtr, obj, args, &ex);
+		
+		if (ex) {
+			MonoString* excM = mono_object_to_string(ex, nullptr);
+			m_errorCallBack(mono_string_to_utf8(excM), function.methodPtr);
+		}
+
+		return re;
+	}
+	MonoObject* ScriptAssembly::invokeFunction(MonoMethod* function, void* obj, void** args) const {
+		MonoObject* ex = nullptr;
+		MonoObject* re = mono_runtime_invoke(function, obj, args, &ex);
 		
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);
@@ -213,9 +224,6 @@ namespace Stulu {
 			CORE_ERROR("Mono Image creation failed for {0}", m_assembly);
 			return;
 		}
-		m_errorCallBack = [=](const std::string& msg, const MonoFunction& func) {
-			CORE_ERROR("C# Runtime Error:\n{0}\nCaused in function: {1}", msg, mono_method_full_name(func.methodPtr, 1));//default error callback
-		};
 		CORE_INFO("Reloading Assembly finished")
 
 

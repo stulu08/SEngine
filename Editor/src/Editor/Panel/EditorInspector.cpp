@@ -7,8 +7,8 @@ namespace Stulu {
 	if (ComponentsRender::drawControl<TYPE>(name, value)) { \
 		script->getFields()[name].value = (void*)&value; \
 		script->setClassField(name); \
-	}} \
-
+	}}
+	MonoClass* showInEdiorAttrb;
 	/// <summary>
 	/// Returns false if gameobject was deleted
 	/// </summary>
@@ -16,6 +16,9 @@ namespace Stulu {
 	/// <returns></returns>
 	bool EditorInspectorPanel::render(GameObject gameObject, bool* open) {
 		ST_PROFILING_FUNCTION();
+		if(!showInEdiorAttrb)
+			showInEdiorAttrb = Application::get().getAssemblyManager()->getScriptCoreAssembly()->createClass("Stulu", "ShowInEditorAttribute");
+
 		if (ImGui::Begin("Inspector", open)) {
 			if (gameObject == GameObject::null) {
 				ImGui::End();
@@ -45,12 +48,14 @@ namespace Stulu {
 				if (gameObject.hasComponent<NativeBehaviourComponent>())
 					drawComponent<NativeBehaviourComponent>(gameObject, gameObject.getComponent<NativeBehaviourComponent>().behaviorName);
 
+
 				if (gameObject.hasComponent<ScriptingComponent>()) {
 					ScriptingComponent& comp = gameObject.getComponent<ScriptingComponent>();
 					for (auto script : comp.runtimeScripts) {
 						if (ImGui::TreeNodeEx(script->getClassName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-							//for (auto& field : script->getFields()) {
-							for (auto[name,field] : script->getFields()) {
+							for (auto&[name,field] : script->getFields()) {
+								if (!MonoObjectInstance::fieldHasAttribute(field, showInEdiorAttrb))
+									continue;
 								script->reloadClassFieldValue(name);
 								switch (field.type) {
 								case MonoObjectInstance::MonoClassMember::Type::Vector4_t:
