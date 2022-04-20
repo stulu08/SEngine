@@ -73,7 +73,7 @@ namespace Stulu {
 	}
 	void rebuildAssembly() {
 #ifdef ST_PLATFORM_WINDOWS
-		static const std::string buildCmd = "tools\\msbuild.bat " + getEditorProject().path;
+		static const std::string buildCmd = "tools\\msbuild.bat \"" + getEditorProject().path + "/Assembly.sln\"";
 
 		static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
 			return std::filesystem::exists(getEditorProject().dataPath + "/EdiorProjectAssembly.dll");
@@ -90,7 +90,7 @@ namespace Stulu {
 	}
 	void buildAssembly(const std::string& m_assembly) {
 #ifdef ST_PLATFORM_WINDOWS
-		static const std::string buildCmd = "tools\\msbuild.bat " + getEditorProject().path;
+		static const std::string buildCmd = "tools\\msbuild.bat \"" + getEditorProject().path + "/Assembly.sln\"";
 
 		if (std::filesystem::exists(m_assembly))
 			std::filesystem::remove(m_assembly);
