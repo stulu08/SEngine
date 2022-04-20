@@ -10,25 +10,23 @@
 
 
 namespace Stulu {
-	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
+	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
 		mono_set_dirs(monoAssemblyPath.c_str(), monoConfigPath.c_str());
 		m_monoDomain = mono_jit_init("StuluEngine");
 		if (!m_monoDomain) {
 			CORE_ERROR("Mono Domain creation failed");
 			return;
 		}
-		loadScriptCore(assemblyPath);
+		loadScriptCore(assemblyPath, coreAssemblyPath);
 	}
 
 	AssemblyManager::~AssemblyManager() {
-		m_assembly.reset();
-		m_scriptCoreAssembly.reset();
 		if (m_monoDomain) {
 			mono_jit_cleanup(m_monoDomain);
 		}
 	}
-	void AssemblyManager::loadScriptCore(const std::string& assemblyPath) {
-		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_monoDomain, "data/Stulu.ScriptCore.dll");
+	void AssemblyManager::loadScriptCore(const std::string& assemblyPath, const std::string& coreAssemblyPath) {
+		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_monoDomain, coreAssemblyPath);
 		m_assembly = createRef<ScriptAssembly>(m_monoDomain, assemblyPath.c_str());
 
 		MonoClass* componentClass = m_scriptCoreAssembly->createClass("Stulu", "Component");

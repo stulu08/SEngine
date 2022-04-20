@@ -5,6 +5,8 @@ bin-int/
 !Stulu/vendor/physx/bin
 Stulu/vendor/VulkanSDK
 build/
+DebugProject/Data
+DebugProject/temp
 
 #Files
 *.sln

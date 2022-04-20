@@ -51,6 +51,8 @@ project "Editor"
 		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and there are huge and i dont have a lot of space left
 		"{DELETE} " .. builddir .. "/Stulu.idb",
 		"{DELETE} " .. builddir .. "/Stulu.pdb",
+		"{DELETE} " .. builddir .. "/data/Managed/Stulu.ScriptCore.pdb",
+		"{DELETE} " .. builddir .. "/data/Managed/Stulu.EditorScriptCore.pdb",
 	}
 	links
 	{

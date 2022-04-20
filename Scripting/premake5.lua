@@ -24,9 +24,8 @@ project "ScriptCore"
 		"System.Xml.Linq",
 	}
 	postbuildcommands{
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data",
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .. " " .. builddir .. "/data",
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .. " %{ProjectDir.DebugProject}/data",
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .. " " .. builddir .. "/data/Managed"
 	}
 	filter "configurations:Debug"
 		runtime "Debug"
@@ -66,9 +65,8 @@ project "EditorScriptCore"
 		"ScriptCore",
 	}
 	postbuildcommands{
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .. " " .. builddir .. "/data",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .. " %{ProjectDir.DebugProject}/data",
+		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
+		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .. " " .. builddir .. "/data/Managed"
 	}
 	filter "configurations:Debug"
 		runtime "Debug"

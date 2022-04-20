@@ -21,6 +21,8 @@ namespace Stulu {
 			if (i.second.value) {
 				delete(i.second.value);
 			}
+			i.second.m_fieldPtr = nullptr;
+			i.second.m_typePtr = nullptr;
 		}
 		if (m_gCHandle) {
 			mono_gchandle_free(m_gCHandle);
@@ -168,10 +170,17 @@ namespace Stulu {
 		void* iter = NULL;
 		MonoClassField* field;
 		while (field = mono_class_get_fields(m_classPtr, &iter)) {
+			std::string name = mono_field_get_name(field);
+			if (m_fields.find(name) != m_fields.end()) {
+				if(m_fields.at(name).value)
+					delete(m_fields.at(name).value);
+				m_fields.at(name).atrributeList.clear();
+				m_fields.erase(name);
+			}
 			MonoClassMember mem;
 			mem.m_fieldPtr = field;
 			mem.m_typePtr = mono_field_get_type(field);
-			mem.name = mono_field_get_name(field);;
+			mem.name = name;
 			mem.typeName = mono_type_get_name_full(mem.m_typePtr,MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_REFLECTION);
 
 			if (mem.typeName.empty())
@@ -202,7 +211,7 @@ namespace Stulu {
 			}
 			else
 				mem.type = MonoClassMember::Type::Other;
-			m_fields[mem.name] = mem;
+			m_fields[name] = mem;
 		}
 	}
 

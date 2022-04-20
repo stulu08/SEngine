@@ -39,12 +39,21 @@ namespace Stulu {
 		editorLayer = new EditorLayer();
 
 
+		//copy assembly files to project
+		for (std::filesystem::directory_entry dir : std::filesystem::directory_iterator("data/Managed")) {
+			if (dir.path().extension().string() == ".dll") {
+				if (std::filesystem::exists(s_project.dataPath + "/" + dir.path().filename().string())) {
+					std::filesystem::remove(s_project.dataPath + "/" + dir.path().filename().string());
+				}
+				std::filesystem::copy_file(dir.path(), s_project.dataPath + "/" + dir.path().filename().string());
+			}
+		}
 		//m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/ProjectAssembly.dll");
-		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EdiorProjectAssembly.dll");
+		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EdiorProjectAssembly.dll", "data/Managed/Stulu.ScriptCore.dll");
 		s_project.assembly = getAssemblyManager()->getAssembly();
 
 		loadEditorMonoBindings();
-
+		rebuildAssembly();
 		
 
 		ST_INFO("Loading all Project assets from: {0}", s_project.assetPath);
@@ -59,4 +68,21 @@ namespace Stulu {
 		getEditorLayer().savePanelConfig(); 
 		StyleEditor::saveAll();
 	}
+	void rebuildAssembly() {
+#ifdef ST_PLATFORM_WINDOWS
+		static const std::string buildCmd = "tools\\msbuild.bat " + getEditorProject().path;
+
+		static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
+			return std::filesystem::exists(getEditorProject().dataPath + "/EdiorProjectAssembly.dll");
+		};
+		static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
+			return system(buildCmd.c_str());
+		};
+		getEditorProject().assembly->reload(recompileFinished, recompile);
+#else
+		//will soon switch to mono xbuild for linux
+		CORE_ERROR("Building Projects is not supported currently on this Platform");
+#endif
+	}
+
 }

@@ -110,8 +110,8 @@ project "Stulu"
 		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.5\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.5\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.8-Api\"",
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data",
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
+		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
 	}
 	
 	filter "system:windows"

@@ -40,4 +40,6 @@ namespace Stulu {
 		static EditorApp* s_instance;
 		static Project s_project;
 	};
+
+	void rebuildAssembly();
 }

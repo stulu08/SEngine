@@ -122,20 +122,7 @@ namespace Stulu {
 					}
 					ImGui::Separator();
 					if (ImGui::MenuItem("Reload Assembly")) {
-#ifdef ST_PLATFORM_WINDOWS
-						static const std::string buildCmd = "tools\\msbuild.bat " + getEditorProject().path;
-
-						static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
-							return std::filesystem::exists(getEditorProject().dataPath + "/EdiorProjectAssembly.dll");
-						};
-						static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
-							return system(buildCmd.c_str());
-						};
-						getEditorProject().assembly->reload(recompileFinished, recompile);
-#else
-						//will soon switch to mono xbuild for linux
-						CORE_ERROR("Building Projects is not supported currently on this Platform");
-#endif
+						rebuildAssembly();
 					}
 					ImGui::EndPopup();
 				}
