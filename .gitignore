@@ -11,6 +11,7 @@ build/
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user 
+*.csproj
 VulkanTesting/Profiling-Startup.json
 VulkanTesting/Profiling-Shutdown.json
 VulkanTesting/Profiling-Runtime.json

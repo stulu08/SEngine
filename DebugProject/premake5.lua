@@ -1,4 +1,4 @@
-include "../vendor/premake/premake_customization/solution_items.lua"
+include "premake/premake_customization/solution_items.lua"
 workspace "Assembly"
 	startproject "EdiorProjectAssembly"
 	configurations

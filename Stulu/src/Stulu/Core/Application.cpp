@@ -11,6 +11,12 @@
 #include "Stulu/ScriptCore/AssemblyManager.h"
 
 namespace Stulu {
+	// we want the best gpu cause shaders wont compile with intel uhd graphics
+	// enable optimus!
+	extern "C" {
+		_declspec(dllexport) DWORD NvOptimusEnablement = 1;
+		_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+	}
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
