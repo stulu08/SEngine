@@ -69,6 +69,7 @@ namespace Stulu {
 		std::vector<MonoClassEntry> m_classes;
 		std::vector<Ref<MonoObjectInstance>> m_objects;
 
+		friend class AssemblyManager;
 
 		std::function<void(const std::string&, MonoMethod* func)> m_errorCallBack;
 	};

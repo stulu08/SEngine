@@ -17,6 +17,8 @@ namespace Stulu {
 	}
 
 	MonoObjectInstance::~MonoObjectInstance() {
+		if (!m_assembly->getRootDomain())
+			return;
 		for (auto i : m_fields) {
 			if (i.second.value) {
 				delete(i.second.value);

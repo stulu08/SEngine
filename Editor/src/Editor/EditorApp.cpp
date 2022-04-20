@@ -42,19 +42,22 @@ namespace Stulu {
 		//copy assembly files to project
 		for (std::filesystem::directory_entry dir : std::filesystem::directory_iterator("data/Managed")) {
 			if (dir.path().extension().string() == ".dll") {
+				if (!std::filesystem::exists(s_project.dataPath)) {
+					std::filesystem::create_directory(s_project.dataPath);
+				}
 				if (std::filesystem::exists(s_project.dataPath + "/" + dir.path().filename().string())) {
 					std::filesystem::remove(s_project.dataPath + "/" + dir.path().filename().string());
 				}
 				std::filesystem::copy_file(dir.path(), s_project.dataPath + "/" + dir.path().filename().string());
 			}
 		}
+		buildAssembly(s_project.dataPath + "/EdiorProjectAssembly.dll");
 		//m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/ProjectAssembly.dll");
 		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EdiorProjectAssembly.dll", "data/Managed/Stulu.ScriptCore.dll");
 		s_project.assembly = getAssemblyManager()->getAssembly();
 
 		loadEditorMonoBindings();
-		rebuildAssembly();
-		
+
 
 		ST_INFO("Loading all Project assets from: {0}", s_project.assetPath);
 		AssetsManager::loadAllFiles(s_project.assetPath);
@@ -79,6 +82,37 @@ namespace Stulu {
 			return system(buildCmd.c_str());
 		};
 		getEditorProject().assembly->reload(recompileFinished, recompile);
+#else
+		//will soon switch to mono xbuild for linux
+		CORE_ERROR("Building Projects is not supported currently on this Platform");
+#endif
+
+	}
+	void buildAssembly(const std::string& m_assembly) {
+#ifdef ST_PLATFORM_WINDOWS
+		static const std::string buildCmd = "tools\\msbuild.bat " + getEditorProject().path;
+
+		if (std::filesystem::exists(m_assembly))
+			std::filesystem::remove(m_assembly);
+
+		CORE_INFO("Compiling {0}", m_assembly);
+		if (system(buildCmd.c_str())) {
+			CORE_ERROR("Compiling failed: {0}", m_assembly);
+		}
+		while (true) {
+			if (std::filesystem::exists(m_assembly)) {
+				if (std::filesystem::exists(m_assembly)) {
+					CORE_INFO("Compiling finished");
+					break;
+				}
+				else {
+					CORE_ERROR("File not found: {0}", m_assembly);
+					CORE_ERROR("Compiling failed: {0}", m_assembly);
+					break;
+				}
+
+			}
+		}
 #else
 		//will soon switch to mono xbuild for linux
 		CORE_ERROR("Building Projects is not supported currently on this Platform");

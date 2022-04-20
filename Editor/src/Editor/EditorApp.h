@@ -42,4 +42,5 @@ namespace Stulu {
 	};
 
 	void rebuildAssembly();
+	void buildAssembly(const std::string& m_assembly);
 }

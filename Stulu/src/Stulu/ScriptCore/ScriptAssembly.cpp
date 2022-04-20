@@ -38,6 +38,8 @@ namespace Stulu {
 	}
 
 	ScriptAssembly::~ScriptAssembly() {
+		if (!m_monoRootDomain)
+			return;
 		for (auto object : m_objects) {
 			object->m_assembly = nullptr;
 		}

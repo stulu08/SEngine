@@ -21,6 +21,8 @@ namespace Stulu {
 	}
 
 	AssemblyManager::~AssemblyManager() {
+		m_scriptCoreAssembly->m_monoRootDomain = nullptr;
+		m_assembly->m_monoRootDomain = nullptr;
 		if (m_monoDomain) {
 			mono_jit_cleanup(m_monoDomain);
 		}
