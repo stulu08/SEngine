@@ -29,7 +29,7 @@ namespace Stulu {
 		if (ImGui::Begin("Assets"), open) {
 			if (m_path != getEditorProject().assetPath) {
 				if (ImGui::Button("<-")) {
-					if (m_path.parent_path() == std::filesystem::path("Stulu/assets")) {
+					if (m_path.parent_path() == std::filesystem::path("assets")) {
 						m_path = getEditorProject().assetPath;
 					}
 					else {
@@ -120,6 +120,10 @@ namespace Stulu {
 					if (ImGui::MenuItem("Recompile Shaders")) {
 						AssetsManager::reloadShaders(getEditorProject().assetPath);
 					}
+					ImGui::Separator();
+					if (ImGui::MenuItem("Reload Assembly")) {
+						rebuildAssembly();
+					}
 					ImGui::EndPopup();
 				}
 				ImGui::TextWrapped(filename.string().c_str());
@@ -140,9 +144,9 @@ namespace Stulu {
 				drawDirectory(getEditorProject().assetPath);
 			}
 			if(ImGui::CollapsingHeader("Engine Assets")) {
-				drawDirectory("Stulu/assets/SkyBox", true);
-				drawDirectory("Stulu/assets/Shaders", true);
-				drawDirectory("Stulu/assets/Textures", true);
+				drawDirectory("assets/SkyBox", true);
+				drawDirectory("assets/Shaders", true);
+				drawDirectory("assets/Textures", true);
 			}
 		}
 		ImGui::End();
@@ -313,6 +317,9 @@ namespace Stulu {
 			break;
 		case Stulu::AssetType::Scene:
 			return EditorResources::getSceneTexture();
+			break;
+		case Stulu::AssetType::Script:
+			return EditorResources::getScriptTexture();
 			break;
 		default:
 			break;

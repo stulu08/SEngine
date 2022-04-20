@@ -131,7 +131,7 @@ def UnzipFile(filepath, deleteZipFile=True):
         os.remove(zipFilePath) # delete zip file
 
 class VulkanConfiguration:
-    requiredVulkanVersion = "1.2.189.2"
+    requiredVulkanVersion = "1.3.204.1"
     vulkanDirectory = "../Stulu/vendor/VulkanSDK"
 
     @classmethod

@@ -7,16 +7,19 @@ namespace Stulu {
 		std::string name = "A Project";
 		std::string assetPath = "";
 		std::string configPath = "";
+		std::string dataPath = "";
 		std::string windowINI;
+
+		Ref<ScriptAssembly> assembly;
 
 		Project()
 			:windowINI(configPath+"/windowLayout.ini") {
 		}
-		Project(std::string& path)
+		Project(const std::string& path)
 #ifdef ST_PLATFORM_WINDOWS
-			:path(path), assetPath(path + "\\assets"), configPath(path + "\\config"), windowINI(configPath + "\\windowLayout.ini") {
+			:path(path), assetPath(path + "\\assets"), configPath(path + "\\config"), dataPath(path + "\\data"), windowINI(configPath + "\\windowLayout.ini") {
 #else
-			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), windowINI(configPath + "/windowLayout.ini") {
+			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), dataPath(path + "/data"), windowINI(configPath + "/windowLayout.ini") {
 #endif
 			size_t lastS = path.find_last_of("/\\");
 			lastS = lastS == std::string::npos ? 0 : lastS + 1;
@@ -37,4 +40,6 @@ namespace Stulu {
 		static EditorApp* s_instance;
 		static Project s_project;
 	};
+
+	void rebuildAssembly();
 }

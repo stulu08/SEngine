@@ -2,12 +2,12 @@
 #include "SceneRenderer.h"
 
 #include "Stulu/Scene/Resources.h"
+#include <imgui.h>
 
 namespace Stulu {
 	SceneRenderer::RuntimeData SceneRenderer::s_runtimeData;
-	void SceneRenderer::init(Scene* scene) {
+	void SceneRenderer::init() {
 		ST_PROFILING_FUNCTION();
-		s_scene = scene; 
 		if (s_runtimeData.lightBuffer == nullptr)
 			s_runtimeData.lightBuffer = UniformBuffer::create(sizeof(RuntimeData::LightData), 1);
 		if (s_runtimeData.sceneDataBuffer == nullptr)
@@ -36,24 +36,21 @@ namespace Stulu {
 			auto& s = object.getComponent<SkyBoxComponent>();
 			s_runtimeData.camSkyBox.texture = s.texture;
 			s_runtimeData.camSkyBox.mapType = (uint32_t)s.mapType;
-			s_runtimeData.camSkyBox.blur = s.blur;
 		}
 
 	}
-	void SceneRenderer::beginScene(const SceneCamera& cam) {
+	void SceneRenderer::beginScene(const SceneCamera& cam, GameObject mainCam) {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 		Renderer::beginScene(cam.getCamera()->getProjectionMatrix(), glm::inverse(cam.getTransform().transform), cam.getTransform().worldPosition, Math::QuaternionToEuler(cam.getTransform().rotation));
 		s_runtimeData.cam = cam.getCamera();
 		s_runtimeData.camPos = cam.getTransform().worldPosition;
-		GameObject mainCam = s_scene->getMainCamera(); 
 		if (mainCam) {
 			CameraComponent mcam = mainCam.getComponent<CameraComponent>();
 			if (mcam.settings.clearType == CameraComponent::Skybox && mainCam.hasComponent<SkyBoxComponent>()) {
 				auto& s = mainCam.getComponent<SkyBoxComponent>();
 				s_runtimeData.camSkyBox.texture = s.texture;
 				s_runtimeData.camSkyBox.mapType = (uint32_t)s.mapType;
-				s_runtimeData.camSkyBox.blur = s.blur;
 			}
 		}
 	}
@@ -66,10 +63,9 @@ namespace Stulu {
 		s_runtimeData.camSkyBox.texture = nullptr;
 	}
 
-	void SceneRenderer::calculateLights() {
+	void SceneRenderer::calculateLights(entt::basic_view<entt::entity, entt::exclude_t<>, TransformComponent, LightComponent> view) {
 		ST_PROFILING_FUNCTION();
 		s_runtimeData.lightData = RuntimeData::LightData();
-		auto view = s_scene->m_registry.view<TransformComponent, LightComponent>();
 		for (auto gameObject : view)
 		{
 			auto [transform, light] = view.get<TransformComponent, LightComponent>(gameObject);
@@ -89,6 +85,7 @@ namespace Stulu {
 		s_runtimeData.bufferData.gamma = data.gamma;
 		s_runtimeData.bufferData.toneMappingExposure = data.toneMappingExposure;
 		s_runtimeData.bufferData.useSkybox = (s_runtimeData.camSkyBox.texture == nullptr ? 0 : 1);
+		s_runtimeData.bufferData.env_lod = data.env_lod;
 
 		s_runtimeData.sceneDataBuffer->setData(&s_runtimeData.bufferData, sizeof(RuntimeData::SceneData));
 	}
@@ -174,7 +171,6 @@ namespace Stulu {
 			auto& shader = Resources::getSkyBoxShader();
 			shader->bind();
 			shader->setInt("mapType", (int32_t)s_runtimeData.camSkyBox.mapType);
-			shader->setFloat("blur", s_runtimeData.camSkyBox.blur);
 			s_runtimeData.camSkyBox.texture->bind();
 			s_runtimeData.camSkyBox.texture->draw();
 		}

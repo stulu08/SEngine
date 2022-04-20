@@ -4,7 +4,6 @@
 ##properity Range(0.0,1.0)	|ao
 ##properity Range(0.0,1.0)	|alphaCutOff
 ##properity Enum(Opaque,Cutout,Transparent) |transparencyMode
-##properity Marker(Does not apply for normal map)		|textureTilling
 
 #version 460
 ##add ST_default
@@ -51,7 +50,7 @@ void main (){
 		data.ao = texture(aoMap, vertex.texCoords * textureTilling).r;
 
 	if(has_normalMap == 1)
-		data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords, vertex.normal, normalMap);
+		data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
 	else
 		data.normal = normalize(vertex.normal);
 
@@ -63,6 +62,7 @@ void main (){
 
 	data.toneMappingExposure = toneMappingExposure;
 	data.gamma = gamma;
+	data.env_lod = env_lod;
 
 	data.useSkybox = useSkybox == 1;
 	data.toneMappingAndGammaCorrection = true;
@@ -124,6 +124,7 @@ struct PBRData {
 
 	float toneMappingExposure;
 	float gamma;
+	float env_lod;
 
 	bool toneMappingAndGammaCorrection;
 	bool useSkybox;

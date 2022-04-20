@@ -18,7 +18,7 @@ namespace physx {
 }
 
 namespace Stulu{
-    struct TransformComponent;
+    class TransformComponent;
     class RigidbodyComponent;
     class Mesh;
     physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
@@ -48,6 +48,7 @@ namespace Stulu{
         void releasePhysics();
 
         physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
+        physx::PxRigidActor* createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter = glm::vec3(.0f));
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
 
         physx::PxScene* getScene() { return m_scene; };

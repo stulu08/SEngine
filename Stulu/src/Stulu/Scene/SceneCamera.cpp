@@ -16,13 +16,8 @@ namespace Stulu {
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
-
-		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos) * 0.003f;
-		m_lastMouseXPos = Input::getMouseX();
-		m_lastMouseYPos = Input::getMouseY();
-
+		m_mouseDelta = Input::getMouseDelta() * 0.003f;
 		m_mouseDelta = glm::clamp(m_mouseDelta, glm::vec2(-1.0f), glm::vec2(1.0f));
-
 	}
 	void SceneCamera::updateMove(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
@@ -32,8 +27,8 @@ namespace Stulu {
 	void SceneCamera::mouseTranslateMove(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		if (Input::isMouseDown(MOUSE_BUTTON_1)) {
-			m_transform.position += m_transform.right * -m_mouseDelta.x * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
-			m_transform.position += m_transform.up * m_mouseDelta.y * m_cameraMoveSpeed *(float)timestep.getMilliseconds();
+			m_transform.position += m_transform.right * -m_mouseDelta.x * m_cameraMoveSpeed * (float)timestep.getMilliseconds();
+			m_transform.position += m_transform.up * m_mouseDelta.y * m_cameraMoveSpeed * (float)timestep.getMilliseconds();
 		}
 	}
 	void SceneCamera::mouseLookMove() {
@@ -48,8 +43,6 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseScrolledEvent));
-		dispatcher.dispatch<MouseMoveEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseMoveEvent));
-		dispatcher.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(SceneCamera::onResizeEvent));
 	}
 	void SceneCamera::onResize(float width, float height) {
 		ST_PROFILING_FUNCTION();
@@ -60,15 +53,6 @@ namespace Stulu {
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
 		ST_PROFILING_FUNCTION();
 		m_transform.position += m_transform.forward * e.getYOff();
-		return false;
-	}
-	bool SceneCamera::onMouseMoveEvent(MouseMoveEvent& e) {
-		ST_PROFILING_FUNCTION();
-		return false;
-	}
-	bool SceneCamera::onResizeEvent(WindowResizeEvent& e) {
-		ST_PROFILING_FUNCTION();
-		onResize((float)e.getWidth(), (float)e.getHeight());
 		return false;
 	}
 }

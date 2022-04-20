@@ -3,6 +3,7 @@
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Scene/Model.h"
 
+
 namespace Stulu {
 	std::unordered_map<UUID, Asset> AssetsManager::assets;
 
@@ -58,8 +59,8 @@ namespace Stulu {
 		case Stulu::AssetType::Model:
 			createMeshesFromModel({ type,0,path,uuid });
 			break;
-		case Stulu::AssetType::Mesh:
-			//assets[uuid] = { Mesh(path),path };
+		case Stulu::AssetType::Script:
+			update(uuid, { type,path,path,uuid });
 			break;
 		case Stulu::AssetType::Material:
 			update(uuid, { type,Material::fromDataStringPath(path,uuid),path,uuid });
@@ -214,6 +215,8 @@ namespace Stulu {
 			return AssetType::Shader;
 		else if (extension == ".scene" || extension == ".stulu")
 			return AssetType::Scene;
+		else if (extension == ".cs")
+			return AssetType::Script;
 		else if (extension == "")
 			return AssetType::Directory;
 		return AssetType::Unknown;

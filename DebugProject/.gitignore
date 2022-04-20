@@ -1,0 +1,13 @@
+# Directoies
+.vs/
+build/
+DebugProject/Data
+DebugProject/temp
+
+#Files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user 
+*.csproj
+*.scache

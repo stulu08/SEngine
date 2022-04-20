@@ -36,7 +36,7 @@ namespace Hub
             if (CheckForInternetConnection())
                 return readwebFile("http://engine.stulu.de/download/latest.version").Replace("\n", "");
             else
-                return "2.2.3";
+                return "2.3.0";
         }
         public static Version[] getVersions()
         {

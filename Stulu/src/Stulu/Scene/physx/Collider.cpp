@@ -6,7 +6,7 @@
 #include "physx/PxPhysicsAPI.h"
 
 #include "Stulu/Scene/GameObject.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 
 
 namespace Stulu {
@@ -30,9 +30,11 @@ namespace Stulu {
 			rigidbodyComponent = object.getComponent<RigidbodyComponent>();
 		}
 		else {
-			actor = physics.getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
-			actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, true);
-			rigidbodyComponent = RigidbodyComponent((void*)actor);
+			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
+			rb.useGravity = true;
+			rb.kinematic = true;
+			actor = physics.createActor(object.getComponent<RigidbodyComponent>(), tc.worldPosition, tc.worldRotation);
+			rigidbodyComponent = rb;
 		}
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics.getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
@@ -53,9 +55,11 @@ namespace Stulu {
 			rigidbodyComponent = object.getComponent<RigidbodyComponent>();
 		}
 		else {
-			actor = physics.getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
-			actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, true);
-			rigidbodyComponent = RigidbodyComponent((void*)actor);
+			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
+			rb.useGravity = true;
+			rb.kinematic = true;
+			actor = physics.createActor(object.getComponent<RigidbodyComponent>(), tc.worldPosition, tc.worldRotation);
+			rigidbodyComponent = rb;
 		}
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics.getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);

@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 #include "Stulu/Renderer/Renderer2D.h"
-#include "Stulu/Scene/Components.h"
 
 namespace Stulu {
 

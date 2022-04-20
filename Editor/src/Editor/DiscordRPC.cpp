@@ -3,7 +3,8 @@
 
 namespace Stulu {
 
-    std::future<void> rpc;
+    std::thread rpc;
+    //std::future<void> rpc;
 
     static void handleDiscordReady(const DiscordUser* connectedUser)
     {
@@ -37,13 +38,20 @@ namespace Stulu {
     bool DiscordRPC::s_activated = false;
 
     void DiscordRPC::init(const char* applicationID) {
-        rpc = std::async(DiscordRPC::threadLoop, applicationID);
+        try {
+            //rpc = std::async(DiscordRPC::threadLoop, applicationID);
+            rpc = std::thread(DiscordRPC::threadLoop, applicationID);
+        }
+        catch (std::exception ex) {
+            ST_CRITICAL("Error in Discord RPC thead loop: {0}", ex.what());
+        }
         s_activated = true;
     }
     void DiscordRPC::shutdown() {
         s_running = false;
         if (s_activated) {
-            rpc.wait();
+            rpc.join();
+            //rpc.wait();
             Discord_Shutdown();
             s_activated = false;
         }
@@ -60,7 +68,6 @@ namespace Stulu {
     }
 
     void DiscordRPC::threadLoop(const char* applicationID) {
-        try {
             int64_t startTime = time(0);
             int sendPresence = 1;
             s_running = true;
@@ -85,9 +92,6 @@ namespace Stulu {
 #endif
                 Discord_RunCallbacks();
             }
-        }
-        catch (std::exception ex) {
-            ST_CRITICAL("Error in Discord RPC thead loop: {0}", ex.what());
-        }
+        
     }
 }

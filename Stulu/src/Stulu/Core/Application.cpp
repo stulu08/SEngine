@@ -8,26 +8,34 @@
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Core/Input.h"
 #include "Stulu/Scene/Resources.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
 
 namespace Stulu {
+	// we want the best gpu cause shaders wont compile with intel uhd graphics
+	// enable optimus!
+	extern "C" {
+		_declspec(dllexport) DWORD NvOptimusEnablement = 1;
+		_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+	}
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(ApplicationInfo appInfo, bool hideWindow)
-		:m_appInfo(appInfo)	{
+	Application::Application(ApplicationInfo appInfo, bool hideWindow, bool enableImgui)
+		:m_appInfo(appInfo), m_enableImgui(enableImgui){
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		if (hideWindow)
 			m_window->hide();
-		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"Stulu");
-		AssetsManager::loadAllFiles("Stulu");
-#if OPENGL
+		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"assets");
+		AssetsManager::loadAllFiles("assets");
+
 		Renderer::init();
-		m_imguiLayer = new ImGuiLayer();
-		pushOverlay(m_imguiLayer);
-#endif
+		if (m_enableImgui) {
+			m_imguiLayer = new ImGuiLayer();
+			pushOverlay(m_imguiLayer);
+		}
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
@@ -51,56 +59,67 @@ namespace Stulu {
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
-
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
-			(*--it)->onEvent(e);
 			if (e.handled)
 				break;
+			(*--it)->onEvent(e);
 		}
 
 	}
 	void Application::run() {
 		ST_PROFILING_FUNCTION();
 		m_lastFrameTime = Platform::getTime();
+		m_runnig = true;
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Run Loop");
 			float time = Platform::getTime();
 			Timestep delta = time - m_lastFrameTime;
 			Time::applicationRuntime = time;
 			m_lastFrameTime = time;
-			Time::deltaTime = delta * Time::Scale;
 			Time::frameTime = delta;
+			Time::deltaTime = delta * Time::Scale;
 			Input::update();
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(delta);
 				}
-#if OPENGL
-				m_imguiLayer->Begin();
-				for (Layer* layer : m_layerStack) {
-					ST_PROFILING_SCOPE("onImguiRender - layerstack");
-					layer->onImguiRender(delta);
-					layer->onRenderGizmo();
+				if (m_enableImgui) {
+					m_imguiLayer->Begin();
+					for (Layer* layer : m_layerStack) {
+						ST_PROFILING_SCOPE("onImguiRender - layerstack");
+						layer->onImguiRender(delta);
+					}
+					for (Layer* layer : m_layerStack) {
+						ST_PROFILING_SCOPE("onRenderGizmo - layerstack");
+						layer->onRenderGizmo();
+					}
+					m_imguiLayer->End();
 				}
-				m_imguiLayer->End();
-#endif
 			}
 			m_window->onUpdate();
 		}
 	}
-	void Application::exit(int code) {
+	void Application::exit(int32_t code) {
 		ST_PROFILING_FUNCTION();
-		if (s_instance != nullptr) {
-			s_instance->m_runnig = false;
-			CORE_INFO("Force Exit: {0}", code);
+
+		if (s_instance == nullptr) {
+			CORE_CRITICAL("Application can't shut down! It hasn't been created yet");
 			return;
 		}
-		CORE_CRITICAL("Application can't shut down! It hasn't been created yet")
+		if (s_instance->m_runnig == false) {
+			CORE_WARN("Shutting down while loading!");
+			CORE_INFO("Force Exit: {0}", code);
+			::exit(code);
+			return;
+		}
+		s_instance->m_runnig = false;
+		CORE_INFO("Force Exit: {0}", code);
+		return;
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
 		ST_PROFILING_FUNCTION();
-		m_runnig = false;
+		exit(0);
 		return m_runnig;
 	}
 	bool Application::onWindowResize(WindowResizeEvent& e)

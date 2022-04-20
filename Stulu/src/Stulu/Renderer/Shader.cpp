@@ -201,6 +201,7 @@ layout(std140, binding = 2) uniform postProcessing
 {
 	float toneMappingExposure;
 	float gamma;
+	float env_lod;
 	uint useSkybox;
 };
 struct vertInput
@@ -235,6 +236,7 @@ struct PBRData {
 
 	float toneMappingExposure;
 	float gamma;
+	float env_lod;
 
 	bool toneMappingAndGammaCorrection;
 	bool useSkybox;
@@ -356,6 +358,7 @@ vec4 ST_pbr_calculation(PBRData data)
 	vec3 kS = F;
 	vec3 kD = 1.0 - kS;
 	kD *= 1.0 - data.metallic;	  
+	const float MAX_REFLECTION_LOD = data.env_lod;
    
 	vec3 irradiance = vec3(.5f);
 	if(data.useSkybox)
@@ -363,7 +366,6 @@ vec4 ST_pbr_calculation(PBRData data)
  
 	vec3 diffuse      = irradiance * data.albedo;
    
-	const float MAX_REFLECTION_LOD = 4.0;
 	vec3 prefilteredColor = vec3(.5f);
 	if(data.useSkybox)
 		prefilteredColor = textureLod(prefilterMap, R, data.roughness * MAX_REFLECTION_LOD).rgb;

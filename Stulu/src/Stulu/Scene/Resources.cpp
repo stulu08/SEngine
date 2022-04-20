@@ -171,6 +171,7 @@ namespace Stulu {
 		{
 			float toneMappingExposure;
 			float gamma;
+			float env_load;
 			uint useSkybox;
 		};
 		layout (location = 0) in vertInput vertex;
@@ -179,7 +180,6 @@ namespace Stulu {
 		layout (binding = 2) uniform samplerCube prefilterMap;
 		layout (binding = 3) uniform sampler2D BRDFLUTMap;
 		uniform int mapType = 0;
-		uniform float blur = 0;
 		void main() {
 			vec4 color = vec4(.0f);
 			if(useSkybox == 1){
@@ -193,6 +193,7 @@ namespace Stulu {
 				}else {
 					mapColor = texture(environmentMap, vertex.texCoords).rgb;
 				}
+
 				mapColor = vec3(1.0f) - exp(-mapColor * toneMappingExposure);//HDR tonemapping
 				mapColor = pow(mapColor, vec3(1.0/gamma)), 1.0; //gamma correct
 				color = vec4(mapColor, 1.0f);

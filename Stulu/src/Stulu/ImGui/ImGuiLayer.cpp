@@ -8,6 +8,7 @@
 
 #include "ImGuizmo.h"
 #include "Stulu/Core/Application.h"
+#include "Stulu/Core/Input.h"
 
 #include <GLFW/glfw3.h>
 
@@ -90,7 +91,6 @@ namespace Stulu {
 	void ImGuiLayer::onEvent(Event& e) {
 		if (m_blockEvents) {
 			ImGuiIO& io = ImGui::GetIO();
-			e.handled |= e.isInCategory(MouseEventCategrory) & io.WantCaptureKeyboard;
 			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;
 		}
 	}

@@ -12,7 +12,9 @@ project "Stulu"
 
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
-
+	
+	dependson { "Stulu-ScriptCore" }
+	
 	pchheader "st_pch.h"
 	pchsource "src/st_pch.cpp"
 
@@ -57,6 +59,8 @@ project "Stulu"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.PhysX}/physx",
+		"%{IncludeDir.mono}/mono-2.0",
+		
 	}
 
 	links 
@@ -72,7 +76,9 @@ project "Stulu"
 
 		"vulkan-1.lib",
 		"VkLayer_utils.lib",
-
+		
+		"mono-2.0-sgen.lib",
+		
 		"PhysX_static_64.lib",
 		"PhysXCommon_static_64.lib",
 		"PhysXFoundation_static_64.lib",
@@ -83,6 +89,7 @@ project "Stulu"
 	libdirs 
 	{ 
 		"%{vulkanSDK}/Lib",
+		"%{monoDir}/lib"
 	}
 	if(staticRuntime) then
 		libdirs
@@ -95,10 +102,20 @@ project "Stulu"
 			"%{physx}/bin/dynamic/".. outputdir ..""
 		}
 	end
-
+	
+	postbuildcommands{
+		"{MKDIR} %{ProjectDir.Stulu}/bin/".. outputdir .."/data/PhysX",
+		"{COPYDIR} %{physx}/bin/dll/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/PhysX",
+		
+		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "\"",
+		"{COPYDIR} \"%{monoDir}/lib/mono/4.5\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.5\"",
+		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.8-Api\"",
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
+		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
+	}
+	
 	filter "system:windows"
 		systemversion "latest"
-
 		defines
 		{
 			"GLFW_INCLUDE_NONE"

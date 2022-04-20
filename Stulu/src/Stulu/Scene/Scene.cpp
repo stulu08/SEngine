@@ -4,10 +4,13 @@
 #include "Stulu/Scene/SceneRenderer.h"
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Scene/SceneCamera.h"
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Behavior.h"
 #include "Stulu/Math/Math.h"
 #include "Stulu/Core/Time.h"
+#include "Stulu/Core/Application.h"
+#include "Stulu/Core/Input.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
 #include "GameObject.h"
 
 #define PX_PHYSX_STATIC_LIB
@@ -18,13 +21,14 @@ namespace Stulu {
 	static bool startedPhysics = false;
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
-		SceneRenderer::init(this);
+		SceneRenderer::init();
 		if(!s_physics.started())
 			s_physics.startUp();
 	}
 	Scene::~Scene() {
 		m_registry.clear();
 	}
+
 	GameObject Scene::createGameObject(const std::string& name, UUID uuid) {
 		ST_PROFILING_FUNCTION();
 		GameObject go = { m_registry.create(), this };
@@ -36,6 +40,7 @@ namespace Stulu {
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
 		ST_PROFILING_FUNCTION();
+		updateAssemblyScripts("onDestroy()");
 		if (gameObject.hasComponent<NativeBehaviourComponent>()) {
 			auto& b = gameObject.getComponent<NativeBehaviourComponent>();
 			if (b.instance) {
@@ -56,13 +61,13 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		ST_PROFILING_RENDERDATA_RESET();
 		ST_PROFILING_RENDERDATA_BEGIN();
-
+		s_activeScene = this;
 		updateAllTransforms();
-		SceneRenderer::calculateLights();
+		SceneRenderer::calculateLights(m_registry.view<TransformComponent, LightComponent>());
 
 		if (camera.getCamera()) {
 			ST_PROFILING_SCOPE("Scene Camera Rendering");
-			SceneRenderer::beginScene(camera);
+			SceneRenderer::beginScene(camera, getMainCamera());
 			SceneRenderer::uploadBuffers(m_data);
 			{
 				auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
@@ -93,34 +98,9 @@ namespace Stulu {
 		}
 		ST_PROFILING_RENDERDATA_END();
 	}
-
-	void Scene::onRuntimeStart() {
-		ST_PROFILING_FUNCTION();
-		Time::time = .0f;
-		//create rigidbodys3d
-		updateAllTransforms();
-		if (m_data.enablePhsyics3D) {
-			setupPhysics();
-		}
-		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-			behaviour.instance = behaviour.InstantiateBehaviour();
-			behaviour.instance->gameObject = GameObject{ gameObject, this };
-			behaviour.instance->onAwake();
-		});
-		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-			if (!behaviour.instance) {
-				behaviour.instance = behaviour.InstantiateBehaviour();
-				behaviour.instance->gameObject = GameObject{ gameObject, this };
-			}
-			behaviour.instance->onStart();
-		});
-		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
-			cam.getFrameBuffer()->getSpecs().textureFormat = (m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA);
-			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
-			});
-	}
 	void Scene::onUpdateRuntime(Timestep ts) {
 		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
 		Time::time += ts;
 		updateAllTransforms();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
@@ -131,17 +111,20 @@ namespace Stulu {
 			}
 			behaviour.instance->onUpdate();
 		});
+		updateAssemblyScripts("onUpdate()");
+
 		//calculations
 		if(m_data.enablePhsyics3D)
 			updatePhysics();
 		else
-			SceneRenderer::calculateLights();//otherwise we do it in m_physics.getScene()->fetchResults()
+			SceneRenderer::calculateLights(m_registry.view<TransformComponent,LightComponent>());//otherwise we do it in m_physics.getScene()->fetchResults()
 		//rendering
 		auto view = m_registry.view<CameraComponent>();
 		for (auto gameObject : view) {
 			renderScene(gameObject,ts);
 		}
 	}
+
 	void Scene::renderScene(entt::entity cam, Timestep ts) {
 		ST_PROFILING_FUNCTION();
 
@@ -171,7 +154,40 @@ namespace Stulu {
 			if (behaviour.instance)
 				behaviour.instance->onRender(ts);
 			});
+		updateAssemblyScripts("onRender()");
 		SceneRenderer::endScene();
+	}
+
+	static bool skipPhysicsThisFrame = false;
+	void Scene::onRuntimeStart() {
+		ST_PROFILING_FUNCTION();
+		Time::time = .0f;
+		skipPhysicsThisFrame = true;//loading the scene can take a long time
+		//create rigidbodys3d
+		updateAllTransforms();
+		if (m_data.enablePhsyics3D) {
+			setupPhysics();
+		}
+		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
+			behaviour.instance = behaviour.InstantiateBehaviour();
+			behaviour.instance->gameObject = GameObject{ gameObject, this };
+			behaviour.instance->onAwake();
+		});
+		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
+			if (!behaviour.instance) {
+				behaviour.instance = behaviour.InstantiateBehaviour();
+				behaviour.instance->gameObject = GameObject{ gameObject, this };
+			}
+			behaviour.instance->onStart();
+		});
+
+		updateAssemblyScripts("", true);
+		updateAssemblyScripts("onStart()");
+
+		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
+			cam.getFrameBuffer()->getSpecs().textureFormat = (m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA);
+			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
+			});
 	}
 	void Scene::onRuntimeStop() {
 		ST_PROFILING_FUNCTION();
@@ -182,7 +198,10 @@ namespace Stulu {
 				behaviour.DestroyBehaviour(&behaviour);
 			}
 			});
-
+		updateAssemblyScripts("onSceneExit()");
+		updateAssemblyScripts("onDestroy()");
+		
+		Input::setCursorMode(Input::CursorMode::Normal);
 		if (m_data.enablePhsyics3D) {
 			s_physics.releasePhysics();
 			for (auto id : m_registry.view<RigidbodyComponent>()) {
@@ -203,6 +222,7 @@ namespace Stulu {
 			}
 		}
 	}
+
 	void Scene::setupPhysics() {
 		s_physics.createPhysics(m_data.physicsData);
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
@@ -220,12 +240,14 @@ namespace Stulu {
 	}
 	void Scene::updatePhysics() {
 		ST_PROFILING_FUNCTION();
-		if (Time::deltaTime == 0.0f)
+		if (Time::deltaTime == 0.0f || skipPhysicsThisFrame) {
+			skipPhysicsThisFrame = false;
 			return;
+		}
 		s_physics.getScene()->simulate(Time::deltaTime);
 		//we do as much ass possible here
 		while (!s_physics.getScene()->fetchResults()) {
-			SceneRenderer::calculateLights();
+			SceneRenderer::calculateLights(m_registry.view<TransformComponent, LightComponent>());
 		}
 		auto view = m_registry.view<RigidbodyComponent>();
 		for (auto id : view) {
@@ -235,39 +257,39 @@ namespace Stulu {
 			if (rb.body == nullptr)
 				continue;
 			physx::PxRigidActor* actor = (physx::PxRigidActor*)rb.body;
-			if (rb.rbType == RigidbodyComponent::Type::Dynamic) {
-				physx::PxTransform tr = actor->getGlobalPose();
 
-				glm::vec3 pos = PhysicsVec3toglmVec3(tr.p);
-				glm::quat rot = glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z);
-				if (pos != tc.worldPosition || rot != tc.worldRotation) {
-					glm::mat4 transform;//new local
+			physx::PxTransform tr = actor->getGlobalPose();
 
-					if (tc.parent) {
-						auto& parent = tc.parent.getComponent<TransformComponent>();
+			glm::vec3 pos = PhysicsVec3toglmVec3(tr.p);
+			glm::quat rot = glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z);
+			if (pos != tc.worldPosition || rot != tc.worldRotation) {
+				glm::mat4 transform;//new local
 
-						transform =
-							glm::translate(glm::mat4(1.0f), pos - parent.worldPosition) *
-							(glm::toMat4(rot) / glm::toMat4(parent.worldRotation)) *
-							glm::scale(glm::mat4(1.0f), tc.scale / parent.worldScale);
-						glm::vec3 s;
-						Math::decomposeTransform(transform, tc.position, tc.rotation, s);
-					}
-					else {
-						tc.position = pos;
-						tc.rotation = rot;
-					}
+				if (tc.parent) {
+					auto& parent = tc.parent.getComponent<TransformComponent>();
+
+					transform =
+						glm::translate(glm::mat4(1.0f), pos - parent.worldPosition) *
+						(glm::toMat4(rot) / glm::toMat4(parent.worldRotation)) *
+						glm::scale(glm::mat4(1.0f), tc.scale / parent.worldScale);
+					glm::vec3 s;
+					Math::decomposeTransform(transform, tc.position, tc.rotation, s);
 				}
 				else {
-					actor->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition),PhysicsQuatfromglmQuat(tc.worldRotation)));
+					tc.position = pos;
+					tc.rotation = rot;
 				}
 			}
 			else {
-				actor->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
+				if (rb.kinematic)
+					actor->is<physx::PxRigidDynamic>()->setKinematicTarget(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
+				else
+					actor->is<physx::PxRigidDynamic>()->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition),PhysicsQuatfromglmQuat(tc.worldRotation)));
 			}
 		}
 
 	}
+
 	std::unordered_map<entt::entity, bool> st_transform_updated;
 	void Scene::updateAllTransforms() {
 		ST_PROFILING_FUNCTION();
@@ -305,10 +327,12 @@ namespace Stulu {
 		tc.forward = glm::rotate(tc.worldRotation, TRANSFORM_FOREWARD_DIRECTION);
 		tc.up = glm::rotate(tc.worldRotation, TRANSFORM_UP_DIRECTION);
 		tc.right = glm::rotate(tc.worldRotation, TRANSFORM_RIGHT_DIRECTION);
+		tc.eulerAnglesDegrees = glm::degrees(Math::QuaternionToEuler(tc.rotation));
 
 		if(tc.gameObject)
 			st_transform_updated[tc.gameObject.m_entity] = true;
 	}
+
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
 		ST_PROFILING_FUNCTION();
 		m_viewportWidth = width;
@@ -319,6 +343,41 @@ namespace Stulu {
 			if (!cameraComponent.settings.staticAspect)
 				cameraComponent.onResize(width, height);
 		}
+	}
+
+	bool Scene::initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& i) {
+		Ref<ScriptAssembly> assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
+		MonoClass* goAttachClass = mono_class_from_name(assembly->getImage(), "Stulu", "GameObjectAttached");
+		if (goAttachClass) {
+			MonoMethod* func = i->getVirtualFunction("initilize", goAttachClass);
+			if (func) {
+				void* args[1];
+				args[0] = &gameObject;
+				assembly->invokeFunction(func, i->getObjectPtr(), args);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void Scene::updateAssemblyScripts(const std::string& function, bool forceConstructNew) {
+		m_registry.view<ScriptingComponent>().each([=](entt::entity gameObject, ScriptingComponent& comp) {
+			for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
+				if (!i->isContructed() || forceConstructNew) {
+					i->loadAllClassFunctions();
+					i->loadAllVirtualParentFunctions();
+					i->callDefaultConstructor();
+					i->setAllClassFields();
+					//initilize component
+					if(initlizeGameObjectAttachedClass(gameObject,i))
+						i->call("onAwake()");
+					
+					
+				}
+				if(!function.empty())
+					i->call(function);
+			}
+		});
 	}
 
 	void Scene::onApplicationQuit() {
@@ -382,6 +441,85 @@ namespace Stulu {
 		return GameObject::null;
 	}
 
+	template<typename... Component>
+	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap) {
+		([&]()
+			{
+				auto view = src.view<Component>();
+				for (auto srcGameObject : view)
+				{
+					entt::entity dstGameObject = enttMap.at(src.get<GameObjectBaseComponent>(srcGameObject).uuid);
+
+					auto& srcComponent = src.get<Component>(srcGameObject);
+					dst.emplace_or_replace<Component>(dstGameObject, srcComponent);
+				}
+			}(), ...);
+	}
+
+	template<typename... Component>
+	static void CopyComponent(ComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap) {
+		CopyComponent<Component...>(dst, src, enttMap);
+	}
+
+	template<typename... Component>
+	static void CopyComponentIfExists(GameObject dst, GameObject src) {
+		([&]()
+			{
+				if (src.hasComponent<Component>())
+					dst.addOrReplaceComponent<Component>(src.getComponent<Component>());
+			}(), ...);
+	}
+
+	template<typename... Component>
+	static void CopyComponentIfExists(ComponentGroup<Component...>, GameObject dst, GameObject src) {
+		CopyComponentIfExists<Component...>(dst, src);
+	}
+
+	static void CopyAllComponents(entt::registry& dstSceneRegistry, entt::registry& srcSceneRegistry, const std::unordered_map<UUID, entt::entity>& enttMap) {
+		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
+	}
+
+	static void CopyAllExistingComponents(GameObject dst, GameObject src) {
+		CopyComponentIfExists(AllComponents{}, dst, src);
+	}
+
+	Ref<Scene> Scene::copy(Ref<Scene> scene) {
+		Ref<Scene> newScene = createRef<Scene>();
+
+		newScene->m_viewportWidth = scene->m_viewportWidth;
+		newScene->m_viewportHeight = scene->m_viewportHeight;
+		newScene->m_data = scene->m_data;
+
+		std::unordered_map<UUID, entt::entity> enttMap;
+		//gameobject with uuid of first has a parent gameobject with uuid of second
+		std::unordered_map<UUID, UUID> parentMap;
+
+		// Create entities in new scene
+		auto& srcSceneRegistry = scene->m_registry;
+		auto& dstSceneRegistry = newScene->m_registry;
+		auto idView = srcSceneRegistry.view<GameObjectBaseComponent>();
+		for (auto e : idView)
+		{
+			UUID uuid = srcSceneRegistry.get<GameObjectBaseComponent>(e).uuid;
+			const auto& name = srcSceneRegistry.get<GameObjectBaseComponent>(e).name;
+			GameObject newGameObject = newScene->createGameObject(name, uuid);
+			newGameObject.getComponent<GameObjectBaseComponent>().tag = srcSceneRegistry.get<GameObjectBaseComponent>(e).tag;
+			enttMap[uuid] = newGameObject;
+			if (srcSceneRegistry.get<TransformComponent>(e).parent)
+				parentMap[uuid] = srcSceneRegistry.get<TransformComponent>(e).parent.getComponent<GameObjectBaseComponent>().uuid;
+		}
+
+		// Copy components (except GameObjectBaseComponent)
+		CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
+		
+		for (auto& [objUUID, parUUID] : parentMap) {
+			GameObject::getById(objUUID, newScene.get()).getComponent<TransformComponent>().parent = GameObject::getById(parUUID, newScene.get());
+		}
+
+		return newScene;
+	}
+
+
 	template<typename T>
 	void Scene::onComponentAdded(GameObject gameObject, T& component) {  }
 	template<>
@@ -410,6 +548,8 @@ namespace Stulu {
 	void STULU_API Scene::onComponentAdded<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
 	template<>
 	void STULU_API Scene::onComponentAdded<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
+	template<>
+	void STULU_API Scene::onComponentAdded<ScriptingComponent>(GameObject gameObject, ScriptingComponent& component) { }
 
 	template<typename T>
 	void Scene::onComponentRemove(GameObject gameObject, T& component) {  }
@@ -439,4 +579,6 @@ namespace Stulu {
 	void STULU_API Scene::onComponentRemove<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
 	template<>
 	void STULU_API Scene::onComponentRemove<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
+	template<>
+	void STULU_API Scene::onComponentRemove<ScriptingComponent>(GameObject gameObject, ScriptingComponent& component) { }
 }

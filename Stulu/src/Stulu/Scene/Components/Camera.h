@@ -1,9 +1,10 @@
 #pragma once
 #include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/PerspectiveCamera.h"
-
+#include "Component.h"
 namespace Stulu {
-	class STULU_API CameraComponent {
+	class STULU_API Component;
+	class STULU_API CameraComponent : public Component {
 	public:
 		CameraComponent() {
 			cam = createRef<PerspectiveCamera>(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);

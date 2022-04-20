@@ -19,12 +19,12 @@ namespace Stulu {
 
 		virtual void draw() override;
 
-		virtual uint32_t getRendererID() const override { return m_brdfLUT; }
+		virtual uint32_t getRendererID() const override { return m_envCubemap; }
 
 		virtual uint32_t getEnviroment() const override { return m_envCubemap; }
 		virtual uint32_t getIrradianceMap() const override { return m_irradianceMap; }
 		virtual uint32_t getPrefilterMap() const override { return m_prefilterMap; }
-		virtual uint32_t getBRDFLUT() const override { return m_brdfLUT; }
+		virtual uint32_t getBRDFLUT() const override { return s_brdfLUT; }
 
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }
@@ -38,8 +38,9 @@ namespace Stulu {
 	private:
 		uint32_t m_resolution;//need to be set in constructor
 		uint32_t m_envCubemap;//need to be set in constructor
-		uint32_t m_irradianceMap = 0, m_prefilterMap = 0, m_brdfLUT = 0;
+		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
 		uint32_t m_captureFBO = 0, m_captureRBO = 0;
+		static inline uint32_t s_brdfLUT = 0;
 		static inline Ref<VertexArray> s_cubeVAO = nullptr;
 		static inline uint32_t s_quadVAO = 0, s_quadVBO = 0;
 		static inline Ref<Shader> s_brdfShader = nullptr, s_prefilterShader = nullptr, s_irradianceShader = nullptr, s_equirectangularToCubemapShader = nullptr, s_skyboxShader = nullptr;

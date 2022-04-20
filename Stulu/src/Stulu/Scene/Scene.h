@@ -14,12 +14,14 @@ namespace Stulu {
 		float toneMappingExposure = 1.0f;
 		float gamma = 2.2f;
 		bool framebuffer16bit = false;
+		float env_lod = 4.0f;
 		bool enablePhsyics3D = true;
 		PhysicsData physicsData;
 	};
 
 	class STULU_API SceneCamera;
 	class STULU_API GameObject;
+	class STULU_API MonoObjectInstance;
 
 	class STULU_API Scene {
 	public:
@@ -43,17 +45,26 @@ namespace Stulu {
 
 		GameObject getMainCamera();
 		SceneData& getData() { return m_data; }
+
+		bool initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& instance);
+
+
+		static inline Scene* activeScene() { return s_activeScene; }
+
+		static Ref<Scene> copy(Ref<Scene> scene);
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
+		SceneData m_data;
 
 		entt::registry m_registry;
-		SceneData m_data;
 
 		void setupPhysics();
 		void updatePhysics();
 		void updateAllTransforms();
 		void updateTransform(TransformComponent& tc);
 		void renderScene(entt::entity cam, Timestep ts);
+
+		void updateAssemblyScripts(const std::string& function, bool forceConstructNew = false);
 
 		template<typename T>
 		void onComponentAdded(GameObject gameObject, T& component);
@@ -68,7 +79,7 @@ namespace Stulu {
 		friend class EditorHierarchyPanel;
 
 
-
+		static inline Scene* s_activeScene = nullptr;
 		static inline PhysX s_physics;
 	};
 }

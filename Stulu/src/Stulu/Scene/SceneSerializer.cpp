@@ -2,7 +2,11 @@
 #include "SceneSerializer.h"
 #include "Stulu/Scene/YAML.h"
 
-#include "Stulu/Scene/Components.h"
+#include "Stulu/Core/Application.h"
+#include "Stulu/Scene/Components/Components.h"
+#include "Stulu/ScriptCore/MonoObjectInstance.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
+
 namespace Stulu {
 
 	static void SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
@@ -28,6 +32,49 @@ namespace Stulu {
 				out << YAML::Key << "parent" << YAML::Value << trans.parent.getId();
 			}
 			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<ScriptingComponent>()) {
+			out << YAML::Key << "ScriptingComponent";
+			out << YAML::BeginMap << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
+
+			auto& comp = gameObject.getComponent<ScriptingComponent>();
+			for (Ref<MonoObjectInstance> instance : comp.runtimeScripts) {
+				out << YAML::BeginMap;
+				out << YAML::Key << "Name" << YAML::Value << instance->getClassName();
+				out << YAML::Key << "Namespace" << YAML::Value << instance->getNameSpace();
+
+				out << YAML::Key << "Fields" << YAML::Value << YAML::BeginSeq;
+				for (auto& [name,field] : instance->getFields()) {
+					out << YAML::BeginMap;
+					out << YAML::Key << "Name" << name;
+					out << YAML::Key << "Type" << (int32_t)field.type;
+					switch (field.type) {
+					case MonoObjectInstance::MonoClassMember::Type::Vector4_t:
+						out << YAML::Key << "Value" << *((glm::vec4*)field.value);
+						break;
+					case MonoObjectInstance::MonoClassMember::Type::Vector3_t:
+						out << YAML::Key << "Value" << *((glm::vec3*)field.value);
+						break;
+					case MonoObjectInstance::MonoClassMember::Type::Vector2_t:
+						out << YAML::Key << "Value" << *((glm::vec2*)field.value);
+						break;
+					case MonoObjectInstance::MonoClassMember::Type::float_t:
+						out << YAML::Key << "Value" << *((float*)field.value);
+						break;
+					case MonoObjectInstance::MonoClassMember::Type::int_t:
+						out << YAML::Key << "Value" << *((int32_t*)field.value);
+						break;
+					case MonoObjectInstance::MonoClassMember::Type::uint_t:
+						out << YAML::Key << "Value" << *((uint32_t*)field.value);
+						break;
+					}
+					out << YAML::EndMap;
+				}
+				out << YAML::EndSeq;
+				out << YAML::EndMap;
+			}
+
+			out << YAML::EndSeq << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<CameraComponent>()) {
 			out << YAML::Key << "CameraComponent";
@@ -95,7 +142,6 @@ namespace Stulu {
 			auto& meshren = gameObject.getComponent<SkyBoxComponent>();
 			if(meshren.texture)
 				out << YAML::Key << "texture" << YAML::Value << (uint64_t)meshren.texture->uuid;
-			out << YAML::Key << "blur" << YAML::Value << meshren.blur;
 			out << YAML::Key << "mapType" << YAML::Value << (int32_t)meshren.mapType;
 			out << YAML::EndMap;
 		}
@@ -133,7 +179,6 @@ namespace Stulu {
 			out << YAML::Key << "RigidbodyComponent";
 			out << YAML::BeginMap;
 			auto& component = gameObject.getComponent<RigidbodyComponent>();
-			out << YAML::Key << "rbType" << YAML::Value << (int)component.rbType;
 			out << YAML::Key << "useGravity" << YAML::Value << component.useGravity;
 			out << YAML::Key << "rotationX" << YAML::Value << component.rotationX;
 			out << YAML::Key << "rotationY" << YAML::Value << component.rotationY;
@@ -156,6 +201,7 @@ namespace Stulu {
 		out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "gamma" << YAML::Value << m_scene->m_data.gamma;
 		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.toneMappingExposure;
+		out << YAML::Key << "env_lod" << YAML::Value << m_scene->m_data.env_lod;
 		out << YAML::Key << "framebuffer16bit" << YAML::Value << m_scene->m_data.framebuffer16bit;
 		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
 		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
@@ -201,6 +247,8 @@ namespace Stulu {
 					m_scene->m_data.toneMappingExposure = settings["toneMappingExposure"].as<float>();
 				if (settings["framebuffer16bit"])
 					m_scene->m_data.framebuffer16bit = settings["framebuffer16bit"].as<bool>();
+				if (settings["env_lod"])
+					m_scene->m_data.env_lod = settings["env_lod"].as<float>();
 				if (settings["enablePhsyics3D"])
 					m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
 				if (settings["physicsData.gravity"])
@@ -229,6 +277,7 @@ namespace Stulu {
 
 
 					GameObject deserialized = m_scene->createGameObject(name, uuid);
+
 					deserialized.getComponent<GameObjectBaseComponent>().tag = tag;
 
 					auto transformComponentNode = gameObject["TransformComponent"];
@@ -237,6 +286,47 @@ namespace Stulu {
 						tc.position = transformComponentNode["position"].as<glm::vec3>();
 						tc.rotation = transformComponentNode["rotation"].as<glm::quat>();
 						tc.scale = transformComponentNode["scale"].as<glm::vec3>();
+					}
+					auto scriptingComponent = gameObject["ScriptingComponent"];
+					if (scriptingComponent) {
+						for (auto inst : scriptingComponent["Scripts"]) {
+							auto& comp = deserialized.saveAddComponent<ScriptingComponent>();
+							MonoClass* exists = mono_class_from_name(Application::get().getAssemblyManager()->getAssembly()->getImage(), inst["Namespace"].as<std::string>().c_str(), inst["Name"].as<std::string>().c_str());
+							if (exists) {
+								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
+								object->loadAll();
+								Application::get().getAssemblyManager()->getAssembly()->registerObject(object);
+								for (auto field : inst["Fields"]) {
+									std::string name = field["Name"].as<std::string>();
+									auto& fieldList = object->getFields();
+									if (fieldList.find(name) != fieldList.end()) {
+										auto type = (MonoObjectInstance::MonoClassMember::Type)field["Type"].as<int32_t>();
+										if (fieldList[name].type == type) {
+											if (type == MonoObjectInstance::MonoClassMember::Type::float_t) {
+												*((float*)fieldList[name].value) = field["Value"].as<float>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::int_t) {
+												*((int32_t*)fieldList[name].value) = field["Value"].as<int32_t>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::uint_t) {
+												*((uint32_t*)fieldList[name].value) = field["Value"].as<uint32_t>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector2_t) {
+												*((glm::vec2*)fieldList[name].value) = field["Value"].as<glm::vec2>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector3_t) {
+												*((glm::vec3*)fieldList[name].value) = field["Value"].as<glm::vec3>();
+											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector4_t) {
+												*((glm::vec4*)fieldList[name].value) = field["Value"].as<glm::vec4>();
+											}
+										}
+									}
+								}
+								object->setAllClassFields();
+								comp.runtimeScripts.push_back(object);
+							}
+						}
 					}
 
 					auto cameraComponentNode = gameObject["CameraComponent"];
@@ -311,8 +401,6 @@ namespace Stulu {
 						auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
 						if (skyBoxComponentNode["texture"])
 							skyBox.texture = std::any_cast<Ref<CubeMap>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
-						if (skyBoxComponentNode["blur"])
-							skyBox.blur = skyBoxComponentNode["blur"].as<float>();
 						if (skyBoxComponentNode["mapType"])
 							skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();
 					}
@@ -349,7 +437,6 @@ namespace Stulu {
 					auto rigidbodyComponentNode = gameObject["RigidbodyComponent"];
 					if (rigidbodyComponentNode) {
 						auto& body = deserialized.addComponent<RigidbodyComponent>();
-						body.rbType = (RigidbodyComponent::Type)rigidbodyComponentNode["rbType"].as<int>();
 						body.useGravity = rigidbodyComponentNode["useGravity"].as<bool>();
 						body.rotationX = rigidbodyComponentNode["rotationX"].as<bool>();
 						body.rotationY = rigidbodyComponentNode["rotationY"].as<bool>();
