@@ -9,7 +9,7 @@ python3 -m pip install requests
 echo Trying installing vulkan
 setupVulkan.py
 echo Trying to generate Project Files for Visual Studio 2019
-generateProjects.bat
+"generateProjects - vs2022.bat"
 pause
 close
 
