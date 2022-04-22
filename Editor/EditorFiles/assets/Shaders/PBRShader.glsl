@@ -21,6 +21,7 @@ layout(std140, binding = 3) uniform material {
 	vec2 textureTilling;
 	uint transparencyMode;
 	float alphaCutOff;
+	uint useGLTFMetallicRoughnessMap;
 };
 
 layout(binding = 4) uniform sampler2D albedoMap;
@@ -41,11 +42,17 @@ void main (){
 		a_albedo *= pow(texture(albedoMap, vertex.texCoords * textureTilling).rgba, vec4(vec3(2.2),1.0));
 
 	data.albedo = a_albedo.rgb;
-
-	if(has_metallicMap == 1)
-		data.metallic = texture(metallicMap, vertex.texCoords * textureTilling).r;
-	if(has_roughnessMap == 1)
-		data.roughness = texture(roughnessMap, vertex.texCoords * textureTilling).r;
+	if(useGLTFMetallicRoughnessMap == 0){
+		if(has_metallicMap == 1)
+			data.metallic = texture(metallicMap, vertex.texCoords * textureTilling).r;
+		if(has_roughnessMap == 1)
+			data.roughness = texture(roughnessMap, vertex.texCoords * textureTilling).g;
+	}else{
+		if(has_metallicMap == 1)
+			data.metallic = texture(metallicMap, vertex.texCoords * textureTilling).r;
+		if(has_roughnessMap == 1)
+			data.roughness = texture(metallicMap, vertex.texCoords * textureTilling).g;
+	}
 	if(has_aoMap == 1)
 		data.ao = texture(aoMap, vertex.texCoords * textureTilling).r;
 

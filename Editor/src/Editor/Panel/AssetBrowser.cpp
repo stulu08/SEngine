@@ -12,6 +12,8 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 
 	}
+	static std::unordered_map<std::string, UUID> pathCache;
+
 	static std::string createPopUpFileName = "";
 	static std::string createPopUpFileContent = "";
 	static std::function<void()> createPopUpUIFunc = [=] {
@@ -25,6 +27,7 @@ namespace Stulu {
 	};
 	void AssetBrowserPanel::render(bool* open) {
 		ST_PROFILING_FUNCTION();
+		std::string pathBefore = m_path.string();
 		bool openCreatePopUp = false;
 		if (ImGui::Begin("Assets"), open) {
 			if (m_path != getEditorProject().assetPath) {
@@ -64,6 +67,7 @@ namespace Stulu {
 					}
 					ImGui::PushID(filename.string().c_str());
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+					
 					ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)ico->getRendererID()), { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 				}
 
@@ -152,6 +156,8 @@ namespace Stulu {
 		ImGui::End();
 		if(m_inspector)
 			renderInspector();
+		if (pathBefore != m_path.string())
+			pathCache.clear();
 	}
 	void AssetBrowserPanel::drawCreateFilePopUp() {
 		if (ImGui::BeginPopupModal("Create File", 0)) {
@@ -202,21 +208,50 @@ namespace Stulu {
 			ImGui::Text("Properitys:", selected.path.c_str());
 			if (ImGui::BeginChild("Properitys") && selected.uuid != UUID::null) {
 				if (selected.type == AssetType::Model) {
-					std::vector<MeshAsset>& vec = std::any_cast<Model>(selected.data).getMeshes();
-					for (int i = 0; i < vec.size(); i++) {
-						if (vec[i].name.c_str()) {
-							ImGui::Text("Mesh: %s", vec[i].name.c_str());
-							ImGui::PushID(vec[i].name.c_str());
+					if (ImGui::TreeNodeEx("Meshes",ImGuiTreeNodeFlags_SpanFullWidth)) {
+						std::vector<MeshAsset>& meshVec = std::any_cast<Model&>(selected.data).getMeshes();
+						for (int i = 0; i < meshVec.size(); i++) {
+							if (meshVec[i].name.c_str()) {
+								std::string name = "Mesh: " + meshVec[i].name;
+								ImGui::Text(name.c_str());
+								ImGui::PushID(name.c_str());
+							}
+							else {
+								std::string name = "Mesh: " + std::to_string(i);
+
+								ImGui::TextWrapped(name.c_str());
+								ImGui::PushID(name.c_str());
+							}
+							if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+								ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Mesh)).c_str(), &meshVec[i].uuid, sizeof(UUID));
+								ImGui::EndDragDropSource();
+							}
+							ImGui::PopID();
 						}
-						else {
-							ImGui::Text("Mesh: %d", i);
-							ImGui::PushID(i);
+						ImGui::TreePop();
+					}
+					if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_SpanFullWidth)) {
+						auto& matVec = std::any_cast<Model&>(selected.data).getMaterials();
+						for (auto& [index, mat] : matVec) {
+							if (mat.getName().c_str()) {
+								std::string name = "Material: " + mat.getName();
+
+								ImGui::Text(name.c_str());
+								ImGui::PushID(name.c_str());
+							}
+							else {
+								std::string name = "Material: " + std::to_string(index);
+
+								ImGui::TextWrapped(name.c_str());
+								ImGui::PushID(name.c_str());
+							}
+							if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+								ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str(), &mat.getUUID(), sizeof(UUID));
+								ImGui::EndDragDropSource();
+							}
+							ImGui::PopID();
 						}
-						if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-							ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Mesh)).c_str(), &vec[i].uuid, sizeof(UUID));
-							ImGui::EndDragDropSource();
-						}
-						ImGui::PopID();
+						ImGui::TreePop();
 					}
 				}
 				else if (selected.type == AssetType::Material) {
@@ -287,7 +322,11 @@ namespace Stulu {
 			return EditorResources::getFolderTexture();
 		}
 		std::string path = directory.path().string();
-		auto& asset = AssetsManager::get(AssetsManager::getFromPath(path));
+
+		if (pathCache.find(path) == pathCache.end()) {
+			pathCache[path] = AssetsManager::getFromPath(path);
+		}
+		Asset& asset = AssetsManager::get(pathCache[path]);
 		
 		switch (asset.type)
 		{

@@ -226,14 +226,6 @@ namespace Stulu {
 
 	}
 	bool SceneSerializer::deSerialze(const std::string& path) {
-		/*FILE* file = fopen(path.c_str(), "rb");
-		fseek(file, 0, SEEK_END);
-		long fileSize = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		char* fileContent = (char*)malloc(fileSize + 1);
-		fread(fileContent, 1, fileSize, file);
-		fclose(file);
-		fileContent[fileSize] = 0;*/
 		try {
 			YAML::Node data = YAML::LoadFile(path);
 			std::string name = data["Scene"].as<std::string>();

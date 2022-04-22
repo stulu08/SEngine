@@ -6,3 +6,8 @@ props:
       index: 0
     - uuid: 404
       index: 1
+  materials:
+    - uuid: 14741022255685166668
+      index: 0
+    - uuid: 4315619628288791028
+      index: 1

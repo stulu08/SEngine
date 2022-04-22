@@ -23,7 +23,7 @@ namespace Stulu {
 	class STULU_API AssemblyManager;
 	class STULU_API Application {
 	public:
-		Application(ApplicationInfo appInfo, bool hideWindow = false, bool enableImgui = true);
+		Application(ApplicationInfo appInfo, bool hideWindow = false, bool enableImgui = true, const std::string& defaultAssetsPath = "assets");
 		virtual ~Application();
 
 		void run();
@@ -39,8 +39,9 @@ namespace Stulu {
 		inline const Ref<AssemblyManager>& getAssemblyManager() const { return m_assembly; }
 
 		inline static Application& get(){ return *s_instance; }
-		inline static uint32_t getWidth(){ return s_instance->m_window->getWidth(); }
+		inline static uint32_t getWidth() { return s_instance->m_window->getWidth(); }
 		inline static uint32_t getHeight(){ return s_instance->m_window->getWidth(); }
+		inline static const std::string& getEngineAssetDir() { return s_instance->m_assetPath; }
 
 		static inline std::vector<std::string>& getStartArgs() { return s_startArgs; }
 		static inline const std::string getStartDirectory() { return s_startArgs[0].substr((size_t)0, s_startArgs[0].find_last_of("/\\")); }
@@ -52,6 +53,7 @@ namespace Stulu {
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
 
+		std::string m_assetPath;
 		Scope<Window> m_window;
 		ImGuiLayer* m_imguiLayer;
 		LayerStack m_layerStack;

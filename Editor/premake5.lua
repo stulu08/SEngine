@@ -5,7 +5,7 @@ project "Editor"
 	if(staticRuntime) then
 		staticruntime "on"
 	end
-
+	targetname ("Stulu Editor");
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
 	debugdir ("" .. builddir .. "")
@@ -44,7 +44,6 @@ project "Editor"
 	}
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."",
-		"{COPY} %{cfg.targetdir}/Editor.exe " .. builddir .. "",
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Editor}/EditorFiles " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. " " .. builddir .. "",
@@ -64,6 +63,7 @@ project "Editor"
 	}
 	filter "system:windows"
 		systemversion "latest"
+		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Editor.exe\" " .. builddir .. "")
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"

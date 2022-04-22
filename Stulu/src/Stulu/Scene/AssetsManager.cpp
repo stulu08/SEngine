@@ -204,10 +204,10 @@ namespace Stulu {
 	const AssetType AssetsManager::assetTypeFromExtension(const std::string& extension) {
 		ST_PROFILING_FUNCTION();
 		if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga")
-			return AssetType::Texture;
+			return AssetType::Texture2D;
 		if (extension == ".skybox" || extension == ".hdr")
 			return AssetType::CubeMap;
-		else if (extension == ".glb" || extension == ".obj" || extension == ".fbx")
+		else if (extension == ".glb" || extension == ".gltf" || extension == ".obj" || extension == ".fbx")
 			return AssetType::Model;
 		else if (extension == ".mat")
 			return AssetType::Material;
@@ -223,6 +223,8 @@ namespace Stulu {
 	}
 	UUID AssetsManager::getFromPath(const std::string& path) {
 		ST_PROFILING_FUNCTION();
+		if (path.empty())
+			return false;
 		for (auto& i : assets) {
 			if(path == i.second.path)
 				return i.first;
@@ -235,7 +237,7 @@ namespace Stulu {
 	void AssetsManager::loadAllFiles(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading all files from directory: {0}", directory);
-		//at first shaders and textures need to be loaded for the materials 
+		//at first shaders and textures need to be loaded for the materials and other
 		loadShaders(directory);
 		loadTextures(directory);
 		loadMaterials(directory);
@@ -277,7 +279,7 @@ namespace Stulu {
 				loadTextures(path.string());
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::Texture)
+			if (assetTypeFromExtension(path.extension().string()) == AssetType::Texture || assetTypeFromExtension(path.extension().string()) == AssetType::Texture2D)
 				add(path.string());
 		}
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
@@ -325,9 +327,13 @@ namespace Stulu {
 		YAML::Node data = YAML::LoadFile(asset.path + ".meta");
 		//uuid, index in model
 		std::unordered_map<UUID, size_t> meshesUuids;
-		if (data["props"]["meshes"]) {
+		std::unordered_map<UUID, uint32_t> materialUuids;
+		if (data["props"]["meshes"] && data["props"]["materials"]) {
 			for (auto n : data["props"]["meshes"]) {
 				meshesUuids[UUID(n["uuid"].as<uint64_t>())] = n["index"].as<size_t>();
+			}
+			for (auto n : data["props"]["materials"]) {
+				materialUuids[UUID(n["uuid"].as<uint64_t>())] = n["index"].as<uint32_t>();
 			}
 		}
 		else {
@@ -339,6 +345,7 @@ namespace Stulu {
 			out << YAML::Key << "type" << YAML::Value << (int)asset.type;
 			out << YAML::Key << "props";
 			out << YAML::BeginMap;
+
 			out << YAML::Key << "meshes" << YAML::Value << YAML::BeginSeq;
 			for (uint32_t i = 0; i < model.getMeshes().size(); i++) {
 				out << YAML::BeginMap;
@@ -346,8 +353,18 @@ namespace Stulu {
 				out << YAML::Key << "index" << YAML::Value << i;
 				out << YAML::EndMap;
 			}
-			out << YAML::EndMap;
 			out << YAML::EndSeq;
+			out << YAML::Key << "materials" << YAML::Value << YAML::BeginSeq;
+			for (uint32_t i = 0; i < model.getMaterials().size(); i++) {
+				out << YAML::BeginMap;
+				out << YAML::Key << "uuid" << YAML::Value << (uint64_t)UUID();
+				out << YAML::Key << "index" << YAML::Value << i;
+				out << YAML::EndMap;
+			}
+			out << YAML::EndSeq;
+
+			out << YAML::EndMap;
+
 			out << YAML::EndMap;
 
 
@@ -357,12 +374,23 @@ namespace Stulu {
 
 			return _createMeshesFromModel(asset, model);
 		}
+		CORE_ASSERT(model.getMaterials().size() == materialUuids.size(), "Material count in model does not equal material count in meta file");
+		for (auto& [uuid, index] : materialUuids) {
+			Material& m = model.getMaterials()[index];
+			m.m_uuid = uuid;
+			m.isReadonly = true;
+			update(uuid, { AssetType::Material, m,"",uuid });
+		}
+
 		CORE_ASSERT(model.getMeshes().size() == meshesUuids.size(), "Mesh count in model does not equal mesh count in meta file");
 		for (auto i : meshesUuids) {
 			MeshAsset& m = model.getMeshes()[i.second];
 			for (auto& mA : model.getMeshes()) {
 				if (mA.parentMeshAsset == m.uuid)
 					mA.parentMeshAsset = i.first;
+			}
+			for (int32_t mId : m.materialIDs) {
+				m.materials.push_back(model.getMaterials()[mId].m_uuid);
 			}
 			m.uuid = i.first;
 			update(i.first, { AssetType::Mesh, m,"",i.first });

@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Renderer/Mesh.h"
+#include "Stulu/Scene/Material.h"
 
 struct aiNode;
 struct aiMesh;
@@ -18,7 +19,8 @@ namespace Stulu {
 		UUID parentMeshAsset = UUID::null;
 		glm::mat4 transform = glm::mat4(1.0f);
 
-		UUID material = UUID::null;
+		std::vector<int32_t> materialIDs{};
+		std::vector<UUID> materials{};
 
 		MeshAsset() = default;
 		MeshAsset(const MeshAsset&) = default;
@@ -34,12 +36,17 @@ namespace Stulu {
 		}
 
 		std::vector<MeshAsset>& getMeshes() { return meshes; }
+		std::unordered_map<uint32_t, Material>& getMaterials() { return materials; }
 	private:
+		std::string directory;
 		std::vector<MeshAsset> meshes;
+		std::unordered_map<uint32_t, Material> materials;
 		void load(const std::string& path);
 		
 		void processNode(aiNode* node, const aiScene* scene, UUID& parent = UUID::null);
 		
+		bool loadMaterial(const aiScene* scene, uint32_t material);
+
 		static Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 		static SubMesh processSubMesh(aiMesh* mesh, const aiScene* scene);
 	};

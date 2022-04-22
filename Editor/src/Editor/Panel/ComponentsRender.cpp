@@ -685,11 +685,13 @@ namespace Stulu {
 		ImGui::EndColumns();
 
 		ImGui::PopID();
-		
 
 		if (exists && !changed) {
 			Asset& asset = AssetsManager::get(uuid);
 			Material* mat = asset.data._Cast<Material>();
+			if (mat->isReadonly)
+				return false;
+
 			std::vector<MaterialDataType>& materialData = mat->getData();
 			for (auto& dataType : materialData) {
 				std::string name = dataType.name;

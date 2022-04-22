@@ -242,7 +242,10 @@ namespace Stulu {
 						Gizmo::drawOutlineCube(Math::createMat4(position, tc.worldRotation, scale),1.0f, glm::vec4(0, 1, 0, 1));
 					}
 
-					float scaleAdd = .02f;
+					static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
+						float scaleAdd = .02f;
+						return tc.worldScale + (scaleAdd / tc.worldScale);
+					};
 
 					MeshFilterComponent meshFilter;
 					m_sceneCamera.getCamera()->bindFrameBuffer();
@@ -251,7 +254,7 @@ namespace Stulu {
 					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
 						if (meshFilter.mesh.hasMesh) {
 							selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(),EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition,tc.worldRotation,tc.worldScale + glm::vec3(scaleAdd)));
+							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(),EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition,tc.worldRotation, getScaleAdd(tc)));
 							
 						}
 					}
@@ -263,7 +266,7 @@ namespace Stulu {
 							GameObject object = GameObject{ go , m_activeScene.get() };
 							if (meshFilter.mesh.hasMesh) {
 								meshRenderer.m_enabledStencilBufferNextFrame = true;
-								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, transform.worldScale + glm::vec3(scaleAdd)));
+								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(tc)));
 							}
 						}
 					});

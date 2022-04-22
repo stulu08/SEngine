@@ -13,3 +13,4 @@ DataTypes:
   - [2, [1, 1], textureTilling, 9]
   - [5, 0, transparencyMode, 10]
   - [1, 0, alphaCutOff, 11]
+  - [5, 0, useGLTFMetallicRoughnessMap, 12]

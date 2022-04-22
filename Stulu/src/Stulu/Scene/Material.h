@@ -52,7 +52,7 @@ namespace Stulu {
 		Material() {
 
 		}
-		Material(Asset& shader, const std::vector<MaterialDataType>& data);
+		Material(Asset& shader, const std::vector<MaterialDataType>& data, std::string name = "new Material");
 
 		void toDataStringFile(std::string path);
 		std::string toDataString(bool addHelpComments = false);
@@ -71,6 +71,7 @@ namespace Stulu {
 
 		//used by Renderer to draw in transaprency render pass
 		bool isTransparent = false;
+		bool isReadonly = false;
 	private:
 		UUID m_uuid = UUID::null;
 		Ref<Shader> m_shader = nullptr;

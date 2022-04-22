@@ -39,13 +39,12 @@ namespace Stulu {
 		uint32_t m_resolution;//need to be set in constructor
 		uint32_t m_envCubemap;//need to be set in constructor
 		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
-		uint32_t m_captureFBO = 0, m_captureRBO = 0;
 		static inline uint32_t s_brdfLUT = 0;
 		static inline Ref<VertexArray> s_cubeVAO = nullptr;
 		static inline uint32_t s_quadVAO = 0, s_quadVBO = 0;
 		static inline Ref<Shader> s_brdfShader = nullptr, s_prefilterShader = nullptr, s_irradianceShader = nullptr, s_equirectangularToCubemapShader = nullptr, s_skyboxShader = nullptr;
 
-		void generateMaps();
+		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
 
 		void renderCube();
 		void renderQuad();

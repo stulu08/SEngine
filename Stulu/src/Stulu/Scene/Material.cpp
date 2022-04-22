@@ -25,10 +25,11 @@ namespace Stulu {
 			mat.isTransparent = YAMLdata["isTransparent"].as<bool>();
 		return mat;
 	}
-	Material::Material(Asset& shader, const std::vector<MaterialDataType>& data) {
+	Material::Material(Asset& shader, const std::vector<MaterialDataType>& data, std::string name) {
 		m_shader = std::any_cast<Ref<Shader>>(shader.data);
 		m_shaderUuid = shader.uuid;
 		m_uuid = UUID();
+		m_name = name;
 		update(data);
 	}
 	void Material::toDataStringFile(std::string path) {
@@ -75,7 +76,7 @@ namespace Stulu {
 	void Material::bind() {
 		if (s_materialBuffer == nullptr)
 			return;
-		if(m_shader != nullptr)
+		if(m_shader)
 			m_shader->bind();
 		uint32_t stride = 0;
 		for (int i = 0; i < m_dataTypes.size(); i++) {

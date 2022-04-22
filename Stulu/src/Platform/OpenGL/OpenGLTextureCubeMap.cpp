@@ -23,16 +23,14 @@ namespace Stulu {
 
 	void OpenGLCubeMap::update(uint32_t resolution, void* data) {
         ST_PROFILING_FUNCTION();
+        uint32_t m_captureFBO = 0, m_captureRBO = 0;
+
         if (m_envCubemap)
             glDeleteTextures(1, &m_envCubemap);
         if (m_irradianceMap)
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-        if (m_captureFBO)
-            glDeleteFramebuffers(1, &m_captureFBO);
-        if (m_captureRBO)
-            glDeleteRenderbuffers(1, &m_captureRBO);
         glGenTextures(1, &m_envCubemap);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
         m_resolution = resolution;
@@ -58,21 +56,22 @@ namespace Stulu {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-        generateMaps();
+        generateMaps(m_captureFBO, m_captureRBO);
 
+        glDeleteFramebuffers(1, &m_captureFBO);
+        glDeleteRenderbuffers(1, &m_captureRBO);
 	}
     void OpenGLCubeMap::update(const std::vector<std::string>& faces, uint32_t resolution) {
         ST_PROFILING_FUNCTION();
+        uint32_t m_captureFBO = 0, m_captureRBO = 0;
+
+
         if (m_envCubemap)
             glDeleteTextures(1, &m_envCubemap);
         if (m_irradianceMap)
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-        if (m_captureFBO)
-            glDeleteFramebuffers(1, &m_captureFBO);
-        if (m_captureRBO)
-            glDeleteRenderbuffers(1, &m_captureRBO);
         glGenTextures(1, &m_envCubemap);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
         int32_t width, height, channels;
@@ -107,21 +106,21 @@ namespace Stulu {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-        generateMaps();
+        generateMaps(m_captureFBO, m_captureRBO);
+
+        glDeleteFramebuffers(1, &m_captureFBO);
+        glDeleteRenderbuffers(1, &m_captureRBO);
     }
     void OpenGLCubeMap::update(const std::string& hdrTexturePath, uint32_t resolution) {
         ST_PROFILING_FUNCTION();
+        uint32_t m_captureFBO = 0, m_captureRBO = 0;
+
         if(m_envCubemap)
             glDeleteTextures(1, &m_envCubemap);
         if (m_irradianceMap)
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-        if (m_captureFBO)
-            glDeleteFramebuffers(1, &m_captureFBO);
-        if (m_captureRBO)
-            glDeleteRenderbuffers(1, &m_captureRBO);
-
 
 
         m_resolution = resolution;
@@ -200,15 +199,16 @@ namespace Stulu {
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-        generateMaps();
+        generateMaps(m_captureFBO, m_captureRBO);
+        glDeleteFramebuffers(1, &m_captureFBO);
+        glDeleteRenderbuffers(1, &m_captureRBO);
     }
     OpenGLCubeMap::~OpenGLCubeMap() {
 		ST_PROFILING_FUNCTION();
 		glDeleteTextures(1, &m_envCubemap);
 		glDeleteTextures(1, &m_irradianceMap);
 		glDeleteTextures(1, &m_prefilterMap);
-        glDeleteFramebuffers(1, &m_captureFBO);
-        glDeleteRenderbuffers(1, &m_captureRBO);
+
 	}
     /* generates edges wierd
     void OpenGLCubeMap::update(uint32_t resolution) {
@@ -271,7 +271,7 @@ namespace Stulu {
         generateMaps();
     }
     */
-    void OpenGLCubeMap::generateMaps() {
+    void OpenGLCubeMap::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
         ST_PROFILING_FUNCTION();
         
         // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.

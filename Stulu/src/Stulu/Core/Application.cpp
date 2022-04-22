@@ -20,16 +20,16 @@ namespace Stulu {
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(ApplicationInfo appInfo, bool hideWindow, bool enableImgui)
-		:m_appInfo(appInfo), m_enableImgui(enableImgui){
+	Application::Application(ApplicationInfo appInfo, bool hideWindow, bool enableImgui, const std::string& defaultAssetsPath)
+		:m_appInfo(appInfo), m_enableImgui(enableImgui), m_assetPath(defaultAssetsPath) {
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 		if (hideWindow)
 			m_window->hide();
-		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(),"assets");
-		AssetsManager::loadAllFiles("assets");
+		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), m_assetPath);
+		AssetsManager::loadAllFiles(m_assetPath);
 
 		Renderer::init();
 		if (m_enableImgui) {

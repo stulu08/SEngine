@@ -8,7 +8,7 @@ namespace Stulu {
 	class STULU_API SubMesh {
 	public:
 		SubMesh() {}
-		SubMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+		SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 
 		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; }
 		const size_t& getVerticesCount() { return m_verticesCount; }
@@ -27,7 +27,7 @@ namespace Stulu {
 	class STULU_API Mesh {
 	public:
 		Mesh() {}
-		Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 		Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount);
 		Mesh(void* vertices, size_t verticesSize, uint32_t* indices, size_t indicesCount, BufferLayout layout = s_defaultLayout);
 

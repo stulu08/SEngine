@@ -406,6 +406,9 @@ namespace Stulu {
 		if (mesh.hasMesh) {
 			go.addComponent<MeshFilterComponent>().mesh = mesh;
 			go.saveAddComponent<MeshRendererComponent>();
+			if (model.getMaterials().find(mesh.materialIDs[0]) != model.getMaterials().end()) {
+				go.getComponent<MeshRendererComponent>().material = AssetsManager::get(model.getMaterials()[mesh.materialIDs[0]].getUUID()).data._Cast<Material>();;
+			}
 		}
 		for (MeshAsset& child : model.getMeshes()) {
 			if (child.parentMeshAsset == mesh.uuid) {

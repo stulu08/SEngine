@@ -244,6 +244,7 @@ namespace Stulu {
 			MaterialDataType{ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",9},
 			MaterialDataType{ShaderDataType::Int,0,"transparencyMode",10},
 			MaterialDataType{ShaderDataType::Float,.0f,"alphaCutOff",11},
+			MaterialDataType{ShaderDataType::Int,0,"useGLTFMetallicRoughnessMap",12},
 
 		})),"",UUID(12) });
 	}

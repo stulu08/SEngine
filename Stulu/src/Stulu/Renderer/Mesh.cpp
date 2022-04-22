@@ -8,7 +8,7 @@ namespace Stulu {
 		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
 	};
 
-	SubMesh::SubMesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) {
+	SubMesh::SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
 		ST_PROFILING_FUNCTION();
 		m_vertices = vertices;
 		m_indices = indices;
@@ -21,11 +21,11 @@ namespace Stulu {
 		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(m_verticesCount * sizeof(Vertex)), &vertices[0]);
 		vertexBuffer->setLayout(Mesh::getDefaultLayout());
 		m_vertexArray->addVertexBuffer(vertexBuffer);
-		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, indices.data());
+		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
 
-	Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) {
+	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
 		ST_PROFILING_FUNCTION();
 		m_vertices = vertices;
 		m_indices = indices;
