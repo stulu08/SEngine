@@ -36,6 +36,8 @@ namespace Stulu {
 		virtual void invalidate() override;
 		virtual void resize(uint32_t width, uint32_t height) override;
 
+		virtual void attachCubeMapFace(const Ref<CubeMap> cubemap, uint32_t face) override;
+
 		virtual FrameBufferSpecs& getSpecs() override;
 		virtual Ref<FrameBufferTexture>& getTexture() override { return m_texture; }
 

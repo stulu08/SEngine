@@ -103,8 +103,10 @@ namespace Stulu {
 	}
 
 	MonoObject* ScriptAssembly::invokeFunction(const MonoFunction& function, void* obj, void** args) const {
+		if (!function.methodPtr)
+			return nullptr;
 		MonoObject* ex = nullptr;
-		MonoObject* re = mono_runtime_invoke(function.methodPtr, obj, args, &ex);
+		MonoObject* re = mono_runtime_invoke(function.methodPtr, obj, args ? args : NULL, &ex);
 		
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);
@@ -114,8 +116,11 @@ namespace Stulu {
 		return re;
 	}
 	MonoObject* ScriptAssembly::invokeFunction(MonoMethod* function, void* obj, void** args) const {
+		if (!function)
+			return nullptr;
+
 		MonoObject* ex = nullptr;
-		MonoObject* re = mono_runtime_invoke(function, obj, args, &ex);
+		MonoObject* re = mono_runtime_invoke(function, obj, args ? args : NULL, &ex);
 		
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);

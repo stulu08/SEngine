@@ -50,6 +50,8 @@ namespace Stulu {
 		ImGuizmo::Enable(true);
 		s_data.mDrawList = ImGui::GetWindowDrawList();
 	}
+	void Gizmo::End() {
+	}
 	void Gizmo::setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView) {
 		ST_PROFILING_FUNCTION();
 		s_data.projMatrix = cameraProjection;
@@ -99,9 +101,9 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		ImGuizmo::DrawGrid(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix), glm::value_ptr(matrix), size);
 	}
-	void Gizmo::drawLine(const glm::vec3& begin, const glm::vec3 end, const float& thickness, const glm::vec4& color) {
+	void Gizmo::drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
-		s_data.mDrawList->AddLine(ST_glmVec2ToImGui(worldToPos(begin)), ST_glmVec2ToImGui(worldToPos(end)), ST_glmVec4ToImGuiColor(color), thickness);
+		s_data.mDrawList->AddLine(ST_glmVec2ToImGui(worldToPos(begin)), ST_glmVec2ToImGui(worldToPos(end)), ST_glmVec4ToImGuiColor(color), 2.0f);
 	}
 
 	void Gizmo::drawRect(const glm::vec3& position, const glm::vec2& scale, const glm::vec4& color) {
@@ -109,12 +111,12 @@ namespace Stulu {
 		glm::vec3 p1 = glm::vec3(position.x + scale.x * 0.5f, position.y - scale.y * 0.5f, position.z);
 		glm::vec3 p2 = glm::vec3(position.x + scale.x * 0.5f, position.y + scale.y * 0.5f, position.z);
 		glm::vec3 p3 = glm::vec3(position.x - scale.x * 0.5f, position.y + scale.y * 0.5f, position.z);
-		drawLine(p0, p1, 1.0f, color);
-		drawLine(p1, p2, 1.0f, color);
-		drawLine(p2, p3, 1.0f, color);
-		drawLine(p3, p0, 1.0f, color);
+		drawLine(p0, p1, color);
+		drawLine(p1, p2, color);
+		drawLine(p2, p3, color);
+		drawLine(p3, p0, color);
 	}
-	void Gizmo::drawRect(const glm::mat4& transform, const float& thickness, const glm::vec4& color) {
+	void Gizmo::drawRect(const glm::mat4& transform, const glm::vec4& color) {
 		static glm::vec4 vertexPositions[4];
 		vertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
 		vertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
@@ -124,12 +126,12 @@ namespace Stulu {
 		for (size_t i = 0; i < 4; i++)
 			lineVertices[i] = transform * vertexPositions[i];
 
-		drawLine(lineVertices[0], lineVertices[1], thickness, color);
-		drawLine(lineVertices[1], lineVertices[2], thickness, color);
-		drawLine(lineVertices[2], lineVertices[3], thickness, color);
-		drawLine(lineVertices[3], lineVertices[0], thickness, color);
+		drawLine(lineVertices[0], lineVertices[1], color);
+		drawLine(lineVertices[1], lineVertices[2], color);
+		drawLine(lineVertices[2], lineVertices[3], color);
+		drawLine(lineVertices[3], lineVertices[0], color);
 	}
-	void Gizmo::drawOutlineCube(const glm::mat4& transform, const float& thickness, const glm::vec4& color) {
+	void Gizmo::drawOutlineCube(const glm::mat4& transform, const glm::vec4& color) {
 		static glm::vec4 vertexPositions[8];
 		vertexPositions[0] = { -0.5f, -0.5f, -0.5f, 1.0f };
 		vertexPositions[1] = { 0.5f, -0.5f, -0.5f, 1.0f };
@@ -144,19 +146,19 @@ namespace Stulu {
 			lineVertices[i] = transform * vertexPositions[i];
 
 		//back
-		drawLine(lineVertices[0], lineVertices[1], thickness, color);
-		drawLine(lineVertices[1], lineVertices[2], thickness, color);
-		drawLine(lineVertices[2], lineVertices[3], thickness, color);
-		drawLine(lineVertices[3], lineVertices[0], thickness, color);
+		drawLine(lineVertices[0], lineVertices[1], color);
+		drawLine(lineVertices[1], lineVertices[2], color);
+		drawLine(lineVertices[2], lineVertices[3], color);
+		drawLine(lineVertices[3], lineVertices[0], color);
 		//front
-		drawLine(lineVertices[4], lineVertices[5], thickness, color);
-		drawLine(lineVertices[5], lineVertices[6], thickness, color);
-		drawLine(lineVertices[6], lineVertices[7], thickness, color);
-		drawLine(lineVertices[7], lineVertices[4], thickness, color);
+		drawLine(lineVertices[4], lineVertices[5], color);
+		drawLine(lineVertices[5], lineVertices[6], color);
+		drawLine(lineVertices[6], lineVertices[7], color);
+		drawLine(lineVertices[7], lineVertices[4], color);
 		//connections between front and back
-		drawLine(lineVertices[0], lineVertices[4], thickness, color);
-		drawLine(lineVertices[1], lineVertices[5], thickness, color);
-		drawLine(lineVertices[2], lineVertices[6], thickness, color);
-		drawLine(lineVertices[3], lineVertices[7], thickness, color);
+		drawLine(lineVertices[0], lineVertices[4], color);
+		drawLine(lineVertices[1], lineVertices[5], color);
+		drawLine(lineVertices[2], lineVertices[6], color);
+		drawLine(lineVertices[3], lineVertices[7], color);
 	}
 }

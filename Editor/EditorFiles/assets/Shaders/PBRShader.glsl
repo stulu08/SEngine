@@ -67,12 +67,8 @@ void main (){
 	data.cameraPosition = vec3(cameraPosition);
 	data.cameraRotation = vec3(cameraRotation);
 
-	data.toneMappingExposure = toneMappingExposure;
-	data.gamma = gamma;
 	data.env_lod = env_lod;
-
 	data.useSkybox = useSkybox == 1;
-	data.toneMappingAndGammaCorrection = true;
 
 	data.lights = lights;
 	data.lightCount = lightCount;
@@ -129,11 +125,7 @@ struct PBRData {
 	vec3 cameraPosition;
 	vec3 cameraRotation;
 
-	float toneMappingExposure;
-	float gamma;
 	float env_lod;
-
-	bool toneMappingAndGammaCorrection;
 	bool useSkybox;
 
 	Light lights[st_maxLights];

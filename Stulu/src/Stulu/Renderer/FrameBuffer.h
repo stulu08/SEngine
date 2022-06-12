@@ -14,6 +14,7 @@ namespace Stulu {
 
 		virtual void invalidate(TextureSettings::Format& format) = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;
+		
 
 		virtual uint32_t getColorAttachmentRendereID() const = 0;
 		virtual uint32_t getDepthAttachmentRendereID() const = 0;
@@ -25,7 +26,9 @@ namespace Stulu {
 		virtual void unbind() const = 0;
 		virtual void invalidate() = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;
-		
+
+		virtual void attachCubeMapFace(const Ref<CubeMap> cubemap, uint32_t face) = 0;
+
 		virtual FrameBufferSpecs& getSpecs() = 0;
 		virtual Ref<FrameBufferTexture>& getTexture() = 0;
 

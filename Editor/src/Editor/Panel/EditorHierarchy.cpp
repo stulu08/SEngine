@@ -39,12 +39,17 @@ namespace Stulu {
 					if (ImGui::MenuItem("Plane")) {
 						GameObject g = m_scene->createGameObject("Plane");
 						g.addComponent<MeshFilterComponent>().mesh = Resources::getPlaneMeshAsset();
-						g.addComponent<MeshColliderComponent>();
+						g.addComponent<MeshColliderComponent>().mesh = Resources::getPlaneMeshAsset();
 					}
 					if (ImGui::MenuItem("Sphere")) {
 						GameObject g = m_scene->createGameObject("Sphere");
 						g.addComponent<MeshFilterComponent>().mesh = Resources::getSphereMeshAsset();
 						g.addComponent<SphereColliderComponent>();
+					}
+					if (ImGui::MenuItem("Capsule")) {
+						GameObject g = m_scene->createGameObject("Capsule");
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getCapsuleMeshAsset();
+						g.addComponent<CapsuleColliderComponent>();
 					}
 					ImGui::EndMenu();
 				}

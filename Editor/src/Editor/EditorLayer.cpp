@@ -5,9 +5,9 @@
 #include <ImGuizmo/ImGuizmo.h>
 
 #include "Stulu/ScriptCore/Bindings/Input.h"
+#include <imgui/imgui_internal.h>
 
 namespace Stulu {
-
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f) {
 		ST_PROFILING_FUNCTION();
@@ -18,50 +18,7 @@ namespace Stulu {
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
-		{
-			m_fbDrawData.m_framebuffer = FrameBuffer::create(fspecs);
-			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-			m_fbDrawData.m_quadVertexArray = Stulu::VertexArray::create();
-			float vertices[20]{
-				-1.0f,-1.0f,.0f, 0.0f,0.0f,
-				1.0f,-1.0f,.0f, 1.0f,0.0f,
-				1.0f,1.0f,.0f, 1.0f,1.0f,
-				-1.0f,1.0f,.0f, 0.0f,1.0f,
-			};
-			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(20 * sizeof(float)), vertices);
-			vertexBuffer->setLayout({
-		{ Stulu::ShaderDataType::Float3, "a_pos" },
-		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-				});
-			m_fbDrawData.m_quadVertexArray->addVertexBuffer(vertexBuffer);
-			uint32_t indices[6]{
-				0,1,2,
-				2,3,0
-			};
-			indexBuffer = Stulu::IndexBuffer::create((uint32_t)6, indices);
-			m_fbDrawData.m_quadVertexArray->setIndexBuffer(indexBuffer);
-			m_fbDrawData.m_quadShader = Shader::create("quadFullScreen", R"(
-		#version 460
-		layout (location = 0) in vec3 a_pos;
-		layout (location = 1) in vec2 a_texCoords;
-		out vec2 v_tex;
-		void main()
-		{
-			v_tex=a_texCoords;
-			gl_Position=vec4(a_pos, 1.0);
-		}
-		)", R"(
-		#version 460
-		in vec2 v_tex;
-		layout (binding = 0) uniform sampler2D texSampler;
-		out vec4 color;
-		void main()
-		{
-			color = vec4(texture2D(texSampler, v_tex).rgb, 1.0);
-		}
-		)");
-		}
+		
 		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
 		Resources::load();
 		StyleEditor::init();
@@ -136,21 +93,11 @@ namespace Stulu {
 
 		if (s_runtime) {
 			m_activeScene->onUpdateRuntime(timestep);
-			//draw scene to texture
-			GameObject cO = m_activeScene->getMainCamera();
-			if (cO) {
-				RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
-				m_fbDrawData.m_framebuffer->bind();
-				RenderCommand::clear();
-				cO.getComponent<CameraComponent>().getTexture()->bind(0);
-				m_fbDrawData.m_quadShader->bind();
-				m_fbDrawData.m_quadVertexArray->bind();
-				RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
-				m_fbDrawData.m_framebuffer->unbind();
-			}
 		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
+
+		
 	}
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
@@ -161,11 +108,10 @@ namespace Stulu {
 		drawMenuBar();
 		if (m_showGameViewport) {
 			auto cam = m_activeScene->getMainCamera();
-			if (cam) {
-				m_gameViewport.draw(m_fbDrawData.m_framebuffer, &m_showGameViewport);
+			if (cam && cam.hasComponent<CameraComponent>()) {
+				m_gameViewport.draw(cam.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer(), &m_showGameViewport);
 				if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height)) {
 					m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
-					m_fbDrawData.m_framebuffer->resize(m_gameViewport.width, m_gameViewport.height);
 				}
 			}
 			else {
@@ -200,16 +146,16 @@ namespace Stulu {
 		if (m_showLicensesWindow) {
 			drawLicenseWindow();
 		}
+		if (m_showBuildWindow) {
+			drawBuildWindow();
+		}
 		if (m_showSceneSettingsPanel) {
 			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
 				SceneData& data = m_activeScene->m_data;
 				ComponentsRender::drawFloatSliderControl("Exposure", data.toneMappingExposure, .0f, 5.0f);
 				ComponentsRender::drawFloatSliderControl("Gamma", data.gamma, .0f, 5.0f);
-				ComponentsRender::drawFloatSliderControl("Enviroment Lod", data.env_lod, .0f, 5.0f);
-				if (ComponentsRender::drawBoolControl("HDR", data.framebuffer16bit)) {
-					m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
-					m_fbDrawData.m_framebuffer->invalidate();
-				}
+				ComponentsRender::drawBoolControl("Enviroment mapping", data.useReflectionMapReflections); ImGui::SameLine();
+				ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene");
 				if (ImGui::TreeNodeEx("Physics")) {
 					ComponentsRender::drawBoolControl("Enabled 3D Physics", data.enablePhsyics3D);
 					ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
@@ -221,61 +167,120 @@ namespace Stulu {
 			}
 			ImGui::End();
 		}
+		
 
 	}
 	void EditorLayer::onRenderGizmo() {
 		ST_PROFILING_FUNCTION();
 		if (m_showSceneViewport) {
 			if (ImGui::Begin("Scene", &m_showSceneViewport)) {
-				Gizmo::Begin();
 				GameObject selected = m_editorHierarchy.getCurrentObject();
 				if (selected) {
-					Gizmo::TransformEdit(selected.getComponent<TransformComponent>(), m_gizmoEditType);
-				}
-				if (selected != GameObject::null) {
-					auto& tc = selected.getComponent<TransformComponent>();
-					BoxColliderComponent boxCollider;
-					if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
-						glm::vec3 position = tc.worldPosition + boxCollider.offset;
-						glm::vec3 scale = tc.worldScale * (boxCollider.size * 2.0f);
-
-						Gizmo::drawOutlineCube(Math::createMat4(position, tc.worldRotation, scale),1.0f, glm::vec4(0, 1, 0, 1));
-					}
-
-					static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
-						float scaleAdd = .02f;
-						return tc.worldScale + (scaleAdd / tc.worldScale);
-					};
-
-					MeshFilterComponent meshFilter;
-					m_sceneCamera.getCamera()->bindFrameBuffer();
-					RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
-					RenderCommand::setCullMode(CullMode::BackAndFront);
-					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
-						if (meshFilter.mesh.hasMesh) {
-							selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(),EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition,tc.worldRotation, getScaleAdd(tc)));
-							
+					Gizmo::Begin();
+					if (Gizmo::TransformEdit(selected.getComponent<TransformComponent>(), m_gizmoEditType)) {
+						if (getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
+							getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
 						}
 					}
-					//each child ouline
-					m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
-						entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
-					) {
-						if (transform.parent == selected) {
-							GameObject object = GameObject{ go , m_activeScene.get() };
-							if (meshFilter.mesh.hasMesh) {
-								meshRenderer.m_enabledStencilBufferNextFrame = true;
-								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(tc)));
-							}
-						}
-					});
-					RenderCommand::setCullMode(CullMode::BackAndFront);
-					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
-					m_sceneCamera.getCamera()->unbindFrameBuffer();
+					drawColliders();
+					Gizmo::End();
 				}
+				
 			}
 			ImGui::End();
+		}
+	}
+	void EditorLayer::drawColliders() {
+		GameObject selected = m_editorHierarchy.getCurrentObject();
+		if (selected != GameObject::null) {
+			auto& tc = selected.getComponent<TransformComponent>();
+
+
+			m_sceneCamera.getCamera()->getFrameBuffer()->bind();
+			RenderCommand::setCullMode(CullMode::BackAndFront);
+			RenderCommand::setWireFrame(true);
+			RenderCommand::setDepthTesting(false);
+
+			BoxColliderComponent boxCollider;
+			if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
+				glm::vec3 position = tc.worldPosition + boxCollider.offset;
+				glm::vec3 scale = tc.worldScale * (boxCollider.size * 2.0f);
+
+
+
+				Renderer::submit(Resources::getCubeMeshAsset().mesh->getVertexArray(),
+					EditorResources::getGreenColorShader(),
+					Math::createMat4(position, tc.worldRotation, scale));
+			}
+			SphereColliderComponent sphereCollider;
+			if (selected.saveGetComponent<SphereColliderComponent>(sphereCollider)) {
+				glm::vec3 position = tc.worldPosition + sphereCollider.offset;
+				glm::vec3 scale = tc.worldScale * (sphereCollider.radius * 2.0f);
+
+				Renderer::submit(Resources::getSphereMeshAsset().mesh->getVertexArray(),
+					EditorResources::getGreenColorShader(),
+					Math::createMat4(position, tc.worldRotation, scale));
+			}
+			CapsuleColliderComponent capsuleCollider;
+			if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
+				glm::vec3 position = tc.worldPosition + capsuleCollider.offset;
+				glm::vec3 scale;
+				if (capsuleCollider.horizontal)
+					scale = tc.worldScale * (glm::vec3(capsuleCollider.radius, capsuleCollider.height / 2.0f, capsuleCollider.radius));
+				else
+					scale = tc.worldScale * (glm::vec3(capsuleCollider.height / 2.0f, capsuleCollider.radius, capsuleCollider.radius));
+
+				Renderer::submit(Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
+					EditorResources::getGreenColorShader(),
+					Math::createMat4(position, tc.worldRotation, scale));
+			}
+			MeshColliderComponent meshCollider;
+			if (selected.saveGetComponent<MeshColliderComponent>(meshCollider)) {
+				glm::vec3 position = tc.worldPosition;
+				glm::vec3 scale = tc.worldScale;
+
+				if (meshCollider.mesh.hasMesh) {
+					if (meshCollider.convex && meshCollider.convexMesh)
+						Renderer::submit(meshCollider.convexMesh->getVertexArray(),
+							EditorResources::getGreenColorShader(),
+							Math::createMat4(position, tc.worldRotation, scale));
+					else
+						Renderer::submit(meshCollider.mesh.mesh->getVertexArray(),
+							EditorResources::getGreenColorShader(),
+							Math::createMat4(position, tc.worldRotation, scale));
+				}
+			}
+
+			RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
+			RenderCommand::setWireFrame(false);
+
+			static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
+				float scaleAdd = .02f;
+				return tc.worldScale + (scaleAdd * tc.worldScale);
+			};
+
+			MeshFilterComponent meshFilter;
+			if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
+				if (meshFilter.mesh.hasMesh) {
+					selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
+					Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition, tc.worldRotation, getScaleAdd(tc)));
+
+				}
+			}
+			//each child ouline
+			m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
+				entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
+				) {
+					if (transform.parent == selected) {
+						GameObject object = GameObject{ go , m_activeScene.get() };
+						if (meshFilter.mesh.hasMesh) {
+							meshRenderer.m_enabledStencilBufferNextFrame = true;
+							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(transform)));
+						}
+					}
+				});
+			RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
+			m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 		}
 	}
 	void EditorLayer::onEvent(Event& e) {
@@ -285,6 +290,8 @@ namespace Stulu {
 		if (e.getEventType() == EventType::WindowResize)
 			m_sceneCamera.onResize((float)static_cast<WindowResizeEvent&>(e).getWidth(), (float)static_cast<WindowResizeEvent&>(e).getHeight());
 		
+		m_activeScene->onEvent(e);
+
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
 		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(EditorLayer::onApplicationQuit));
@@ -306,6 +313,9 @@ namespace Stulu {
 				if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S")) {
 					SaveScene();
 				}
+				if (ImGui::MenuItem("Build Project")) {
+					m_showBuildWindow = true;
+				}
 				if (ImGui::MenuItem("Exit", "Alt+F4")) {
 					Application::exit(0);
 				}
@@ -317,6 +327,17 @@ namespace Stulu {
 				if (ImGui::MenuItem("VSync", "", getEditorApp().getWindow().isVSync())) {
 					getEditorApp().getWindow().setVSync(!getEditorApp().getWindow().isVSync());
 				}
+				if (getEditorScene()->s_physics.isPVDRunning()) {
+					if (ImGui::MenuItem("Stop PhysX Visual Debugger")) {
+						getEditorScene()->s_physics.stopPVD();
+					}
+				}
+				else {
+					if (ImGui::MenuItem("Start PhysX Visual Debugger")) {
+						getEditorScene()->s_physics.startPVD();
+					}
+				}
+				
 
 				ImGui::EndMenu();
 			}
@@ -348,8 +369,8 @@ namespace Stulu {
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("About")) {
-				if (ImGui::MenuItem("Licenses/3rd Party/Dependencies", (const char*)0, m_showLicensesWindow)) {
-					m_showLicensesWindow = !m_showLicensesWindow;
+				if (ImGui::MenuItem("Licenses/3rd Party/Dependencies")) {
+					m_showLicensesWindow = true;
 				}
 				ImGui::EndMenu();
 			}
@@ -384,10 +405,13 @@ namespace Stulu {
 			}
 		}ImGui::SameLine();
 		{
+			bool paused = Time::Scale == 0.0f;
+			if (paused)
+				icoColor = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
 			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) - (size));
 			Ref<Texture> tex = EditorResources::getPauseTexture();
-			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
-				if (Time::Scale == 0.0f) {
+			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, ImVec4(0,0,0,0), icoColor)) {
+				if (paused) {
 					Time::Scale = 1.0f;
 				}
 				else {
@@ -435,10 +459,10 @@ namespace Stulu {
 				break;
 			case Keyboard::S:
 				if (control) {
-					if (shift && !m_currentScenePath.empty())
-						SaveScene(m_currentScenePath);
-					else
+					if (shift)
 						SaveScene();
+					else
+						SaveScene(m_currentScenePath);
 					ST_TRACE("Saving Scene");
 					break;
 				}
@@ -464,7 +488,6 @@ namespace Stulu {
 		DiscordRPC::shutdown();
 		if (s_runtime)
 			m_activeScene->onRuntimeStop();
-		m_activeScene->onApplicationQuit();
 		return false;
 	}
 	void EditorLayer::SaveScene() {
@@ -539,8 +562,6 @@ namespace Stulu {
 		m_activeScene = m_runtimeScene;
 
 		m_activeScene->onRuntimeStart();
-		m_fbDrawData.m_framebuffer->getSpecs().textureFormat = ((m_activeScene->m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA));
-		m_fbDrawData.m_framebuffer->invalidate();
 
 		GameObject selected = m_editorHierarchy.getCurrentObject();//in editor scene
 		m_editorHierarchy.setScene(m_activeScene);
@@ -612,6 +633,19 @@ namespace Stulu {
 				OpenScene(values["setting.lastScene"]);
 			}
 		}
+		if (values.find("build.name") != values.end())
+			m_buildData.name = values["build.name"];
+		if (values.find("build.width") != values.end())
+			m_buildData.width = stoi(values["build.width"]);
+		if (values.find("build.height") != values.end())
+			m_buildData.height = stoi(values["build.height"]);
+		if (values.find("build.major") != values.end())
+			m_buildData.version.major = stoi(values["build.major"]);
+		if (values.find("build.minor") != values.end())
+			m_buildData.version.minor = stoi(values["build.minor"]);
+		if (values.find("build.patch") != values.end())
+			m_buildData.version.patch = stoi(values["build.patch"]);
+
 			
 		
 		ST_TRACE("Loaded Editor panel config from {0}", file);
@@ -640,8 +674,159 @@ namespace Stulu {
 		stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
 		stream << "setting.lastScene=" << m_currentScenePath << "\n";
 
+		stream << "build.name=" << m_buildData.name << "\n";
+		stream << "build.width=" << m_buildData.width << "\n";
+		stream << "build.height=" << m_buildData.height << "\n";
+		stream << "build.major=" << m_buildData.version.major << "\n";
+		stream << "build.minor=" << m_buildData.version.minor << "\n";
+		stream << "build.patch=" << m_buildData.version.patch << "\n";
+
 
 		stream.close();
 		ST_TRACE("Saved Editor Panel config to {0}", file);
+	}
+	void copyAllFilesFromDir(const std::string& from, const std::string& to) {
+		if (!std::filesystem::exists(to)) {
+			std::filesystem::create_directories(to);
+		}
+		std::filesystem::copy(from, to, std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
+		/*for (std::filesystem::directory_entry dir : std::filesystem::recursive_directory_iterator(from)) {
+			auto relativeToPath = std::filesystem::relative(dir, from);
+			if(!dir.is_directory())
+				std::filesystem::copy(dir.path(), to + "/" + relativeToPath.string());
+		}*/
+	}
+
+	void EditorLayer::buildProject(const std::string& dir) {
+		if (std::filesystem::exists(dir))
+			std::filesystem::remove_all(dir);
+
+		SaveScene(m_currentScenePath);
+
+		rebuildAssembly();
+		const std::string projectDataPath = dir + "/" + m_buildData.name + "-data";
+		if (!std::filesystem::exists(dir)) {
+			std::filesystem::create_directory(dir);
+		}
+		if (!std::filesystem::exists(projectDataPath)) {
+			std::filesystem::create_directories(projectDataPath + "/Managed");
+			std::filesystem::create_directories(projectDataPath + "/assets");
+		}
+
+		std::filesystem::copy(getEditorProject().dataPath + "/ProjectAssembly.dll", projectDataPath + "/Managed", std::filesystem::copy_options::overwrite_existing);
+
+		copyAllFilesFromDir("build", dir);
+		//copyAllFilesFromDir(getEditorProject().assetPath, projectDataPath + "/assets");
+		std::vector<std::string> AllScnenesToBuild;
+		for (auto& id : m_buildData.scenesToBuild) {
+			if (AssetsManager::existsAndType(id, AssetType::Scene))
+				AllScnenesToBuild.push_back(AssetsManager::get(id).path);
+		}
+
+		auto& assets = SceneSerializer::getAllSceneAssets(AllScnenesToBuild);
+		for (UUID uuid : assets) {
+			if (AssetsManager::exists(uuid)) {
+				Asset asset = AssetsManager::get(uuid);
+				std::string path = projectDataPath + "/assets/" + std::filesystem::relative(asset.path, getEditorProject().assetPath).string();
+				std::string parent = std::filesystem::path(path).parent_path().string();
+				if (!std::filesystem::exists(parent))
+					std::filesystem::create_directories(parent);
+
+				std::filesystem::copy(asset.path, path, std::filesystem::copy_options::overwrite_existing);
+				std::filesystem::copy(asset.path + ".meta", path +".meta", std::filesystem::copy_options::overwrite_existing);
+			}
+		}
+
+		if (std::filesystem::exists(dir + "/build")) {
+			std::filesystem::remove_all(dir + "/build");
+		}
+
+		copyAllFilesFromDir("mono", dir + "/mono");
+		copyAllFilesFromDir("assets/Meshes", dir + "/Stulu/Meshes");
+		copyAllFilesFromDir("assets/Shaders", dir + "/Stulu/Shaders");
+		copyAllFilesFromDir("assets/SkyBox", dir + "/Stulu/SkyBox");
+
+		//generate app file
+		std::string name(m_buildData.name);
+		Version version(m_buildData.version);
+		WindowProps window;
+		window.title = name;
+		window.width = m_buildData.width;
+		window.height = m_buildData.height;
+		window.VSync = false;
+
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "App Name" << YAML::Value << name;
+		out << YAML::Key << "App Verison" << YAML::Value << (glm::vec3) * ((glm::uvec3*)&version);
+		out << YAML::Key << "Window Title" << YAML::Value << window.title;
+		out << YAML::Key << "Window Width" << YAML::Value << window.width;
+		out << YAML::Key << "Window Height" << YAML::Value << window.height;
+		out << YAML::Key << "Window VSync" << YAML::Value << window.VSync;
+		out << YAML::Key << "Start Scene" << YAML::Value << (uint64_t)m_buildData.startScene;
+		out << YAML::EndMap;
+
+
+		FILE* file = fopen((dir + "/Stulu/app").c_str(), "w");
+		fprintf(file, out.c_str());
+		fclose(file);
+
+
+#ifdef ST_PLATFORM_WINDOWS
+		std::filesystem::rename(dir + "/Stulu Runtime.exe", dir + "/" + name + ".exe");
+#endif // ST_PLATFORM_WINDOWS
+
+		ST_INFO("Finished building {0} in {1}\a", name, dir)
+	}
+	void EditorLayer::drawBuildWindow() {
+		if (ImGui::Begin("Build", &m_showBuildWindow)) {
+			ComponentsRender::drawStringControl("Name", m_buildData.name);
+			ComponentsRender::drawInt3Control("Version", (int&)m_buildData.version.major, (int&)m_buildData.version.minor, (int&)m_buildData.version.patch);
+			ComponentsRender::drawUIntControl("Width", m_buildData.width);
+			ComponentsRender::drawUIntControl("Height", m_buildData.height);
+			ImGui::Separator();
+			if (ImGui::TreeNodeEx("Scenes", ImGuiTreeNodeFlags_DefaultOpen)) {
+				for (auto& sceneUUID : m_buildData.scenesToBuild) {
+					Asset& asset = AssetsManager::get(sceneUUID);
+					if (ImGui::RadioButton(asset.path.c_str(), m_buildData.startScene == sceneUUID)) {
+						m_buildData.startScene = sceneUUID;
+					}
+				}
+				ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+				ImVec4 bgColor = { 0,0,0,0 };
+				ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getSceneTexture()->getRendererID()), ImVec2(30, 30), { 0, 1 }, { 1, 0 }, icoColor, bgColor);
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Scene)).c_str())) {
+						UUID id = *(UUID*)payload->Data;
+						if (AssetsManager::existsAndType(id, AssetType::Scene)) {
+							m_buildData.scenesToBuild.push_back(id);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::Text("Drag Scene here to add");
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+			ComponentsRender::drawStringControl("Path", m_buildData.path);
+			if (ImGui::Button("Select Path"))
+				m_buildData.path = Platform::browseFolder();
+
+			bool disabled = !(std::filesystem::exists(m_buildData.path) && m_buildData.startScene != UUID::null);
+			if (disabled) {
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Build"))
+				buildProject(m_buildData.path);
+			if (disabled)
+			{
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}
+
+			ImGui::End();
+		}
 	}
 }

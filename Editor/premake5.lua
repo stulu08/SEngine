@@ -10,7 +10,7 @@ project "Editor"
 	objdir ("bin-int/" .. outputdir .. "")
 	debugdir ("" .. builddir .. "")
 	debugargs { "%{wks.location}DebugProject" }
-	dependson { "EditorScriptCore" }
+	dependson { "EditorScriptCore","Runtime" }
 	defines
 	{
 		"ST_EDITOR",
@@ -43,10 +43,11 @@ project "Editor"
 		"%{IncludeDir.Discord}",
 	}
 	postbuildcommands {
-		"{MKDIR} ".. builddir .."",
+		"{MKDIR} ".. builddir .."/build",
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Editor}/EditorFiles " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. " " .. builddir .. "",
+		"{COPYDIR} %{ProjectDir.Runtime}/bin/" .. outputdir .. " " .. builddir .. "/build",
 		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and there are huge and i dont have a lot of space left
 		"{DELETE} " .. builddir .. "/Stulu.idb",
 		"{DELETE} " .. builddir .. "/Stulu.pdb",

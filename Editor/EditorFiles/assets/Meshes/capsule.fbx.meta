@@ -1,0 +1,11 @@
+uuid: 7139121306184789342
+type: 4
+props:
+  meshes:
+    - uuid: 1801443750142997065
+      index: 0
+    - uuid: 405
+      index: 1
+  materials:
+    - uuid: 2646225196923586273
+      index: 0

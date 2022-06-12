@@ -70,7 +70,6 @@ namespace Stulu {
 					
 					ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)ico->getRendererID()), { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 				}
-
 				if (ImGui::BeginDragDropSource()) {
 					UUID uuid = AssetsManager::getFromPath(path.string());
 					ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetsManager::getAssetType(uuid))).c_str(), &uuid, sizeof(UUID));
@@ -82,7 +81,7 @@ namespace Stulu {
 						m_path /= filename;
 				}
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-					selected = AssetsManager::get(AssetsManager::getFromPath(path.string()));
+					selected = AssetsManager::get(AssetsManager::getFromPath(path.string(),AssetsManager::getAssetTypeByPath(path.string())));
 				}
 				if (ImGui::BeginPopupContextWindow("ASSET_BROWSER_RIGHT_CLICK_PROPS")) {
 					if (ImGui::BeginMenu("Create")) {
@@ -104,6 +103,18 @@ namespace Stulu {
 							openCreatePopUp = true;
 							createPopUpFileName = "New Shader.glsl";
 							createPopUpFileContent = Resources::getDefaultMaterial()->getShader()->getSource(true);
+						}
+						if (ImGui::MenuItem("Script")) {
+							openCreatePopUp = true;
+							createPopUpFileName = "NewScriptClass";
+							createPopUpFileContent = "";
+							onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+								ST_INFO("Creating new File at: {0}", currentDirectory + "/" + fileName + ".cs");
+								FILE* file = fopen((currentDirectory + "/" + fileName + ".cs").c_str(), "a");
+								createPopUpFileContent = "using Stulu;\nusing System.Collections;\npublic class " + fileName + " : Component {\n	public override void onStart() {\n\n	}\n	public override void onUpdate() {\n\n	}\n}";
+								fprintf(file, createPopUpFileContent.c_str());
+								fclose(file);
+							};
 						}
 						if (ImGui::MenuItem("Directory")) {
 							openCreatePopUp = true;
@@ -145,12 +156,13 @@ namespace Stulu {
 
 		if (ImGui::Begin("Directorys"), open) {
 			if (ImGui::CollapsingHeader("Project Assets")) {
-				drawDirectory(getEditorProject().assetPath);
+				drawDirectory(getEditorProject().assetPath, true);
 			}
 			if(ImGui::CollapsingHeader("Engine Assets")) {
 				drawDirectory("assets/SkyBox", true);
 				drawDirectory("assets/Shaders", true);
 				drawDirectory("assets/Textures", true);
+				drawDirectory("assets/Meshes", true);
 			}
 		}
 		ImGui::End();
@@ -280,7 +292,7 @@ namespace Stulu {
 						}
 					}
 				}
-				else if (selected.type == AssetType::CubeMap) {
+				else if (selected.type == AssetType::SkyBox) {
 					int type = (int)selected.type - 1;
 					static std::vector<uint32_t> ress = { 64,128,256,512,1024,2048,4096 };
 					uint32_t resolution = AssetsManager::getProperity<uint32_t>(selected.path, "resolution");
@@ -296,14 +308,14 @@ namespace Stulu {
 						resolution = ress[item];
 						AssetsManager::setProperity<uint32_t>(selected.path, { "resolution" ,ress[item] });
 					}
-					bool disabled = std::any_cast<Ref<CubeMap>>(selected.data)->getWidth() == resolution;
+					bool disabled = std::any_cast<Ref<SkyBox>>(selected.data)->getWidth() == resolution;
 					if (disabled)
 					{
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
 					if (ImGui::Button("Update")) {
-						std::any_cast<Ref<CubeMap>>(selected.data)->update(selected.path);
+						std::any_cast<Ref<SkyBox>>(selected.data)->update(selected.path);
 					}
 					if (disabled)
 					{
@@ -339,7 +351,7 @@ namespace Stulu {
 		case Stulu::AssetType::Texture:
 			return (Ref<Texture>&)std::any_cast<Ref<Texture2D>&>(asset.data);
 			break;
-		case Stulu::AssetType::CubeMap:
+		case Stulu::AssetType::SkyBox:
 			return Previewing::get().get(asset.uuid);
 			break;
 		case Stulu::AssetType::Model:
@@ -391,13 +403,13 @@ namespace Stulu {
 		for (auto& directory : std::filesystem::directory_iterator(_path)) {
 			std::filesystem::path path = directory.path();
 			if (!directory.is_directory())
-				return;
+				continue;
 			ImGuiTreeNodeFlags flags = !containsDirSubDirs(path) ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 			if (ImGui::TreeNodeEx(path.filename().string().c_str(), flags)) {
 				drawDirectory(path);
 				ImGui::TreePop();
 			}
-			if (ImGui::IsItemHovered() && ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+			if (ImGui::IsItemClicked()) {
 				m_path = path;
 			}
 		}

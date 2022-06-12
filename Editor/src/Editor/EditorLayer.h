@@ -36,6 +36,7 @@ namespace Stulu {
 		bool m_showProfiling = true;
 		bool m_showSceneSettingsPanel = true;
 		bool m_showLicensesWindow = false;
+		bool m_showBuildWindow = false;
 
 
 		//name, text
@@ -52,15 +53,19 @@ namespace Stulu {
 		EditorInspectorPanel m_inspectorPanel;
 		ProfilingPanel m_profilingPanel;
 
-		struct FbDrawData {
-			Ref<FrameBuffer> m_framebuffer;
-			Ref<Shader> m_quadShader;
-			Ref<VertexArray> m_quadVertexArray;
-		} m_fbDrawData;
+		struct BuildData {
+			UUID startScene = UUID::null;
+			std::vector<UUID> scenesToBuild;
+			std::string name = "My Project";
+			std::string path = "";
+			Version version = Version();
+			uint32_t width = 1920, height = 1080;
+		} m_buildData;
 
-
+		void drawColliders();
 		void drawMenuBar();
 		void drawLicenseWindow();
+		void drawBuildWindow();
 		bool onShortCut(KeyDownEvent& e);
 		bool onApplicationQuit(WindowCloseEvent& e);
 		void SaveScene();
@@ -68,6 +73,7 @@ namespace Stulu {
 		void newScene();
 		void onRuntimeStart();
 		void onRuntimeStop();
+		void buildProject(const std::string& dir = "testbuildDir");
 
 		Ref<Scene> m_activeScene = nullptr;
 		Ref<Scene> m_editorScene = nullptr, m_runtimeScene = nullptr;

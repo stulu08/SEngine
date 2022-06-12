@@ -70,15 +70,41 @@ namespace Stulu {
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
-	Mesh Mesh::combine(Mesh& mesh) {
-		if (mesh.m_subMeshCount == 0)
-			return mesh;
+	const Mesh Mesh::copyAndLimit(const Ref<Mesh>& srcMesh, uint64_t vertLimit) {
+		if (vertLimit == 0)
+			vertLimit = srcMesh->getVerticesCount();
+
+		Ref<Mesh> mesh = createRef<Mesh>(Mesh::combine(srcMesh));
+
+		uint32_t skipCount = (uint32_t)glm::ceil(mesh->getVerticesCount() / vertLimit);
+
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+		vertices.resize(vertLimit);
+		indices.resize(vertLimit);
+
+		for (int i = 0, j = 0; i < mesh->getVerticesCount(); i += skipCount) {
+			if (j >= vertLimit)
+				break;
+			vertices[j] = mesh->getVertices()[i];
+			indices[j] = j;
+			j++;
+		}
+		mesh.reset();
+		return Mesh(vertices, indices);
+	}
+	Mesh Mesh::combine(const Mesh& mesh) {
+		return combine(createRef<Mesh>(mesh));
+	}
+	Mesh Mesh::combine(const Ref<Mesh>& mesh) {
+		if (mesh->m_subMeshCount == 0)
+			return *mesh.get();
 
 		Mesh newMesh;
 		uint32_t indicesOffset = 0;
 
-		for (auto& sub : mesh.m_subMeshes) {
-			indicesOffset =(uint32_t)newMesh.m_vertices.size();
+		for (auto& sub : mesh->m_subMeshes) {
+			indicesOffset = (uint32_t)newMesh.m_vertices.size();
 			for (auto& vertex : sub.m_vertices) {
 				newMesh.m_vertices.push_back(vertex);
 			}

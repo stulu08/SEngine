@@ -113,29 +113,29 @@ namespace Stulu {
             case physx::PxErrorCode::eNO_ERROR:
                 break;
             case physx::PxErrorCode::eDEBUG_INFO:
-                CORE_INFO("Phys debug info({1}:{2}): {0}", message, file, line);
+                CORE_INFO("PhysX debug info({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eDEBUG_WARNING:
-                CORE_WARN("Phys debug warning({1}:{2}): {0}", message, file, line);
+                CORE_WARN("PhysX debug warning({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eINVALID_PARAMETER:
-                CORE_ERROR("Phys invalid parameter error({1}:{2}): {0}", message, file, line);
+                CORE_ERROR("PhysX invalid parameter error({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eINVALID_OPERATION:
-                CORE_ERROR("Phys invalid operation error({1}:{2}): {0}", message, file, line);
+                CORE_ERROR("PhysX invalid operation error({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eOUT_OF_MEMORY:
-                CORE_ERROR("Phys out of memory error({1}:{2}): {0}", message, file, line);
+                CORE_ERROR("PhysX out of memory error({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eINTERNAL_ERROR:
-                CORE_ERROR("Phys internal error({1}:{2}): {0}", message, file, line);
+                CORE_ERROR("PhysX internal error({1}:{2}): {0}", message, file, line);
                 break;
             case physx::PxErrorCode::eABORT:
-                CORE_CRITICAL("Phys Abort({1}:{2}): {0}", message, file, line);
+                CORE_CRITICAL("PhysX Abort({1}:{2}): {0}", message, file, line);
                 CORE_ASSERT(false, "PhysX error");
                 break;
             case physx::PxErrorCode::ePERF_WARNING:
-                CORE_WARN("Phys performance warning({0}:{1}): {2}", message, file, line);
+                CORE_WARN("PhysX performance warning({0}:{1}): {2}", message, file, line);
                 break;
             default:
                 break;
@@ -153,9 +153,6 @@ namespace Stulu {
             CORE_ERROR("PxCreateFoundation failed!");
             return;
         }
-        m_pvd = physx::PxCreatePvd(*m_foundataion);
-        physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10);
-        m_pvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
 
         PxSetPhysXGpuLoadHook(&gGpuLoadHook);
 
@@ -181,6 +178,21 @@ namespace Stulu {
         m_pvd = nullptr;
         m_foundataion = nullptr;
         m_cudaContextManager = nullptr;
+    }
+    void PhysX::startPVD() {
+        if (isPVDRunning())
+            stopPVD();
+        m_pvd = physx::PxCreatePvd(*m_foundataion);
+        physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10);
+        m_pvd->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
+        m_pvdRunning = true;
+    }
+    void PhysX::stopPVD() {
+        if (m_pvd->isConnected())
+            m_pvd->disconnect();
+        if (m_pvd)
+            m_pvd->release();
+        m_pvdRunning = false;
     }
     void PhysX::createPhysics(const PhysicsData& data) {
         bool recordMemoryAllocations = true;
@@ -250,6 +262,13 @@ namespace Stulu {
         if (!rb.kinematic) {
             mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, rb.retainAccelaration);
         }
+        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, !rb.rotationX);
+        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, !rb.rotationY);
+        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, !rb.rotationZ);
+        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, !rb.moveX);
+        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, !rb.moveY);
+        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, !rb.moveZ);
+
         physx::PxRigidBodyExt::updateMassAndInertia(*mactor, rb.mass, &PhysicsVec3fromglmVec3(rb.massCenterPos));
         rb.body = (void*)actor;
         return actor;
@@ -269,8 +288,6 @@ namespace Stulu {
 
         physx::PxTriangleMeshDesc meshDesc;
         meshDesc.points.count = (uint32_t)theMesh->m_vertices.size();
-        meshDesc.points.stride = sizeof(glm::vec3);
-        meshDesc.points.data = &theMesh->m_vertices[0].pos;
         meshDesc.points.stride = sizeof(Vertex);
         meshDesc.points.data = theMesh->m_vertices.data();
 
@@ -286,8 +303,28 @@ namespace Stulu {
             return NULL;
         if (result == physx::PxTriangleMeshCookingResult::Enum::eFAILURE) {
             CORE_ERROR("Triangle Cooking failed");
+            return nullptr;
         }
         physx::PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
         return m_physics->createTriangleMesh(readBuffer);
+    }
+    physx::PxConvexMesh* PhysX::createConvexMesh(Ref<Mesh>& mesh) {
+        Ref<Mesh>& theMesh = createRef<Mesh>(Mesh::combine(*mesh.get()));
+        physx::PxConvexMeshDesc convexDesc;
+        convexDesc.points.count = (uint32_t)theMesh->m_vertices.size();;
+        convexDesc.points.stride = sizeof(Vertex);
+        convexDesc.points.data = theMesh->m_vertices.data();
+        convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eDISABLE_MESH_VALIDATION | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
+
+        convexDesc.indices.count = (uint32_t)theMesh->m_indices.size();
+        convexDesc.indices.stride = sizeof(uint32_t);
+        convexDesc.indices.data = theMesh->m_indices.data();
+
+        physx::PxDefaultMemoryOutputStream buf;
+        physx::PxConvexMeshCookingResult::Enum result;
+        if (!m_cooking->cookConvexMesh(convexDesc, buf, &result))
+            return NULL;
+        physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+        return m_physics->createConvexMesh(input);
     }
 }

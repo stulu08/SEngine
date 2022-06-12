@@ -42,18 +42,23 @@ namespace Stulu {
 	};
 	class STULU_API CubeMap : public Texture {
 	public:
-		static Ref<CubeMap> create(const std::string& path);
-		static Ref<CubeMap> create(uint32_t resolution, void* data);
-		static Ref<CubeMap> create(const std::vector<std::string>& faces, uint32_t resolution);
-		static Ref<CubeMap> create(const std::string& hdrTexturePath, uint32_t resolution);
-		static Ref<CubeMap> createYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
+		static Ref<CubeMap> create(uint32_t resolution, TextureSettings settings = TextureSettings());
+		virtual uint32_t getMap() const = 0;
+
+		virtual void draw() = 0;
+	};
+	class STULU_API SkyBox : public CubeMap {
+	public:
+		static Ref<SkyBox> create(const std::string& path);
+		static Ref<SkyBox> create(uint32_t resolution, void* data);
+		static Ref<SkyBox> create(const std::vector<std::string>& faces, uint32_t resolution);
+		static Ref<SkyBox> create(const std::string& hdrTexturePath, uint32_t resolution);
+		static Ref<SkyBox> createYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
 
 		virtual void bindEnviromente(uint32_t slot = 0) const = 0;
 		virtual void bindIrradiance(uint32_t slot = 1) const = 0;
 		virtual void bindPrefilter(uint32_t slot = 2) const = 0;
 		virtual void bindBRDFLUT(uint32_t slot = 3) const = 0;
-
-		virtual void draw() = 0;
 
 		void update(const std::string& path);
 		void updateYAML(const std::string& cubeMapYamlPath, uint32_t resolution);

@@ -18,7 +18,11 @@ namespace StuluBindings {
 			pos->z = npos.z;
 		}
 		static inline void setPos(uint32_t go, struct Vector3* pos) {
-			Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::TransformComponent>().position = pos->toNative();
+			Stulu::GameObject object = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			object.getComponent<Stulu::TransformComponent>().position = pos->toNative();
+			if (Stulu::Scene::activeScene()->getData().enablePhsyics3D) {
+				Stulu::Scene::activeScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(object);
+			}
 		}
 
 		static inline void getRotation(uint32_t go, struct Quaternion* rot) {
@@ -29,7 +33,7 @@ namespace StuluBindings {
 			rot->w = nrot.w;
 		}
 		static inline void getRotationInDegree(uint32_t go, struct Vector3* rot) {
-			glm::vec3& nrot = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::TransformComponent>().eulerAnglesDegrees;
+			glm::vec3& nrot = glm::radians(Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::TransformComponent>().eulerAnglesDegrees);
 			rot->x = nrot.x;
 			rot->y = nrot.y;
 			rot->z = nrot.z;
@@ -42,7 +46,11 @@ namespace StuluBindings {
 			rot->w = nrot.w;
 		}
 		static inline void setRotation(uint32_t go, struct Quaternion* rot) {
-			Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::TransformComponent>().rotation = rot->toNative();
+			Stulu::GameObject object = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			object.getComponent<Stulu::TransformComponent>().rotation = rot->toNative();
+			if (Stulu::Scene::activeScene()->getData().enablePhsyics3D) {
+				Stulu::Scene::activeScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(object);
+			}
 		}
 
 		static inline void getScale(uint32_t go, struct Vector3* scale) {

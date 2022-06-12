@@ -23,6 +23,8 @@ namespace Stulu {
 		if (std::filesystem::is_directory(path))
 			return addDirectory(path);
 		if (!FileExists(path + ".meta")) {
+			if (path.find_last_of('.') == path.npos)
+				return UUID::null;
 			createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 		}
 		YAML::Node data = YAML::LoadFile(path + ".meta");
@@ -53,8 +55,8 @@ namespace Stulu {
 		case Stulu::AssetType::Texture:
 			update(uuid, { type,Texture2D::create(path),path,uuid });
 			break;
-		case Stulu::AssetType::CubeMap:
-			update(uuid, { type,CubeMap::create(path),path,uuid });
+		case Stulu::AssetType::SkyBox:
+			update(uuid, { type,SkyBox::create(path),path,uuid });
 			break;
 		case Stulu::AssetType::Model:
 			createMeshesFromModel({ type,0,path,uuid });
@@ -112,8 +114,8 @@ namespace Stulu {
 		case Stulu::AssetType::Texture:
 			std::any_cast<Ref<Texture2D>>(data.data)->uuid = uuid;
 			break;
-		case Stulu::AssetType::CubeMap:
-			std::any_cast<Ref<CubeMap>>(data.data)->uuid = uuid;
+		case Stulu::AssetType::SkyBox:
+			std::any_cast<Ref<SkyBox>>(data.data)->uuid = uuid;
 			break;
 		case Stulu::AssetType::Mesh:
 			std::any_cast<MeshAsset>(data.data).uuid = uuid;
@@ -174,6 +176,8 @@ namespace Stulu {
 
 	bool Stulu::AssetsManager::exists(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
+		if (uuid == UUID::null)
+			return false;
 		return assets.find(uuid) != assets.end();
 	}
 	bool AssetsManager::existsAndType(const UUID& uuid, const AssetType type) {
@@ -189,6 +193,12 @@ namespace Stulu {
 			return assets[uuid];
 		CORE_ERROR("UUID not present in assets");
 		return NullAsset;
+	}
+	const AssetType AssetsManager::getAssetTypeByPath(const std::string& path) {
+		ST_PROFILING_FUNCTION();
+		YAML::Node data = YAML::LoadFile(path + ".meta");
+		return (AssetType)data["type"].as<int>();
+
 	}
 	const type_info& Stulu::AssetsManager::getType(const UUID& uuid) {
 		ST_PROFILING_FUNCTION();
@@ -206,7 +216,7 @@ namespace Stulu {
 		if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga")
 			return AssetType::Texture2D;
 		if (extension == ".skybox" || extension == ".hdr")
-			return AssetType::CubeMap;
+			return AssetType::SkyBox;
 		else if (extension == ".glb" || extension == ".gltf" || extension == ".obj" || extension == ".fbx")
 			return AssetType::Model;
 		else if (extension == ".mat")
@@ -223,10 +233,22 @@ namespace Stulu {
 	}
 	UUID AssetsManager::getFromPath(const std::string& path) {
 		ST_PROFILING_FUNCTION();
-		if (path.empty())
+		if (path.empty() || !std::filesystem::exists(path))
 			return false;
 		for (auto& i : assets) {
-			if(path == i.second.path)
+			if (path == i.second.path)
+				return i.first;
+		}
+		if (std::filesystem::is_directory(path))
+			return addDirectory(path);
+		return add(path);
+	}
+	UUID AssetsManager::getFromPath(const std::string& path, AssetType type) {
+		ST_PROFILING_FUNCTION();
+		if (path.empty() || !std::filesystem::exists(path))
+			return false;
+		for (auto& i : assets) {
+			if(path == i.second.path && i.second.type == type)
 				return i.first;
 		}
 		if (std::filesystem::is_directory(path))
@@ -288,7 +310,7 @@ namespace Stulu {
 				loadTextures(path.string());
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::CubeMap)
+			if (assetTypeFromExtension(path.extension().string()) == AssetType::SkyBox)
 				add(path.string());
 		}
 	}
@@ -317,6 +339,36 @@ namespace Stulu {
 			if (assetTypeFromExtension(path.extension().string()) == AssetType::Shader)
 				addOrReload(path.string());
 		}
+	}
+	UUID AssetsManager::getModelFromMesh(UUID mesh) {
+		if (mesh == UUID::null)
+			return UUID::null;
+
+		for (auto& [uuid, asset] : assets) {
+			if (asset.type == AssetType::Model) {
+				Model& model = std::any_cast<Model&>(asset.data);
+				for (auto& meshAsset : model.getMeshes()) {
+					if (meshAsset.uuid == mesh)
+						return uuid;
+				}
+			}
+		}
+		return UUID::null;
+	}
+	UUID AssetsManager::getModelFromMaterial(UUID material) {
+		if (material == UUID::null)
+			return UUID::null;
+
+		for (auto& [uuid, asset] : assets) {
+			if (asset.type == AssetType::Model) {
+				Model& model = std::any_cast<Model&>(asset.data);
+				for (auto& mats : model.getMaterials()) {
+					if (mats.second.m_uuid == material)
+						return uuid;
+				}
+			}
+		}
+		return UUID::null;
 	}
 	void AssetsManager::createMeshesFromModel(const Asset asset) {
 		Model model = Model(asset.path);
@@ -374,7 +426,6 @@ namespace Stulu {
 
 			return _createMeshesFromModel(asset, model);
 		}
-		CORE_ASSERT(model.getMaterials().size() == materialUuids.size(), "Material count in model does not equal material count in meta file");
 		for (auto& [uuid, index] : materialUuids) {
 			Material& m = model.getMaterials()[index];
 			m.m_uuid = uuid;
@@ -382,7 +433,6 @@ namespace Stulu {
 			update(uuid, { AssetType::Material, m,"",uuid });
 		}
 
-		CORE_ASSERT(model.getMeshes().size() == meshesUuids.size(), "Mesh count in model does not equal mesh count in meta file");
 		for (auto i : meshesUuids) {
 			MeshAsset& m = model.getMeshes()[i.second];
 			for (auto& mA : model.getMeshes()) {
@@ -393,7 +443,7 @@ namespace Stulu {
 				m.materials.push_back(model.getMaterials()[mId].m_uuid);
 			}
 			m.uuid = i.first;
-			update(i.first, { AssetType::Mesh, m,"",i.first });
+			update(i.first, { AssetType::Mesh, m, "",i.first});
 		}
 		update(asset.uuid, { asset.type,model,asset.path,asset.uuid });
 	}

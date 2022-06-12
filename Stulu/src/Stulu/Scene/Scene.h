@@ -6,6 +6,8 @@
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Core/UUID.h"
+#include "Stulu/Events/MouseEvent.h"
+#include "Stulu/Events/KeyEvent.h"
 #include <entt.hpp>
 
 namespace Stulu {
@@ -16,6 +18,7 @@ namespace Stulu {
 		bool framebuffer16bit = false;
 		float env_lod = 4.0f;
 		bool enablePhsyics3D = true;
+		bool useReflectionMapReflections = true;
 		PhysicsData physicsData;
 	};
 
@@ -37,7 +40,7 @@ namespace Stulu {
 		void onRuntimeStop();
 
 		void onViewportResize(uint32_t width, uint32_t height);
-		void onApplicationQuit();
+		void onEvent(Stulu::Event& e);
 
 		GameObject addModel(Model& model);
 		GameObject addMeshAssetsToScene(MeshAsset& mesh, Model& model);
@@ -48,8 +51,22 @@ namespace Stulu {
 
 		bool initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& instance);
 
+		static inline void setActiveScene(Scene* scne) { s_activeScene = scne; }
 
 		static inline Scene* activeScene() { return s_activeScene; }
+		static inline PhysX& getPhysics() { return s_physics; }
+
+		void updateTransform(TransformComponent& tc);
+		void updateAllTransforms();
+		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
+		GameObject findGameObjectByName(const std::string& name);
+
+
+		template<typename... Components>
+		auto getAllGameObjectsWith()
+		{
+			return m_registry.view<Components...>();
+		}
 
 		static Ref<Scene> copy(Ref<Scene> scene);
 	private:
@@ -60,8 +77,6 @@ namespace Stulu {
 
 		void setupPhysics();
 		void updatePhysics();
-		void updateAllTransforms();
-		void updateTransform(TransformComponent& tc);
 		void renderScene(entt::entity cam, Timestep ts);
 
 		void updateAssemblyScripts(const std::string& function, bool forceConstructNew = false);
@@ -70,13 +85,16 @@ namespace Stulu {
 		void onComponentAdded(GameObject gameObject, T& component);
 
 		template<typename T>
-		void onComponentRemove(GameObject gameObject, T& component);
+		void onComponentRemove(GameObject gameObject, T& component) {
+			component.destroy();
+		}
 
 		friend class SceneRenderer;
 		friend class GameObject;
 		friend class EditorLayer;
 		friend class SceneSerializer;
 		friend class EditorHierarchyPanel;
+		friend class ComponentsRender;
 
 
 		static inline Scene* s_activeScene = nullptr;

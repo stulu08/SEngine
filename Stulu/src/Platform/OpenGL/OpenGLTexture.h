@@ -2,7 +2,10 @@
 #include "Stulu/Renderer/Texture.h"
 
 namespace Stulu {
+	//internal format, data format
 	std::pair<uint32_t, uint32_t> TextureFormatToGLenum(TextureSettings::Format& format, int channels = 4);
+	bool isGLTextureFormatFloat(const TextureSettings::Format& format);
+
 	class STULU_API OpenGLTexture2D : public Texture2D {
 	public:
 		OpenGLTexture2D(uint32_t width, uint32_t height);

@@ -66,15 +66,23 @@ namespace Stulu {
             if (node->mNumMeshes == 1) {
                 aiMesh* a_mesh = scene->mMeshes[node->mMeshes[0]];
                 m = processMesh(a_mesh, scene);
-                if (materials.find(a_mesh->mMaterialIndex) != materials.end())
+                if (materials.find(a_mesh->mMaterialIndex) != materials.end()) {
                     mesh.materialIDs.push_back(a_mesh->mMaterialIndex);
+                    int twosided;// 0 = back, 1 = both
+                    scene->mMaterials[a_mesh->mMaterialIndex]->Get(AI_MATKEY_TWOSIDED, twosided);
+                    mesh.cullMode = twosided ? CullMode::Back : CullMode::BackAndFront;
+                }
             }
             else {
                 for (unsigned int i = 0; i < node->mNumMeshes; i++) {
                     aiMesh* a_mesh = scene->mMeshes[node->mMeshes[i]];
                     m.addSubMesh(processSubMesh(a_mesh, scene));
-                    if (materials.find(a_mesh->mMaterialIndex) != materials.end())
+                    if (materials.find(a_mesh->mMaterialIndex) != materials.end()) {
                         mesh.materialIDs.push_back(a_mesh->mMaterialIndex);
+                        int twosided;// 0 = back, 1 = both
+                        scene->mMaterials[a_mesh->mMaterialIndex]->Get(AI_MATKEY_TWOSIDED, twosided);
+                        mesh.cullMode = twosided ? CullMode::Back : CullMode::BackAndFront;
+                    }
                 }
                 m = Mesh::combine(m);
 
@@ -139,35 +147,44 @@ namespace Stulu {
         aMat->GetTexture(aiTextureType_LIGHTMAP, 0, &ambientPath);
 
         MaterialDataType albedo = { ShaderDataType::Sampler,MaterialTexture{4,nullptr,1,UUID::null},"albedoMap",4 };
-        UUID albedoUUId = AssetsManager::getFromPath(directory + "/" + std::string(albedoPath.C_Str()));
-        if (AssetsManager::existsAndType(albedoUUId, AssetType::Texture2D))
-            std::any_cast<MaterialTexture&>(albedo.data).uuid = albedoUUId;
+        if (!std::string(albedoPath.C_Str()).empty()) {
+            UUID albedoUUId = AssetsManager::getFromPath(directory + "/" + std::string(albedoPath.C_Str()));
+            if (AssetsManager::existsAndType(albedoUUId, AssetType::Texture2D))
+                std::any_cast<MaterialTexture&>(albedo.data).uuid = albedoUUId;
+        }
 
         MaterialDataType metallic = { ShaderDataType::Sampler,MaterialTexture{5,nullptr,1,UUID::null},"metallicMap",5 };
-        UUID metallicUUId = AssetsManager::getFromPath(directory + "/" + std::string(metallicPath.C_Str()));
-        if (AssetsManager::existsAndType(metallicUUId, AssetType::Texture2D))
-            std::any_cast<MaterialTexture&>(metallic.data).uuid = metallicUUId;
+        if (!std::string(metallicPath.C_Str()).empty()) {
+            UUID metallicUUId = AssetsManager::getFromPath(directory + "/" + std::string(metallicPath.C_Str()));
+            if (AssetsManager::existsAndType(metallicUUId, AssetType::Texture2D))
+                std::any_cast<MaterialTexture&>(metallic.data).uuid = metallicUUId;
+        }
 
         MaterialDataType roughness = { ShaderDataType::Sampler,MaterialTexture{6,nullptr,1,UUID::null},"roughnessMap",6 };
-        UUID roughnessUUId = AssetsManager::getFromPath(directory + "/" + std::string(roughnessPath.C_Str()));
-        if (AssetsManager::existsAndType(roughnessUUId, AssetType::Texture2D))
-            std::any_cast<MaterialTexture&>(roughness.data).uuid = roughnessUUId;
+        if (!std::string(roughnessPath.C_Str()).empty()) {
+            UUID roughnessUUId = AssetsManager::getFromPath(directory + "/" + std::string(roughnessPath.C_Str()));
+            if (AssetsManager::existsAndType(roughnessUUId, AssetType::Texture2D))
+                std::any_cast<MaterialTexture&>(roughness.data).uuid = roughnessUUId;
+        }
 
         MaterialDataType normal = { ShaderDataType::Sampler,MaterialTexture{7,nullptr,1,UUID::null},"normalMap",7 };
-        UUID normalUUId = AssetsManager::getFromPath(directory + "/" + std::string(normalPath.C_Str()));
-        if (AssetsManager::existsAndType(normalUUId, AssetType::Texture2D))
-            std::any_cast<MaterialTexture&>(normal.data).uuid = normalUUId;
+        if (!std::string(normalPath.C_Str()).empty()) {
+            UUID normalUUId = AssetsManager::getFromPath(directory + "/" + std::string(normalPath.C_Str()));
+            if (AssetsManager::existsAndType(normalUUId, AssetType::Texture2D))
+                std::any_cast<MaterialTexture&>(normal.data).uuid = normalUUId;
+        }
 
         MaterialDataType ambient = { ShaderDataType::Sampler,MaterialTexture{8,nullptr,1,UUID::null},"aoMap",8 };
-        UUID ambientUUId = AssetsManager::getFromPath(directory + "/" + std::string(ambientPath.C_Str()));
-        if (AssetsManager::existsAndType(ambientUUId, AssetType::Texture2D))
-            std::any_cast<MaterialTexture&>(ambient.data).uuid = ambientUUId;
-
+        if (!std::string(ambientPath.C_Str()).empty()) {
+            UUID ambientUUId = AssetsManager::getFromPath(directory + "/" + std::string(ambientPath.C_Str()));
+            if (AssetsManager::existsAndType(ambientUUId, AssetType::Texture2D))
+                std::any_cast<MaterialTexture&>(ambient.data).uuid = ambientUUId;
+        }
         Material mat(AssetsManager::get(UUID(9)),
             (std::vector<MaterialDataType>{
             MaterialDataType{ ShaderDataType::Float4,glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity),"albedo",0 },
-                MaterialDataType{ ShaderDataType::Float,.0f,"metallic",1 },
-                MaterialDataType{ ShaderDataType::Float,.0f,"roughness",2 },
+                MaterialDataType{ ShaderDataType::Float,.2f,"metallic",1 },
+                MaterialDataType{ ShaderDataType::Float,.2f,"roughness",2 },
                 MaterialDataType{ ShaderDataType::Float,.1f,"ao",3 },
                 albedo,
                 metallic,

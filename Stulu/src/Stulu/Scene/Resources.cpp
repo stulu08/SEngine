@@ -6,7 +6,6 @@ namespace Stulu {
 	void Resources::load() {
 		loadCubeMesh();
 		loadPlaneMesh();
-		loadSphereMesh();
 		loadBlackTexture();
 		loadSkyBoxShader();
 		loadReflectiveMaterial();
@@ -39,6 +38,9 @@ namespace Stulu {
 	}
 	MeshAsset& Resources::getSphereMeshAsset() {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data);
+	}
+	MeshAsset& Resources::getCapsuleMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(405)).data);
 	}
 	Material* Resources::getReflectiveMaterial() {
 		return AssetsManager::get(UUID(13)).data._Cast<Material>();
@@ -116,8 +118,6 @@ namespace Stulu {
 		Ref<Mesh> m = createRef<Mesh>(vertices, indices);
 		AssetsManager::update(UUID(402), Asset{ AssetType::Mesh, MeshAsset{"Plane",m,UUID(402),true},"",UUID(402), });
 	}
-	void Resources::loadSphereMesh() {
-	}
 	void Resources::loadBlackTexture() {
 		Ref<Texture2D> tex = Texture2D::create(1, 1);
 		uint32_t datablack = 0x00000000;
@@ -193,9 +193,6 @@ namespace Stulu {
 				}else {
 					mapColor = texture(environmentMap, vertex.texCoords).rgb;
 				}
-
-				mapColor = vec3(1.0f) - exp(-mapColor * toneMappingExposure);//HDR tonemapping
-				mapColor = pow(mapColor, vec3(1.0/gamma)), 1.0; //gamma correct
 				color = vec4(mapColor, 1.0f);
 			}
 			

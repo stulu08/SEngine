@@ -14,6 +14,7 @@ namespace Stulu {
 		static MeshAsset& getCubeMeshAsset();
 		static MeshAsset& getPlaneMeshAsset();
 		static MeshAsset& getSphereMeshAsset();
+		static MeshAsset& getCapsuleMeshAsset();
 		static Ref<Texture2D>& getBlackTexture();
 		static Ref<Texture2D>& getWhiteTexture();
 		static Material* getReflectiveMaterial();
@@ -22,12 +23,12 @@ namespace Stulu {
 	private:
 		static void loadCubeMesh();
 		static void loadPlaneMesh();
-		static void loadSphereMesh();
 		static void loadBlackTexture();
 		static void loadWhiteTexture();
 
 		static void loadSkyBoxShader();
 
+		//SkyBox only
 		static void loadReflectiveMaterial();
 		static void loadDefaultMaterial();
 	};

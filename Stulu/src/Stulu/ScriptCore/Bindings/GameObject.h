@@ -13,6 +13,10 @@ namespace StuluBindings {
 					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 					gobj.addComponent<Stulu::TransformComponent>();
 				}
+				else if (typeName == "Stulu.RigidbodyComponent") {
+					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+					gobj.addComponent<Stulu::RigidbodyComponent>();
+				}
 			}
 		}
 		static inline bool hasComponent(uint32_t go, MonoReflectionType* reftype) {
@@ -22,6 +26,10 @@ namespace StuluBindings {
 				if (typeName == "Stulu.TransformComponent") {
 					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 					return gobj.hasComponent<Stulu::TransformComponent>();
+				}
+				else if (typeName == "Stulu.RigidbodyComponent") {
+					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+					return gobj.hasComponent<Stulu::RigidbodyComponent>();
 				}
 			}
 			return false;
@@ -33,6 +41,10 @@ namespace StuluBindings {
 				if (typeName == "Stulu.TransformComponent") {
 					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 					return gobj.removeComponent<Stulu::TransformComponent>();
+				}
+				else if (typeName == "Stulu.RigidbodyComponent") {
+					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+					return gobj.removeComponent<Stulu::RigidbodyComponent>();
 				}
 
 			}

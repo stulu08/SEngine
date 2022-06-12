@@ -36,9 +36,17 @@ namespace Stulu {
 
 		//Stulu/Core/Input.h
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool input_keyDown(uint keycode);
+		internal extern static bool input_getKeyDown(uint keycode);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool input_mouseDown(uint mouseCode);
+		internal extern static bool input_getKeyUp(uint keycode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool input_getKey(uint keycode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool input_getMouseDown(uint mouseCode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool input_getMouseUp(uint mouseCode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool input_getMouse(uint mouseCode);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void input_setCursorMode(uint mode);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -79,7 +87,7 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void transformComp_getRotation(uint entityId, out Quaternion rotation);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getRotation(uint entityId, out Vector3 degrees);
+		internal extern static void transformComp_getRotation(uint entityId, out Vector3 eulerAngles);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void transformComp_getWorldRotation(uint entityId, out Quaternion rotation);
 
@@ -96,5 +104,28 @@ namespace Stulu {
 		internal extern static void transformComp_forward(uint entityId, out Vector3 fronz);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void transformComp_up(uint entityId, out Vector3 up);
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void rigidbody_addForce(uint entityId, ref Vector3 force, uint forcemode);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_useGravity(uint entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_useGravity(uint entityId, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_kinematic(uint entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_kinematic(uint entityId, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_retainaccel(uint entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_retainaccel(uint entityId, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float rigidbody_mass(uint entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float rigidbody_mass(uint entityId, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void rigidbody_massCenterGet(uint entityId, out Vector3 scale);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void rigidbody_massCenterSet(uint entityId, ref Vector3 value);
 	}
 }

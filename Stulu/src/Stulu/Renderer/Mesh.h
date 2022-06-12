@@ -51,16 +51,20 @@ namespace Stulu {
 			m_subMeshCount++;
 		}
 
-		const size_t& getSubMeshCount() { return m_subMeshCount; }
-		const size_t& getVerticesCount() { return m_verticesCount; }
-		const std::vector<Vertex>& getVertices() { return m_vertices; }
-		const size_t& getIndicesCount() { return m_indicesCount; }
-		const std::vector<uint32_t>& getIndices() { return m_indices; }
+		size_t getSubMeshCount() { return m_subMeshCount; } const
+		size_t getVerticesCount() { return m_verticesCount; } const
+		std::vector<Vertex>& getVertices() { return m_vertices; } const
+		size_t getIndicesCount() { return m_indicesCount; } const
+		std::vector<uint32_t>& getIndices() { return m_indices; } const
 
 		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
-		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; }
+		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; } const
 
-		static Mesh combine(Mesh& mesh);
+		//for generating a convex mesh
+		static Mesh copyAndLimit(const Ref<Mesh>& mesh, uint64_t vertLimit = 0);
+
+		static Mesh combine(const Mesh& mesh);
+		static Mesh combine(const Ref<Mesh>& mesh);
 	private:
 		Ref<Stulu::VertexArray> m_vertexArray = nullptr;
 		std::vector<Vertex> m_vertices;

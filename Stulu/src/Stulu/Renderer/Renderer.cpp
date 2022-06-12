@@ -23,16 +23,13 @@ namespace Stulu {
 	void Renderer::beginScene(const glm::mat4& projection, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();
 		uploadBufferData(projection, transform);
-		Renderer2D::beginScene();
 	}
 	void Renderer::beginScene(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& position, const glm::vec3& rotation) {
 		ST_PROFILING_FUNCTION();
 		uploadBufferData(projection, view, position, rotation);
-		Renderer2D::beginScene();
 	}
 	void Renderer::endScene() {
 		ST_PROFILING_FUNCTION();
-		Renderer2D::endScene();
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
 		ST_PROFILING_FUNCTION();
@@ -48,6 +45,8 @@ namespace Stulu {
 		m_runtimeData.matricesDataUniformBuffer->setData(&transform, sizeof(glm::mat4), sizeof(Renderer::MatricesBufferData) - sizeof(glm::mat4));
 		vertexArray->bind();
 		RenderCommand::drawIndexed(vertexArray, count);
+
+		glm::mat4(1.0f) * 1.0f;
 	}
 	void Renderer::uploadBufferData(const glm::mat4& projection, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();

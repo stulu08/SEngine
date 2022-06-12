@@ -17,12 +17,17 @@ namespace Stulu {
 		RigidbodyComponent(const RigidbodyComponent&) = default;
 
 		void addForce(glm::vec3 force, ForceMode mode);
-		
+		void setPosition(glm::vec3 position);
+		void setTransform(glm::vec3 position, glm::quat rotation);
+
 		void* getRuntimeBody() { return body; }
+
+		void updateFlags();
 
 		bool useGravity = true;
 		//dynamic
 		bool rotationX = true, rotationY = true, rotationZ = true;
+		bool moveX = true, moveY = true, moveZ = true;
 		bool kinematic = false;
 		bool retainAccelaration = false;
 		float mass = 1.0f;
@@ -31,14 +36,15 @@ namespace Stulu {
 		//runtime
 		void* body = nullptr;
 		RigidbodyComponent(void* body);
+		void destroy() override;
 
-		void destroy(GameObject object, PhysX& physics);
 
 		friend class Scene;
 		friend class PhysX;
 		friend class Collider;
 		friend class BoxColliderComponent;
 		friend class SphereColliderComponent;
+		friend class CapsuleColliderComponent;
 		friend class MeshColliderComponent;
 	};
 }

@@ -59,6 +59,9 @@ namespace Stulu {
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
+
+		Input::onEvent(e);
+
 		for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
 			if (e.handled)
 				break;
@@ -78,7 +81,6 @@ namespace Stulu {
 			m_lastFrameTime = time;
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
-			Input::update();
 			if (!m_minimized) {
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
@@ -97,6 +99,7 @@ namespace Stulu {
 					m_imguiLayer->End();
 				}
 			}
+			Input::update();
 			m_window->onUpdate();
 		}
 	}

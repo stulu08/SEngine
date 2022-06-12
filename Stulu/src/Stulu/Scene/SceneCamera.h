@@ -32,6 +32,8 @@ namespace Stulu {
 		float m_aspectRatio, m_fov, m_zNear, m_zFar;
 		float m_pitch = 0, m_yaw = 0;
 		Ref<Camera> m_cam;
+		Ref<CubeMap> reflectionMap = nullptr;
+		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
 		TransformComponent m_transform;
 
 		float m_cameraMoveSpeed = 1.0f;
@@ -42,5 +44,7 @@ namespace Stulu {
 		void mouseLookMove();
 
 		bool onMouseScrolledEvent(MouseScrollEvent& e);
+
+		friend class SceneRenderer;
 	};
 }

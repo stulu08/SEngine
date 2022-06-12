@@ -32,7 +32,7 @@ namespace Stulu {
 	struct MaterialTexture {
 		int binding;
 		Ref<Texture> texture;
-		int type;//Texture Type 1 = Texture2D | 2 = Texture | 3 = CubeMap 
+		int type;//Texture Type 1 = Texture2D | 2 = Texture | 3 = SkyBox 
 		UUID uuid;
 		bool operator == (const MaterialTexture& other) const {
 			return (other.binding == binding && other.texture == texture);

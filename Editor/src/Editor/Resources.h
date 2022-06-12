@@ -23,5 +23,6 @@ namespace Stulu {
 		static const std::string getDefaultSceneSource();
 
 		static Ref<Shader>& getOutlineShader();
+		static Ref<Shader>& getGreenColorShader();
 	};
 }

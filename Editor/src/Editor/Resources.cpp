@@ -132,4 +132,16 @@ GameObjects:
 		})");;
 		return s_outlineShader;
 	}
+	Ref<Shader>& EditorResources::getGreenColorShader() {
+		static Ref<Shader> s_shader = Shader::create("Green Color Shader", R"(
+		##add ST_vertex
+		##type fragment
+		#version 460 core
+		out vec4 FragColor;
+		void main()
+		{
+		    FragColor = vec4(0.0f,1.0f,.0f, 1.0f);
+		})");
+		return s_shader;
+	}
 }

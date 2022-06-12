@@ -1,9 +1,9 @@
 Shader: 9
 isTransparent: true
 DataTypes:
-  - [4, [1, 1, 1, 0.423529416], albedo, 0]
+  - [4, [1, 1, 1, 0.243137255], albedo, 0]
   - [1, 0, metallic, 1]
-  - [1, 0.5, roughness, 2]
+  - [1, 0, roughness, 2]
   - [1, 0.100000001, ao, 3]
   - [12, [4, 0, 1], albedoMap, 4]
   - [12, [5, 0, 1], metallicMap, 5]

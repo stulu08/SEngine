@@ -12,6 +12,8 @@ namespace Stulu {
 		OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment);
 		virtual ~OpenGLShader();
 
+		virtual void reload(const std::string& path) override;
+
 		virtual void bind() const override;
 		virtual void unbind() const override;
 		virtual const std::string& getName() const override { return m_name; }

@@ -35,8 +35,8 @@ namespace Stulu {
 		static void submit(const Ref<VertexArray>& vertexArray, Material* material, const glm::mat4& transform);
 		static void submit(const RenderObject& object);
 
-		static void flush();
 		static void drawScene();
+		static void drawSceneToReflectionMap();
 		static void drawSkyBox();
 	private:
 		static struct RuntimeData {
@@ -55,21 +55,35 @@ namespace Stulu {
 				float env_lod = 4.0f;
 				uint32_t useSkybox = 0;
 			} bufferData;
+
+
 			inline static struct RenderObjectSkyBox{
-				Ref<CubeMap> texture = nullptr;
+				Ref<SkyBox> texture = nullptr;
 				uint32_t mapType = 0;
 			} camSkyBox;
+			inline static Ref<CubeMap> reflectionMap = nullptr;
+			inline static Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
+
 			inline static Ref<Camera> cam = nullptr;
 			inline static Ref<UniformBuffer> sceneDataBuffer = nullptr;
 			inline static Ref<UniformBuffer> lightBuffer = nullptr;
-			inline static glm::vec3 camPos;
+			inline static TransformComponent camTransform;
+			inline static glm::mat4 view;
+			inline static glm::mat4 proj;
+			inline static bool useReflectionMap = true;
+
+			inline static struct FBDrawData{
+				Ref<Shader> m_quadShader;
+				Ref<VertexArray> m_quadVertexArray;
+			} fbDrawData;
 
 		} s_runtimeData;
 
 		inline static std::vector<RenderObject> s_drawList;
-		//distance
 		inline static std::vector<RenderObject> s_transparentDrawList;
 		inline static std::vector<RenderObject> s_stencilDrawList;
+
+		friend class EditorLayer;
 	};
 }
 

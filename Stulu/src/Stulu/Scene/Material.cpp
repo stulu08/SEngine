@@ -61,7 +61,7 @@ namespace Stulu {
 				<< "\n# How an DataType is build: [ShaderDataType, value, name, index]"
 				<< "\n# The Value for a vec4 = [x,y,z,w], vec3 = [x,y,z], vec2 = [x,y]"
 				<< "\n# The Value for a Texture is: [binding, Texture UUID, texture type]"
-				<< "\n# Texture Types: 1 = Texture2D | 2 = Texture | 3 = CubeMap"
+				<< "\n# Texture Types: 1 = Texture2D | 2 = Texture | 3 = SkyBox"
 				<< "\n# ShaderDataTypes:"
 				<< "\n#   1 : Float"
 				<< "\n#   2 : Float2/vec2"
@@ -158,7 +158,7 @@ namespace Stulu {
 					case AssetType::Texture2D:
 						tex.texture = std::any_cast<Ref<Texture2D>>(asset.data);
 						break;
-					case AssetType::CubeMap:
+					case AssetType::SkyBox:
 						tex.texture = std::any_cast<Ref<Texture2D>>(asset.data);
 						break;
 					}

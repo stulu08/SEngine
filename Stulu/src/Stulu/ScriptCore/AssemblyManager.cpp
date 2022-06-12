@@ -7,6 +7,7 @@
 #include "Bindings/Input.h"
 #include "Bindings/GameObject.h"
 #include "Bindings/Transform.h"
+#include "Bindings/Rigidbody.h"
 
 
 namespace Stulu {
@@ -47,8 +48,12 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.InternalCalls::time_getTime()", StuluBindings::Time::time_time);
 		mono_add_internal_call("Stulu.InternalCalls::time_setScale(single)", StuluBindings::Time::time_setScale);
 
-		mono_add_internal_call("Stulu.InternalCalls::input_keyDown(uint)", StuluBindings::Input::keyDown);
-		mono_add_internal_call("Stulu.InternalCalls::input_mouseDown(uint)", StuluBindings::Input::mouseDown);
+		mono_add_internal_call("Stulu.InternalCalls::input_getKeyDown(uint)", StuluBindings::Input::getKeyDown);
+		mono_add_internal_call("Stulu.InternalCalls::input_getKeyUp(uint)", StuluBindings::Input::getKeyUp);
+		mono_add_internal_call("Stulu.InternalCalls::input_getKey(uint)", StuluBindings::Input::getKey);
+		mono_add_internal_call("Stulu.InternalCalls::input_getMouseDown(uint)", StuluBindings::Input::getMouseDown);
+		mono_add_internal_call("Stulu.InternalCalls::input_getMouseUp(uint)", StuluBindings::Input::getMouseUp);
+		mono_add_internal_call("Stulu.InternalCalls::input_getMouse(uint)", StuluBindings::Input::getMouse);
 		mono_add_internal_call("Stulu.InternalCalls::input_setCursorMode(uint)", StuluBindings::Input::setCursorMode);
 		mono_add_internal_call("Stulu.InternalCalls::input_getCursorMode()", StuluBindings::Input::getCursorMode);
 		mono_add_internal_call("Stulu.InternalCalls::input_getMouseDelta(Stulu.Vector2&)", StuluBindings::Input::getMouseDelta);
@@ -76,5 +81,18 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_forward(uint,Stulu.Vector3&)", StuluBindings::Transform::forward);
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_right(uint,Stulu.Vector3&)", StuluBindings::Transform::right);
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_up(uint,Stulu.Vector3&)", StuluBindings::Transform::up);
+
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_addForce(uint,Stulu.Vector3&,uint)", StuluBindings::Rigidbody::addForce);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_useGravity(uint)", StuluBindings::Rigidbody::getuseGravity);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_kinematic(uint)", StuluBindings::Rigidbody::getKinematic);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_retainaccel(uint)", StuluBindings::Rigidbody::getRetainAccel);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_mass(uint)", StuluBindings::Rigidbody::getMass);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_useGravity(uint,bool)", StuluBindings::Rigidbody::setuseGravity);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_kinematic(uint,bool)", StuluBindings::Rigidbody::setKinematic);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_retainaccel(uint,bool)", StuluBindings::Rigidbody::setRetainAccel);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_mass(uint,single)", StuluBindings::Rigidbody::setMass);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_massCenterSet(uint,Stulu.Vector3&)", StuluBindings::Rigidbody::setMassCenterPos);
+		mono_add_internal_call("Stulu.InternalCalls::rigidbody_massCenterGet(uint,Stulu.Vector3&)", StuluBindings::Rigidbody::getMassCenterPos);
+
 	}
 }

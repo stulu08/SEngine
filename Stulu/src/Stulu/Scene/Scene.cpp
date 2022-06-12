@@ -1,6 +1,7 @@
 #include "st_pch.h"
 #include "Scene.h"
 
+#include "Stulu/Events/Event.h"
 #include "Stulu/Scene/SceneRenderer.h"
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Scene/SceneCamera.h"
@@ -18,7 +19,6 @@
 #include "physx/PxPhysicsAPI.h"
 
 namespace Stulu {
-	static bool startedPhysics = false;
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
 		SceneRenderer::init();
@@ -48,6 +48,11 @@ namespace Stulu {
 				gameObject.getComponent<NativeBehaviourComponent>().DestroyBehaviour(&b);
 			}
 		}
+
+		if (m_data.enablePhsyics3D && gameObject.hasComponent<RigidbodyComponent>()) {
+			gameObject.removeComponent<RigidbodyComponent>();
+		}
+
 		//destroy all childs
 		m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
 			if (transform.parent == gameObject)
@@ -98,11 +103,11 @@ namespace Stulu {
 		}
 		ST_PROFILING_RENDERDATA_END();
 	}
+	static bool firstRuntimeUpdate = false;
 	void Scene::onUpdateRuntime(Timestep ts) {
 		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		Time::time += ts;
-		updateAllTransforms();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
 			if (!behaviour.instance) {
 				behaviour.instance = behaviour.InstantiateBehaviour();
@@ -111,18 +116,21 @@ namespace Stulu {
 			}
 			behaviour.instance->onUpdate();
 		});
+		if(firstRuntimeUpdate)
+			updateAssemblyScripts("onStart()");
 		updateAssemblyScripts("onUpdate()");
-
 		//calculations
 		if(m_data.enablePhsyics3D)
 			updatePhysics();
 		else
 			SceneRenderer::calculateLights(m_registry.view<TransformComponent,LightComponent>());//otherwise we do it in m_physics.getScene()->fetchResults()
 		//rendering
+		updateAllTransforms();
 		auto view = m_registry.view<CameraComponent>();
 		for (auto gameObject : view) {
 			renderScene(gameObject,ts);
 		}
+		firstRuntimeUpdate = false;
 	}
 
 	void Scene::renderScene(entt::entity cam, Timestep ts) {
@@ -150,21 +158,21 @@ namespace Stulu {
 					Renderer2D::drawQuad(transform, sprite.color);
 			}
 		}
+		SceneRenderer::endScene();
 		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
 			if (behaviour.instance)
 				behaviour.instance->onRender(ts);
 			});
 		updateAssemblyScripts("onRender()");
-		SceneRenderer::endScene();
 	}
 
-	static bool skipPhysicsThisFrame = false;
 	void Scene::onRuntimeStart() {
 		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
 		Time::time = .0f;
-		skipPhysicsThisFrame = true;//loading the scene can take a long time
-		//create rigidbodys3d
+		firstRuntimeUpdate = true;
 		updateAllTransforms();
+		SceneRenderer::uploadBuffers(m_data);
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
@@ -182,12 +190,12 @@ namespace Stulu {
 		});
 
 		updateAssemblyScripts("", true);
-		updateAssemblyScripts("onStart()");
 
 		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
 			cam.getFrameBuffer()->getSpecs().textureFormat = (m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA);
 			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
 			});
+		Time::deltaTime = .0f;
 	}
 	void Scene::onRuntimeStop() {
 		ST_PROFILING_FUNCTION();
@@ -203,63 +211,76 @@ namespace Stulu {
 		
 		Input::setCursorMode(Input::CursorMode::Normal);
 		if (m_data.enablePhsyics3D) {
+			
 			s_physics.releasePhysics();
-			for (auto id : m_registry.view<RigidbodyComponent>()) {
-				GameObject object = { id, this };
-				object.getComponent<RigidbodyComponent>().destroy(object, s_physics);
-			}
-			for (auto id : m_registry.view<BoxColliderComponent>()) {
-				GameObject object = { id, this };
-				object.getComponent<BoxColliderComponent>().destroy(object, s_physics);
-			}
-			for (auto id : m_registry.view<SphereColliderComponent>()) {
-				GameObject object = { id, this };
-				object.getComponent<SphereColliderComponent>().destroy(object, s_physics);
-			}
-			for (auto id : m_registry.view<MeshColliderComponent>()) {
-				GameObject object = { id, this };
-				object.getComponent<MeshColliderComponent>().destroy(object, s_physics);
-			}
+
 		}
 	}
 
 	void Scene::setupPhysics() {
+		ST_PROFILING_FUNCTION();
 		s_physics.createPhysics(m_data.physicsData);
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
-			object.getComponent<BoxColliderComponent>().create(object, s_physics);
+			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
+				object.getComponent<BoxColliderComponent>().create(object, s_physics);
 		}
 		for (auto id : m_registry.view<SphereColliderComponent>()) {
 			GameObject object = { id, this };
-			object.getComponent<SphereColliderComponent>().create(object, s_physics);
+			if (object.getComponent<SphereColliderComponent>().rigidbody == nullptr)
+				object.getComponent<SphereColliderComponent>().create(object, s_physics);
+		}
+		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
+			GameObject object = { id, this };
+			if (object.getComponent<CapsuleColliderComponent>().rigidbody == nullptr)
+				object.getComponent<CapsuleColliderComponent>().create(object, s_physics);
 		}
 		for (auto id : m_registry.view<MeshColliderComponent>()) {
 			GameObject object = { id, this };
-			object.getComponent<MeshColliderComponent>().create(object, s_physics);
+			if (object.getComponent<MeshColliderComponent>().rigidbody == nullptr)
+				object.getComponent<MeshColliderComponent>().create(object, s_physics);
 		}
 	}
 	void Scene::updatePhysics() {
 		ST_PROFILING_FUNCTION();
-		if (Time::deltaTime == 0.0f || skipPhysicsThisFrame) {
-			skipPhysicsThisFrame = false;
+		if (Time::deltaTime == 0.0f || firstRuntimeUpdate) {
 			return;
 		}
 		s_physics.getScene()->simulate(Time::deltaTime);
-		//we do as much ass possible here
+		//we do as much as possible here
 		while (!s_physics.getScene()->fetchResults()) {
 			SceneRenderer::calculateLights(m_registry.view<TransformComponent, LightComponent>());
+		}
+		for (auto id : m_registry.view<BoxColliderComponent>()) {
+			GameObject object = { id, this };
+			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
+				object.getComponent<BoxColliderComponent>().create(object, s_physics);
+		}
+		for (auto id : m_registry.view<SphereColliderComponent>()) {
+			GameObject object = { id, this };
+			if (object.getComponent<SphereColliderComponent>().rigidbody == nullptr)
+				object.getComponent<SphereColliderComponent>().create(object, s_physics);
+		}
+		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
+			GameObject object = { id, this };
+			if (object.getComponent<CapsuleColliderComponent>().rigidbody == nullptr)
+				object.getComponent<CapsuleColliderComponent>().create(object, s_physics);
+		}
+		for (auto id : m_registry.view<MeshColliderComponent>()) {
+			GameObject object = { id, this };
+			if (object.getComponent<MeshColliderComponent>().rigidbody == nullptr)
+				object.getComponent<MeshColliderComponent>().create(object, s_physics);
 		}
 		auto view = m_registry.view<RigidbodyComponent>();
 		for (auto id : view) {
 			GameObject object = { id, this };
 			auto& rb = object.getComponent<RigidbodyComponent>();
 			auto& tc = object.getComponent<TransformComponent>();
-			if (rb.body == nullptr)
+			if (rb.body == nullptr) {
 				continue;
+			}
 			physx::PxRigidActor* actor = (physx::PxRigidActor*)rb.body;
-
 			physx::PxTransform tr = actor->getGlobalPose();
-
 			glm::vec3 pos = PhysicsVec3toglmVec3(tr.p);
 			glm::quat rot = glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z);
 			if (pos != tc.worldPosition || rot != tc.worldRotation) {
@@ -280,12 +301,6 @@ namespace Stulu {
 					tc.rotation = rot;
 				}
 			}
-			else {
-				if (rb.kinematic)
-					actor->is<physx::PxRigidDynamic>()->setKinematicTarget(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
-				else
-					actor->is<physx::PxRigidDynamic>()->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition),PhysicsQuatfromglmQuat(tc.worldRotation)));
-			}
 		}
 
 	}
@@ -293,6 +308,7 @@ namespace Stulu {
 	std::unordered_map<entt::entity, bool> st_transform_updated;
 	void Scene::updateAllTransforms() {
 		ST_PROFILING_FUNCTION();
+		st_transform_updated.clear();
 		auto view = m_registry.view<TransformComponent>();
 		for (auto id : view) {
 			GameObject object = { id, this };
@@ -328,6 +344,7 @@ namespace Stulu {
 		tc.up = glm::rotate(tc.worldRotation, TRANSFORM_UP_DIRECTION);
 		tc.right = glm::rotate(tc.worldRotation, TRANSFORM_RIGHT_DIRECTION);
 		tc.eulerAnglesDegrees = glm::degrees(Math::QuaternionToEuler(tc.rotation));
+		tc.eulerAnglesWorldDegrees = glm::degrees(Math::QuaternionToEuler(tc.worldRotation));
 
 		if(tc.gameObject)
 			st_transform_updated[tc.gameObject.m_entity] = true;
@@ -345,7 +362,19 @@ namespace Stulu {
 		}
 	}
 
+	void Scene::onEvent(Stulu::Event& e) {
+		if (e.getEventType() == EventType::WindowClose) {
+			if (s_physics.started())
+				s_physics.shutDown();
+		}
+
+		
+	}
+
+	
+
 	bool Scene::initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& i) {
+		ST_PROFILING_FUNCTION();
 		Ref<ScriptAssembly> assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
 		MonoClass* goAttachClass = mono_class_from_name(assembly->getImage(), "Stulu", "GameObjectAttached");
 		if (goAttachClass) {
@@ -361,28 +390,30 @@ namespace Stulu {
 	}
 
 	void Scene::updateAssemblyScripts(const std::string& function, bool forceConstructNew) {
-		m_registry.view<ScriptingComponent>().each([=](entt::entity gameObject, ScriptingComponent& comp) {
-			for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
-				if (!i->isContructed() || forceConstructNew) {
-					i->loadAllClassFunctions();
-					i->loadAllVirtualParentFunctions();
-					i->callDefaultConstructor();
-					i->setAllClassFields();
-					//initilize component
-					if(initlizeGameObjectAttachedClass(gameObject,i))
-						i->call("onAwake()");
-					
-					
-				}
-				if(!function.empty())
-					i->call(function);
-			}
-		});
-	}
+		ST_PROFILING_FUNCTION();
+		try {
+			m_registry.view<ScriptingComponent>().each([=](entt::entity gameObject, ScriptingComponent& comp) {
+				for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
+					if (!i->isContructed() || forceConstructNew) {
+						i->loadAllClassFunctions();
+						i->loadAllVirtualParentFunctions();
+						i->callDefaultConstructor();
+						i->setAllClassFields();
+						//initilize component
+						if (initlizeGameObjectAttachedClass(gameObject, i))
+							i->call("onAwake()");
 
-	void Scene::onApplicationQuit() {
-		if (s_physics.started())
-			s_physics.shutDown();
+
+					}
+					if (!function.empty())
+						i->call(function);
+				}
+				});
+		}
+		catch (std::exception& ex) {
+			CORE_ERROR(ex.what());
+		}
+		
 	}
 
 	GameObject Scene::addModel(Model& model) {
@@ -405,7 +436,7 @@ namespace Stulu {
 		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
 		if (mesh.hasMesh) {
 			go.addComponent<MeshFilterComponent>().mesh = mesh;
-			go.saveAddComponent<MeshRendererComponent>();
+			go.saveAddComponent<MeshRendererComponent>().cullmode = mesh.cullMode;
 			if (model.getMaterials().find(mesh.materialIDs[0]) != model.getMaterials().end()) {
 				go.getComponent<MeshRendererComponent>().material = AssetsManager::get(model.getMaterials()[mesh.materialIDs[0]].getUUID()).data._Cast<Material>();;
 			}
@@ -426,7 +457,7 @@ namespace Stulu {
 		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
 		if (mesh.hasMesh) {
 			go.addComponent<MeshFilterComponent>().mesh = mesh;
-			go.saveAddComponent<MeshRendererComponent>();
+			go.saveAddComponent<MeshRendererComponent>().cullmode = mesh.cullMode;
 		}
 		auto& tc = go.getComponent<TransformComponent>();
 		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
@@ -455,6 +486,7 @@ namespace Stulu {
 
 					auto& srcComponent = src.get<Component>(srcGameObject);
 					dst.emplace_or_replace<Component>(dstGameObject, srcComponent);
+					dst.get<Component>(dstGameObject).gameObject = GameObject(dstGameObject, Scene::activeScene());
 				}
 			}(), ...);
 	}
@@ -486,7 +518,46 @@ namespace Stulu {
 		CopyComponentIfExists(AllComponents{}, dst, src);
 	}
 
+	void Scene::updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent) {
+		ST_PROFILING_FUNCTION();
+		auto& view = m_registry.view<TransformComponent>();
+		for (auto goId : view) {
+			GameObject go = GameObject(goId, this);
+			TransformComponent& tr = view.get<TransformComponent>(goId);
+			if (tr.parent == parent) {
+				updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(go);
+				if (go.hasComponent<RigidbodyComponent>()) {
+
+					this->updateTransform(tr);
+					go.getComponent<RigidbodyComponent>().setTransform(tr.worldPosition, tr.worldRotation);
+				}
+
+			}
+		}
+
+		{
+			TransformComponent& tr = parent.getComponent<TransformComponent>();
+			if (parent.hasComponent<RigidbodyComponent>()) {
+				this->updateTransform(tr);
+				parent.getComponent<RigidbodyComponent>().setTransform(tr.worldPosition, tr.worldRotation);
+			}
+		}
+
+	}
+
+	GameObject Scene::findGameObjectByName(const std::string& name) {
+		ST_PROFILING_FUNCTION();
+		auto view = m_registry.view<GameObjectBaseComponent>();
+		for (auto gameObject : view)
+		{
+			if (view.get<GameObjectBaseComponent>(gameObject).name == name)
+				return GameObject(gameObject, this);
+		}
+		return GameObject::null;
+	}
+
 	Ref<Scene> Scene::copy(Ref<Scene> scene) {
+		ST_PROFILING_FUNCTION();
 		Ref<Scene> newScene = createRef<Scene>();
 
 		newScene->m_viewportWidth = scene->m_viewportWidth;
@@ -511,10 +582,12 @@ namespace Stulu {
 			if (srcSceneRegistry.get<TransformComponent>(e).parent)
 				parentMap[uuid] = srcSceneRegistry.get<TransformComponent>(e).parent.getComponent<GameObjectBaseComponent>().uuid;
 		}
-
+		Scene* temp = s_activeScene;
+		s_activeScene = newScene.get();
 		// Copy components (except GameObjectBaseComponent)
 		CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
-		
+		s_activeScene = temp;
+
 		for (auto& [objUUID, parUUID] : parentMap) {
 			GameObject::getById(objUUID, newScene.get()).getComponent<TransformComponent>().parent = GameObject::getById(parUUID, newScene.get());
 		}
@@ -548,40 +621,11 @@ namespace Stulu {
 	template<>
 	void STULU_API Scene::onComponentAdded<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) { }
 	template<>
+	void STULU_API Scene::onComponentAdded<CapsuleColliderComponent>(GameObject gameObject, CapsuleColliderComponent& component) { }
+	template<>
 	void STULU_API Scene::onComponentAdded<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
 	template<>
 	void STULU_API Scene::onComponentAdded<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
 	template<>
 	void STULU_API Scene::onComponentAdded<ScriptingComponent>(GameObject gameObject, ScriptingComponent& component) { }
-
-	template<typename T>
-	void Scene::onComponentRemove(GameObject gameObject, T& component) {  }
-	template<>
-	void STULU_API Scene::onComponentRemove<GameObjectBaseComponent>(GameObject gameObject, GameObjectBaseComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<TransformComponent>(GameObject gameObject, TransformComponent& component) {  }
-	template<>
-	void STULU_API Scene::onComponentRemove<CameraComponent>(GameObject gameObject, CameraComponent& component) { component.cam.reset(); }
-	template<>
-	void STULU_API Scene::onComponentRemove<LightComponent>(GameObject gameObject, LightComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<SkyBoxComponent>(GameObject gameObject, SkyBoxComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<MeshFilterComponent>(GameObject gameObject, MeshFilterComponent& component) {  }
-	template<>
-	void STULU_API Scene::onComponentRemove<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<SphereColliderComponent>(GameObject gameObject, SphereColliderComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
-	template<>
-	void STULU_API Scene::onComponentRemove<ScriptingComponent>(GameObject gameObject, ScriptingComponent& component) { }
 }

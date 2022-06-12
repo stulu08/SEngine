@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Renderer/Mesh.h"
+#include "Stulu/Renderer/RenderAPI.h"
 #include "Stulu/Scene/Material.h"
 
 struct aiNode;
@@ -21,6 +22,8 @@ namespace Stulu {
 
 		std::vector<int32_t> materialIDs{};
 		std::vector<UUID> materials{};
+
+		CullMode cullMode = CullMode::Back;
 
 		MeshAsset() = default;
 		MeshAsset(const MeshAsset&) = default;

@@ -63,6 +63,17 @@ namespace Stulu {
 			m_scene->m_registry.remove<T>(m_entity);
 			return true;
 		}
+		template<typename T>
+		bool saveRemoveComponent() {
+			if (!hasComponent<T>()) {
+				return false;
+			}
+			m_scene->onComponentRemove<T>(*this, getComponent<T>());
+			m_scene->m_registry.remove<T>(m_entity);
+			return true;
+		}
+
+		Scene* getScene() { return m_scene; }
 
 		UUID getId();
 		static GameObject getById(const UUID& id, Scene* scene);

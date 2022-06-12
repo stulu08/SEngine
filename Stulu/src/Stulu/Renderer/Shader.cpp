@@ -234,11 +234,7 @@ struct PBRData {
 	vec3 cameraPosition;
 	vec3 cameraRotation;
 
-	float toneMappingExposure;
-	float gamma;
 	float env_lod;
-
-	bool toneMappingAndGammaCorrection;
 	bool useSkybox;
 
 	Light lights[st_maxLights];
@@ -380,10 +376,6 @@ vec4 ST_pbr_calculation(PBRData data)
    
 	vec3 color = ambient + Lo;
 
-	if(data.toneMappingAndGammaCorrection){
-		color = vec3(1.0f) - exp(-color * data.toneMappingExposure);//HDR tonemapping
-		color = pow(color, vec3(1.0/data.gamma)); //gamma correct
-	}
 	return vec4(color, data.alpha);
 }
 layout(std140, binding = 1) uniform lightData

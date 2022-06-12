@@ -4,6 +4,8 @@
 #include "Stulu/Core/Input.h"
 
 #include <GLFW/glfw3.h>
+#include <Stulu/Events/KeyEvent.h>
+#include <Stulu/Events/MouseEvent.h>
 
 namespace Stulu {
 	bool Input::isKeyDown(uint32_t keycode) {
@@ -84,11 +86,70 @@ namespace Stulu {
 			return glm::vec2(.0f);
 		return m_mouseDelta;
 	}
+	static std::unordered_map<int32_t, bool> wininput_keysWentDown;
+	static std::unordered_map<int32_t, bool> wininput_keysWentUp;
+	static std::unordered_map<int32_t, bool> wininput_mouseButtonsWentDown;
+	static std::unordered_map<int32_t, bool> wininput_mouseButtonsWentUp;
+	bool onKeyDown(Stulu::KeyDownEvent& e) {
+		if(e.getRepeatCount() == 0)
+			wininput_keysWentDown[e.getKeyCode()] = true;
+		return false;
+	}
+
+	bool onKeyUp(Stulu::KeyUpEvent& e) {
+		wininput_keysWentUp[e.getKeyCode()] = true;
+		return false;
+	}
+
+	bool onMouseDown(Stulu::MouseButtonDownEvent& e) {
+		wininput_mouseButtonsWentDown[e.getButton()] = true;
+		return false;
+	}
+
+	bool onMouseUp(Stulu::MouseButtonUpEvent& e) {
+		wininput_mouseButtonsWentUp[e.getButton()] = true;
+		return false;
+	}
+
+	bool Input::getKeyDown(uint32_t keycode) {
+		if (wininput_keysWentDown.find(keycode) == wininput_keysWentDown.end())
+			return false;
+		return wininput_keysWentDown[keycode];
+	}
+	bool Input::getKeyUp(uint32_t keycode) {
+		if (wininput_keysWentUp.find(keycode) == wininput_keysWentUp.end())
+			return false;
+		return wininput_keysWentUp[keycode];
+	}
+	bool Input::getMouseDown(uint32_t mouseButton) {
+		if (wininput_mouseButtonsWentDown.find(mouseButton) == wininput_mouseButtonsWentDown.end())
+			return false;
+		return wininput_mouseButtonsWentDown[mouseButton];
+	}
+	bool Input::getMouseUp(uint32_t mouseButton) {
+		if (wininput_mouseButtonsWentUp.find(mouseButton) == wininput_mouseButtonsWentUp.end())
+			return false;
+		return wininput_mouseButtonsWentUp[mouseButton];
+	}
+
+	void Input::onEvent(Event& e) {
+		EventDispatcher dispacther(e);
+		dispacther.dispatch<KeyDownEvent>(onKeyDown);
+		dispacther.dispatch<KeyUpEvent>(onKeyUp);
+		dispacther.dispatch<MouseButtonDownEvent>(onMouseDown);
+		dispacther.dispatch<MouseButtonUpEvent>(onMouseUp);
+	}
+
 	void Input::update() {
 		ST_PROFILING_FUNCTION();
 		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos);
 		m_lastMouseXPos = Input::getMouseX();
 		m_lastMouseYPos = Input::getMouseY();
+
+		wininput_keysWentDown.clear();
+		wininput_keysWentUp.clear();
+		wininput_mouseButtonsWentDown.clear();
+		wininput_mouseButtonsWentUp.clear();
 	}
 }
 #endif // ST_PLATFORM_WINDOWS

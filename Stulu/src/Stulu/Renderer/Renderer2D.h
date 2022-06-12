@@ -23,15 +23,25 @@ namespace Stulu {
 		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 
-
 		static void drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		
+		static void drawCircle(const glm::mat4& transform, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
+		static void drawCircle(const glm::vec3& pos, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
+		static void drawCircle(const glm::vec2& pos, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
+
+		static void drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 
 	private:
-		static void flush();
-		static void FlushReset();
+		static void flushQuads();
+		static void flushCircles();
+		static void flushLines();
+
+		static void resetQuadBatch();
+		static void resetCircleBatch();
+		static void resetLineBatch();
 
 		friend class Scene;
 	};

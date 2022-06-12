@@ -5,13 +5,13 @@
 #include <stb_image.h>
 #include <Stulu/Scene/Resources.h>
 #include <Stulu/Renderer/RenderCommand.h>
+#include "OpenGlTexture.h"
 
 //https://learnopengl.com/PBR/IBL/Specular-IBL
 namespace Stulu {
-    // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
-        // ----------------------------------------------------------------------------------------------
-    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-    glm::mat4 captureViews[] =
+    void renderCube();
+    static glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    static glm::mat4 captureViews[] =
     {
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
@@ -20,8 +20,7 @@ namespace Stulu {
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
     };
-
-	void OpenGLCubeMap::update(uint32_t resolution, void* data) {
+	void OpenGLSkyBox::update(uint32_t resolution, void* data) {
         ST_PROFILING_FUNCTION();
         uint32_t m_captureFBO = 0, m_captureRBO = 0;
 
@@ -61,7 +60,7 @@ namespace Stulu {
         glDeleteFramebuffers(1, &m_captureFBO);
         glDeleteRenderbuffers(1, &m_captureRBO);
 	}
-    void OpenGLCubeMap::update(const std::vector<std::string>& faces, uint32_t resolution) {
+    void OpenGLSkyBox::update(const std::vector<std::string>& faces, uint32_t resolution) {
         ST_PROFILING_FUNCTION();
         uint32_t m_captureFBO = 0, m_captureRBO = 0;
 
@@ -80,10 +79,10 @@ namespace Stulu {
             GLenum type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
             float* textureData;
             {
-                ST_PROFILING_SCOPE("reading file - OpenGLCubeMap::OpenGLCubeMap(const std::vector<std::string>&, uint32_t)");
+                ST_PROFILING_SCOPE("reading file - OpenGLSkyBox::OpenGLSkyBox(const std::vector<std::string>&, uint32_t)");
                 textureData = stbi_loadf(faces[i].c_str(), &width, &height, &channels, 0);
             }
-            CORE_ASSERT(textureData, "Texture failed to load: {0}", faces[i].c_str());
+            CORE_ASSERT(textureData, std::string("Texture failed to load: ") + faces[i]);
             glTexImage2D(type, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, textureData);
             stbi_image_free(textureData);
         }
@@ -111,7 +110,7 @@ namespace Stulu {
         glDeleteFramebuffers(1, &m_captureFBO);
         glDeleteRenderbuffers(1, &m_captureRBO);
     }
-    void OpenGLCubeMap::update(const std::string& hdrTexturePath, uint32_t resolution) {
+    void OpenGLSkyBox::update(const std::string& hdrTexturePath, uint32_t resolution) {
         ST_PROFILING_FUNCTION();
         uint32_t m_captureFBO = 0, m_captureRBO = 0;
 
@@ -138,7 +137,7 @@ namespace Stulu {
         int32_t width, height, nrComponents;
         float* data;
         {
-            ST_PROFILING_SCOPE("reading file - OpenGLCubeMap::OpenGLCubeMap(const std::string&, uint32_t)");
+            ST_PROFILING_SCOPE("reading file - OpenGLSkyBox::OpenGLSkyBox(const std::string&, uint32_t)");
             data = stbi_loadf(hdrTexturePath.c_str(), &width, &height, &nrComponents, 0);
         }
         if (data)
@@ -156,7 +155,7 @@ namespace Stulu {
         }
         else
         {
-            CORE_ASSERT(false, "Texture failed to load: {0}", hdrTexturePath);
+            CORE_ASSERT(false, std::string("Texture failed to load: ") + hdrTexturePath);
         }
 
         // pbr: setup cubemap to render to and attach to framebuffer
@@ -203,7 +202,7 @@ namespace Stulu {
         glDeleteFramebuffers(1, &m_captureFBO);
         glDeleteRenderbuffers(1, &m_captureRBO);
     }
-    OpenGLCubeMap::~OpenGLCubeMap() {
+    OpenGLSkyBox::~OpenGLSkyBox() {
 		ST_PROFILING_FUNCTION();
 		glDeleteTextures(1, &m_envCubemap);
 		glDeleteTextures(1, &m_irradianceMap);
@@ -271,7 +270,7 @@ namespace Stulu {
         generateMaps();
     }
     */
-    void OpenGLCubeMap::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
+    void OpenGLSkyBox::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
         ST_PROFILING_FUNCTION();
         
         // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
@@ -393,31 +392,31 @@ namespace Stulu {
         bind(0);
     }
 
-	void OpenGLCubeMap::bind(uint32_t slot) const {
+	void OpenGLSkyBox::bind(uint32_t slot) const {
 		ST_PROFILING_FUNCTION();
         bindEnviromente(slot);
         bindIrradiance(slot+1);
         bindPrefilter(slot+2);
         bindBRDFLUT(slot+3);
 	}
-    void OpenGLCubeMap::bindEnviromente(uint32_t slot) const {
+    void OpenGLSkyBox::bindEnviromente(uint32_t slot) const {
         ST_PROFILING_FUNCTION();
         glBindTextureUnit(slot, m_envCubemap);
     }
-    void OpenGLCubeMap::bindIrradiance(uint32_t slot) const {
+    void OpenGLSkyBox::bindIrradiance(uint32_t slot) const {
         ST_PROFILING_FUNCTION();
         glBindTextureUnit(slot, m_irradianceMap);
     }
-    void OpenGLCubeMap::bindPrefilter(uint32_t slot) const {
+    void OpenGLSkyBox::bindPrefilter(uint32_t slot) const {
         ST_PROFILING_FUNCTION();
         glBindTextureUnit(slot, m_prefilterMap);
     }
-    void OpenGLCubeMap::bindBRDFLUT(uint32_t slot) const {
+    void OpenGLSkyBox::bindBRDFLUT(uint32_t slot) const {
         ST_PROFILING_FUNCTION();
         glBindTextureUnit(slot, s_brdfLUT);
     }
 
-    void OpenGLCubeMap::draw() {
+    void OpenGLSkyBox::draw() {
         ST_PROFILING_FUNCTION();
         glDepthFunc(GL_LEQUAL);
         glCullFace(GL_BACK);
@@ -425,13 +424,13 @@ namespace Stulu {
         glDepthFunc(GL_LESS);
     }
 
-	bool OpenGLCubeMap::operator==(const Texture& other) const {
+	bool OpenGLSkyBox::operator==(const Texture& other) const {
 		return m_envCubemap == other.getRendererID();
 	}
 
-    void OpenGLCubeMap::renderCube()
-    {
+    void renderCube() {
         ST_PROFILING_FUNCTION();
+        static Ref<VertexArray> s_cubeVAO = nullptr;
         if (!s_cubeVAO) {
             std::vector<Vertex> vertices{
                 //top
@@ -505,7 +504,7 @@ namespace Stulu {
         glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
     }
-    void OpenGLCubeMap::renderQuad()
+    void OpenGLSkyBox::renderQuad()
     {
         ST_PROFILING_FUNCTION();
         if (s_quadVAO == 0)
@@ -535,7 +534,7 @@ namespace Stulu {
         glEnable(GL_BLEND);
     }
 
-    std::string OpenGLCubeMap::getEquirectangularToCubemapShaderSource() {
+    std::string OpenGLSkyBox::getEquirectangularToCubemapShaderSource() {
         return R"(
             ##add ST_CubemapVertex
             ##type fragment
@@ -563,7 +562,7 @@ namespace Stulu {
             }
             )";
     }
-    std::string OpenGLCubeMap::getIrradianceShaderSource() {
+    std::string OpenGLSkyBox::getIrradianceShaderSource() {
         return R"(
             ##add ST_CubemapVertex
             ##type fragment
@@ -607,7 +606,7 @@ namespace Stulu {
             }
             )";
     }
-    std::string OpenGLCubeMap::getPrefilterShaderSorce() {
+    std::string OpenGLSkyBox::getPrefilterShaderSorce() {
         return R"(
             ##add ST_CubemapVertex
             ##type fragment
@@ -719,7 +718,7 @@ namespace Stulu {
             }
             )";
     }
-    std::string OpenGLCubeMap::getSkyBoxSource() {
+    std::string OpenGLSkyBox::getSkyBoxSource() {
         return R"(
             ##add ST_CubemapVertex
             ##type fragment
@@ -733,7 +732,7 @@ namespace Stulu {
             }
             )";
     }
-    std::string OpenGLCubeMap::getBrdfShaderSource() {
+    std::string OpenGLSkyBox::getBrdfShaderSource() {
         return R"(
             ##type vertex
 #version 440 core
@@ -861,4 +860,62 @@ void main() {
 }
         )";
     }
+    OpenGLCubeMap::OpenGLCubeMap(uint32_t resolution, TextureSettings settings)
+        : m_resolution(resolution) {
+        ST_PROFILING_FUNCTION();
+        glGenTextures(1, &m_map);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
+
+        TextureSettings::Format format = (TextureSettings::Format)settings.format;
+        auto[internalformat, dataformat] = TextureFormatToGLenum(format, 4);
+
+        for (uint32_t i = 0; i < 6; i++)
+        {
+            if(isGLTextureFormatFloat(format))
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_FLOAT, nullptr);
+            else
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_UNSIGNED_BYTE, nullptr);
+        }
+        GLenum wrap = 0;
+        switch (settings.wrap)
+        {
+        case (int)TextureSettings::Wrap::Clamp:
+            wrap = GL_CLAMP;
+            break;
+        case (int)TextureSettings::Wrap::Repeat:
+            wrap = GL_REPEAT;
+            break;
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrap);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrap);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrap);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    }
+
+    OpenGLCubeMap::~OpenGLCubeMap() {
+        ST_PROFILING_FUNCTION();
+        glDeleteTextures(1, &m_map);
+    }
+
+    void OpenGLCubeMap::bind(uint32_t slot) const {
+        ST_PROFILING_FUNCTION();
+        glBindTextureUnit(slot, m_map);
+    }
+
+    void OpenGLCubeMap::draw() {
+        ST_PROFILING_FUNCTION();
+        glDepthFunc(GL_LEQUAL);
+        glCullFace(GL_BACK);
+        renderCube();
+        glDepthFunc(GL_LESS);
+    }
+
+    bool OpenGLCubeMap::operator==(const Texture& other) const {
+        return m_map == other.getRendererID();
+    }
+
 }

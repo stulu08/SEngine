@@ -14,6 +14,7 @@ namespace physx {
     class PxQuat;
     class PxRigidActor;
     class PxTriangleMesh;
+    class PxConvexMesh;
     class PxCooking;
 }
 
@@ -44,17 +45,21 @@ namespace Stulu{
         //call this on application shutdown
         void shutDown();
 
+        void startPVD();
+        void stopPVD();
+
         void createPhysics(const PhysicsData& data = PhysicsData());
         void releasePhysics();
 
         physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
         physx::PxRigidActor* createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter = glm::vec3(.0f));
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
+        physx::PxConvexMesh* createConvexMesh(Ref<Mesh>& mesh);
 
         physx::PxScene* getScene() { return m_scene; };
         physx::PxPhysics* getPhysics() { return m_physics; };
 
-
+        bool isPVDRunning() { return m_pvdRunning; }
         bool started() { return m_foundataion != nullptr; }
     private:
         physx::PxFoundation* m_foundataion = nullptr;
@@ -64,5 +69,6 @@ namespace Stulu{
         physx::PxDefaultCpuDispatcher* m_cpuDispatcher = nullptr;
         physx::PxCudaContextManager* m_cudaContextManager = nullptr;
         physx::PxCooking* m_cooking = nullptr;
+        bool m_pvdRunning = false;
     };
 }

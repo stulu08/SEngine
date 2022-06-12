@@ -26,6 +26,8 @@ namespace Stulu {
 		static Ref<Shader> create(const std::string& name, const std::string& src);
 		static Ref<Shader> create(const std::string& name, const std::string& vertex, const std::string& fragment);
 
+		virtual void reload(const std::string& path) = 0;
+
 		virtual void setMat4(const std::string& name, const glm::mat4& mat) = 0;
 		virtual void setFloat4(const std::string& name, const glm::vec4& vec) = 0;
 		virtual void setFloat3(const std::string& name, const glm::vec3& vec) = 0;

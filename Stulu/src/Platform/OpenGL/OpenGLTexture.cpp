@@ -46,17 +46,26 @@ namespace Stulu {
 
 	void OpenGLTexture2D::update() {
 		ST_PROFILING_FUNCTION();
+
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
-		stbi_uc* textureData;
+		stbi_uc* textureData = nullptr;
+		float* floatData = nullptr;
 		{
 			ST_PROFILING_SCOPE("reading file - OpenGLTexture2D::OpenGLTexture2D(const std::string&)");
-			textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
+			if (isGLTextureFormatFloat((TextureSettings::Format)m_settings.format)) {
+				floatData = stbi_loadf(m_path.c_str(), &width, &height, &channels, 0);
+				CORE_ASSERT(floatData, "Texture failed to load: {0}", m_path);
+			}
+			else {
+				textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
+				CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
+			}
 		}
-		CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
 		m_width = width;
 		m_height = height;
-		std::pair<GLenum,GLenum> format = TextureFormatToGLenum((TextureSettings::Format&)m_settings.format, channels);
+
+		std::pair<GLenum, GLenum> format = TextureFormatToGLenum((TextureSettings::Format&)m_settings.format, channels);
 		GLenum internalFormat = format.first;
 		m_dataFormat = format.second;
 		GLenum wrap = 0;
@@ -69,6 +78,7 @@ namespace Stulu {
 			wrap = GL_REPEAT;
 			break;
 		}
+		
 		glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
 
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -77,7 +87,10 @@ namespace Stulu {
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, wrap);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, wrap);
 
-		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, textureData);
+		if(floatData)
+			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_FLAT, floatData);
+		else
+			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, textureData);
 
 		stbi_image_free(textureData);
 	}
@@ -150,5 +163,8 @@ namespace Stulu {
 			break;
 		}
 		return { internalFormat,m_dataFormat };
+	}
+	bool isGLTextureFormatFloat(const TextureSettings::Format& format) {
+		return format == TextureSettings::Format::RGB16F || format == TextureSettings::Format::RGBA16F;
 	}
 }

@@ -8,7 +8,7 @@ project "Runtime"
 	targetname ("Stulu Runtime");
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
-	debugdir ("" .. builddir .. "-Runtime")
+
 	defines
 	{
 		"ST_RUNTIME",
@@ -39,15 +39,21 @@ project "Runtime"
 		"%{IncludeDir.mono}/mono-2.0"
 	}
 	postbuildcommands {
-		"{MKDIR} ".. builddir .."-Runtime",
-		"{COPYDIR} %{ProjectDir.Runtime}/Files " .. builddir .. "-Runtime",
-		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. " " .. builddir .. "-Runtime",
-		"{DELETE} " .. builddir .. "-Runtime/Stulu.lib",
-		"{DELETE} " .. builddir .. "-Runtime/Stulu.idb",
-		"{DELETE} " .. builddir .. "-Runtime/Stulu.pdb",
-		"{DELETE} " .. builddir .. "-Runtime/data/Managed/Stulu.ScriptCore.pdb",
-		"{DELETE} " .. builddir .. "-Runtime/data/Managed/Stulu.EditorScriptCore.pdb",
-		"{DELETE} " .. builddir .. "-Runtime/data/Managed/Stulu.EditorScriptCore.dll",
+		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data",
+		"{COPYDIR} %{ProjectDir.Runtime}/Files %{ProjectDir.Runtime}/bin/" .. outputdir .. "",
+		"{COPYFILE} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono-2.0-sgen.dll %{ProjectDir.Runtime}/bin/" .. outputdir .. "/mono-2.0-sgen.dll",
+		
+		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu.lib",
+		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu.idb",
+		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu.pdb",
+
+		"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.lib\"",
+		"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exp\"",
+		"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.pdb\"",
+		
+		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data/Managed/Stulu.ScriptCore.pdb",
+		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data/Managed/Stulu.EditorScriptCore.pdb",
+		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data/Managed/Stulu.EditorScriptCore.dll",
 	}
 	links
 	{
@@ -58,7 +64,6 @@ project "Runtime"
 	}
 	filter "system:windows"
 		systemversion "latest"
-		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Runtime.exe\" " .. builddir .. "-Runtime")
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
@@ -71,6 +76,11 @@ project "Runtime"
 		optimize "on"
 
 	filter "configurations:Dist"
+		postbuildcommands {
+			"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.lib\"",
+			"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.pdb\"",
+			"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exp\"",
+		}
 		defines "ST_DIST"
 		runtime "Release"
 		optimize "on"

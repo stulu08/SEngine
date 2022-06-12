@@ -14,6 +14,8 @@
 #include "Stulu/Scene/Components/Camera.h"
 #include "Stulu/Scene/physx/Collider.h"
 
+#define ST_REFLECTION_MAP_SIZE 256
+
 namespace Stulu {
 
 	class GameObjectBaseComponent : public Component {
@@ -38,6 +40,7 @@ namespace Stulu {
 		glm::quat worldRotation = glm::quat(1.0f, .0f, .0f, .0f);
 		glm::vec3 worldScale = glm::vec3(0.0f);
 		glm::vec3 eulerAnglesDegrees = glm::vec3(.0f);//in degrees
+		glm::vec3 eulerAnglesWorldDegrees = glm::vec3(.0f);//in degrees
 
 		glm::mat4 transform = glm::mat4(1.0f);
 		
@@ -96,7 +99,7 @@ namespace Stulu {
 	};
 	class SkyBoxComponent : public Component {
 	public:
-		Ref<CubeMap> texture = nullptr;
+		Ref<SkyBox> texture = nullptr;
 
 		enum class MapType {
 			EnvironmentMap =0, IrradianceMap=1, PrefilterMap=2
@@ -171,6 +174,7 @@ namespace Stulu {
 		RigidbodyComponent,
 		BoxColliderComponent,
 		SphereColliderComponent,
+		CapsuleColliderComponent,
 		MeshColliderComponent
 		>;
 }

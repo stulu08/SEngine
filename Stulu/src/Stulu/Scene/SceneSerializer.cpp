@@ -7,6 +7,8 @@
 #include "Stulu/ScriptCore/MonoObjectInstance.h"
 #include "Stulu/ScriptCore/AssemblyManager.h"
 
+#include <entt.hpp>
+
 namespace Stulu {
 
 	static void SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
@@ -164,12 +166,28 @@ namespace Stulu {
 			out << YAML::Key << "staticFriction" << YAML::Value << component.staticFriction;
 			out << YAML::Key << "restitution" << YAML::Value << component.restitution;
 			out << YAML::Key << "radius" << YAML::Value << component.radius;
+			out << YAML::Key << "offset" << YAML::Value << component.offset;
+			out << YAML::EndMap;
+		}
+		if (gameObject.hasComponent<CapsuleColliderComponent>()) {
+			out << YAML::Key << "CapsuleColliderComponent";
+			out << YAML::BeginMap;
+			auto& component = gameObject.getComponent<CapsuleColliderComponent>();
+			out << YAML::Key << "dynamicFriction" << YAML::Value << component.dynamicFriction;
+			out << YAML::Key << "staticFriction" << YAML::Value << component.staticFriction;
+			out << YAML::Key << "restitution" << YAML::Value << component.restitution;
+			out << YAML::Key << "radius" << YAML::Value << component.radius;
+			out << YAML::Key << "height" << YAML::Value << component.height;
+			out << YAML::Key << "offset" << YAML::Value << component.offset;
+			out << YAML::Key << "horizontal" << YAML::Value << component.horizontal;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<MeshColliderComponent>()) {
 			out << YAML::Key << "MeshColliderComponent";
 			out << YAML::BeginMap;
 			auto& component = gameObject.getComponent<MeshColliderComponent>();
+			out << YAML::Key << "mesh" << YAML::Value << (uint64_t)component.mesh.uuid;
+			out << YAML::Key << "convex" << YAML::Value << component.convex;
 			out << YAML::Key << "dynamicFriction" << YAML::Value << component.dynamicFriction;
 			out << YAML::Key << "staticFriction" << YAML::Value << component.staticFriction;
 			out << YAML::Key << "restitution" << YAML::Value << component.restitution;
@@ -183,6 +201,9 @@ namespace Stulu {
 			out << YAML::Key << "rotationX" << YAML::Value << component.rotationX;
 			out << YAML::Key << "rotationY" << YAML::Value << component.rotationY;
 			out << YAML::Key << "rotationZ" << YAML::Value << component.rotationZ;
+			out << YAML::Key << "moveX" << YAML::Value << component.moveX;
+			out << YAML::Key << "moveY" << YAML::Value << component.moveY;
+			out << YAML::Key << "moveZ" << YAML::Value << component.moveZ;
 			out << YAML::Key << "kinematic" << YAML::Value << component.kinematic;
 			out << YAML::Key << "retainAccelaration" << YAML::Value << component.retainAccelaration;
 			out << YAML::Key << "mass" << YAML::Value << component.mass;
@@ -203,6 +224,7 @@ namespace Stulu {
 		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.toneMappingExposure;
 		out << YAML::Key << "env_lod" << YAML::Value << m_scene->m_data.env_lod;
 		out << YAML::Key << "framebuffer16bit" << YAML::Value << m_scene->m_data.framebuffer16bit;
+		out << YAML::Key << "useReflectionMapReflections" << YAML::Value << m_scene->m_data.useReflectionMapReflections;
 		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
 		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
 		out << YAML::Key << "physicsData.length" << YAML::Value << m_scene->m_data.physicsData.length;
@@ -241,6 +263,8 @@ namespace Stulu {
 					m_scene->m_data.framebuffer16bit = settings["framebuffer16bit"].as<bool>();
 				if (settings["env_lod"])
 					m_scene->m_data.env_lod = settings["env_lod"].as<float>();
+				if (settings["useReflectionMapReflections"])
+					m_scene->m_data.useReflectionMapReflections = settings["useReflectionMapReflections"].as<bool>();
 				if (settings["enablePhsyics3D"])
 					m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
 				if (settings["physicsData.gravity"])
@@ -280,6 +304,7 @@ namespace Stulu {
 						tc.scale = transformComponentNode["scale"].as<glm::vec3>();
 					}
 					auto scriptingComponent = gameObject["ScriptingComponent"];
+
 					if (scriptingComponent) {
 						for (auto inst : scriptingComponent["Scripts"]) {
 							auto& comp = deserialized.saveAddComponent<ScriptingComponent>();
@@ -392,7 +417,7 @@ namespace Stulu {
 					if (skyBoxComponentNode) {
 						auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
 						if (skyBoxComponentNode["texture"])
-							skyBox.texture = std::any_cast<Ref<CubeMap>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
+							skyBox.texture = std::any_cast<Ref<SkyBox>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
 						if (skyBoxComponentNode["mapType"])
 							skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();
 					}
@@ -416,11 +441,41 @@ namespace Stulu {
 						collider.restitution = sphereColliderComponentNode["restitution"].as<float>();
 
 						collider.radius = sphereColliderComponentNode["radius"].as<float>();
+						collider.offset = sphereColliderComponentNode["offset"].as<glm::vec3>();
+					}
+					auto capsuleColliderComponentNode = gameObject["CapsuleColliderComponent"];
+					if (capsuleColliderComponentNode) {
+						auto& collider = deserialized.addComponent<CapsuleColliderComponent>();
+						collider.dynamicFriction = capsuleColliderComponentNode["dynamicFriction"].as<float>();
+						collider.staticFriction = capsuleColliderComponentNode["staticFriction"].as<float>();
+						collider.restitution = capsuleColliderComponentNode["restitution"].as<float>();
+
+						collider.radius = capsuleColliderComponentNode["radius"].as<float>();
+						collider.height = capsuleColliderComponentNode["height"].as<float>();
+						collider.offset = capsuleColliderComponentNode["offset"].as<glm::vec3>();
+						if(capsuleColliderComponentNode["horizontal"])
+							collider.horizontal = capsuleColliderComponentNode["horizontal"].as<bool>();
 					}
 
 					auto meshColliderComponentNode = gameObject["MeshColliderComponent"];
 					if (meshColliderComponentNode) {
 						auto& collider = deserialized.addComponent<MeshColliderComponent>();
+
+						if (meshColliderComponentNode["mesh"]) {
+							UUID id = meshColliderComponentNode["mesh"].as<uint64_t>();
+							if (AssetsManager::existsAndType(id, AssetType::Mesh)) {
+								collider.mesh = std::any_cast<MeshAsset>(AssetsManager::get(id).data);
+
+								if (collider.mesh.mesh->getVerticesCount() > 255 * 3) {
+									collider.convexMesh = createRef<Mesh>(Mesh::copyAndLimit(collider.mesh.mesh, 255 * 3));
+								}
+								else {
+									collider.convexMesh = collider.mesh.mesh;
+								}
+							}
+						}
+						if (meshColliderComponentNode["convex"]) 
+							collider.convex = meshColliderComponentNode["convex"].as<bool>();
 						collider.dynamicFriction = meshColliderComponentNode["dynamicFriction"].as<float>();
 						collider.staticFriction = meshColliderComponentNode["staticFriction"].as<float>();
 						collider.restitution = meshColliderComponentNode["restitution"].as<float>();
@@ -433,6 +488,12 @@ namespace Stulu {
 						body.rotationX = rigidbodyComponentNode["rotationX"].as<bool>();
 						body.rotationY = rigidbodyComponentNode["rotationY"].as<bool>();
 						body.rotationZ = rigidbodyComponentNode["rotationZ"].as<bool>();
+
+						if (rigidbodyComponentNode["moveX"]) {
+							body.moveX = rigidbodyComponentNode["moveX"].as<bool>();
+							body.moveY = rigidbodyComponentNode["moveY"].as<bool>();
+							body.moveZ = rigidbodyComponentNode["moveZ"].as<bool>();
+						}
 						body.kinematic = rigidbodyComponentNode["kinematic"].as<bool>();
 						body.retainAccelaration = rigidbodyComponentNode["retainAccelaration"].as<bool>();
 						body.mass = rigidbodyComponentNode["mass"].as<float>();
@@ -463,5 +524,175 @@ namespace Stulu {
 			return false;
 		}
 		return true;
+	}
+	std::vector<UUID> SceneSerializer::getAllSceneAssets(const std::vector<std::string> scenes) {
+		std::vector<UUID> assets;
+
+		//shaders will be added soon
+
+		for (auto scene : scenes) {
+			
+			Ref<Scene> m_scene;
+			{
+				if (scene.empty()) {
+					continue;
+				}
+				m_scene = createRef<Scene>();
+				SceneSerializer ss(m_scene);
+				if (ss.deSerialze(scene)) {
+					m_scene->onViewportResize(Application::getWidth(), Application::getHeight());
+				}
+				else {
+					continue;
+				}
+			}
+
+			if (AssetsManager::existsAndType(AssetsManager::getFromPath(scene), AssetType::Scene)) {
+				assets.push_back(AssetsManager::getFromPath(scene));
+			}
+			else {
+				continue;
+			}
+
+			auto& registry = m_scene->m_registry;
+			registry.view<SpriteRendererComponent>().each([&](entt::entity go, SpriteRendererComponent& spriteRen) {
+				if (spriteRen.texture) {
+					if (AssetsManager::exists(spriteRen.texture->uuid)) {
+						assets.push_back(spriteRen.texture->uuid);
+					}
+					else {
+						UUID id = AssetsManager::getFromPath((spriteRen.texture->getPath()));
+						if (AssetsManager::existsAndType(id, AssetType::Texture2D)) {
+							assets.push_back(id);
+						}
+					}
+				}
+				});
+			registry.view<MeshRendererComponent>().each([&](entt::entity go, MeshRendererComponent& meshRen) {
+				if (meshRen.material) {
+					if (AssetsManager::exists(meshRen.material->getUUID())) {
+						Asset& asset = AssetsManager::get(meshRen.material->getUUID());
+						if (!asset.path.empty())
+							assets.push_back(meshRen.material->getUUID());
+						else {
+							UUID modelId = AssetsManager::getModelFromMaterial(asset.uuid);
+							if (AssetsManager::existsAndType(modelId, AssetType::Model)) {
+								assets.push_back(modelId);
+
+								Asset model = AssetsManager::get(modelId);
+								if (std::filesystem::path(model.path).extension() == ".gltf") {
+									auto& path = std::filesystem::path(model.path);
+									auto& nP = path.parent_path().string() + "/" + path.filename().replace_extension().string() + ".bin";
+									if (std::filesystem::exists(nP)) {
+										UUID i = AssetsManager::getFromPath(nP);
+										if (AssetsManager::exists(i)) {
+											assets.push_back(i);
+										}
+									}
+								}
+
+							}
+						}
+					}
+				}
+				});
+			registry.view<MeshFilterComponent>().each([&](entt::entity go, MeshFilterComponent& meshFilter) {
+				if (meshFilter.mesh.mesh) {
+					UUID meshUUID = meshFilter.mesh.uuid;
+					if (AssetsManager::exists(meshUUID)) {
+						UUID modelId = AssetsManager::getModelFromMesh(meshUUID);
+						if (AssetsManager::existsAndType(modelId, AssetType::Model)) {
+							assets.push_back(modelId);
+
+							Asset model = AssetsManager::get(modelId);
+							if (std::filesystem::path(model.path).extension() == ".gltf") {
+								auto& path = std::filesystem::path(model.path);
+								auto& nP = path.parent_path().string() + "/" + path.filename().replace_extension().string() + ".bin";
+								if (std::filesystem::exists(nP)) {
+									UUID i = AssetsManager::getFromPath(nP);
+									if (AssetsManager::exists(i)) {
+										assets.push_back(i);
+									}
+								}
+							}
+						}
+					}
+				}
+				});
+			registry.view<SkyBoxComponent>().each([&](entt::entity go, SkyBoxComponent& skybox) {
+				if (skybox.texture) {
+					if (AssetsManager::exists(skybox.texture->uuid)) {
+						std::string path = AssetsManager::get(skybox.texture->uuid).path;
+						if (path.substr(path.find_last_of('.'), path.npos) == ".hdr")
+							assets.push_back(skybox.texture->uuid);
+						else {
+							try {
+								//.skybox
+								YAML::Node data = YAML::LoadFile(path);
+
+								Asset right = AssetsManager::get(data["right"].as<uint64_t>());
+								if (AssetsManager::exists(right.uuid)) {
+									assets.push_back(right.uuid);
+								}
+								Asset left = AssetsManager::get(data["left"].as<uint64_t>());
+								if (AssetsManager::exists(left.uuid)) {
+									assets.push_back(left.uuid);
+								}
+								Asset top = AssetsManager::get(data["top"].as<uint64_t>());
+								if (AssetsManager::exists(top.uuid)) {
+									assets.push_back(top.uuid);
+								}
+								Asset bottom = AssetsManager::get(data["bottom"].as<uint64_t>());
+								if (AssetsManager::exists(bottom.uuid)) {
+									assets.push_back(bottom.uuid);
+								}
+								Asset front = AssetsManager::get(data["front"].as<uint64_t>());
+								if (AssetsManager::exists(front.uuid)) {
+									assets.push_back(front.uuid);
+								}
+								Asset back = AssetsManager::get(data["back"].as<uint64_t>());
+								if (AssetsManager::exists(back.uuid)) {
+									assets.push_back(back.uuid);
+								}
+								assets.push_back(skybox.texture->uuid);
+							}
+							catch (YAML::Exception ex) {
+								CORE_ERROR(ex.what());
+							}
+						}
+					}
+				}
+				});
+			registry.view<MeshColliderComponent>().each([&](entt::entity go, MeshColliderComponent& collider) {
+				if (collider.mesh.mesh) {
+					UUID meshUUID = collider.mesh.uuid;
+					if (AssetsManager::exists(meshUUID)) {
+						UUID modelId = AssetsManager::getModelFromMesh(meshUUID);
+						if (AssetsManager::existsAndType(modelId, AssetType::Model)) {
+							assets.push_back(modelId);
+
+							Asset model = AssetsManager::get(modelId);
+							if (std::filesystem::path(model.path).extension() == ".gltf") {
+								auto& path = std::filesystem::path(model.path);
+								auto& nP = path.parent_path().string() + "/" + path.filename().replace_extension().string() + ".bin";
+								if (std::filesystem::exists(nP)) {
+									UUID i = AssetsManager::getFromPath(nP);
+									if (AssetsManager::exists(i)) {
+										assets.push_back(i);
+									}
+								}
+							}
+						}
+					}
+				}
+				});
+		}
+		std::vector<UUID> as;
+		for (auto& id : assets) {
+			if (std::find(as.begin(), as.end(), id) == as.end()) {
+				as.push_back(id);//remove duplicated
+			}
+		}
+		return as;
 	}
 }

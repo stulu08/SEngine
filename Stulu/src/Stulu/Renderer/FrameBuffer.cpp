@@ -37,4 +37,5 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in FrameBufferTexture creation")
 			return nullptr;
 	}
+
 }

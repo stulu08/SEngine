@@ -12,7 +12,10 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar);
 
-
+		if (reflectionMap == nullptr)
+			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE);
+		if (reflectionFrameBuffer == nullptr)
+			reflectionFrameBuffer = FrameBuffer::create(FrameBufferSpecs{ ST_REFLECTION_MAP_SIZE,ST_REFLECTION_MAP_SIZE,1,false });
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();

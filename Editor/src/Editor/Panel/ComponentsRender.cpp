@@ -20,12 +20,17 @@ namespace Stulu {
 		ImGui::Separator();
 	}
 	template<>
-	void ComponentsRender::drawComponent<TransformComponent>(GameObject gameObject, TransformComponent& component) {
+	void ComponentsRender::drawComponent<TransformComponent>(GameObject gameObject, TransformComponent& transform) {
 		ST_PROFILING_FUNCTION();
-		drawVector3Control("Position", component.position);
-		if(drawVector3Control("Rotation", component.eulerAnglesDegrees))
-			component.rotation = Math::EulerToQuaternion(glm::radians(component.eulerAnglesDegrees));
-		drawVector3Control("Scale", component.scale);
+		bool updPhysx = false;
+		updPhysx |= drawVector3Control("Position", transform.position);
+		updPhysx |= drawVector3Control("Rotation", transform.eulerAnglesDegrees);
+		drawVector3Control("Scale", transform.scale);
+		transform.rotation = Math::EulerToQuaternion(glm::radians(transform.eulerAnglesDegrees));
+
+		if (updPhysx && getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
+			getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(gameObject);
+		}
 	}
 	template<>
 	void ComponentsRender::drawComponent<CameraComponent>(GameObject gameObject, CameraComponent& component) {
@@ -84,16 +89,16 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		UUID uuid = UUID::null;
 		if (component.texture) {
-			if (AssetsManager::existsAndType(component.texture->uuid, AssetType::CubeMap))
+			if (AssetsManager::existsAndType(component.texture->uuid, AssetType::SkyBox))
 				uuid = component.texture->uuid;
 			else
 				component.texture = nullptr;
 		}
 		else
 			ImGui::Text("Drag texture");
-		if (drawTextureEdit("Texture", uuid, AssetType::CubeMap)) {
+		if (drawTextureEdit("Texture", uuid, AssetType::SkyBox)) {
 			if (uuid != UUID::null && AssetsManager::exists(uuid))
-				component.texture = std::any_cast<Ref<CubeMap>&>(AssetsManager::get(uuid).data);
+				component.texture = std::any_cast<Ref<SkyBox>&>(AssetsManager::get(uuid).data);
 			else
 				component.texture = nullptr;
 		}
@@ -202,14 +207,42 @@ namespace Stulu {
 	template<>
 	void ComponentsRender::drawComponent<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) {
 		ST_PROFILING_FUNCTION();
-		drawBoolControl("Use gravity", component.useGravity);
+		bool change = false;
+		change |= drawBoolControl("Use gravity", component.useGravity);
 		//bool 3
 		{
-			ImGui::PushID("Enable rotation");
-			bool change = false;
+			ImGui::PushID("Linear Velocity");
 			ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
 			ImGui::SetColumnWidth(0, 100.0f);
-			ImGui::Text("Enable rotation");
+			ImGui::Text("Linear Velocity");
+			ImGui::NextColumn();
+
+			ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+
+			change |= ImGui::Checkbox("##X", &component.moveX);
+			ImGui::PopItemWidth();
+
+			ImGui::SameLine();
+			change |= ImGui::Checkbox("##Y", &component.moveY);
+			ImGui::PopItemWidth();
+
+			ImGui::SameLine();
+			change |= ImGui::Checkbox("##Z", &component.moveZ);
+			ImGui::PopItemWidth();
+
+			ImGui::PopStyleVar();
+
+			ImGui::EndColumns();
+
+			ImGui::PopID();
+		}
+		//bool 3
+		{
+			ImGui::PushID("Angular Velocity");
+			ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+			ImGui::SetColumnWidth(0, 100.0f);
+			ImGui::Text("Angular Velocity");
 			ImGui::NextColumn();
 
 			ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
@@ -219,7 +252,7 @@ namespace Stulu {
 			ImGui::PopItemWidth();
 
 			ImGui::SameLine();
-			change |= ImGui::Checkbox("##>", &component.rotationY);
+			change |= ImGui::Checkbox("##Y", &component.rotationY);
 			ImGui::PopItemWidth();
 
 			ImGui::SameLine();
@@ -232,10 +265,12 @@ namespace Stulu {
 
 			ImGui::PopID();
 		}
-		drawFloatControl("Mass", component.mass);
-		drawVector3Control("Center of mass", component.massCenterPos);
-		drawBoolControl("Kinematic", component.kinematic);
-		drawBoolControl("Retain acceleration", component.retainAccelaration);
+		change |= drawFloatControl("Mass", component.mass);
+		change |= drawVector3Control("Center of mass", component.massCenterPos);
+		change |= drawBoolControl("Kinematic", component.kinematic);
+		change |= drawBoolControl("Retain acceleration", component.retainAccelaration);
+		if (change)
+			component.updateFlags();
 	}
 	template<>
 	void ComponentsRender::drawComponent<BoxColliderComponent>(GameObject gameObject, BoxColliderComponent& component) {
@@ -256,8 +291,61 @@ namespace Stulu {
 		drawFloatControl("Size", component.radius);
 	}
 	template<>
+	void ComponentsRender::drawComponent<CapsuleColliderComponent>(GameObject gameObject, CapsuleColliderComponent& component) {
+		ST_PROFILING_FUNCTION();
+		drawFloatControl("Static friction", component.staticFriction);
+		drawFloatControl("Dynamic friction", component.dynamicFriction);
+		drawFloatControl("Restitution", component.restitution);
+		drawVector3Control("Offset", component.offset);
+		drawFloatControl("Height", component.height);
+		drawFloatControl("Radius", component.radius);
+		drawBoolControl("Horizontal", component.horizontal);
+	}
+	template<>
 	void ComponentsRender::drawComponent<MeshColliderComponent>(GameObject gameObject, MeshColliderComponent& component) {
 		ST_PROFILING_FUNCTION();
+		if (drawMeshEdit("Drag Mesh", component.mesh.uuid)) {
+			if (AssetsManager::existsAndType(component.mesh.uuid, AssetType::Mesh)) {
+				component.mesh = std::any_cast<MeshAsset>(AssetsManager::get(component.mesh.uuid).data);
+				component.convexMesh = nullptr;
+			}
+		}
+		if (component.mesh.hasMesh && component.convexMesh == nullptr) {
+			if (component.mesh.mesh->getVerticesCount() > 255 * 3) {
+				component.convexMesh = createRef<Mesh>(Mesh::copyAndLimit(component.mesh.mesh, 255 * 3));
+			}
+			else {
+				component.convexMesh = component.mesh.mesh;
+			}
+		}
+		if (component.mesh.hasMesh && component.convexMesh) {
+			
+			Ref<Mesh>& mesh = (component.convex ? component.convexMesh : component.mesh.mesh);
+
+			if (mesh->getSubMeshCount()) {
+				ImGui::Text("SubMesh Count: %d", (int)component.mesh.mesh->getSubMeshCount());
+				for (int i = 0; i < mesh->getSubMeshCount(); i++) {
+					SubMesh& m = mesh->getSubMesh(i);
+					if (ImGui::TreeNodeEx((void*)(mesh->getSubMeshCount() + i + (uint32_t)gameObject), ImGuiTreeNodeFlags_OpenOnArrow, "Submesh %d", i)) {
+						ImGui::Text("Vertices: %d", m.getVerticesCount());
+						ImGui::Text("Indices: %d", m.getIndicesCount());
+						ImGui::Text("Triangles: %d", m.getIndicesCount() / 3);
+						ImGui::TreePop();
+					}
+				}
+			}
+			else {
+				ImGui::Text("Vertices: %d", mesh->getVerticesCount());
+				ImGui::Text("Indices: %d", mesh->getIndicesCount());
+				ImGui::Text("Triangles: %d", mesh->getIndicesCount() / 3);
+			}
+		}
+		else {
+			component.convexMesh = nullptr;
+			ImGui::Text("Not a valid mesh drag one here");
+		}
+
+		drawBoolControl("Convex", component.convex);
 		drawFloatControl("Static friction", component.staticFriction);
 		drawFloatControl("Dynamic friction", component.dynamicFriction);
 		drawFloatControl("Restitution", component.restitution);
@@ -322,6 +410,36 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
+	bool ComponentsRender::drawInt3Control(const std::string& header, int& x, int& y, int& z) {
+		ST_PROFILING_FUNCTION();
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+
+		change |= ImGui::DragInt("##X", &x);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		change |= ImGui::DragInt("##Y", &y);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		change |= ImGui::DragInt("##Z", &z);
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
 	bool ComponentsRender::drawUIntControl(const std::string& header, uint32_t& v) {
 		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
@@ -362,7 +480,7 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
-	bool ComponentsRender::drawFloatControl(const std::string& header, float& v) {
+	bool ComponentsRender::drawFloatControl(const std::string& header, float& v, float min, float max) {
 		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
 		bool change = false;
@@ -373,7 +491,7 @@ namespace Stulu {
 
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
-		change |= ImGui::DragFloat("##FLOAT", &v, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##FLOAT", &v, 0.1f, min, max, "%.2f");
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
 		ImGui::EndColumns();
@@ -482,6 +600,40 @@ namespace Stulu {
 		ImGui::SameLine();
 
 		change |= ImGui::DragFloat("##W", &vec.w, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawVector4Control(const std::string& header, glm::quat& quat) {
+		ST_PROFILING_FUNCTION();
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+
+		change |= ImGui::DragFloat("##X", &quat.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		change |= ImGui::DragFloat("##Y", &quat.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		change |= ImGui::DragFloat("##Z", &quat.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		change |= ImGui::DragFloat("##W", &quat.w, 0.1f, 0.0f, 0.0f, "%.2f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -620,7 +772,7 @@ namespace Stulu {
 			case AssetType::Texture2D:
 				texture = reinterpret_cast<void*>((uint64_t)std::any_cast<Ref<Texture2D>>(AssetsManager::get(uuid).data)->getRendererID());
 				break;
-			case AssetType::CubeMap:
+			case AssetType::SkyBox:
 				ImGui::Text("SkyBox");
 				texture = reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID());
 				break;
@@ -859,6 +1011,7 @@ namespace Stulu {
 			return;
 		setUpScene(asset);
 		scene->getData().enablePhsyics3D = false;
+		scene->getData().useReflectionMapReflections = false;
 		scene->onRuntimeStart();
 		scene->onUpdateRuntime(Timestep(.05f));
 		scene->onRuntimeStop();
@@ -898,8 +1051,8 @@ namespace Stulu {
 		camera.getComponent<TransformComponent>().position = glm::vec3(0.0f, 0.0f, 1.2f);
 
 		light.addComponent<LightComponent>(LightComponent::Directional).strength = 4;
-		if (asset.type == AssetType::CubeMap){
-			camera.addComponent<SkyBoxComponent>().texture = std::any_cast<Ref<CubeMap>>(asset.data); 
+		if (asset.type == AssetType::SkyBox){
+			camera.addComponent<SkyBoxComponent>().texture = std::any_cast<Ref<SkyBox>>(asset.data); 
 			camera.getComponent<SkyBoxComponent>().texture->bind();
 			camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Skybox;
 		}

@@ -4,20 +4,28 @@ Settings:
   toneMappingExposure: 1.01999998
   env_lod: 4
   framebuffer16bit: false
+  useReflectionMapReflections: true
   enablePhsyics3D: true
   physicsData.gravity: [0, -9.80000019, 0]
   physicsData.length: 1
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
-  - GameObject: 17626462281887944942
+  - GameObject: 14040617144664945982
     GameObjectBaseComponent:
       name: Cube
       tag: default
     TransformComponent:
-      position: [0.739982784, 6.37555933, -1.18800092]
+      position: [0, 3.55163503, 0]
       rotation: [0, 0, 0, 1]
-      scale: [3.28591847, 0.252767563, 0.768459678]
+      scale: [1, 1, 1]
+    ScriptingComponent:
+      Scripts:
+        - Name: TestScript
+          Namespace: ""
+          Fields:
+            - Name: comp
+              Type: 0
     MeshRendererComponent:
       cullMode: 0
     MeshFilterComponent:
@@ -29,15 +37,99 @@ GameObjects:
       size: [0.5, 0.5, 0.5]
       offset: [0, 0, 0]
     RigidbodyComponent:
-      rbType: 0
       useGravity: true
       rotationX: true
       rotationY: true
       rotationZ: true
+      moveX: true
+      moveY: true
+      moveZ: true
       kinematic: false
       retainAccelaration: false
       mass: 1
       massCenterPos: [0, 0, 0]
+  - GameObject: 18095051838024013193
+    GameObjectBaseComponent:
+      name: Reflection Sphere
+      tag: default
+    TransformComponent:
+      position: [1.86495233, 2.54239607, -1.6871531]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 11478690933980836424
+    MeshRendererComponent:
+      material: 4108540174996642992
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
+  - GameObject: 14136124722507495817
+    GameObjectBaseComponent:
+      name: senna_Mesh.089
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 0.999999881, 0.999999881]
+      parent: 346674187562714529
+    MeshRendererComponent:
+      material: 7112549915074969858
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 371717306433646194
+    MeshColliderComponent:
+      mesh: 371717306433646194
+      convex: true
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+  - GameObject: 6545353298797637177
+    GameObjectBaseComponent:
+      name: FL_uploads_files_637554_Wheel_ADV.1_5.002
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 0.999999881, 0.999999881]
+      parent: 346674187562714529
+    MeshRendererComponent:
+      material: 14615166440821475925
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 13868995591991102589
+  - GameObject: 12447227917075918371
+    GameObjectBaseComponent:
+      name: RL_uploads_files_637554_Wheel_ADV.1_5.003
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 0.999999881, 0.999999881]
+      parent: 346674187562714529
+    MeshRendererComponent:
+      material: 2825902263874240208
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 17874475090718344830
+  - GameObject: 3724768993034960714
+    GameObjectBaseComponent:
+      name: RR_uploads_files_637554_Wheel_ADV.1_5.001
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 0.999999881, 0.999999881]
+      parent: 346674187562714529
+    MeshRendererComponent:
+      material: 6867956019954589614
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 16854127440348999845
   - GameObject: 17400596825684382728
     GameObjectBaseComponent:
       name: Red rea Light
@@ -97,6 +189,7 @@ GameObjects:
       staticFriction: 0.100000001
       restitution: 0
       radius: 0.5
+      offset: [0, 0, 0]
   - GameObject: 6234263611873422275
     GameObjectBaseComponent:
       name: Red Cube
@@ -130,10 +223,12 @@ GameObjects:
       cullMode: 0
     MeshFilterComponent:
       mesh: 402
-    MeshColliderComponent:
+    BoxColliderComponent:
       dynamicFriction: 0.100000001
       staticFriction: 0.100000001
       restitution: 0
+      size: [0.5, 0.00999999978, 0.5]
+      offset: [0, 0, 0]
   - GameObject: 1910708792659306400
     GameObjectBaseComponent:
       name: Wall 01
@@ -201,9 +296,9 @@ GameObjects:
       name: Perspective Camera
       tag: MainCam
     TransformComponent:
-      position: [-4.21398067, 3.84019423, 4.21398115]
-      rotation: [-0.202439979, -0.373383492, -0.0838534161, 0.901427448]
-      scale: [0.999999881, 0.999999881, 0.999999881]
+      position: [-3.87263918, 3.84019423, 4.37314939]
+      rotation: [-0.211309329, -0.211309209, -0.0468462296, 0.953153849]
+      scale: [0.999999642, 0.999999642, 0.999999881]
     ScriptingComponent:
       Scripts:
         - Name: SpectatorCamera
@@ -227,6 +322,8 @@ GameObjects:
               Type: 0
             - Name: right
               Type: 0
+            - Name: accelerate
+              Type: 0
             - Name: left
               Type: 0
             - Name: up
@@ -236,6 +333,9 @@ GameObjects:
             - Name: mouse
               Type: 2
               Value: [75.6809387, -51.6463737, 0]
+            - Name: t
+              Type: 4
+              Value: 0
     CameraComponent:
       Camera Settings:
         clearType: 1
@@ -253,20 +353,25 @@ GameObjects:
     SkyBoxComponent:
       texture: 1253514222315557586
       mapType: 0
-  - GameObject: 5414374423293117701
+  - GameObject: 163801526930954720
     GameObjectBaseComponent:
-      name: Engine Logo
+      name: FR_uploads_files_637554_Wheel_ADV.1_5.0
       tag: default
     TransformComponent:
-      position: [0.22771734, 1.33871794, -0.199852943]
-      rotation: [0.0791014731, -0.903927326, -0.190967903, -0.374419004]
-      scale: [1.00038826, 0.999999642, 1.0003432]
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 0.999999881, 0.999999881]
+      parent: 346674187562714529
     MeshRendererComponent:
-      material: 2565564825890785999
+      material: 9164177032616805396
       cullMode: 0
     MeshFilterComponent:
-      mesh: 402
-    MeshColliderComponent:
-      dynamicFriction: 0.100000001
-      staticFriction: 0.100000001
-      restitution: 0
+      mesh: 4096837041297662585
+  - GameObject: 346674187562714529
+    GameObjectBaseComponent:
+      name: car
+      tag: default
+    TransformComponent:
+      position: [0.398800611, 0, -0.780232668]
+      rotation: [0.624338031, -0.331966579, 0.331966549, 0.624338329]
+      scale: [0.999999821, 0.999999821, 0.999972641]

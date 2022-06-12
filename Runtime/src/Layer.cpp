@@ -1,5 +1,6 @@
 #include "Layer.h"
 #include "App.h"
+#include <Stulu/ScriptCore/Bindings/Input.h>
 
 namespace Stulu {
 
@@ -61,36 +62,41 @@ namespace Stulu {
 
 	void RuntimeLayer::onAttach() {
 		ST_PROFILING_FUNCTION();
-		newScene();
-		onRuntimeStart();
+		YAML::Node node = YAML::LoadFile("Stulu/app");
+		UUID sceneID = node["Start Scene"].as<uint64_t>();
+
+		OpenScene(AssetsManager::get(sceneID).path);
 	}
 
 	void RuntimeLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
-
+		Input::setEnabled(true);
+		StuluBindings::Input::s_enabled = true;
 		m_activeScene->onUpdateRuntime(timestep);
-		//draw scene to texture
+		//draw texture to screen
 		GameObject cO = m_activeScene->getMainCamera();
 		if (cO) {
-			RenderCommand::setViewport(0, 0, Application::getWidth(), Application::getHeight());
+			auto& tex = cO.getComponent<CameraComponent>().getTexture();
+			RenderCommand::setViewport(0, 0, tex->getWidth(), tex->getHeight());
 			RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 			RenderCommand::clear();
-			cO.getComponent<CameraComponent>().getTexture()->bind(0);
+			tex->bind(0);
 			m_fbDrawData.m_quadShader->bind();
 			m_fbDrawData.m_quadVertexArray->bind();
 			RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
 		}
+		m_activeScene->updateAllTransforms();
 
 	}
 	void RuntimeLayer::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
+		m_activeScene->onEvent(e);
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(RuntimeLayer::onApplicationQuit));
 		dispacther.dispatch<WindowResizeEvent>(ST_BIND_EVENT_FN(RuntimeLayer::onResize));
 	}
 	bool RuntimeLayer::onApplicationQuit(WindowCloseEvent& e) {
 		onRuntimeStop();
-		m_activeScene->onApplicationQuit();
 		return false;
 	}
 	bool RuntimeLayer::onResize(WindowResizeEvent& e) {
@@ -100,14 +106,20 @@ namespace Stulu {
 	void RuntimeLayer::OpenScene(const std::string& path) {
 		ST_PROFILING_FUNCTION();
 		if (path.empty()) {
+			newScene();
 			return;
 		}
-		m_activeScene->onRuntimeStop();
 		Ref<Scene> nScene = createRef<Scene>();
 		SceneSerializer ss(nScene);
 		if (ss.deSerialze(path)) {
+			
+			if(m_activeScene)
+				m_activeScene->onRuntimeStop();
+
 			m_activeScene = nScene;
 			m_activeScene->onViewportResize(Application::getWidth(), Application::getHeight());
+			Scene::setActiveScene(m_activeScene.get());
+			onRuntimeStart();
 			ST_TRACE("Opened Scene {0}", path);
 		}
 		else {
@@ -117,8 +129,12 @@ namespace Stulu {
 	}
 	void RuntimeLayer::newScene() {
 		ST_PROFILING_FUNCTION();
+		if (m_activeScene)
+			m_activeScene->onRuntimeStop();
 		m_activeScene = createRef<Scene>();
 		m_activeScene->onViewportResize(Application::getWidth(), Application::getHeight());
+		Scene::setActiveScene(m_activeScene.get());
+		onRuntimeStart();
 		ST_TRACE("New Scene loaded");
 	}
 	void RuntimeLayer::onRuntimeStart() {

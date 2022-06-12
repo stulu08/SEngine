@@ -86,7 +86,9 @@ namespace Stulu {
 		//will soon switch to mono xbuild for linux
 		CORE_ERROR("Building Projects is not supported currently on this Platform");
 #endif
-
+		getEditorProject().assembly->getClasses().clear();
+		MonoClass* componentClass = Application::get().getAssemblyManager()->getScriptCoreAssembly()->createClass("Stulu", "Component");
+		getEditorProject().assembly->loadAllClasses(componentClass);
 	}
 	void buildAssembly(const std::string& m_assembly) {
 #ifdef ST_PLATFORM_WINDOWS

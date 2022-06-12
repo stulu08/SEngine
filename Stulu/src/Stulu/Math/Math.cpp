@@ -99,10 +99,10 @@ namespace Stulu {
 		float dot = glm::dot(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
 
 		if (std::abs(dot - (-1.0f)) < 0.000001f) {
-			return glm::quat(TRANSFORM_UP_DIRECTION.x, TRANSFORM_UP_DIRECTION.y, TRANSFORM_UP_DIRECTION.z, 3.1415926535897932f);
+			return glm::quat(PI,TRANSFORM_UP_DIRECTION.x, TRANSFORM_UP_DIRECTION.y, TRANSFORM_UP_DIRECTION.z);
 		}
 		if (std::abs(dot - (1.0f)) < 0.000001f) {
-			return glm::quat(0.0f,0.0f,0.0f,1.0f);
+			return glm::quat(1.0f, 0.0f,0.0f,0.0f);
 		}
 
 		float rotAngle = (float)std::acos(dot);

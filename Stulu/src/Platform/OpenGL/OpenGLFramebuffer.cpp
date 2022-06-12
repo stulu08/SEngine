@@ -48,6 +48,9 @@ namespace Stulu {
 		m_specs.height = height;
 		invalidate();
 	}
+	void OpenGLFramebuffer::attachCubeMapFace(const Ref<CubeMap> cubemap, uint32_t face) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, cubemap->getMap(), 0);
+	}
 	FrameBufferSpecs& OpenGLFramebuffer::getSpecs() {
 		return m_specs;
 	}
@@ -74,20 +77,16 @@ namespace Stulu {
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_colorAttachment);
 		glBindTexture(GL_TEXTURE_2D, m_colorAttachment);
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_width, m_height, 0, dataFormat, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_width, m_height, 0, dataFormat, isGLTextureFormatFloat(format) ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorAttachment, 0);
-
-		
-
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_depthAttachment);
 		glBindTexture(GL_TEXTURE_2D, m_depthAttachment);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_width, m_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthAttachment, 0);
-		//glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, m_width, m_height);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthAttachment, 0);
+
 	}
 	void OpenGLFrameBufferTexture::resize(uint32_t width, uint32_t height) {
 		ST_PROFILING_FUNCTION();
@@ -96,10 +95,6 @@ namespace Stulu {
 	}
 	void OpenGLFrameBufferTexture::bind(uint32_t slot) const {
 		ST_PROFILING_FUNCTION();
-		int32_t active_id = 0;
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &active_id);
-		if (active_id != m_colorAttachment) {
-			glBindTextureUnit(slot, m_colorAttachment);
-		}
+		glBindTextureUnit(slot, m_colorAttachment);
 	}
 }

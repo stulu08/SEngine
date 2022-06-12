@@ -229,6 +229,12 @@ namespace Stulu {
 		
 	}
 
+	void VulkanShader::reload(const std::string& path) {
+		std::string sShaderFile = readFile(path);
+		auto sources = preProcess(sShaderFile);
+		compile(compileToSpirv(sources, path));
+	}
+
 	void VulkanShader::bind() const {
 		ST_PROFILING_FUNCTION();
 		

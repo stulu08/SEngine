@@ -22,6 +22,9 @@ namespace Stulu{
 		inline static void setStencil(StencilMode value) {
 			s_renderAPI->setStencil(value);
 		}
+		inline static void setDepthTesting(bool value) {
+			s_renderAPI->setDepthTesting(value);
+		}
 		inline static void setClearColor(const glm::vec4& color) {
 			s_renderAPI->setClearColor(color);
 		}

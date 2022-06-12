@@ -204,6 +204,16 @@ namespace Stulu {
 		glDeleteProgram(m_rendererID);
 	}
 
+	void OpenGLShader::reload(const std::string& path) {
+		ST_PROFILING_FUNCTION();
+		unbind();
+		glDeleteProgram(m_rendererID);
+
+		std::string shaderFile = readFile(path);
+		auto sources = preProcess(shaderFile);
+		compile(sources);
+	}
+
 	void OpenGLShader::bind() const {
 		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);

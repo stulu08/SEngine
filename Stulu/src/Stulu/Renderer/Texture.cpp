@@ -41,7 +41,7 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Texture2D creation");
 		return nullptr;
 	}
-	Ref<CubeMap> CubeMap::create(const std::string& path) {
+	Ref<SkyBox> SkyBox::create(const std::string& path) {
 		uint32_t resolution = 512;
 		if (AssetsManager::hasProperity(path, "resolution")) {
 			resolution = AssetsManager::getProperity<uint32_t>(path, "resolution");
@@ -51,16 +51,16 @@ namespace Stulu {
 		}
 
 		if (path.substr(path.find_last_of('.'), path.npos) == ".hdr")
-			return CubeMap::create(path, resolution);
+			return SkyBox::create(path, resolution);
 		else
-			return CubeMap::createYAML(path, resolution);
+			return SkyBox::createYAML(path, resolution);
 	}
-	Ref<CubeMap> CubeMap::create(uint32_t resolution, void* data)
+	Ref<SkyBox> SkyBox::create(uint32_t resolution, void* data)
 	{
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return createRef<OpenGLCubeMap>(resolution, data);
+			return createRef<OpenGLSkyBox>(resolution, data);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
@@ -72,12 +72,12 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
 		return nullptr;
 	}
-	Ref<CubeMap> CubeMap::create(const std::vector<std::string>& faces, uint32_t resolution)
+	Ref<SkyBox> SkyBox::create(const std::vector<std::string>& faces, uint32_t resolution)
 	{
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return createRef<OpenGLCubeMap>(faces, resolution);
+			return createRef<OpenGLSkyBox>(faces, resolution);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
@@ -89,7 +89,7 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
 		return nullptr;
 	}
-	Ref<CubeMap> CubeMap::createYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
+	Ref<SkyBox> SkyBox::createYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
 		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
 		std::string right = AssetsManager::get(data["right"].as<uint64_t>()).path;
 		std::string left = AssetsManager::get(data["left"].as<uint64_t>()).path;
@@ -99,12 +99,12 @@ namespace Stulu {
 		std::string back = AssetsManager::get(data["back"].as<uint64_t>()).path;
 		return create({ right,left,top,bottom,front,back }, resolution);
 	}
-	Ref<CubeMap> CubeMap::create(const std::string& hdrTexturePath, uint32_t resolution)
+	Ref<SkyBox> SkyBox::create(const std::string& hdrTexturePath, uint32_t resolution)
 	{
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return createRef<OpenGLCubeMap>(hdrTexturePath, resolution);
+			return createRef<OpenGLSkyBox>(hdrTexturePath, resolution);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
@@ -116,7 +116,7 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
 		return nullptr;
 	}
-	void CubeMap::update(const std::string& path) {
+	void SkyBox::update(const std::string& path) {
 		uint32_t resolution = 512;
 		if (AssetsManager::hasProperity(path, "resolution")) {
 			resolution = AssetsManager::getProperity<uint32_t>(path, "resolution");
@@ -131,7 +131,7 @@ namespace Stulu {
 			return updateYAML(path, resolution);
 	}
 
-	void CubeMap::updateYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
+	void SkyBox::updateYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
 		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
 		std::string right = AssetsManager::get(data["right"].as<uint64_t>()).path;
 		std::string left = AssetsManager::get(data["left"].as<uint64_t>()).path;
@@ -141,5 +141,23 @@ namespace Stulu {
 		std::string back = AssetsManager::get(data["back"].as<uint64_t>()).path;
 		return update({ right,left,top,bottom,front,back }, resolution);
 	}
+
+	Ref<CubeMap> CubeMap::create(uint32_t resolution, TextureSettings settings) {
+		switch (Renderer::getRendererAPI())
+		{
+		case RenderAPI::API::OpenGL:
+			return createRef<OpenGLCubeMap>(resolution, settings);
+		case RenderAPI::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
+		return nullptr;;
+	}
+
 
 }

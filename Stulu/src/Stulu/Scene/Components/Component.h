@@ -5,5 +5,7 @@ namespace Stulu {
 	public:
 		//this GameObject
 		GameObject gameObject = GameObject::null;
+
+		virtual void destroy() {};
 	};
 }

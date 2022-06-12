@@ -43,6 +43,7 @@ namespace Stulu {
 				drawComponent<RigidbodyComponent>(gameObject, "Rigidbody");
 				drawComponent<BoxColliderComponent>(gameObject, "Box Collider");
 				drawComponent<SphereColliderComponent>(gameObject, "Sphere Collider");
+				drawComponent<CapsuleColliderComponent>(gameObject, "Capsule Collider");
 				drawComponent<MeshColliderComponent>(gameObject, "Mesh Collider");
 
 				if (gameObject.hasComponent<NativeBehaviourComponent>())
@@ -121,9 +122,17 @@ namespace Stulu {
 							if (!gameObject.hasComponent<SphereColliderComponent>())
 								gameObject.addComponent<SphereColliderComponent>();
 						}
+						if (ImGui::MenuItem("Capsule Collider")) {
+							if (!gameObject.hasComponent<CapsuleColliderComponent>())
+								gameObject.addComponent<CapsuleColliderComponent>();
+						}
 						if (ImGui::MenuItem("Mesh Collider")) {
 							if (!gameObject.hasComponent<MeshColliderComponent>())
 								gameObject.addComponent<MeshColliderComponent>();
+							MeshFilterComponent filter;
+							if (gameObject.saveGetComponent(filter)) {
+								gameObject.getComponent<MeshColliderComponent>().mesh = filter.mesh;
+							}
 						}
 						if (ImGui::MenuItem("Rigidbody")) {
 							if (!gameObject.hasComponent<RigidbodyComponent>())

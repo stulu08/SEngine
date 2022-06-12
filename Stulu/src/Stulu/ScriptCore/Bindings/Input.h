@@ -6,14 +6,34 @@
 namespace StuluBindings {
 	class Input {
 	public:
-		static inline bool mouseDown(uint32_t mouse) {
+		static inline bool getMouse(uint32_t mouse) {
 			if (s_enabled)
 				return Stulu::Input::isMouseDown(mouse);
 			return false;
 		}
-		static inline bool keyDown(uint32_t key) {
+		static inline bool getMouseDown(uint32_t mouse) {
+			if (s_enabled)
+				return Stulu::Input::getMouseDown(mouse);
+			return false;
+		}
+		static inline bool getMouseUp(uint32_t mouse) {
+			if (s_enabled)
+				return Stulu::Input::getMouseUp(mouse);
+			return false;
+		}
+		static inline bool getKey(uint32_t key) {
 			if (s_enabled)
 				return Stulu::Input::isKeyDown(key);
+			return false;
+		}
+		static inline bool getKeyDown(uint32_t key) {
+			if (s_enabled)
+				return Stulu::Input::getKeyDown(key);
+			return false;
+		}
+		static inline bool getKeyUp(uint32_t key) {
+			if (s_enabled)
+				return Stulu::Input::getKeyUp(key);
 			return false;
 		}
 		static inline void setCursorMode(uint32_t mode) {

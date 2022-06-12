@@ -39,6 +39,10 @@ namespace Stulu {
 	private:
 		Ref<Camera> cam = nullptr;
 
+		Ref<CubeMap> reflectionMap = nullptr;
+		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
+
 		friend class Scene;
+		friend class SceneRenderer;
 	};
 }
