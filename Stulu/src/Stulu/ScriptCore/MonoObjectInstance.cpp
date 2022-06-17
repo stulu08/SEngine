@@ -282,7 +282,15 @@ namespace Stulu {
 		}
 		const std::string name = (m_nameSpace.empty() ? "" : m_nameSpace + ".") + m_className + ":" + func;
 		if (m_functions.find(name) != m_functions.end()) {
-			return m_assembly->invokeFunction(m_functions.at(name), isStatic ? NULL : m_objectPtr, args);
+			try {
+				return m_assembly->invokeFunction(m_functions.at(name), isStatic ? NULL : m_objectPtr, args);
+			}
+			catch (char* e) {
+				//catch exception from the compiler which will break the program
+				//like 0xC0000005 (Acces violation)
+				CORE_ERROR("Uncaught Exception in {1}\n{0}", e, mono_method_full_name(m_functions.at(name).methodPtr, 1));
+				return nullptr;
+			}
 		}
 		CORE_ERROR("Function not found: {0}", name);
 		return nullptr;

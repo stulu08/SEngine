@@ -17,8 +17,8 @@ public:
 			return finish;
 
 		static const glm::mat4 view = glm::inverse(Stulu::Math::createMat4(glm::vec3(.0f, .0f, -5.0f), glm::vec3(1.0f)));
-		if (aspectRatio != Stulu::Application::getWidth() / Stulu::Application::getHeight()) {
-			aspectRatio = Stulu::Application::getWidth() / Stulu::Application::getHeight();
+		if (aspectRatio != (float)Stulu::Application::getWidth() / (float)Stulu::Application::getHeight()) {
+			aspectRatio = (float)Stulu::Application::getWidth() / (float)Stulu::Application::getHeight();
 			cam->setProjection(-aspectRatio * zoomLevel, aspectRatio * zoomLevel, -zoomLevel, zoomLevel, .01f, 100.0f);
 		}
 

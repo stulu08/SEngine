@@ -3,6 +3,7 @@
 
 #include "MonoObjectInstance.h"
 
+
 namespace Stulu {
 	char* constStringToCharPtr(const std::string& src) {
 		return strcpy(new char[src.length() + 1], src.c_str());
@@ -101,18 +102,50 @@ namespace Stulu {
 		CORE_ERROR("Could not create Monofunction from {0}{1}", m_nameSpace, classStr);
 		return function;
 	}
-
+	struct MonoMethodExecuterArgs {
+		MonoMethod* method;
+		void* object;
+		void** args;
+		MonoObject* ex = nullptr;
+	};
+	//object unwinding or something like this exists
+	void MonoexecuteMethodSafe(MonoMethodExecuterArgs args) {
+#ifdef ST_PLATFORM_WINDOWS
+		__try {
+			mono_runtime_invoke(args.method, args.object, args.args, &args.ex);
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			if (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) {
+				CORE_ERROR("Exception: Acces violation")
+			}
+			else {
+				CORE_ERROR("Exception: {0}", GetExceptionCode());
+			}
+		}
+#else
+		mono_runtime_invoke(args.method, args.object, args.args, &args.ex);
+#endif
+		
+	}
 	MonoObject* ScriptAssembly::invokeFunction(const MonoFunction& function, void* obj, void** args) const {
 		if (!function.methodPtr)
 			return nullptr;
 		MonoObject* ex = nullptr;
-		MonoObject* re = mono_runtime_invoke(function.methodPtr, obj, args ? args : NULL, &ex);
+		MonoObject* re = nullptr;
+		//ex = mono_runtime_invoke(function.methodPtr, obj, args, &ex);
+
+		MonoMethodExecuterArgs execArgs = MonoMethodExecuterArgs();
+		execArgs.method = function.methodPtr;
+		execArgs.object = obj;
+		execArgs.args = args;
+		execArgs.ex = ex;
 		
+		MonoexecuteMethodSafe(execArgs);
+
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);
 			m_errorCallBack(mono_string_to_utf8(excM), function.methodPtr);
 		}
-
 		return re;
 	}
 	MonoObject* ScriptAssembly::invokeFunction(MonoMethod* function, void* obj, void** args) const {
@@ -120,13 +153,13 @@ namespace Stulu {
 			return nullptr;
 
 		MonoObject* ex = nullptr;
-		MonoObject* re = mono_runtime_invoke(function, obj, args ? args : NULL, &ex);
-		
+		MonoObject* re = nullptr;
+		re = mono_runtime_invoke(function, obj, args, &ex);
+
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);
 			m_errorCallBack(mono_string_to_utf8(excM), function);
 		}
-
 		return re;
 	}
 
