@@ -17,9 +17,17 @@ workspace "Stulu"
 		"Editor/premake5.lua",
 		"Stulu/premake5.lua",
 		"README.md"
-		
 	}
 	architecture "x64"
+
+	filter "configurations:Debug"
+		defines     "_DEBUG"
+
+	filter "configurations:Release or Dist"
+		defines     "NDEBUG"
+
+	filter { "system:windows", "configurations:Dist", "toolset:not mingw" }
+		flags		{ "LinkTimeOptimization" }
 
 staticBuild = true
 staticRuntime = true
