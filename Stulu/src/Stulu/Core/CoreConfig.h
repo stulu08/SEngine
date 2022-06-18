@@ -30,7 +30,3 @@
 	#define ST_PROFILING_RENDERDATA 1
 	#define ST_ENABLE_ASSERTS_ONLY_LOGGING 1
 #endif
-//for physX
-#ifndef ST_DEBUG
-	#define NDEBUG
-#endif

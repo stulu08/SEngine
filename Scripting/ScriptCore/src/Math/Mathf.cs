@@ -1,6 +1,9 @@
 ﻿using System;
 
 namespace Stulu {
+    /// <summary>
+    /// Contains Floating Point math functions
+    /// </summary>
 	public static class Mathf {
         /// <summary>
         /// Just 0

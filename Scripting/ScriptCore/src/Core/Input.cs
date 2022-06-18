@@ -1,4 +1,8 @@
-﻿namespace Stulu {
+﻿#pragma warning disable 1591
+namespace Stulu {
+	/// <summary>
+	/// Get Input data from the engine
+	/// </summary>
 	public static class Input {
 		/// <summary>
 		/// True during the frame the user starts pressing down the key
@@ -7,26 +11,47 @@
 		/// <summary>
 		/// True during the frame the user starts pressing down the key
 		/// </summary>
+		public static bool getKeyDown(int keycode) => InternalCalls.input_getKeyDown((uint)keycode);
+		/// <summary>
+		/// True during the frame the user releases the key
+		/// </summary>
 		public static bool getKeyUp(KeyCode keycode) => InternalCalls.input_getKeyUp((uint)keycode);
+		/// <summary>
+		/// True during the frame the user releases the key
+		/// </summary>
+		public static bool getKeyUp(int keycode) => InternalCalls.input_getKeyUp((uint)keycode);
 		/// <summary>
 		/// True if the key is pressed
 		/// </summary>
 		public static bool getKey(KeyCode keycode) => InternalCalls.input_getKey((uint)keycode);
 		/// <summary>
-		/// True during the frame the user starts pressing down the button
+		/// True if the key is pressed
 		/// </summary>
-		public static bool getMouseButtonDown(MouseButton keycode) => InternalCalls.input_getMouseDown((uint)keycode);
-		public static bool getMouseButtonDown(int keycode) => InternalCalls.input_getMouseDown((uint)keycode);
+		public static bool getKey(int keycode) => InternalCalls.input_getKey((uint)keycode);
 		/// <summary>
 		/// True during the frame the user starts pressing down the button
 		/// </summary>
-		public static bool getMouseButtonUp(MouseButton keycode) => InternalCalls.input_getMouseUp((uint)keycode);
-		public static bool getMouseButtonUp(int keycode) => InternalCalls.input_getMouseUp((uint)keycode);
+		public static bool getMouseButtonDown(MouseButton button) => InternalCalls.input_getMouseDown((uint)button);
+		/// <summary>
+		/// True during the frame the user starts pressing down the button
+		/// </summary>
+		public static bool getMouseButtonDown(int button) => InternalCalls.input_getMouseDown((uint)button);
+		/// <summary>
+		/// True during the frame the user releases the button
+		/// </summary>
+		public static bool getMouseButtonUp(MouseButton button) => InternalCalls.input_getMouseUp((uint)button);
+		/// <summary>
+		/// True during the frame the user releases the button
+		/// </summary>
+		public static bool getMouseButtonUp(int button) => InternalCalls.input_getMouseUp((uint)button);
 		/// <summary>
 		/// True if the button is pressed
 		/// </summary>
-		public static bool getMouseButton(MouseButton keycode) => InternalCalls.input_getMouse((uint)keycode);
-		public static bool getMouseButton(int keycode) => InternalCalls.input_getMouse((uint)keycode);
+		public static bool getMouseButton(MouseButton button) => InternalCalls.input_getMouse((uint)button);
+		/// <summary>
+		/// True if the button is pressed
+		/// </summary>
+		public static bool getMouseButton(int button) => InternalCalls.input_getMouse((uint)button);
 		/// <summary>
 		/// Sets the Cursor mode
 		/// </summary>
@@ -50,34 +75,115 @@
 			return (Input.getKey(positive) ? 1f : 0f) - (Input.getKey(negative) ? 1f : 0f);
 		}
 		/// <summary>
-		/// Gets a 2D axis between two keys
+		/// Gets a 2D axis between two keys for each direction
 		/// </summary>
 		public static Vector2 getAxis(KeyCode xPositive, KeyCode xNegative, KeyCode yPositive, KeyCode yNegative) {
 			return new Vector2(getAxis(xPositive, xNegative), getAxis(yPositive, yNegative));
 		}
 		/// <summary>
-		/// Gets a 3D axis between two keys
+		/// Gets a 3D axis between two keys for each direction
 		/// </summary>
 		public static Vector3 getAxis(KeyCode xPositive, KeyCode xNegative, KeyCode yPositive, KeyCode yNegative,KeyCode zPositive, KeyCode zNegative) {
 			return new Vector3(getAxis(xPositive, xNegative), getAxis(yPositive, yNegative), getAxis(zPositive, zNegative));
 		}
 	}
-	public enum CursorMode { Normal = 0, Hidden = 1, Disabled = 2 };
-
-	public enum MouseButton {
-		Left = 0,
-		Right = 1,
-		Middle = 2,
-		Last = 7,
+	/// <summary>
+	/// How the cursor behaves
+	/// </summary>
+	public enum CursorMode { 
+		/// <summary>
+		/// Normal Cursor
+		/// </summary>
+		Normal = 0, 
+		/// <summary>
+		/// Only Hidden but can interacts with other stuff
+		/// </summary>
+		Hidden = 1, 
+		/// <summary>
+		/// Hidden and disabled, but you can still get the movement
+		/// </summary>
+		Disabled = 2 
 	};
+	/// <summary>
+	/// Defines values that specify the buttons on a mouse device
+	/// </summary>
+	public enum MouseButton {
+		/// <summary>
+		/// Left Mouse button
+		/// </summary>
+		Button1 = 0,
+		/// <summary>
+		/// Right Mouse button
+		/// </summary>
+		Button2 = 1,
+		/// <summary>
+		/// Middle Mouse button
+		/// </summary>
+		Button3 = 2,
+		/// <summary>
+		/// The side button in the back
+		/// </summary>
+		Button4 = 3,
+		/// <summary>
+		/// The side button in the front
+		/// </summary>
+		Button5 = 4,
+
+		/// <summary>
+		/// Left Mouse button
+		/// </summary>
+		Left = Button1,
+		/// <summary>
+		/// Right Mouse button
+		/// </summary>
+		Right = Button2,
+		/// <summary>
+		/// Middle Mouse button
+		/// </summary>
+		Middle = Button3,
+		/// <summary>
+		/// The side button in the back
+		/// </summary>
+		X1 = Button4,
+		/// <summary>
+		/// The side button in the back
+		/// </summary>
+		SideButtonBack = Button4,
+		/// <summary>
+		/// The side button in the front
+		/// </summary>
+		X2 = Button5,
+		/// <summary>
+		/// The side button in the front
+		/// </summary>
+		SideButtonFront = Button5,
+	};
+	/// <summary>
+	/// Defines values that specify the keys on a keyboard device
+	/// </summary>
 	public enum KeyCode {
 		NONE = 0,
 		Space = 32,
-		Apostroph = 39, /* ' */
-		Comma = 44, /* , */
-		Minus = 45, /* - */
-		Period = 46, /* . */
-		Slash = 47, /* / */
+		/// <summary>
+		/// '
+		/// </summary>
+		Apostroph = 39,
+		/// <summary>
+		/// ,
+		/// </summary>
+		Comma = 44,
+		/// <summary>
+		/// -
+		/// </summary>
+		Minus = 45,
+		/// <summary>
+		/// .
+		/// </summary>
+		Period = 46,
+		/// <summary>
+		/// /
+		/// </summary>
+		Slash = 47,
 		D0 = 48,
 		D1 = 49,
 		D2 = 50,
@@ -88,8 +194,14 @@
 		D7 = 55,
 		D8 = 56,
 		D9 = 57,
-		Semicolon = 59, /* ; */
-		Equal = 61, /* = */
+		/// <summary>
+		/// ;
+		/// </summary>
+		Semicolon = 59,
+		/// <summary>
+		/// =
+		/// </summary>
+		Equal = 61,
 
 		A = 65,
 		B = 66,
@@ -117,13 +229,30 @@
 		X = 88,
 		Y = 89,
 		Z = 90,
-
-		LeftBracket = 91, /* [ */
-		Backslash = 92, /* \ */
-		RightBracket = 93, /* ] */
-		GraveAccent = 96, /* ` */
-		World1 = 161, /* non-US #1 */
-		World2 = 162, /* non-US #2 */
+		/// <summary>
+		/// [
+		/// </summary>
+		LeftBracket = 91,
+		/// <summary>
+		/// \
+		/// </summary>
+		Backslash = 92,
+		/// <summary>
+		/// ]
+		/// </summary>
+		RightBracket = 93,
+		/// <summary>
+		/// `
+		/// </summary>
+		GraveAccent = 96,
+		/// <summary>
+		/// non-US #1
+		/// </summary>
+		World1 = 161,
+		/// <summary>
+		/// non-US #2
+		/// </summary>
+		World2 = 162,
 
 		/* Function keys */
 		Escape = 256,

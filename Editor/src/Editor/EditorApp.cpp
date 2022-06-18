@@ -41,7 +41,7 @@ namespace Stulu {
 
 		//copy assembly files to project
 		for (std::filesystem::directory_entry dir : std::filesystem::directory_iterator("data/Managed")) {
-			if (dir.path().extension().string() == ".dll") {
+			if (dir.path().extension().string() == ".dll" || dir.path().extension().string() == ".xml"/*c# doc file*/) {
 				if (!std::filesystem::exists(s_project.dataPath)) {
 					std::filesystem::create_directory(s_project.dataPath);
 				}

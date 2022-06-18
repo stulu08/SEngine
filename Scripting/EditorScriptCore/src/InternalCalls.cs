@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 
 namespace Stulu.Editor {
-	public static class InternalCalls {
+	internal static class InternalCalls {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static int gui_Begin(string header);
 		[MethodImpl(MethodImplOptions.InternalCall)]

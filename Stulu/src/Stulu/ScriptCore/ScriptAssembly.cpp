@@ -106,41 +106,51 @@ namespace Stulu {
 		MonoMethod* method;
 		void* object;
 		void** args;
-		MonoObject* ex = nullptr;
+		MonoObject** ex = nullptr;
 	};
-	//object unwinding or something like this exists
-	void MonoexecuteMethodSafe(MonoMethodExecuterArgs args) {
+//object unwinding or something like this exists
 #ifdef ST_PLATFORM_WINDOWS
-		__try {
-			mono_runtime_invoke(args.method, args.object, args.args, &args.ex);
+	static int filterEXCEPTION(unsigned long code) {
+		switch (code) {
+		case EXCEPTION_ACCESS_VIOLATION:
+			return EXCEPTION_EXECUTE_HANDLER;
+		default:
+			return EXCEPTION_CONTINUE_SEARCH;
 		}
-		__except (EXCEPTION_EXECUTE_HANDLER) {
-			if (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) {
-				CORE_ERROR("Exception: Acces violation")
-			}
-			else {
-				CORE_ERROR("Exception: {0}", GetExceptionCode());
-			}
-		}
-#else
-		mono_runtime_invoke(args.method, args.object, args.args, &args.ex);
-#endif
-		
 	}
+	MonoObject* MonoexecuteMethodSafe(MonoMethodExecuterArgs* args) {
+		__try {
+			return mono_runtime_invoke(args->method, args->object, args->args, args->ex);
+		}
+		__except (filterEXCEPTION(GetExceptionCode())) {
+			CORE_ERROR("Mono C++ runtime exception\n{0}\nCaused while executing {1}", GetExceptionCode(), mono_method_full_name(args->method, 1));
+		}
+		return nullptr;
+	}
+#else
+	MonoObject* MonoexecuteMethodSafe(MonoMethodExecuterArgs* args) {
+		try {
+			return mono_runtime_invoke(args->method, args->object, args->args, args->ex);
+		}
+		catch (std::exception& e) {
+			CORE_ERROR("Mono C++ runtime exception\n{0}\nCaused while executing {1}", e.what(), mono_method_full_name(args.method, 1));
+		}
+		return nullptr;
+	}
+#endif
 	MonoObject* ScriptAssembly::invokeFunction(const MonoFunction& function, void* obj, void** args) const {
 		if (!function.methodPtr)
 			return nullptr;
 		MonoObject* ex = nullptr;
 		MonoObject* re = nullptr;
-		//ex = mono_runtime_invoke(function.methodPtr, obj, args, &ex);
 
 		MonoMethodExecuterArgs execArgs = MonoMethodExecuterArgs();
 		execArgs.method = function.methodPtr;
 		execArgs.object = obj;
 		execArgs.args = args;
-		execArgs.ex = ex;
+		execArgs.ex = &ex;
 		
-		MonoexecuteMethodSafe(execArgs);
+		re = MonoexecuteMethodSafe(&execArgs);
 
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);
@@ -154,7 +164,14 @@ namespace Stulu {
 
 		MonoObject* ex = nullptr;
 		MonoObject* re = nullptr;
-		re = mono_runtime_invoke(function, obj, args, &ex);
+		
+		MonoMethodExecuterArgs execArgs = MonoMethodExecuterArgs();
+		execArgs.method = function;
+		execArgs.object = obj;
+		execArgs.args = args;
+		execArgs.ex = &ex;
+
+		re = MonoexecuteMethodSafe(&execArgs);
 
 		if (ex) {
 			MonoString* excM = mono_object_to_string(ex, nullptr);

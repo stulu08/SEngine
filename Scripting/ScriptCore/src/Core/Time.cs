@@ -1,13 +1,27 @@
 ﻿namespace Stulu {
+	/// <summary>
+	/// You can acces time information with it
+	/// </summary>
 	public static class Time {
+		/// <summary>
+		/// The duration of the last update in seconds
+		/// </summary>
 		static public float frameTime => InternalCalls.time_getFrameTime();
-		//frame time scaled by Scale
+		/// <summary>
+		/// The duration of the last update in seconds scaled by Time.Scale
+		/// </summary>
 		static public float deltaTime => InternalCalls.time_getDeltaTime();
-		//time since scene runtime started
+		/// <summary>
+		/// The time passed since the scene started
+		/// </summary>
 		static public float time => InternalCalls.time_getTime();
-		//time since application startup
+		/// <summary>
+		/// The time passed since the application started
+		/// </summary>
 		static public float applicationRuntime => InternalCalls.time_getApplicationRuntime();
-		//deltatime is multiplied with this but not runtime
+		/// <summary>
+		/// The Scale how fast time passes, affects only Time.deltaTime
+		/// </summary>
 		static public float Scale { get => InternalCalls.time_getScale(); set => InternalCalls.time_setScale(value); }
 	}
 }

@@ -3,10 +3,9 @@ project "ScriptCore"
 	kind "SharedLib"
 	language "C#"
 	targetname "Stulu.ScriptCore"
-	
 	namespace "Stulu"
 	framework "4.8"
-	
+	generate_doc "on"
 	targetdir ("ScriptCore/bin/" .. outputdir .. "")
 	objdir ("ScriptCore/bin-int/" .. outputdir .. "")
 	files
@@ -43,10 +42,9 @@ project "EditorScriptCore"
 	kind "SharedLib"
 	language "C#"
 	targetname "Stulu.EditorScriptCore"
-	
 	namespace "Stulu.Editor"
 	framework "4.8"
-	
+	generate_doc "on"
 	targetdir ("EditorScriptCore/bin/" .. outputdir .. "")
 	objdir ("EditorScriptCore/bin-int/" .. outputdir .. "")
 	files

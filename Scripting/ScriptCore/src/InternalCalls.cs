@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 
 namespace Stulu {
-	public static class InternalCalls {
+	static internal class InternalCalls {
 		//Stulu/Core/Application.h
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void application_exit(int code);
