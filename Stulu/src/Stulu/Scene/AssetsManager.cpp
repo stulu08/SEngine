@@ -2,7 +2,8 @@
 #include "AssetsManager.h"
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Scene/Model.h"
-
+#include "Stulu/Scene/Components/Camera.h"
+#include <Stulu/Core/Resources.h>
 
 namespace Stulu {
 	std::unordered_map<UUID, Asset> AssetsManager::assets;
@@ -49,14 +50,15 @@ namespace Stulu {
 		case Stulu::AssetType::Unknown:
 			update(uuid, { type,path,path,uuid });
 			break;
+			//could have used scope for types in the assetsmanager but i like the word ref more
 		case Stulu::AssetType::Texture2D:
-			update(uuid, { type,Texture2D::create(path,getProperity<TextureSettings>(path,"format")),path,uuid});
-			break;
-		case Stulu::AssetType::Texture:
-			update(uuid, { type,Texture2D::create(path),path,uuid });
+			update(uuid, { type,static_cast<Ref<Texture>>(Texture2D::create(path,getProperity<TextureSettings>(path,"format"))),path,uuid});
 			break;
 		case Stulu::AssetType::SkyBox:
-			update(uuid, { type,SkyBox::create(path),path,uuid });
+			update(uuid, { type,static_cast<Ref<Texture>>(SkyBox::create(path)),path,uuid });
+			break;
+		case Stulu::AssetType::RenderTexture:
+			update(uuid, { type, Resources::getBlackTexture(), path, uuid });
 			break;
 		case Stulu::AssetType::Model:
 			createMeshesFromModel({ type,0,path,uuid });
@@ -65,7 +67,7 @@ namespace Stulu {
 			update(uuid, { type,path,path,uuid });
 			break;
 		case Stulu::AssetType::Material:
-			update(uuid, { type,Material::fromDataStringPath(path,uuid),path,uuid });
+			update(uuid, { type,Material::create(path,uuid),path,uuid });
 			break;
 		case Stulu::AssetType::Shader:
 			update(uuid, { type,Shader::create(path),path,uuid });
@@ -105,55 +107,29 @@ namespace Stulu {
 	}
 
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
-		bool update = true;
 		switch (data.type)
 		{
 		case Stulu::AssetType::Texture2D:
-			std::any_cast<Ref<Texture2D>>(data.data)->uuid = uuid;
+			std::any_cast<Ref<Texture>>(data.data)->uuid = uuid;
 			break;
-		case Stulu::AssetType::Texture:
-			std::any_cast<Ref<Texture2D>>(data.data)->uuid = uuid;
+		case Stulu::AssetType::RenderTexture:
+			std::any_cast<Ref<Texture>>(data.data)->uuid = uuid;
 			break;
 		case Stulu::AssetType::SkyBox:
-			std::any_cast<Ref<SkyBox>>(data.data)->uuid = uuid;
+			std::any_cast<Ref<Texture>>(data.data)->uuid = uuid;
 			break;
 		case Stulu::AssetType::Mesh:
-			std::any_cast<MeshAsset>(data.data).uuid = uuid;
+			std::any_cast<const MeshAsset&>(data.data).uuid = uuid;
 			break;
 		case Stulu::AssetType::Material:
-			std::any_cast<Material>(data.data).m_uuid = uuid;
-			break;
-		case Stulu::AssetType::Shader:
-			//check if shader name is present
-			for (auto& i : assets) {
-				if (i.second.type != AssetType::Shader)
-					continue;
-				if (std::any_cast<Ref<Shader>>(i.second.data)->getName() == std::any_cast<Ref<Shader>>(data.data)->getName()) {
-					CORE_ERROR("Shader {0} is allready present, choose another shader name", std::any_cast<Ref<Shader>>(data.data)->getName());
-					update = false;
-					break;
-				}
-			}
-			//change the material which uses the shader
-			if(update)
-			for (auto& i : assets) {
-				if (i.second.type != AssetType::Material)
-					continue;
-				if (std::any_cast<Material&>(i.second.data).m_shader->getName() == std::any_cast<Ref<Shader>>(data.data)->getName()) {
-					std::any_cast<Material&>(i.second.data).m_shader = std::any_cast<Ref<Shader>>(data.data);
-					std::any_cast<Material&>(i.second.data).m_shaderUuid = uuid;
-					std::any_cast<Material&>(i.second.data).toDataStringFile(i.second.path);
-					std::any_cast<Material&>(i.second.data).bind();
-				}
-			}
+			std::any_cast<Ref<Material>>(data.data)->m_uuid = uuid;
 			break;
 		}
 		//update meta
 		if (FileExists(data.path)) {
 			createMeta(uuid, data.path, data.type);
 		}
-		if(update)
-			assets[uuid] = data;
+		assets[uuid] = data;
 	}
 
 	void AssetsManager::remove(const UUID& uuid, bool deleteFile, bool deleteMetaFile) {
@@ -170,6 +146,12 @@ namespace Stulu {
 			catch (std::exception ex) {
 				CORE_ERROR("Couldn't delete Files/Directory with UUID: {0}\n	:{1}", uuid, ex.what())
 			}
+			Asset& asset = assets[uuid];
+
+			if (asset.type == AssetType::Material) {
+				std::any_cast<Ref<Material>>(asset.data).reset();
+			}
+			asset.data.reset();
 			assets.erase(uuid);
 		}
 	}
@@ -217,6 +199,8 @@ namespace Stulu {
 			return AssetType::Texture2D;
 		if (extension == ".skybox" || extension == ".hdr")
 			return AssetType::SkyBox;
+		if (extension == ".srt")
+			return AssetType::RenderTexture;
 		else if (extension == ".glb" || extension == ".gltf" || extension == ".obj" || extension == ".fbx")
 			return AssetType::Model;
 		else if (extension == ".mat")
@@ -256,30 +240,37 @@ namespace Stulu {
 		return add(path);
 	}
 
-	void AssetsManager::loadAllFiles(const std::string& directory) {
+	void AssetsManager::loadAllFiles(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading all files from directory: {0}", directory);
 		//at first shaders and textures need to be loaded for the materials and other
-		loadShaders(directory);
-		loadTextures(directory);
-		loadMaterials(directory);
-		loadDirectory(directory);
+		loadShaders(directory, loadNewFiles);
+		loadTextures(directory, loadNewFiles);
+		loadMaterials(directory, loadNewFiles);
+		loadDirectory(directory, loadNewFiles);
 	}
-	void AssetsManager::loadDirectory(const std::string& directory) {
+	void AssetsManager::loadDirectory(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Files: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
-				addDirectory(path.string());
+				if (FileExists(path.string() + ".meta"))
+					addDirectory(path.string());
+				else if (loadNewFiles)
+					addDirectory(path.string());
 				loadDirectory(path.string());
 				continue;
 			}
-			if (path.extension() != ".meta")
-				add(path.string());
+			if (path.extension() != ".meta") {
+				if (FileExists(path.string() + ".meta"))
+					add(path.string());
+				else if (loadNewFiles)
+					add(path.string());
+			}
 		}
 	}
-	void AssetsManager::loadShaders(const std::string& directory) {
+	void AssetsManager::loadShaders(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Shaders: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
@@ -288,11 +279,16 @@ namespace Stulu {
 				loadShaders(path.string());
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::Shader)
-				add(path.string());
+			if (assetTypeFromExtension(path.extension().string()) == AssetType::Shader) {
+				if (FileExists(path.string() + ".meta"))
+					add(path.string());
+				else if(loadNewFiles)
+					add(path.string());
+			}
+				
 		}
 	}
-	void AssetsManager::loadTextures(const std::string& directory) {
+	void AssetsManager::loadTextures(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Textures: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
@@ -301,8 +297,12 @@ namespace Stulu {
 				loadTextures(path.string());
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::Texture || assetTypeFromExtension(path.extension().string()) == AssetType::Texture2D)
-				add(path.string());
+			if ((assetTypeFromExtension(path.extension().string()) == AssetType::Texture2D)) {
+				if (FileExists(path.string() + ".meta"))
+					add(path.string());
+				else if (loadNewFiles)
+					add(path.string());
+			}
 		}
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
 			const auto& path = dir.path();
@@ -310,11 +310,16 @@ namespace Stulu {
 				loadTextures(path.string());
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::SkyBox)
-				add(path.string());
+			if (assetTypeFromExtension(path.extension().string()) == AssetType::SkyBox) {
+				if (FileExists(path.string() + ".meta"))
+					add(path.string());
+				else if (loadNewFiles)
+					add(path.string());
+			}
+				
 		}
 	}
-	void AssetsManager::loadMaterials(const std::string& directory) {
+	void AssetsManager::loadMaterials(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Material: {0}", directory);
 		for (auto& dir : std::filesystem::directory_iterator(directory)) {
@@ -323,21 +328,27 @@ namespace Stulu {
 				loadMaterials(path.string());
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::Material)
-				add(path.string());
+			if (assetTypeFromExtension(path.extension().string()) == AssetType::Material) {
+				if (FileExists(path.string() + ".meta"))
+					add(path.string());
+				else if (loadNewFiles)
+					add(path.string());
+			}
 		};
 	}
 	void AssetsManager::reloadShaders(const std::string& directory) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Reloading Shaders: {0}", directory);
-		for (auto& dir : std::filesystem::directory_iterator(directory)) {
-			const auto& path = dir.path();
-			if (dir.is_directory()) {
-				reloadShaders(path.string());
+		for (auto& [uuid, asset] : assets) {
+			if (asset.type != AssetType::Shader) {
 				continue;
 			}
-			if (assetTypeFromExtension(path.extension().string()) == AssetType::Shader)
-				addOrReload(path.string());
+			if (FileExists(asset.path)) {
+				CORE_TRACE("Reloading Shader: {0}", asset.path);
+
+				Ref<Shader>& shader = std::any_cast<Ref<Shader>&>(asset.data);
+				shader->reload(asset.path);
+			}
 		}
 	}
 	UUID AssetsManager::getModelFromMesh(UUID mesh) {
@@ -363,7 +374,7 @@ namespace Stulu {
 			if (asset.type == AssetType::Model) {
 				Model& model = std::any_cast<Model&>(asset.data);
 				for (auto& mats : model.getMaterials()) {
-					if (mats.second.m_uuid == material)
+					if (mats.second->m_uuid == material)
 						return uuid;
 				}
 			}
@@ -427,9 +438,9 @@ namespace Stulu {
 			return _createMeshesFromModel(asset, model);
 		}
 		for (auto& [uuid, index] : materialUuids) {
-			Material& m = model.getMaterials()[index];
-			m.m_uuid = uuid;
-			m.isReadonly = true;
+			Ref<Material>& m = model.getMaterials()[index];
+			m->m_uuid = uuid;
+			m->isReadonly = true;
 			update(uuid, { AssetType::Material, m,"",uuid });
 		}
 
@@ -440,7 +451,7 @@ namespace Stulu {
 					mA.parentMeshAsset = i.first;
 			}
 			for (int32_t mId : m.materialIDs) {
-				m.materials.push_back(model.getMaterials()[mId].m_uuid);
+				m.materials.push_back(model.getMaterials()[mId]->m_uuid);
 			}
 			m.uuid = i.first;
 			update(i.first, { AssetType::Mesh, m, "",i.first});

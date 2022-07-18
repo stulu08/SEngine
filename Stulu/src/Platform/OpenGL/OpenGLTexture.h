@@ -8,6 +8,7 @@ namespace Stulu {
 
 	class STULU_API OpenGLTexture2D : public Texture2D {
 	public:
+		OpenGLTexture2D(uint32_t openglID, uint32_t width, uint32_t height, const TextureSettings& m_settings);
 		OpenGLTexture2D(uint32_t width, uint32_t height);
 		OpenGLTexture2D(const std::string& path, const TextureSettings& settings = TextureSettings());
 		virtual ~OpenGLTexture2D();
@@ -16,7 +17,8 @@ namespace Stulu {
 		virtual uint32_t getWidth() const override { return m_width; }
 		virtual uint32_t getHeight() const override { return m_height; }
 		virtual TextureSettings& getSettings() override { return m_settings; }
-		virtual void setData(void* data, uint32_t size) const override;
+		virtual void setData(void* data, uint32_t size) override;
+		virtual void setPixel(uint32_t hexData, uint32_t posX, uint32_t posY) override;
 		virtual void update() override;
 		virtual bool operator == (const Texture& other) const override;
 		virtual operator int() override { return m_rendererID; }

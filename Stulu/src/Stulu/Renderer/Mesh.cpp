@@ -70,8 +70,57 @@ namespace Stulu {
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
-	const Mesh Mesh::copyAndLimit(const Ref<Mesh>& srcMesh, uint64_t vertLimit) {
-		if (vertLimit == 0)
+	const Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) {
+		if (vertLimit == 0 || vertLimit > getVerticesCount())
+			vertLimit = getVerticesCount();
+
+		uint32_t skipCount = (uint32_t)glm::ceil(getVerticesCount() / vertLimit);
+
+		Vertex furthest = Vertex{ glm::vec3(.0f),glm::vec3(.0f),glm::vec2(.0f) };
+
+		float dist = 0;
+		if (getVertices().size() > 0)
+			dist = glm::distance(getVertices()[0].pos, pos);
+
+		for (int i = 0, j = 0; i < getVerticesCount(); i += skipCount) {
+			if (j >= vertLimit)
+				break;
+			if (dist < glm::distance(getVertices()[i].pos, pos)) {
+				furthest = getVertices()[i];
+				dist = glm::distance(getVertices()[i].pos, pos);
+			}
+			j++;
+		}
+		return furthest;
+	}
+	glm::vec3 Mesh::getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t vertLimit) {
+		if (vertLimit == 0 || vertLimit > getVerticesCount())
+			vertLimit = getVerticesCount();
+
+		uint32_t skipCount = (uint32_t)glm::ceil(getVerticesCount() / vertLimit);
+
+		float maxX = 0;
+		float maxY = 0;
+		float maxZ = 0;
+
+		for (int i = 0, j = 0; i < getVerticesCount(); i += skipCount) {
+			if (j >= vertLimit)
+				break;
+			if (maxX < getVertices()[i].pos.x) {
+				maxX = getVertices()[i].pos.x;
+			}
+			if (maxY < getVertices()[i].pos.y) {
+				maxY = getVertices()[i].pos.y;
+			}
+			if (maxZ < getVertices()[i].pos.z) {
+				maxZ = getVertices()[i].pos.z;
+			}
+			j++;
+		}
+		return { maxX,maxY,maxZ };
+	}
+	Mesh Mesh::copyAndLimit(const Ref<Mesh>& srcMesh, uint64_t vertLimit) {
+		if (vertLimit == 0 || vertLimit > srcMesh->getVerticesCount())
 			vertLimit = srcMesh->getVerticesCount();
 
 		Ref<Mesh> mesh = createRef<Mesh>(Mesh::combine(srcMesh));

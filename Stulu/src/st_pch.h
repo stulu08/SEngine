@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Stulu/Core/CoreConfig.h"
+#include "Stulu/Core/PlatformConfig.h"
 #include "Stulu/Core/Log.h"
 #include "Stulu/Debug/Instrumentor.h"
 #include "Stulu/Debug/RenderDataProfiler.h"
@@ -46,4 +48,5 @@
 	#include <sys/types.h>
 	#include <sys/sysinfo.h>
 	#include <unistd.h>
+	#include <linux/limits.h>
 #endif

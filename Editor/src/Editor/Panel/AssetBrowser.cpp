@@ -32,7 +32,7 @@ namespace Stulu {
 		if (ImGui::Begin("Assets"), open) {
 			if (m_path != getEditorProject().assetPath) {
 				if (ImGui::Button("<-")) {
-					if (m_path.parent_path() == std::filesystem::path("assets")) {
+					if (m_path.parent_path() == std::filesystem::path(Application::getEngineAssetDir())) {
 						m_path = getEditorProject().assetPath;
 					}
 					else {
@@ -99,6 +99,11 @@ namespace Stulu {
 							createPopUpFileName = "New Scene.scene";
 							createPopUpFileContent = EditorResources::getDefaultSceneSource();
 						}
+						if (ImGui::MenuItem("Render Texture")) {
+							openCreatePopUp = true;
+							createPopUpFileName = "New Render Texture.srt";
+							createPopUpFileContent = "Nothing to see here";
+						}
 						if (ImGui::MenuItem("Shader")) {
 							openCreatePopUp = true;
 							createPopUpFileName = "New Shader.glsl";
@@ -159,10 +164,11 @@ namespace Stulu {
 				drawDirectory(getEditorProject().assetPath, true);
 			}
 			if(ImGui::CollapsingHeader("Engine Assets")) {
-				drawDirectory("assets/SkyBox", true);
-				drawDirectory("assets/Shaders", true);
-				drawDirectory("assets/Textures", true);
-				drawDirectory("assets/Meshes", true);
+				std::string dir = Application::getEngineAssetDir();
+				drawDirectory(dir + "/SkyBox", true);
+				drawDirectory(dir + "/Shaders", true);
+				drawDirectory(dir + "/Meshes", true);
+				drawDirectory(dir + "/Textures", true);
 			}
 		}
 		ImGui::End();
@@ -245,8 +251,8 @@ namespace Stulu {
 					if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_SpanFullWidth)) {
 						auto& matVec = std::any_cast<Model&>(selected.data).getMaterials();
 						for (auto& [index, mat] : matVec) {
-							if (mat.getName().c_str()) {
-								std::string name = "Material: " + mat.getName();
+							if (mat->getName().c_str()) {
+								std::string name = "Material: " + mat->getName();
 
 								ImGui::Text(name.c_str());
 								ImGui::PushID(name.c_str());
@@ -258,7 +264,7 @@ namespace Stulu {
 								ImGui::PushID(name.c_str());
 							}
 							if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-								ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str(), &mat.getUUID(), sizeof(UUID));
+								ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str(), &mat->getUUID(), sizeof(UUID));
 								ImGui::EndDragDropSource();
 							}
 							ImGui::PopID();
@@ -269,27 +275,15 @@ namespace Stulu {
 				else if (selected.type == AssetType::Material) {
 					ComponentsRender::drawMaterialEdit("Material", selected.uuid, false);
 				}
-				else if (selected.type == AssetType::Texture) {
-					int type = (int)selected.type - 1;
-					if (ComponentsRender::drawComboControl("Texture type", type, "Texture2D\0Texture")) {
-						selected.type = AssetType::Texture2D;
-						AssetsManager::update(selected.uuid, selected);
-					}
-				}
 				else if (selected.type == AssetType::Texture2D) {
 					int type = (int)selected.type - 1;
-					if (ComponentsRender::drawComboControl("Texture type", type, "Texture2D\0Texture")) {
-						selected.type = AssetType::Texture;
-						AssetsManager::update(selected.uuid, selected);
-					}
-					else {
-						ComponentsRender::drawVector2Control("Tilling", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().tiling);
-						ComponentsRender::drawComboControl("Format", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().format, "RGBA\0RGB\0RG\0A\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0Auto");
-						ComponentsRender::drawComboControl("Wrap Mode", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings().wrap, "Clamp\0Repeat");
-						if (ImGui::Button("Update")) {
-							std::any_cast<Ref<Texture2D>>(selected.data)->update();
-							AssetsManager::setProperity<TextureSettings>(selected.path, std::pair<std::string, TextureSettings> {"format", std::any_cast<Ref<Texture2D>>(selected.data)->getSettings()});
-						}
+					Ref<Texture2D>& texture = std::dynamic_pointer_cast<Texture2D>(std::any_cast<Ref<Texture>&>(selected.data));
+					ComponentsRender::drawVector2Control("Tilling", texture->getSettings().tiling);
+					ComponentsRender::drawComboControl("Format", texture->getSettings().format, "RGBA\0RGB\0RG\0A\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0Auto");
+					ComponentsRender::drawComboControl("Wrap Mode", texture->getSettings().wrap, "Clamp\0Repeat");
+					if (ImGui::Button("Update")) {
+						texture->update();
+						AssetsManager::setProperity<TextureSettings>(selected.path, std::pair<std::string, TextureSettings> {"format", texture->getSettings()});
 					}
 				}
 				else if (selected.type == AssetType::SkyBox) {
@@ -308,14 +302,15 @@ namespace Stulu {
 						resolution = ress[item];
 						AssetsManager::setProperity<uint32_t>(selected.path, { "resolution" ,ress[item] });
 					}
-					bool disabled = std::any_cast<Ref<SkyBox>>(selected.data)->getWidth() == resolution;
+					Ref<SkyBox>& texture = std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>&>(selected.data));
+					bool disabled = texture->getWidth() == resolution;
 					if (disabled)
 					{
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 					}
 					if (ImGui::Button("Update")) {
-						std::any_cast<Ref<SkyBox>>(selected.data)->update(selected.path);
+						texture->update(selected.path);
 					}
 					if (disabled)
 					{
@@ -335,27 +330,27 @@ namespace Stulu {
 		}
 		std::string path = directory.path().string();
 
-		if (pathCache.find(path) == pathCache.end()) {
+		if (pathCache.find(path) == pathCache.end() || !AssetsManager::exists(pathCache[path])) {
 			pathCache[path] = AssetsManager::getFromPath(path);
 		}
 		Asset& asset = AssetsManager::get(pathCache[path]);
-		
 		switch (asset.type)
 		{
 		case Stulu::AssetType::Unknown:
 			return EditorResources::getFileTexture();
 			break;
 		case Stulu::AssetType::Texture2D:
-			return (Ref<Texture>&)std::any_cast<Ref<Texture2D>&>(asset.data);
+			return std::any_cast<Ref<Texture>&>(asset.data);
 			break;
-		case Stulu::AssetType::Texture:
-			return (Ref<Texture>&)std::any_cast<Ref<Texture2D>&>(asset.data);
+		case Stulu::AssetType::RenderTexture:
+			return std::any_cast<Ref<Texture>&>(asset.data);
 			break;
 		case Stulu::AssetType::SkyBox:
 			return Previewing::get().get(asset.uuid);
 			break;
 		case Stulu::AssetType::Model:
-			return EditorResources::getObjectTexture();
+			//return EditorResources::getObjectTexture();
+			return Previewing::get().get(asset.uuid);
 			break;
 		case Stulu::AssetType::Mesh:
 			return EditorResources::getFileTexture();

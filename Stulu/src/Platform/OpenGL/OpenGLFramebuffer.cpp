@@ -59,6 +59,9 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		m_width = width;
 		m_height = height;
+		m_settings.wrap = (int)TextureSettings::Wrap::Clamp;
+		m_settings.tiling = glm::vec2(1.0f);
+		m_settings.format = (int)TextureSettings::Format::RGB16F;
 	}
 	OpenGLFrameBufferTexture::~OpenGLFrameBufferTexture() {
 		ST_PROFILING_FUNCTION();
@@ -71,6 +74,7 @@ namespace Stulu {
 			glDeleteTextures(1, &m_depthAttachment);
 		if (m_colorAttachment)
 			glDeleteTextures(1, &m_colorAttachment);
+		m_settings.format = (int)format;
 		std::pair<GLenum, GLenum> f = TextureFormatToGLenum(format, 4);
 		GLenum internalFormat = f.first;
 		GLenum dataFormat = f.second;

@@ -3,6 +3,7 @@
 #include "Stulu/Renderer/RenderCommand.h"
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Renderer/Renderer.h"
+#include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Math/Math.h"
 #include "Stulu/Core/Application.h"
 
@@ -63,6 +64,10 @@ namespace Stulu {
 		uint32_t slotIndex = 1;
 
 		glm::vec4 quadVertexPositions[4];
+
+		glm::mat4 view;
+		glm::mat4 proj;
+		Ref<Camera> camera;
 	};
 
 	static Renderer2DData s_renderer2Ddata;
@@ -149,46 +154,91 @@ namespace Stulu {
 	void Renderer2D::shutdown() {
 		ST_PROFILING_FUNCTION();
 	}
-	void Renderer2D::beginScene() {
+	void Renderer2D::begin() {
 		ST_PROFILING_FUNCTION();
 		resetQuadBatch();
 		resetCircleBatch();
 		resetLineBatch();
-		
+
+		s_renderer2Ddata.camera = nullptr;
 	}
-	void Renderer2D::endScene() {
+	void Renderer2D::begin(const Ref<Camera>& cam) {
 		ST_PROFILING_FUNCTION();
-		flushQuads();
-		flushCircles();
-		flushLines();
+		resetQuadBatch();
+		resetCircleBatch();
+		resetLineBatch();
+
+		s_renderer2Ddata.camera = cam;
+	}
+	void Renderer2D::flush() {
+		ST_PROFILING_FUNCTION();
+		if(s_renderer2Ddata.camera)
+			s_renderer2Ddata.camera->bindFrameBuffer();
+
+		flushQuads(false);
+		flushCircles(false);
+		flushLines(false);
+
+		if (s_renderer2Ddata.camera)
+			s_renderer2Ddata.camera->unbindFrameBuffer();
 	}
 
-	void Renderer2D::flushQuads() {
+	void Renderer2D::flushQuads(bool bindCam) {
+		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount > 0) {
 			uint32_t dataSize = uint32_t((uint8_t*)s_renderer2Ddata.quadVertexBufferPtr - (uint8_t*)s_renderer2Ddata.quadVertexBufferBase);
 			s_renderer2Ddata.quadVertexBuffer->setData(s_renderer2Ddata.quadVertexBufferBase, dataSize);
 			for (uint32_t i = 0; i < s_renderer2Ddata.slotIndex; i++)
 				s_renderer2Ddata.textureSlots[i]->bind(i);
 			s_renderer2Ddata.quadShader->bind();
+			RenderCommand::setCullMode(CullMode::BackAndFront);
+			if (bindCam) {
+				if (s_renderer2Ddata.camera)
+					s_renderer2Ddata.camera->bindFrameBuffer();
+			}
 			RenderCommand::drawIndexed(s_renderer2Ddata.quadVertexArray, s_renderer2Ddata.quadIndexCount);
+			if (bindCam) {
+				if (s_renderer2Ddata.camera)
+					s_renderer2Ddata.camera->unbindFrameBuffer();
+			}
 		}
 	}
 
-	void Renderer2D::flushCircles() {
+	void Renderer2D::flushCircles(bool bindCam) {
+		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.circleIndexCount > 0) {
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.circleVertexBufferPtr - (uint8_t*)s_renderer2Ddata.circleVertexBufferBase);
 			s_renderer2Ddata.circleVertexBuffer->setData(s_renderer2Ddata.circleVertexBufferBase, dataSize);
 			s_renderer2Ddata.circleShader->bind();
+			RenderCommand::setCullMode(CullMode::BackAndFront);
+			if (bindCam) {
+				if (s_renderer2Ddata.camera)
+					s_renderer2Ddata.camera->bindFrameBuffer();
+			}
 			RenderCommand::drawIndexed(s_renderer2Ddata.circleVertexArray, s_renderer2Ddata.circleIndexCount);
+			if (bindCam) {
+				if (s_renderer2Ddata.camera)
+					s_renderer2Ddata.camera->unbindFrameBuffer();
+			}
 		}
 	}
 
-	void Renderer2D::flushLines() {
+	void Renderer2D::flushLines(bool bindCam) {
+		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.lineVertexCount > 0) {
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.lineVertexBufferPtr - (uint8_t*)s_renderer2Ddata.lineVertexBufferBase);
 			s_renderer2Ddata.lineVertexBuffer->setData(s_renderer2Ddata.lineVertexBufferBase, dataSize);
 			s_renderer2Ddata.lineShader->bind();
+			RenderCommand::setCullMode(CullMode::BackAndFront);
+			if (bindCam) {
+				if (s_renderer2Ddata.camera)
+					s_renderer2Ddata.camera->bindFrameBuffer();
+			}
 			RenderCommand::drawLines(s_renderer2Ddata.lineVertexArray, s_renderer2Ddata.lineVertexCount);
+			if (bindCam) {
+				if (s_renderer2Ddata.camera)
+					s_renderer2Ddata.camera->unbindFrameBuffer();
+			}
 		}
 	}
 
@@ -225,6 +275,9 @@ namespace Stulu {
 			s_renderer2Ddata.quadVertexBufferPtr++;
 		}
 		s_renderer2Ddata.quadIndexCount += 6;
+
+		ST_PROFILING_RENDERDATA_ADDINDICES(6);
+		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color) {
 		drawQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(size, 1.0f)), color);
@@ -266,6 +319,8 @@ namespace Stulu {
 		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
+		ST_PROFILING_RENDERDATA_ADDINDICES(6);
+		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(size, 1.0f)),texture, texture->getSettings().tiling * tiling, color);
@@ -307,6 +362,8 @@ namespace Stulu {
 		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
+		ST_PROFILING_RENDERDATA_ADDINDICES(6);
+		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawFromSpriteSheet(Math::createMat4(glm::vec3(pos,.0f), glm::vec3(.0f), glm::vec3(size, 1.0f)), sprite, tiling, color);
@@ -335,6 +392,8 @@ namespace Stulu {
 			s_renderer2Ddata.circleVertexBufferPtr++;
 		}
 		s_renderer2Ddata.circleIndexCount += 6;
+		ST_PROFILING_RENDERDATA_ADDINDICES(6);
+		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawCircle(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color, float thickness, float fade) {
 		drawCircle(Math::createMat4(pos, glm::vec3(size, 1.0f)), color, thickness, fade);
@@ -358,5 +417,16 @@ namespace Stulu {
 		s_renderer2Ddata.lineVertexBufferPtr++;
 
 		s_renderer2Ddata.lineVertexCount += 2;
+		ST_PROFILING_RENDERDATA_ADDVERTICES(2);
+	}
+	void Renderer2D::drawLineRect(const glm::mat4& transform, const glm::vec4& color) {
+		glm::vec3 lineVertices[4];
+		for (size_t i = 0; i < 4; i++)
+			lineVertices[i] = transform * s_renderer2Ddata.quadVertexPositions[i];
+
+		drawLine(lineVertices[0], lineVertices[1], color);
+		drawLine(lineVertices[1], lineVertices[2], color);
+		drawLine(lineVertices[2], lineVertices[3], color);
+		drawLine(lineVertices[3], lineVertices[0], color);
 	}
 }

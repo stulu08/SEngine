@@ -59,6 +59,9 @@ namespace Stulu {
 
 		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
 		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; } const
+		
+		Vertex getFurthestVertexFromPos(const glm::vec3& pos, uint64_t scanCount = 0);
+		glm::vec3 getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t scanCount = 0);
 
 		//for generating a convex mesh
 		static Mesh copyAndLimit(const Ref<Mesh>& mesh, uint64_t vertLimit = 0);

@@ -2,7 +2,6 @@
 #include "RigidbodyComponent.h"
 #include "Collider.h"
 #include "Stulu/Scene/Components/Components.h"
-#define PX_PHYSX_STATIC_LIB
 #include "physx/PxPhysicsAPI.h"
 
 namespace Stulu {

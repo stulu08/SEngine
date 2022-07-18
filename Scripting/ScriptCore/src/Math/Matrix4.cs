@@ -1,4 +1,5 @@
-﻿namespace Stulu {
+﻿#pragma warning disable 1591
+namespace Stulu {
     public struct Matrix4 {
         public float D00; public float D01; public float D02; public float D03;
         public float D10; public float D11; public float D12; public float D13;

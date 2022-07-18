@@ -36,6 +36,8 @@
 		#endif // ST_DLL_BUILD
 	#else
 		#define ST_STATIC_BUILD
+		#define PX_PHYSX_STATIC_LIB
+		#define PX_PHYSX_CHARACTER_STATIC_LIB
 		#define STULU_API
 	#endif
 #else

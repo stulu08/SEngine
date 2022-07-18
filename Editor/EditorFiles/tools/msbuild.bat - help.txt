@@ -1,5 +1,0 @@
-Builds the Project Solution (%ProjectDir%/Assembly.sln)
-
-Needs the Project Directory as Start Argument
-example:
-	msbuild.bat C:\The\Full\Project\Folder\Path

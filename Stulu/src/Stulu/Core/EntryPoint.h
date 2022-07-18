@@ -1,14 +1,10 @@
 #pragma once
 
-#ifdef ST_PLATFORM_WINDOWS
-#include <Windows.h>
-	extern Stulu::Application* Stulu::CreateApplication();
-	int main(int argc, char** argv) {
-#if ST_SHOWCONSOLE
-		ShowWindow(GetConsoleWindow(), SW_SHOW);
-#else
-		ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif // ST_SHOWCONSOLE
+
+namespace Stulu {
+	extern Application* Stulu::CreateApplication();
+
+	int main_entry(int argc, char** argv) {
 
 		ST_PROFILING_BEGIN("Startup", "Profiling-Startup.json");
 		Stulu::Log::init();
@@ -28,5 +24,17 @@
 
 		return 0;
 	}
+}
 
-#endif
+#ifdef ST_PLATFORM_WINDOWS
+#include <Windows.h>
+#ifdef ST_DIST
+int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow) {
+	return Stulu::main_entry(__argc, __argv);
+}
+#else
+int main(int argc, char** argv) {
+	return Stulu::main_entry(argc, argv);
+}
+#endif //ST_DIST
+#endif //ST_PLATFORM_WINDOWS

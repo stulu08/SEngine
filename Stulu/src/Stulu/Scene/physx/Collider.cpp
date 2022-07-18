@@ -1,7 +1,6 @@
 #include "st_pch.h"
 #include "Collider.h"
 
-#define PX_PHYSX_STATIC_LIB
 #include "PxConfig.h"
 #include "physx/PxPhysicsAPI.h"
 

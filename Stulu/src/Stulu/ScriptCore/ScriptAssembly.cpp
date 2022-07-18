@@ -41,7 +41,7 @@ namespace Stulu {
 	ScriptAssembly::~ScriptAssembly() {
 		if (!m_monoRootDomain)
 			return;
-		for (auto object : m_objects) {
+		for (auto [id, object] : m_objects) {
 			object->m_assembly = nullptr;
 		}
 		mono_domain_set(m_monoRootDomain, 0);
@@ -218,7 +218,7 @@ namespace Stulu {
 	void ScriptAssembly::reload(std::function<bool(const std::string&)>& recompileFinished, std::function<bool(const std::string&)>& recompile) {
 		CORE_INFO("Reloading Assembly: {0}", m_assembly);
 
-		for (auto object : m_objects) {
+		for (auto [id, object] : m_objects) {
 			object->m_assembly = nullptr;
 		}
 
@@ -284,9 +284,12 @@ namespace Stulu {
 		CORE_INFO("Reloading Assembly finished")
 
 
-		for (auto object : m_objects) {
-			object->m_assembly = this;
-			object->reload();
+		for (auto [id, object] : m_objects) {
+			if (object) {
+				object->m_objectID = id;
+				object->m_assembly = this;
+				object->reload();
+			}
 		}
 	}
 

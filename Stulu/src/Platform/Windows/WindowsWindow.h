@@ -2,8 +2,7 @@
 
 #include "Stulu/Core/Window.h"
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+struct GLFWwindow;
 
 namespace Stulu {
 	class STULU_API WindowsWindow : public Window {

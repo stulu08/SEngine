@@ -4,6 +4,8 @@
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/object.h>
 
+#include "Stulu/Core/UUID.h"
+
 namespace Stulu {
 	struct MonoFunction {
 		MonoClass* classPtr;
@@ -49,7 +51,8 @@ namespace Stulu {
 		void setErrorCallback(std::function<void(const std::string&, MonoMethod*)>& ca) { m_errorCallBack = ca; };
 
 		//for reloading the assembly
-		void registerObject(Ref<MonoObjectInstance> object) { m_objects.push_back(object); }
+		void RegisterObject(UUID id, MonoObjectInstance* object) { m_objects.insert({ id, object }); }
+		void DeRegisterObject(UUID id) { m_objects.erase(id); }
 		
 		struct MonoClassEntry {
 			std::string name;
@@ -67,7 +70,7 @@ namespace Stulu {
 		MonoAssembly* m_monoAssembly = nullptr;
 		MonoImage* m_monoImage = nullptr;
 		std::vector<MonoClassEntry> m_classes;
-		std::vector<Ref<MonoObjectInstance>> m_objects;
+		std::unordered_map<Stulu::UUID, MonoObjectInstance*> m_objects;
 
 		friend class AssemblyManager;
 

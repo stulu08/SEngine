@@ -10,7 +10,7 @@ namespace Stulu {
 			cam = createRef<PerspectiveCamera>(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);
 		}
 		CameraComponent(const CameraComponent&) = default;
-		CameraComponent(const CameraMode mode);
+		CameraComponent(const CameraMode mode, bool reflectionMap = true);
 
 		const void onResize(uint32_t width, uint32_t height);
 		const void updateSize();
@@ -26,16 +26,17 @@ namespace Stulu {
 		enum ClearType { Color = 0, Skybox = 1 };
 		struct Settings {
 			float fov = 80.0f, zoom = 1.0f, zNear = .01f, zFar = 250.0f;
-			bool staticAspect = false;
+			bool isRenderTarget = false;
 			ClearType clearType = Color;
 			//if static aspect
 			float aspectRatio = 0.0f;//readonly
 			uint32_t textureWidth = 100, textureHeight = 100;
-			//if cleaType = Color
+			//if clearType = Color
 			glm::vec4 clearColor = glm::vec4(glm::vec3(.0f), 1.0f);
 		} settings;
 		CameraMode mode = CameraMode::Perspective;
-		int depth = -1;
+		int depth = 1;
+		UUID renderTexture = UUID::null;
 	private:
 		Ref<Camera> cam = nullptr;
 

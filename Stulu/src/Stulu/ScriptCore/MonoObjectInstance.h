@@ -36,7 +36,8 @@ namespace Stulu {
 					return sizeof(int32_t);
 				case Stulu::MonoObjectInstance::MonoClassMember::Type::uint_t:
 					return sizeof(uint32_t);
-
+				case Stulu::MonoObjectInstance::MonoClassMember::Type::Other:
+					return 0;
 				}
 				return 0;
 			}
@@ -47,6 +48,7 @@ namespace Stulu {
 		};
 
 		MonoObjectInstance(const std::string& m_nameSpace, const std::string& m_className, ScriptAssembly* assembly);
+		MonoObjectInstance(const MonoObjectInstance&);
 		~MonoObjectInstance();
 
 		void addFunction(const std::string& fnName, const MonoFunction& mfn);
@@ -73,6 +75,7 @@ namespace Stulu {
 		const std::unordered_map<std::string, MonoFunction>& getFunctions() const { return m_functions; }
 		const std::unordered_map<std::string, MonoClassMember>& getFields() const { return m_fields; }
 		std::unordered_map<std::string, MonoClassMember>& getFields() { return m_fields; }
+		std::vector<std::string>& getFieldOrder() { return m_fieldOrder; }
 
 		void callDefaultConstructor() const;
 		void callConstructor(const std::string& params = "()", void** args = nullptr) const;
@@ -84,9 +87,9 @@ namespace Stulu {
 	private:
 		void reload();
 
-
 		mutable bool m_constructed;
 
+		UUID m_objectID = UUID();
 		uint32_t m_gCHandle = 0;
 		MonoClass* m_classPtr = nullptr;
 		MonoObject* m_objectPtr = nullptr;
@@ -97,6 +100,8 @@ namespace Stulu {
 		//function name: print(int)
 		std::unordered_map<std::string, MonoFunction> m_functions;
 		std::unordered_map<std::string, MonoClassMember> m_fields;
+		//stores the field names in correct order
+		std::vector<std::string> m_fieldOrder;
 
 		friend class ScriptAssembly;
 	};

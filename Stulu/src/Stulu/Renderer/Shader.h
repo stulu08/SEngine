@@ -3,6 +3,29 @@
 #include <glm/glm.hpp>
 
 namespace Stulu {
+#define ST_MAXLIGHTS 50
+#define ST_ShaderViewFlags_EnableLighting ((uint32_t)ShaderViewFlags::EnableLighting)
+#define ST_ShaderViewFlags_DisplayDiffuse ((uint32_t)ShaderViewFlags::DisplayDiffuse)
+#define ST_ShaderViewFlags_DisplaySpecular ((uint32_t)ShaderViewFlags::DisplaySpecular)
+#define ST_ShaderViewFlags_DisplayNormal ((uint32_t)ShaderViewFlags::DisplayNormal)
+#define ST_ShaderViewFlags_DisplayRoughness ((uint32_t)ShaderViewFlags::DisplayRoughness)
+#define ST_ShaderViewFlags_DisplayMetallic ((uint32_t)ShaderViewFlags::DisplayMetallic)
+#define ST_ShaderViewFlags_DisplayAmbient ((uint32_t)ShaderViewFlags::DisplayAmbient)
+#define ST_ShaderViewFlags_DisplayTexCoords ((uint32_t)ShaderViewFlags::DisplayTexCoords)
+#define ST_ShaderViewFlags_DisplayVertices ((uint32_t)ShaderViewFlags::DisplayVertices)
+	enum class ShaderViewFlags {
+		EnableLighting = 1 << 0,
+		//the following will only display itself(DisplayNormal will only display normal map)
+		DisplayDiffuse = 1 << 1,
+		DisplaySpecular = 1 << 2,
+		DisplayNormal = 1 << 3,
+		DisplayRoughness = 1 << 4,
+		DisplayMetallic = 1 << 5,
+		DisplayAmbient = 1 << 6,
+		DisplayTexCoords = 1 << 7,
+		DisplayVertices = 1 << 8,
+	};
+
 	class STULU_API ShaderProperity {
 	public:
 		enum class Type{

@@ -23,7 +23,7 @@ namespace Stulu {
 	void Math::setPerlinSeed(uint32_t seed) {
 		noise.reseed(seed);
 	}
-	float Math::simpleNosie(glm::vec2 pos, float offset, float scale, glm::vec2 size) {
+	float Math::simpleNosie(const glm::vec2& pos, float offset, float scale, const glm::vec2& size) {
 		return perlinNosie((pos.x + 0.1f) / size.x * scale + offset, (pos.y + 0.1f) / size.y * scale + offset);
 	}
 	float Math::perlinNosie(float x, float y, float frequenzy, float sizeX, float sizeY, bool _0_1_) {
@@ -53,7 +53,7 @@ namespace Stulu {
 		else
 			return (float)noise.normalizedOctaveNoise2D(x / freqX, y / freqY, octaves);
 	}
-	const bool Math::isPosOverQuad(Quad& quad, glm::vec2& pos) {
+	bool Math::isPosOverQuad(const Quad& quad, const glm::vec2& pos) {
 		return (
 			pos.x > quad.pos.x && 
 			pos.y > quad.pos.y && 
@@ -61,7 +61,7 @@ namespace Stulu {
 			pos.y < quad.pos.y + quad.height
 			);
 	}
-	const bool Math::isQuadOverQuad(Quad& quad1, Quad& quad2) {
+	bool Math::isQuadOverQuad(const Quad& quad1, const Quad& quad2) {
 		return (
 			quad1.pos.x < quad2.pos.x + quad2.width &&
 			quad1.pos.x + quad1.width > quad2.pos.x &&
@@ -69,16 +69,16 @@ namespace Stulu {
 			quad1.pos.y + quad1.height > quad2.pos.y
 			);
 	}
-	const glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale) {
+	glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale) {
 		return glm::translate(glm::mat4(1.0f), pos)
 			* glm::toMat4(rotation)
 			* glm::scale(glm::mat4(1.0f), scale);
 	}
-	const glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::vec3& scale) {
+	glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::vec3& scale) {
 		return glm::translate(glm::mat4(1.0f), pos)
 			* glm::scale(glm::mat4(1.0f), scale);
 	}
-	const glm::vec3 Math::screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize) {
+	glm::vec3 Math::screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize) {
 		double x = 2.0 * pos.x / windowSize.x - 1;
 		double y = 2.0 * pos.y / windowSize.y - 1;
 		glm::vec4 screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
@@ -87,13 +87,13 @@ namespace Stulu {
 		return glm::vec3(worldPos);
 	}
 	//in degrees
-	const float Math::lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
+	float Math::lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
 		glm::vec3 diff = glm::normalize(destPoint - sourcePoint);
 
 		float rot_z = std::atan2f(diff.y, diff.x) * M_RAD2DEG;
 		return rot_z - 90.0f;
 	}
-	const glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
+	glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
 		glm::vec3 forwardVector = glm::normalize(destPoint - sourcePoint);
 
 		float dot = glm::dot(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
@@ -110,7 +110,7 @@ namespace Stulu {
 		rotAxis = glm::normalize(rotAxis);
 		return quaternionFromEulerAngle(rotAxis, rotAngle);
 	}
-	const glm::quat Math::quaternionFromEulerAngle(const glm::vec3& axis, float angle) {
+	glm::quat Math::quaternionFromEulerAngle(const glm::vec3& axis, float angle) {
 		float halfAngle = angle * .5f;
 		float s = (float)std::sin(halfAngle);
 		glm::quat q;
@@ -120,7 +120,7 @@ namespace Stulu {
 		q.w = (float)std::cos(halfAngle);
 		return q;
 	}
-	const bool Math::decomposeTransformEuler(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
+	bool Math::decomposeTransformEuler(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 	{
 		// From glm::decompose in matrix_decompose.inl
 
@@ -190,7 +190,7 @@ namespace Stulu {
 
 		return true;
 	}
-	const bool Math::decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale)
+	bool Math::decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale)
 	{
 		// From glm::decompose in matrix_decompose.inl
 
@@ -259,5 +259,9 @@ namespace Stulu {
 		}
 		rotation = glm::quat(rot);
 		return true;
+	}
+	bool Math::decomposeRotationFromViewMatrix(const glm::mat4& transform, glm::quat& rotation) {
+		glm::vec3 pos, scale;
+		return decomposeTransform(glm::inverse(transform), pos, rotation, scale);
 	}
 }

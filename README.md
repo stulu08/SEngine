@@ -45,18 +45,17 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 - Download or clone the repository with all the submodules
 
-- Run the [setup.bat](https://github.com/stulu08/SEngine/blob/main/generateProjects.bat) file to install python and vulkan
+- Run the [setup.bat](https://github.com/stulu08/SEngine/blob/main/scripts/setup.bat) file to install or check for python, vulkan and mono
 
 - Open the Solution and build the project
 
 
 ***
 ### Next
-- Scripting(C# with mono)
 - Vulkan
 - Much optimization(my code is garbage)
-- 3D Rendering(Thread, Shadows, Reflections)
-- 2D Rendering
+- More Physics(Joints, Springs, 2D)
+- Shadows
 - File Watcher
 
 

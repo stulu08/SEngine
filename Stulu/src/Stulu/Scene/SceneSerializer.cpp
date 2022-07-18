@@ -91,13 +91,14 @@ namespace Stulu {
 			out << YAML::Key << "zoom" << YAML::Value << settings.zoom;
 			out << YAML::Key << "zNear" << YAML::Value << settings.zNear;
 			out << YAML::Key << "zFar" << YAML::Value << settings.zFar;
-			out << YAML::Key << "staticAspect" << YAML::Value << settings.staticAspect;
+			out << YAML::Key << "isRenderTarget" << YAML::Value << settings.isRenderTarget;
 			out << YAML::Key << "aspectRatio" << YAML::Value << settings.aspectRatio;
 			out << YAML::Key << "textureWidth" << YAML::Value << settings.textureWidth;
 			out << YAML::Key << "textureHeight" << YAML::Value << settings.textureHeight;
 			out << YAML::EndMap;
 			out << YAML::Key << "mode" << YAML::Value << (int)camera.mode;
 			out << YAML::Key << "depth" << YAML::Value << camera.depth;
+			out << YAML::Key << "renderTexture" << YAML::Value << (uint64_t)camera.renderTexture;
 			out << YAML::EndMap;
 		}
 		if (gameObject.hasComponent<SpriteRendererComponent>()) {
@@ -223,7 +224,6 @@ namespace Stulu {
 		out << YAML::Key << "gamma" << YAML::Value << m_scene->m_data.gamma;
 		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.toneMappingExposure;
 		out << YAML::Key << "env_lod" << YAML::Value << m_scene->m_data.env_lod;
-		out << YAML::Key << "framebuffer16bit" << YAML::Value << m_scene->m_data.framebuffer16bit;
 		out << YAML::Key << "useReflectionMapReflections" << YAML::Value << m_scene->m_data.useReflectionMapReflections;
 		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
 		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
@@ -259,8 +259,8 @@ namespace Stulu {
 					m_scene->m_data.gamma = settings["gamma"].as<float>();
 				if (settings["toneMappingExposure"])
 					m_scene->m_data.toneMappingExposure = settings["toneMappingExposure"].as<float>();
-				if (settings["framebuffer16bit"])
-					m_scene->m_data.framebuffer16bit = settings["framebuffer16bit"].as<bool>();
+				if (settings["shaderFlags"])
+					m_scene->m_data.shaderFlags = settings["shaderFlags"].as<uint32_t>();
 				if (settings["env_lod"])
 					m_scene->m_data.env_lod = settings["env_lod"].as<float>();
 				if (settings["useReflectionMapReflections"])
@@ -312,7 +312,6 @@ namespace Stulu {
 							if (exists) {
 								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
 								object->loadAll();
-								Application::get().getAssemblyManager()->getAssembly()->registerObject(object);
 								for (auto field : inst["Fields"]) {
 									std::string name = field["Name"].as<std::string>();
 									auto& fieldList = object->getFields();
@@ -337,6 +336,9 @@ namespace Stulu {
 											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector4_t) {
 												*((glm::vec4*)fieldList[name].value) = field["Value"].as<glm::vec4>();
 											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::Other) {
+												fieldList[name].value = nullptr;
+											}
 										}
 									}
 								}
@@ -348,7 +350,7 @@ namespace Stulu {
 
 					auto cameraComponentNode = gameObject["CameraComponent"];
 					if (cameraComponentNode) {
-						auto& cc = deserialized.addComponent<CameraComponent>();
+						auto& cc = deserialized.addComponent<CameraComponent>(CameraMode::Perspective, true);
 						auto& settings = cameraComponentNode["Camera Settings"];
 
 						cc.settings.clearType = (CameraComponent::ClearType)settings["clearType"].as<int>();
@@ -357,7 +359,7 @@ namespace Stulu {
 						cc.settings.zoom = settings["zoom"].as<float>();
 						cc.settings.zNear = settings["zNear"].as<float>();
 						cc.settings.zFar = settings["zFar"].as<float>();
-						cc.settings.staticAspect = settings["staticAspect"].as<bool>();
+						cc.settings.isRenderTarget = settings["isRenderTarget"].as<bool>();
 						cc.settings.aspectRatio = settings["aspectRatio"].as<float>();
 						cc.settings.textureWidth = settings["textureWidth"].as<uint32_t>();
 						cc.settings.textureHeight = settings["textureHeight"].as<uint32_t>();
@@ -365,6 +367,7 @@ namespace Stulu {
 
 						cc.mode = (CameraMode)cameraComponentNode["mode"].as<int>();
 						cc.depth = (CameraMode)cameraComponentNode["depth"].as<int>();
+						cc.renderTexture = (UUID)cameraComponentNode["renderTexture"].as<uint64_t>();
 						cc.updateMode();
 						cc.updateProjection();
 						cc.updateSize();
@@ -376,7 +379,7 @@ namespace Stulu {
 						src.color = spriteRendererNode["color"].as<glm::vec4>();
 						src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
 						if (spriteRendererNode["texture"])
-							src.texture = std::any_cast<Ref<Texture2D>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
+							src.texture = std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
 					}
 
 					auto lightComponentNode = gameObject["LightComponent"];
@@ -389,14 +392,14 @@ namespace Stulu {
 						light.spotLight_cutOff = lightComponentNode["spotLight_cutOff"].as<float>();
 						light.spotLight_outerCutOff = lightComponentNode["spotLight_outerCutOff"].as<float>();
 					}
-
+				
 					auto meshRendererComponentNode = gameObject["MeshRendererComponent"];
 					if (meshRendererComponentNode) {
 						auto& meshrenC = deserialized.saveAddComponent<MeshRendererComponent>();
 						if (meshRendererComponentNode["material"]) {
 							UUID id = meshRendererComponentNode["material"].as<uint64_t>();
 							if (AssetsManager::existsAndType(id, AssetType::Material))
-								deserialized.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+								deserialized.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(id).data);
 						}
 						if (meshRendererComponentNode["cullMode"]) {
 							meshrenC.cullmode = (CullMode)meshRendererComponentNode["cullMode"].as<uint32_t>();
@@ -416,10 +419,8 @@ namespace Stulu {
 					auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
 					if (skyBoxComponentNode) {
 						auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
-						if (skyBoxComponentNode["texture"])
-							skyBox.texture = std::any_cast<Ref<SkyBox>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data);
-						if (skyBoxComponentNode["mapType"])
-							skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();
+						skyBox.texture = std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data));
+						skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();
 					}
 
 					auto boxColliderComponentNode = gameObject["BoxColliderComponent"];
@@ -520,7 +521,7 @@ namespace Stulu {
 			return true;
 		}
 		catch (YAML::Exception ex) {
-			CORE_ERROR("YAML exception:\n{0}", ex.what())
+			CORE_ERROR("{1}: YAML exception at {2}\n{0}", ex.what(), path, ex.mark.line)
 			return false;
 		}
 		return true;
@@ -561,8 +562,8 @@ namespace Stulu {
 						assets.push_back(spriteRen.texture->uuid);
 					}
 					else {
-						UUID id = AssetsManager::getFromPath((spriteRen.texture->getPath()));
-						if (AssetsManager::existsAndType(id, AssetType::Texture2D)) {
+						UUID id = spriteRen.texture->uuid;
+						if (AssetsManager::existsAndType(id, AssetType::Texture2D) || AssetsManager::existsAndType(id, AssetType::RenderTexture)) {
 							assets.push_back(id);
 						}
 					}

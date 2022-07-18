@@ -18,7 +18,7 @@ namespace Stulu {
 	private:
 		std::unordered_map<UUID, Ref<Texture>> items;
 		GameObject camera;
-		GameObject sphere;
+		GameObject renderObject;
 		GameObject light;
 		Ref<Scene> scene;
 
@@ -37,8 +37,9 @@ namespace Stulu {
 		static bool drawBoolControl(const std::string& header, bool& v);
 		static bool drawIntControl(const std::string& header, int& v);
 		static bool drawInt3Control(const std::string& header, int& x, int& y, int& z);
-		static bool drawUIntControl(const std::string& header, uint32_t& v);
 		static bool drawIntSliderControl(const std::string& header, int& v, int min = 0, int max = 10);
+		static bool drawUIntControl(const std::string& header, uint32_t& v);
+		static bool drawUIntSliderControl(const std::string& header, uint32_t& v, uint32_t min = 0, uint32_t max = 10);
 		static bool drawFloatControl(const std::string& header, float& v, float min = .0f, float max = .0f);
 		static bool drawFloatSliderControl(const std::string& header, float& v, float min = 0.0f, float max = 1.0f);
 		static bool drawVector2Control(const std::string& header, glm::vec2& vec);
@@ -50,7 +51,7 @@ namespace Stulu {
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 
 		static void drawHelpMarker(const char* desc);
-		static bool drawTextureEdit(const std::string& header, UUID& uuid, AssetType type = AssetType::Texture2D);
+		static bool drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap = false);
 		static bool drawMaterialEdit(const std::string& header, UUID& uuid, bool canChange = true);
 		static bool drawMeshEdit(const std::string& header, UUID& uuid);
 

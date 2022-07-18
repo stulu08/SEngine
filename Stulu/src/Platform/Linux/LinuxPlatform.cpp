@@ -85,6 +85,15 @@ namespace Stulu {
 
 		return { totalVirtualMem,virtualMemUsed,virtualMemUsedByMe,totalPhysMem,physMemUsed,physMemUsedByMe };
 	}
-
+	bool Platform::changeWorkingDirectory(const char* dir = NULL) {
+		int succes;
+		succes = !chdir(dir);
+		return succes;
+	}
+	const char* Platform::getCurrentWorkingDirectory() {
+		char path[PATH_MAX];
+		getcwd(path, PATH_MAX);
+		return path;
+	}
 }
 #endif // ST_PLATFORM_LINUX

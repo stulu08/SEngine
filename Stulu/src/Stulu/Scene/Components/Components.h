@@ -10,7 +10,7 @@
 #include "Stulu/Scene/Material.h"
 
 #include "Stulu/Scene/Components/Component.h"
-
+#include "Stulu/ScriptCore/MonoObjectInstance.h"
 #include "Stulu/Scene/Components/Camera.h"
 #include "Stulu/Scene/physx/Collider.h"
 
@@ -71,7 +71,7 @@ namespace Stulu {
 		glm::vec4 color = COLOR_WHITE;
 		glm::vec2 tiling = glm::vec2(1.0f);
 		
-		Ref<Texture2D> texture = nullptr;
+		Ref<Texture> texture = nullptr;
 
 		SpriteRendererComponent() = default;
 		SpriteRendererComponent(const SpriteRendererComponent&) = default;
@@ -111,7 +111,7 @@ namespace Stulu {
 
 	class MeshRendererComponent : public Component {
 	public:
-		Material* material;
+		Ref<Material> material = nullptr;
 		CullMode cullmode = CullMode::Back;
 
 		bool m_enabledStencilBufferNextFrame = false;
@@ -154,6 +154,14 @@ namespace Stulu {
 	class STULU_API MonoObjectInstance;
 	class ScriptingComponent : public Component {
 	public:
+		ScriptingComponent() = default;
+		ScriptingComponent(const ScriptingComponent& origin) {
+		//entt calls the copy constructor also when the registry is cleared an this will rigister an instance without deleting it
+		//void copyScriptsFrom(const ScriptingComponent& origin) {
+			for (auto& script : origin.runtimeScripts) {
+				runtimeScripts.push_back(createRef<MonoObjectInstance>(*script));
+			}
+		}
 		std::vector<Ref<MonoObjectInstance>> runtimeScripts;
 	};
 

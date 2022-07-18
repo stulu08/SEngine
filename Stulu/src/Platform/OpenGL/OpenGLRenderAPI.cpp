@@ -42,7 +42,7 @@ namespace Stulu {
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 		setDefault();
-#ifdef ST_DEBUG
+#ifdef ST_GRAPHICS_API_DEBUG_LOGGING
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(debugCallback, nullptr);

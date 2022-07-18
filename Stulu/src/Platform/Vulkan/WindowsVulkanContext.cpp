@@ -114,7 +114,7 @@ namespace Stulu {
 
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = applicationInfo.ApplicationName;
+		appInfo.pApplicationName = applicationInfo.ApplicationName.c_str();
 		appInfo.applicationVersion = ST_MAKE_VK_VERSION(applicationInfo.ApplicationVersion);
 		appInfo.pEngineName = ST_ENGINE_NAME;
 		appInfo.engineVersion = ST_MAKE_VK_VERSION(ST_ENGINE_VERSION);

@@ -6,9 +6,23 @@
 //#include "PlatformConfig.h" in Log.h
 #include "Log.h"
 
+#define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
+#define ST_BIT(x) (1 << x)
+#define ST_CONCAT_INNER(a, b) a ## b
+#define ST_CONCAT(a, b) ST_CONCAT_INNER(a, b)
+
+
+#ifdef ST_PLATFORM_WINDOWS
+#define ST_DEBUGBREAK() __debugbreak()
+#elif ST_PLATFORM_LINUX
+#include <signal.h>
+#define ST_DEBUGBREAK() raise(SIGTRAP)
+#endif
+
+
 #if ST_ENABLE_ASSERTS
-	#define ST_ASSERT(x, ...) {if(!(x)){ST_ERROR("Assertion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak(); } }
-	#define CORE_ASSERT(x, ...) {if(!(x)){CORE_ERROR("Assertion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); __debugbreak(); } }
+	#define ST_ASSERT(x, ...) {if(!(x)){ST_ERROR("Assertion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); ST_DEBUGBREAK(); } }
+	#define CORE_ASSERT(x, ...) {if(!(x)){CORE_ERROR("Assertion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); ST_DEBUGBREAK(); } }
 #elif ST_ENABLE_ASSERTS_ONLY_LOGGING
 	#define ST_ASSERT(x, ...)	{if(!(x)){ST_ERROR("Assertion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); } }
 	#define CORE_ASSERT(x, ...)	{if(!(x)){CORE_ERROR("Assertion failed in {1} at line {2}:\n{0}", __VA_ARGS__, __FILE__, __LINE__); } }
@@ -16,11 +30,6 @@
 #define ST_ASSERT(x, ...)	
 #define CORE_ASSERT(x, ...)	
 #endif // ST_ENABLE_ASSERT
-
-#define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
-#define ST_BIT(x) (1 << x)
-#define ST_CONCAT_INNER(a, b) a ## b
-#define ST_CONCAT(a, b) ST_CONCAT_INNER(a, b)
 
 
 namespace Stulu {

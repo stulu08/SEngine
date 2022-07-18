@@ -14,7 +14,7 @@ namespace Stulu {
 	struct MeshAsset {
 		std::string name;
 		Ref<Mesh> mesh;
-		UUID uuid = UUID();
+		mutable UUID uuid = UUID();
 
 		bool hasMesh = false;
 		UUID parentMeshAsset = UUID::null;
@@ -39,11 +39,12 @@ namespace Stulu {
 		}
 
 		std::vector<MeshAsset>& getMeshes() { return meshes; }
-		std::unordered_map<uint32_t, Material>& getMaterials() { return materials; }
+		std::unordered_map<uint32_t, Ref<Material>>& getMaterials() { return materials; }
+		const std::string& getDirectory() { return directory; }
 	private:
 		std::string directory;
 		std::vector<MeshAsset> meshes;
-		std::unordered_map<uint32_t, Material> materials;
+		std::unordered_map<uint32_t, Ref<Material>> materials;
 		void load(const std::string& path);
 		
 		void processNode(aiNode* node, const aiScene* scene, UUID& parent = UUID::null);

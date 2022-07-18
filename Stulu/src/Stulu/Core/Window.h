@@ -18,8 +18,8 @@ namespace Stulu{
 		bool VSync;
 		EventCallbackFn eventCallback;
 
-		WindowProps(const std::string& _title = "Stulu Engine", uint32_t _width = 1280, uint32_t _height = 720)
-			: title(_title), width(_width),height(_height) {}
+		WindowProps(const std::string& title = "Stulu Engine", uint32_t width = 1280, uint32_t height = 720, bool VSync = false)
+			: title(title), width(width),height(height), VSync(VSync), eventCallback() {}
 	};
 	class STULU_API Window{
 	public:

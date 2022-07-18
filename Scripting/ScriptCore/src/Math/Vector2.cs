@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable 1591
+using System;
 
 namespace Stulu {
 	public struct Vector2 {

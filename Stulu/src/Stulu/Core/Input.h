@@ -18,7 +18,7 @@ namespace Stulu {
 		static bool getMouseDown(uint32_t mouseButton);
 		static bool getMouseUp(uint32_t mouseButton);
 
-		static std::pair<float, float> getMousePos();
+		static glm::vec2 getMousePos();
 		static glm::vec2 getMouseDelta();
 		static float getMouseX();
 		static float getMouseY();

@@ -11,6 +11,7 @@
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Layer.h"
 #include "Stulu/Core/LayerStack.h"
+#include "Stulu/Core/Resources.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Core/Version.h"
 
@@ -57,7 +58,6 @@
 #include "Stulu/Scene/Behavior.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Material.h"
-#include "Stulu/Scene/Resources.h"
 #include "Stulu/Scene/SceneCamera.h"
 #include "Stulu/Scene/SceneRenderer.h"
 #include "Stulu/Scene/SceneSerializer.h"

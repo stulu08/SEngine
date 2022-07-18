@@ -54,7 +54,9 @@ namespace Stulu {
 					ScriptingComponent& comp = gameObject.getComponent<ScriptingComponent>();
 					for (auto script : comp.runtimeScripts) {
 						if (ImGui::TreeNodeEx(script->getClassName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-							for (auto&[name,field] : script->getFields()) {
+
+							for (auto& name : script->getFieldOrder()) {
+								auto& field = script->getFields()[name];
 								if (!MonoObjectInstance::fieldHasAttribute(field, showInEdiorAttrb))
 									continue;
 								script->reloadClassFieldValue(name);
@@ -77,6 +79,9 @@ namespace Stulu {
 								case MonoObjectInstance::MonoClassMember::Type::uint_t:
 									SCRIPTING_UI_FUNCTION(uint32_t);
 									break;
+								case MonoObjectInstance::MonoClassMember::Type::Other:
+									script->getFields()[name].value = nullptr;
+									break;
 								}
 							}
 							if (ImGui::Button("Remove")) {
@@ -96,7 +101,7 @@ namespace Stulu {
 
 				if (ImGui::BeginPopup("AddComponent")) {
 					if (ImGui::MenuItem("Camera")) {
-						gameObject.saveAddComponent<CameraComponent>();
+						gameObject.saveAddComponent<CameraComponent>(CameraMode::Perspective, true);
 					}
 					if (ImGui::MenuItem("SpriteRenderer")) {
 						gameObject.saveAddComponent<SpriteRendererComponent>();
@@ -146,7 +151,6 @@ namespace Stulu {
 							if (ImGui::MenuItem(name.c_str())) {
 								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(cl.nameSpace, cl.name, getEditorApp().getProject().assembly.get());
 								object->loadAll();
-								getEditorApp().getProject().assembly->registerObject(object);
 
 								auto& comp = gameObject.saveAddComponent<ScriptingComponent>();
 								comp.runtimeScripts.push_back(object);

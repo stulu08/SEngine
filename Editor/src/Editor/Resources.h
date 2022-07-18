@@ -3,7 +3,7 @@
 
 #define getEditorApp() Stulu::EditorApp::get()
 #define getEditorLayer() Stulu::EditorApp::getLayer()
-#define getEditorScene() ::Stulu::EditorApp::getLayer().getActiveScene()
+#define getEditorScene() Stulu::EditorApp::getLayer().getActiveScene()
 #define getEditorProject() Stulu::EditorApp::getProject()
 
 namespace Stulu {
@@ -20,6 +20,12 @@ namespace Stulu {
 		static Ref<Texture>& getStopTexture();
 		static Ref<Texture>& getSkyBoxTexture();
 		static Ref<Texture>& getScriptTexture();
+
+		static Ref<Texture>& getLightTexture();
+		static Ref<Texture>& getDirectionalLightTexture();
+		static Ref<Texture>& getSpotLightTexture();
+		static Ref<Texture>& getCameraTexture();
+
 		static const std::string getDefaultSceneSource();
 
 		static Ref<Shader>& getOutlineShader();

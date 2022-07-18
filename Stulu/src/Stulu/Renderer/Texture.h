@@ -2,6 +2,17 @@
 #include "Stulu/Core/UUID.h"
 
 namespace Stulu {
+	struct TextureSettings {
+		enum class Format {
+			RGBA, RGB, RG, A, SRGB, SRGBA, RGBA16F, RGB16F, Auto
+		};
+		int format = (int)Format::Auto;
+		enum class Wrap {
+			Clamp, Repeat,
+		};
+		int wrap = (int)Wrap::Repeat;
+		glm::vec2 tiling = { 1.0f,1.0f };
+	};
 	class STULU_API Texture
 	{
 	public:
@@ -16,28 +27,18 @@ namespace Stulu {
 		virtual bool operator == (const Texture & other) const = 0;
 		virtual operator int() = 0;
 
-		UUID uuid;
-	};
+		virtual TextureSettings& getSettings() = 0;
 
-	struct TextureSettings {
-		enum class Format {
-			RGBA, RGB, RG, A, SRGB, SRGBA, RGBA16F, RGB16F ,Auto
-		};
-		int format = (int)Format::Auto;
-		enum class Wrap {
-			Clamp, Repeat,
-		};
-		int wrap = (int)Wrap::Repeat;
-		glm::vec2 tiling = { 1.0f,1.0f };
+		UUID uuid;//I dont like it too
 	};
 	class STULU_API Texture2D : public Texture {
 	public:
 		static Ref<Texture2D> create(const std::string& path, const TextureSettings& settings = TextureSettings());
 		static Ref<Texture2D> create(uint32_t width, uint32_t height);
-		virtual void setData(void* data, uint32_t size) const = 0;
+		virtual void setData(void* data, uint32_t size) = 0;
+		virtual void setPixel(uint32_t hexData, uint32_t posX, uint32_t posY) = 0;
 		virtual void update() = 0;
 
-		virtual TextureSettings& getSettings() = 0;
 		virtual std::string getPath() const = 0;
 	};
 	class STULU_API CubeMap : public Texture {
@@ -45,7 +46,7 @@ namespace Stulu {
 		static Ref<CubeMap> create(uint32_t resolution, TextureSettings settings = TextureSettings());
 		virtual uint32_t getMap() const = 0;
 
-		virtual void draw() = 0;
+		virtual void draw() const = 0;
 	};
 	class STULU_API SkyBox : public CubeMap {
 	public:
@@ -70,5 +71,8 @@ namespace Stulu {
 		virtual uint32_t getIrradianceMap() const = 0;
 		virtual uint32_t getPrefilterMap() const = 0;
 		virtual uint32_t getBRDFLUT() const = 0;
+
+		//generates a BRDFLUT or returns an already created one if one with the resolution was already created
+		static Ref<Texture>& genrateBRDFLUT(uint32_t resolution);
 	};
 }

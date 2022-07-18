@@ -16,12 +16,17 @@ namespace physx {
     class PxTriangleMesh;
     class PxConvexMesh;
     class PxCooking;
+    class PxControllerManager;
+    class PxController;
 }
-
+#define ST_DEFAULT_PHYSX_MATERIAL_STATIC_FRICTION .6f
+#define ST_DEFAULT_PHYSX_MATERIAL_DYNAMIC_FRICTION .6f
+#define ST_DEFAULT_PHYSX_MATERIAL_RESTITUTION .0f
 namespace Stulu{
-    class TransformComponent;
-    class RigidbodyComponent;
-    class Mesh;
+    class STULU_API TransformComponent;
+    class STULU_API RigidbodyComponent;
+    class STULU_API CharacterController;
+    class STULU_API Mesh;
     physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
     glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec);
 
@@ -53,11 +58,14 @@ namespace Stulu{
 
         physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
         physx::PxRigidActor* createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter = glm::vec3(.0f));
+        physx::PxController* createCapsuleController(CharacterController& controller, const TransformComponent& transform);
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
         physx::PxConvexMesh* createConvexMesh(Ref<Mesh>& mesh);
 
         physx::PxScene* getScene() { return m_scene; };
         physx::PxPhysics* getPhysics() { return m_physics; };
+        physx::PxFoundation* getFoundation() { return m_foundataion; };
+        physx::PxControllerManager* getControllerManager() { return m_controllerManager; };
 
         bool isPVDRunning() { return m_pvdRunning; }
         bool started() { return m_foundataion != nullptr; }
@@ -69,6 +77,7 @@ namespace Stulu{
         physx::PxDefaultCpuDispatcher* m_cpuDispatcher = nullptr;
         physx::PxCudaContextManager* m_cudaContextManager = nullptr;
         physx::PxCooking* m_cooking = nullptr;
+        physx::PxControllerManager* m_controllerManager = nullptr;
         bool m_pvdRunning = false;
     };
 }

@@ -38,29 +38,9 @@ project "Runtime"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.mono}/mono-2.0"
 	}
-	postbuildcommands {
-		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data",
-		"{COPYDIR} %{ProjectDir.Runtime}/Files %{ProjectDir.Runtime}/bin/" .. outputdir .. "",
-		"{COPYFILE} %{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono-2.0-sgen.dll %{ProjectDir.Runtime}/bin/" .. outputdir .. "/mono-2.0-sgen.dll",
-		
-		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu.lib",
-		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu.idb",
-		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu.pdb",
-
-		"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.lib\"",
-		"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exp\"",
-		"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.pdb\"",
-		
-		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data/Managed/Stulu.ScriptCore.pdb",
-		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data/Managed/Stulu.EditorScriptCore.pdb",
-		"{DELETE} %{ProjectDir.Runtime}/bin/" .. outputdir .. "/data/Managed/Stulu.EditorScriptCore.dll",
-	}
 	links
 	{
-		"Stulu",
-		"ImGuizmo",
-		"ImGui",
-
+		"Stulu"
 	}
 	filter "system:windows"
 		systemversion "latest"
@@ -68,19 +48,18 @@ project "Runtime"
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
 		runtime "Debug"
+		optimize "off"
 		symbols "on"
 
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
 		optimize "on"
+		symbols "on"
 
 	filter "configurations:Dist"
-		postbuildcommands {
-			"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.lib\"",
-			"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.pdb\"",
-			"{DELETE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exp\"",
-		}
 		defines "ST_DIST"
+		kind "WindowedApp"
 		runtime "Release"
 		optimize "on"
+		symbols "off"

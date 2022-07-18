@@ -1,8 +1,6 @@
 #include "App.h"
 #include <Stulu/Core/EntryPoint.h>
 
-#include "Splash.h"
-
 #include "Stulu/Scene/YAML.h"
 
 namespace Stulu {
@@ -22,46 +20,31 @@ namespace Stulu {
 	}
 	Application* Stulu::CreateApplication() {
 		YAML::Node node = YAML::LoadFile("Stulu/app");
-		std::string name = node["App Name"].as<std::string>();
-		Version version = *(Version*)&((glm::uvec3)node["App Verison"].as<glm::vec3>());
-		WindowProps window;
-		window.title = node["Window Title"].as<std::string>();
-		window.width = node["Window Width"].as<uint32_t>();
-		window.height = node["Window Height"].as<uint32_t>();
-		window.VSync = node["Window VSync"].as<bool>();
+		ApplicationInfo appInfo;
+		appInfo.ApplicationName = node["App Name"].as<std::string>();
+		appInfo.ApplicationVersion = *(Version*)&((glm::uvec3)node["App Verison"].as<glm::vec3>());
+		appInfo.DefaultAssetsPath = "Stulu";
+		appInfo.EnableImgui = false;
+		appInfo.HideWindowOnSart = false;
 
-		return new RuntimeApp(ApplicationInfo(name.c_str(), version, window));
+		appInfo.windowProps.title = node["Window Title"].as<std::string>();
+		appInfo.windowProps.width = node["Window Width"].as<uint32_t>();
+		appInfo.windowProps.height = node["Window Height"].as<uint32_t>();
+		appInfo.windowProps.VSync = node["Window VSync"].as<bool>();
+
+		return new RuntimeApp(appInfo);
 	}
 	RuntimeApp* RuntimeApp::s_instance = nullptr;
 
 	RuntimeLayer* runtimeLayer;
 
 	RuntimeApp::RuntimeApp(const ApplicationInfo& appInfo) 
-		: Application(appInfo, false, false, "Stulu") {
+		: Application(appInfo) {
 
 		getWindow().setVSync(appInfo.windowProps.VSync);
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
 		s_instance = this;
 		runtimeLayer = new RuntimeLayer();
-
-		/* 
-		{
-			float m_lastFrameTime = Platform::getTime();
-			Splash splashr = Splash(10.0f);
-			while (true) {
-				float time = Platform::getTime();
-				Timestep delta = time - m_lastFrameTime;
-				m_lastFrameTime = time;
-
-				if (splashr.onUpdate(delta))
-					break;
-
-				getWindow().onUpdate();
-			}
-		}
-		*/
-
-
 
 		if (std::filesystem::exists(std::string(appInfo.ApplicationName) + "-data/Managed/Stulu.ScriptCore.dll"))
 			std::filesystem::remove(std::string(appInfo.ApplicationName) + "-data/Managed/Stulu.ScriptCore.dll");
@@ -80,6 +63,6 @@ namespace Stulu {
 
 	}
 	RuntimeApp::~RuntimeApp() {
-
+		
 	}
 }

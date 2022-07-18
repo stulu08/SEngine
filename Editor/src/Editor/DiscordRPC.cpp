@@ -70,8 +70,8 @@ namespace Stulu {
     void DiscordRPC::threadLoop(const char* applicationID) {
             int64_t startTime = time(0);
             int sendPresence = 1;
-            s_running = true;
             create(applicationID);
+            s_running = true;
             while (s_running) {
 
                 if (sendPresence) {

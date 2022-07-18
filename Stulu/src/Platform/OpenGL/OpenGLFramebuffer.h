@@ -15,6 +15,7 @@ namespace Stulu {
 		virtual uint32_t getRendererID() const override { return m_colorAttachment; };
 		virtual uint32_t getWidth() const override { return m_width; }
 		virtual uint32_t getHeight() const override { return m_height; }
+		virtual TextureSettings& getSettings() override { return m_settings; }
 
 		virtual void bind(uint32_t slot = 0) const override;
 		virtual bool operator == (const Texture& other) const override { return getRendererID() == other.getRendererID(); };
@@ -24,6 +25,7 @@ namespace Stulu {
 		uint32_t m_height;
 		uint32_t m_colorAttachment = 0;
 		uint32_t m_depthAttachment = 0;
+		TextureSettings m_settings;
 	};
 
 	class OpenGLFramebuffer : public FrameBuffer{

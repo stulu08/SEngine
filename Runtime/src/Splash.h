@@ -24,8 +24,8 @@ public:
 
 
 		Stulu::RenderCommand::clear();
-		Stulu::Renderer::beginScene(cam->getProjectionMatrix(), view);
-		Stulu::Renderer2D::beginScene();
+		Stulu::Renderer::begin(cam->getProjectionMatrix(), view);
+		Stulu::Renderer2D::begin();
 
 		if (passedHalf) {
 			Stulu::Renderer2D::drawTexturedQuad(texture, glm::vec2(.0f), glm::lerp(scale, scaleEnd, (cDura + dura) / (dura*2)), glm::vec2(1.0f), glm::lerp(color, colorTransp, cDura / dura));
@@ -38,8 +38,8 @@ public:
 
 
 		Stulu::RenderCommand::setCullMode(Stulu::CullMode::BackAndFront);
-		Stulu::Renderer2D::endScene();
-		Stulu::Renderer::endScene();
+		Stulu::Renderer2D::end();
+		Stulu::Renderer::end();
 
 		if (cDura > dura && passedHalf) {
 			finish = true;

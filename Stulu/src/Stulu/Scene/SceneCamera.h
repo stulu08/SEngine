@@ -45,6 +45,7 @@ namespace Stulu {
 
 		bool onMouseScrolledEvent(MouseScrollEvent& e);
 
+		friend class Scene;
 		friend class SceneRenderer;
 	};
 }

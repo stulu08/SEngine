@@ -16,6 +16,7 @@ namespace Stulu {
 		void OpenScene(const std::string& binpath);
 	private:
 		struct FbDrawData {
+			Ref<FrameBuffer> m_sceneFBo;
 			Ref<Shader> m_quadShader;
 			Ref<VertexArray> m_quadVertexArray;
 		} m_fbDrawData;

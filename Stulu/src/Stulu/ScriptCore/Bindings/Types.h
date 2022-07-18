@@ -29,5 +29,6 @@ namespace StuluBindings {
 		float x, y, z, w;
 
 		glm::quat toNative() { return glm::quat(w,x,y,z); }
+		glm::quat toNative_s() { return glm::quat(w,x,y,z); }
 	};
 }

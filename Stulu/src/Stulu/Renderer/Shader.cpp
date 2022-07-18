@@ -86,15 +86,24 @@ namespace Stulu{
 		CORE_ASSERT(exists(name), std::string("Shader not found: ") + name);
 		return m_shaders[name];
 	}
+	//I realy hate this
 	const std::vector<std::pair<std::string, std::string>> Shader::s_preProcessorAdds{
 			{"ST_default",R"(
 ##add ST_vertex
+
 ##type fragment
 #version 460 core
 out vec4 FragColor;
 ##add ST_functions
-##add ST_pbr_calculation
 ##add ST_bindings
+##add ST_pbr_calculation
+struct vertInput
+{
+	vec3 worldPos;
+	vec3 normal;
+	vec2 texCoords;
+};
+layout (location = 0) in vertInput vertex;
 )"},//ST_default
 			{"ST_vertex",R"(
 ##type vertex
@@ -129,7 +138,25 @@ void main()
 }
 )"},//ST_vertex
 			{"ST_functions", R"(
+const uint ShaderViewFlag_EnableLighting	= 0x00000001u;
+const uint ShaderViewFlag_DisplayDiffuse	= 0x00000002u;
+const uint ShaderViewFlag_DisplaySpecular	= 0x00000004u;
+const uint ShaderViewFlag_DisplayNormal		= 0x00000008u;
+const uint ShaderViewFlag_DisplayRoughness	= 0x00000010u;
+const uint ShaderViewFlag_DisplayMetallic	= 0x00000020u;
+const uint ShaderViewFlag_DisplayAmbient	= 0x00000040u;
+const uint ShaderViewFlag_DisplayTexCoords	= 0x00000080u;
+const uint ShaderViewFlag_DisplayVertices	= 0x00000100u;
+
 const float PI = 3.14159265359;
+
+bool isFlagEnabled(uint flags, uint flag) {
+	return (flags & flag) == flag;
+}
+bool isFlagDisabled(uint flags, uint flag) {
+	return (flags & flag) != flag;
+}
+
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
     float a      = roughness*roughness;
@@ -172,8 +199,11 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 }
 vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map)
 {
-    vec3 tangentNormal = texture(map, tex).xyz * 2.0 - 1.0;
-
+	vec3 textureValue = texture(map, tex).xyz;
+	if(textureValue == vec3(0))
+		return normal;
+    vec3 tangentNormal = textureValue * 2.0 - 1.0;
+	
     vec3 Q1  = dFdx(world);
     vec3 Q2  = dFdy(world);
     vec2 st1 = dFdx(tex);
@@ -183,11 +213,55 @@ vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map)
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
-
+	
     return normalize(TBN * tangentNormal);
 }
+vec4 gammaCorrect(vec4 color, float _gamma, float exposure) {
+	color = vec4(vec3(1.0f) - exp(-color.rgb * exposure),color.a);//HDR tonemapping
+	color = vec4(pow(color.rgb, vec3(1.0/_gamma)),color.a); //gamma correct
+	return color;
+}
+vec3 gammaCorrect(vec3 color, float _gamma, float exposure) {
+	color = vec3(1.0f) - exp(-color.rgb * exposure);//HDR tonemapping
+	color = pow(color.rgb, vec3(1.0/_gamma)); //gamma correct
+	return color;
+}
+float filterAlpha(float alpha, uint mode, float cutOut = 1.0f) {
+	//CutOut
+	if(mode == 1) {
+		if(alpha <= cutOut){
+			return 0.0;//full transparent
+		}else{
+			return 1.0;//full opaque
+		}
+	}
+	//Transparent 
+	else if(mode == 2) {
+		return alpha;//keep alpha
+	}
+	//Opaque
+	else{
+		return 1.0;//ignore alpha
+	}
+}
+vec3 srgbToLin(vec3 color){
+	return pow(color, vec3(2.2));
+}
+vec4 srgbToLin(vec4 color){
+	return vec4(pow(color.xyz, vec3(2.2)), color.a);
+}
 )"},//ST_functions
-			{"ST_bindings",R"(
+			{"ST_bindings",
+
+std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
+R"(
+struct Light{
+	vec4 colorAndStrength;
+	vec4 positionAndType;   
+	vec4 rotation;
+	vec4 spotLightData;
+};
+
 layout(std140, binding = 0) uniform matrices
 {
 	mat4 viewProjection;
@@ -197,32 +271,36 @@ layout(std140, binding = 0) uniform matrices
 	vec4 cameraRotation;
 	mat4 transform;
 };
+layout(std140, binding = 1) uniform lightData
+{
+    Light lights[st_maxLights];
+    uint lightCount;
+};
 layout(std140, binding = 2) uniform postProcessing
+{
+	float time;
+	float delta;
+};
+layout(std140, binding = 3) uniform shaderSceneData
 {
 	float toneMappingExposure;
 	float gamma;
 	float env_lod;
-	uint useSkybox;
+	bool enableGammaCorrection;
+	vec4 clearColor;
+	bool useSkybox;
+	uint skyboxMapType;
+	uint viewFlags;
 };
-struct vertInput
-{
-	vec3 worldPos;
-	vec3 normal;
-	vec2 texCoords;
-};
-layout (location = 0) in vertInput vertex;
+layout (binding = 0) uniform samplerCube environmentMap;
+layout (binding = 1) uniform samplerCube irradianceMap;
+layout (binding = 2) uniform samplerCube prefilterMap;
+layout (binding = 3) uniform sampler2D BRDFLUTMap;
 )"},//ST_bindings
 			{"ST_pbr_calculation",R"(
-const int st_maxLights = 25;
-struct Light{
-	vec4 colorAndStrength;
-	vec4 positionAndType;   
-	vec4 rotation;
-	vec4 spotLightData;
-};
 struct PBRData {
 	vec3  albedo;
-	float metallic ;
+	float metallic;
 	float roughness;
 	float ao;
 	float alpha;
@@ -230,159 +308,118 @@ struct PBRData {
 	vec3 worldPos;
 	vec3 normal;
 	vec2 texCoords;
-
-	vec3 cameraPosition;
-	vec3 cameraRotation;
-
-	float env_lod;
-	bool useSkybox;
-
-	Light lights[st_maxLights];
-	uint lightCount;
-	bool useLights;
 };
-layout (binding = 0) uniform samplerCube environmentMap;
-layout (binding = 1) uniform samplerCube irradianceMap;
-layout (binding = 2) uniform samplerCube prefilterMap;
-layout (binding = 3) uniform sampler2D BRDFLUTMap;
-vec4 ST_pbr_calculation(PBRData data)
+vec4 ST_pbr_calculation(inout PBRData data)
 {
 	if(data.alpha <= 0.001){
 		return vec4(.0f);
 	}
-	vec3 cameraPos = data.cameraPosition;
-	vec3 cameraRot = data.cameraRotation;
+	
 	vec3 N = data.normal;
-	vec3 V = normalize(cameraPos - data.worldPos);
+	vec3 V = normalize(cameraPosition.xyz - data.worldPos);
 	vec3 R = reflect(-V, N);
 	vec3 F0 = vec3(0.04); 
 	F0 = mix(F0, data.albedo, data.metallic);
 	
 	vec3 Lo = vec3(0.0);
-	if(data.useLights){
-		for(int i = 0; i < data.lightCount; i++){
-			//directional
-			if(data.lights[i].positionAndType.w == 0){
-			
-				 // calculate per-light radiance
-				vec3 L = normalize(-data.lights[i].rotation.xyz);
-				vec3 H = normalize(V + L);
-				float attenuation = 1.0f;
+	if(isFlagEnabled(viewFlags, ShaderViewFlag_EnableLighting)){
+		for(int i = 0; i < lightCount; i++){
+			float distance = length(lights[i].positionAndType.xyz - data.worldPos);
 
-				vec3 radiance     = data.lights[i].colorAndStrength.xyz * attenuation;        
-	
-				// cook-torrance brdf
-				float NDF = DistributionGGX(N, H, data.roughness);        
-				float G   = GeometrySmith(N, V, L, data.roughness);      
-				vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
-	
-				vec3 kS = F;
-				vec3 kD = vec3(1.0) - kS;
-				kD *= 1.0 - data.metallic;	  
-	
-				vec3 numerator    = NDF * G * F;
-				float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-				vec3 specular     = numerator / denominator;  
-
-				// add to outgoing radiance Lo
-				float NdotL = max(dot(N, L), 0.0);                
-				Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * data.lights[i].colorAndStrength.w;
+			vec3 L;
+			vec3 H;
+			float attenuation = 1.0f;
+			vec3 radiance;
+			//calculate by light type
 			
+			if(lights[i].positionAndType.w == 0){
+				// calculate per-light radiance
+				L = normalize(-lights[i].rotation.xyz);
+				H = normalize(V + L);
+				radiance = lights[i].colorAndStrength.xyz * attenuation;        
 			}
 			//point
-			else if(data.lights[i].positionAndType.w == 1){
+			else if(lights[i].positionAndType.w == 1){
 				// calculate per-light radiance
-				vec3 L = normalize(data.lights[i].positionAndType.xyz - data.worldPos);
-				vec3 H = normalize(V + L);
-				float distance = length(data.lights[i].positionAndType.xyz - data.worldPos);
-				float radius = data.lights[i].spotLightData.w;
-				//float attenuation = 1.0 / (distance * distance);
-				float attenuation = 1.0f-(min(distance/radius,1.0f));
-			
-				vec3 radiance     = data.lights[i].colorAndStrength.xyz * attenuation;        
-	
-				// cook-torrance brdf
-				float NDF = DistributionGGX(N, H, data.roughness);        
-				float G   = GeometrySmith(N, V, L, data.roughness);      
-				vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
-	
-				vec3 kS = F;
-				vec3 kD = vec3(1.0) - kS;
-				kD *= 1.0 - data.metallic;	  
-	
-				vec3 numerator    = NDF * G * F;
-				float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-				vec3 specular     = numerator / max(denominator, 0.001);  
-		
-				// add to outgoing radiance Lo
-				float NdotL = max(dot(N, L), 0.0);                
-				Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * data.lights[i].colorAndStrength.w;
+				L = normalize(lights[i].positionAndType.xyz - data.worldPos);
+				H = normalize(V + L);
+				float radius = lights[i].spotLightData.w;
+				attenuation = 1.0f-(min(distance/radius,1.0f));
+				radiance     = lights[i].colorAndStrength.xyz * attenuation;        
 			}
 			//spot
-			else if(data.lights[i].positionAndType.w == 2) {
-				vec3 L = normalize(data.lights[i].positionAndType.xyz - data.worldPos);
-				float theta = dot(L, normalize(-data.lights[i].rotation.xyz));
-				float epsilon   = data.lights[i].spotLightData.x - data.lights[i].spotLightData.y;
-				float intensity = clamp((theta - data.lights[i].spotLightData.y) / epsilon, 0.0, 1.0);    
-
-				float attenuation = 1.0f;
-
-				vec3 radiance     = data.lights[i].colorAndStrength.xyz * attenuation;        
-
-				vec3 H = normalize(V + L);
-	  
-				// cook-torrance brdf
-				float NDF = DistributionGGX(N, H, data.roughness);        
-				float G   = GeometrySmith(N, V, L, data.roughness);      
-				vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
-	
-				vec3 kS = F;
-				vec3 kD = vec3(1.0) - kS;
-				kD *= 1.0 - data.metallic;	  
-	
-				vec3 numerator    = NDF * G * F;
-				float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-				vec3 specular     = numerator / max(denominator, 0.001);  
-		
-				// add to outgoing radiance Lo
-				float NdotL = max(dot(N, vec3(intensity)), 0.0);                
-				Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * data.lights[i].colorAndStrength.w;
+			else if(lights[i].positionAndType.w == 2) {
+				// calculate per-light radiance
+				L = normalize(lights[i].positionAndType.xyz - data.worldPos);
+				H = normalize(V + L);
+				float theta = dot(L, normalize(-lights[i].rotation.xyz));
+				float epsilon   = lights[i].spotLightData.x - lights[i].spotLightData.y;
+				float intensity = clamp((theta - lights[i].spotLightData.y) / epsilon, 0.0, 1.0);    
+				attenuation = intensity;
+				radiance     = lights[i].colorAndStrength.xyz * attenuation;   
 			}
+
+			// cook-torrance brdf
+			float NDF = DistributionGGX(N, H, data.roughness);        
+			float G   = GeometrySmith(N, V, L, data.roughness);      
+			vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0); 
+			vec3 kS = F;
+			vec3 kD = vec3(1.0) - kS;
+			kD *= 1.0 - data.metallic;	 
+
+			vec3 numerator    = NDF * G * F;
+			float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+			vec3 specular     = numerator / max(denominator, 0.001);  
+			
+			// add to outgoing radiance Lo
+			float NdotL = max(dot(N, L), 0.0);                
+			Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w;
 		}
 	}
 	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, data.roughness);
 	vec3 kS = F;
 	vec3 kD = 1.0 - kS;
-	kD *= 1.0 - data.metallic;	  
-	const float MAX_REFLECTION_LOD = data.env_lod;
-   
-	vec3 irradiance = vec3(.5f);
-	if(data.useSkybox)
+	kD *= 1.0 - data.metallic;
+	const float MAX_REFLECTION_LOD = 4.0f;
+  
+	vec3 irradiance = vec3(clearColor);
+	if(useSkybox)
 		irradiance = texture(irradianceMap, N).rgb;
- 
-	vec3 diffuse      = irradiance * data.albedo;
-   
-	vec3 prefilteredColor = vec3(.5f);
-	if(data.useSkybox)
+
+	vec3 prefilteredColor = vec3(clearColor);
+	if(useSkybox)
 		prefilteredColor = textureLod(prefilterMap, R, data.roughness * MAX_REFLECTION_LOD).rgb;
-	
+
 	vec2 brdf = vec2(.75*data.roughness);
-	if(data.useSkybox)
+	if(useSkybox)
 		brdf  = texture(BRDFLUTMap, vec2(max(dot(N, V), 0.0), data.roughness)).rg;
    
+	vec3 diffuse  = irradiance * data.albedo;
 	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-
-	vec3 ambient = ((kD * diffuse * data.alpha) + specular) * data.ao;
-   
+	vec3 ambient = ((kD * diffuse * data.alpha) + specular)*data.ao;
+		
 	vec3 color = ambient + Lo;
-
-	return vec4(color, data.alpha);
+	
+	//filter flags
+	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
+		color = vec3(diffuse);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
+		color = vec3(specular);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayNormal))
+		color = vec3(data.normal) * 0.5 + 0.5;
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayRoughness))
+		color = vec3(data.roughness);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayMetallic))
+		color = vec3(data.metallic);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
+		color = vec3(data.ao);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
+		color = vec3(data.texCoords, 0);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
+		color = vec3(data.albedo);
+	
+	return gammaCorrect(vec4(color, data.alpha), gamma , toneMappingExposure);
 }
-layout(std140, binding = 1) uniform lightData
-{
-    Light lights[st_maxLights];
-    uint lightCount;
-};
 )"},//ST_pbr_calculation
 			{ "ST_CubemapVertex",R"(
 		##type vertex
@@ -402,7 +439,6 @@ layout(std140, binding = 1) uniform lightData
 		}
 )" },//ST_CubemapVertex
 	};
-
 
 	ShaderProperity::Type ShaderProperity::typeFromString(const std::string& str) {
 		if (str == "Color" || str == "Color4" || str == "color" || str == "color4") {

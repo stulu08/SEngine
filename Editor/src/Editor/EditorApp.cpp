@@ -5,34 +5,28 @@ namespace Stulu {
 	void loadEditorMonoBindings();
 		
 	Application* Stulu::CreateApplication() {
+		uint64_t rp = 733733383645167637;
+		DiscordRPC::init(std::to_string(rp).c_str());
+		DiscordRPC::setDetails("Loading the assets...");
+		DiscordRPC::setState("");
 		return new EditorApp();
 	}
 	EditorApp* EditorApp::s_instance = nullptr;
 	Project EditorApp::s_project;
 	EditorApp::EditorApp() 
-		: Application("Stulu Editor", true) {
-
-		const char* rpcID = "733733383645167637";
-#if ST_DEBUG
-		if (strcmp(rpcID, "")) {
-			//CORE_ASSERT(false, "Dont publish your id to the internet");
-		}
-#endif
-		DiscordRPC::init(rpcID);
-		DiscordRPC::setDetails("Loading the assets...");
-		DiscordRPC::setState("");
+		: Application(ApplicationInfo("Stulu Editor",Version(1,0,0), "Stulu", false, true, WindowProps("Stulu Editor", 1280, 720))) {
 
 		if (getStartArgs().size() > 1) {
 			ST_INFO("Loading project: {0}", getStartArgs()[1]);
-			s_project = Project(getStartArgs()[1]);
+			s_project = Project(getStartArgs()[1], true);
 		}
 		else {
 			ST_ERROR("No Project, please open a Project");
-			s_project = Project(Platform::browseFolder());
+			s_project = Project(Platform::openFile("Stulu Project File\0 * .sproj\0"), true);
 		}
 
 		getWindow().setVSync(false);
-		getWindow().setWindowIcon("assets/Textures/Logo/engine-app-icon.png");
+		getWindow().setWindowIcon("Editor/Textures/engine-app-icon.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;

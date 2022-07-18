@@ -11,15 +11,14 @@
 #include <entt.hpp>
 
 namespace Stulu {
-#define MAXLIGHTS 25
 	struct SceneData {
 		float toneMappingExposure = 1.0f;
 		float gamma = 2.2f;
-		bool framebuffer16bit = false;
-		float env_lod = 4.0f;
+		float env_lod = 1.0f;
 		bool enablePhsyics3D = true;
-		bool useReflectionMapReflections = true;
+		bool useReflectionMapReflections = false;
 		PhysicsData physicsData;
+		uint32_t shaderFlags = ((uint32_t)ShaderViewFlags::EnableLighting);
 	};
 
 	class STULU_API SceneCamera;
@@ -34,7 +33,7 @@ namespace Stulu {
 		GameObject createGameObject(const std::string& name = "GameObject", UUID uuid = UUID());
 		void destroyGameObject(GameObject gameObject);
 
-		void onUpdateEditor(Timestep ts, const SceneCamera& camera);
+		void onUpdateEditor(Timestep ts, SceneCamera& camera);
 		void onRuntimeStart();
 		void onUpdateRuntime(Timestep ts);
 		void onRuntimeStop();
@@ -63,9 +62,12 @@ namespace Stulu {
 
 
 		template<typename... Components>
-		auto getAllGameObjectsWith()
-		{
+		auto getAllGameObjectsWith() {
 			return m_registry.view<Components...>();
+		}
+		template<typename... Components>
+		auto getAllGameObjectsAsGroupWith() {
+			return m_registry.group<Components...>();
 		}
 
 		static Ref<Scene> copy(Ref<Scene> scene);
@@ -77,7 +79,8 @@ namespace Stulu {
 
 		void setupPhysics();
 		void updatePhysics();
-		void renderScene(entt::entity cam, Timestep ts);
+		void renderScene();
+		void renderSceneEditor(SceneCamera& camera);
 
 		void updateAssemblyScripts(const std::string& function, bool forceConstructNew = false);
 

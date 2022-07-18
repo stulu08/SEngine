@@ -15,15 +15,40 @@ namespace Stulu {
 		Project()
 			:windowINI(configPath+"/windowLayout.ini") {
 		}
-		Project(const std::string& path)
+		Project(const std::string& file)
 #ifdef ST_PLATFORM_WINDOWS
 			:path(path), assetPath(path + "\\assets"), configPath(path + "\\config"), dataPath(path + "\\data"), windowINI(configPath + "\\windowLayout.ini") {
 #else
 			:path(path), assetPath(path + "/assets"), configPath(path + "/config"), dataPath(path + "/data"), windowINI(configPath + "/windowLayout.ini") {
 #endif
+			
 			size_t lastS = path.find_last_of("/\\");
 			lastS = lastS == std::string::npos ? 0 : lastS + 1;
 			name = path.substr(lastS, path.size() - lastS);
+		}
+		Project(const std::string& file, bool loadFolderIfFail) {
+			if (std::filesystem::exists(file) && !std::filesystem::is_directory(file)) {
+				YAML::Node node = YAML::LoadFile(file);
+				name = node["name"].as<std::string>();
+				path = std::filesystem::absolute(std::filesystem::path(file).parent_path()).string();
+				assetPath = std::filesystem::absolute(path + "/" + node["assetPath"].as<std::string>()).string();
+				configPath = std::filesystem::absolute(path + "/" + node["configPath"].as<std::string>()).string();
+				dataPath = std::filesystem::absolute(path + "/" + node["dataPath"].as<std::string>()).string();
+				windowINI = std::filesystem::absolute(path + "/" + node["windowINI"].as<std::string>()).string();
+			}
+			else if (loadFolderIfFail) {
+				path = file;
+				assetPath = file + "/assets";
+				configPath = file + "/config";
+				dataPath = file + "/data";
+				windowINI = configPath + "/windowLayout.ini";
+				size_t lastS = path.find_last_of("/\\");
+				lastS = lastS == std::string::npos ? 0 : lastS + 1;
+				name = path.substr(lastS, path.size() - lastS);
+			}
+			else {
+				windowINI = configPath + "/windowLayout.ini";
+			}
 		}
 	};
 

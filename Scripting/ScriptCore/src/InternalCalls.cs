@@ -127,5 +127,17 @@ namespace Stulu {
 		internal extern static void rigidbody_massCenterGet(uint entityId, out Vector3 scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void rigidbody_massCenterSet(uint entityId, ref Vector3 value);
+
+		//Renderer
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void renderer2D_drawLine(ref Vector3 start, ref Vector3 end, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void renderer2D_drawQuad(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void renderer2D_drawCircle(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, float thickness, float fade);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void renderer2D_drawLineRect(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void renderer2D_drawLineCube(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 	}
 }

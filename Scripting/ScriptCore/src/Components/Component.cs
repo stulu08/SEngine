@@ -21,13 +21,21 @@ namespace Stulu {
 		/// </summary>
 		public virtual void onUpdate() { }
 		/// <summary>
-		/// After every Object is drawn
+		/// Befor every 3D Object is drawn
 		/// </summary>
 		public virtual void onRender() { }
+		/// <summary>
+		/// Before every 2D Object is drawn
+		/// </summary>
+		public virtual void onRender2D() { }
 		/// <summary>
 		/// On Gui Draw
 		/// </summary>
 		public virtual void onDrawEditorGUI() { }
+		/// <summary>
+		/// On Gizmos Draw
+		/// </summary>
+		public virtual void onDrawGizmos() { }
 		/// <summary>
 		/// When the Component is destroyed
 		/// </summary>

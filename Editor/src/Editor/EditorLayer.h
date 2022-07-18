@@ -38,6 +38,8 @@ namespace Stulu {
 		bool m_showLicensesWindow = false;
 		bool m_showBuildWindow = false;
 
+		//used for displaying the scene
+		Ref<FrameBuffer> m_sceneFrameBuffer;
 
 		//name, text
 		std::unordered_map<std::string, std::string> m_licenses;
@@ -62,7 +64,7 @@ namespace Stulu {
 			uint32_t width = 1920, height = 1080;
 		} m_buildData;
 
-		void drawColliders();
+		void onDrawGizmoSelected(GameObject gameObject);
 		void drawMenuBar();
 		void drawLicenseWindow();
 		void drawBuildWindow();

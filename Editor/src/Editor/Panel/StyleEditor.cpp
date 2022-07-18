@@ -94,8 +94,8 @@ namespace Stulu {
     void StyleEditor::loadFonts() {
         //we need to make sure everytime the fonts have the same index, so we create a file to store the index
         ST_PROFILING_FUNCTION();
-        ST_TRACE("Loading all Fonts from {0}{1}", Application::getStartDirectory().c_str(), "/assets/Fonts/");
-        std::string file = "assets/Fonts/fonts.txt";
+        ST_TRACE("Loading all Fonts from {0}{1}", Application::getStartDirectory(), "/Editor/Fonts/");
+        std::string file = "Editor/Fonts/fonts.txt";
         std::vector<std::string> fonts;
 
         //load fonts
@@ -122,7 +122,7 @@ namespace Stulu {
             }
         }
         //add all fonts to fonts.txt which are not present
-        for (auto& dir : std::filesystem::directory_iterator("assets/Fonts/")) {
+        for (auto& dir : std::filesystem::directory_iterator("Editor/Fonts/")) {
             const auto& path = dir.path();
             if (path.extension() != ".ttf")
                 continue;
@@ -138,14 +138,14 @@ namespace Stulu {
         std::fstream stream(file, std::ios::out);
         stream << "fontCount=" << fonts.size() << "\n";
         for (int i = 0; i < fonts.size(); i++) {
-            io.Fonts->AddFontFromFileTTF(("assets/Fonts/" + fonts[i]).c_str(), 15.0f);
+            io.Fonts->AddFontFromFileTTF(("Editor/Fonts/" + fonts[i]).c_str(), 15.0f);
             stream << i << "=" << fonts[i] << "\n";
         }
         stream.close();
         /*
-        io.Fonts->AddFontFromFileTTF("assets/Fonts/Roboto-Light.ttf", 15.0f);
-        io.Fonts->AddFontFromFileTTF("assets/Fonts/Raleway-Light.ttf", 15.0f);
-        io.Fonts->AddFontFromFileTTF("assets/Fonts/ArialUnicodeMS.ttf", 15.0f);
+        io.Fonts->AddFontFromFileTTF("Editor/Fonts/Roboto-Light.ttf", 15.0f);
+        io.Fonts->AddFontFromFileTTF("Editor/Fonts/Raleway-Light.ttf", 15.0f);
+        io.Fonts->AddFontFromFileTTF("Editor/Fonts/ArialUnicodeMS.ttf", 15.0f);
         */
     }
     void StyleEditor::init() {
@@ -451,7 +451,7 @@ namespace Stulu {
         }
         ImGui::SameLine();
         ComponentsRender::drawHelpMarker(
-            (std::string("- You can use additional fonts by placing TrueType Font files (.ttf) in ") + Application::getStartDirectory().c_str() + "/assets/Fonts/").c_str()
+            (std::string("- You can use additional fonts by placing TrueType Font files (.ttf) in ") + Application::getStartDirectory().c_str() + "/Editor/Fonts/").c_str()
         );
         /*ComponentsRender::drawHelpMarker(
             "- Load additional fonts with io.Fonts->AddFontFromFileTTF().\n"

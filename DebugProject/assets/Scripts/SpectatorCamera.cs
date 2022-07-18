@@ -25,9 +25,7 @@ public class SpectatorCamera : Component {
 
 
 	public override void onStart() {
-		Input.setCursorMode(CursorMode.Disabled);
 		mouse = transform.eulerAngles;
-
 	}
 	public override void onUpdate() {
 		Vector3 inputDiagonal = Input.getAxis(front, back) * transform.forward;
@@ -43,10 +41,7 @@ public class SpectatorCamera : Component {
 		transform.setRotation(new Quaternion(mouse));
 
 		if (Input.getKeyDown(KeyCode.Escape)) {
-			if (Input.getCursorMode() == CursorMode.Disabled)
-				Input.setCursorMode(CursorMode.Normal);
-			else
-				Input.setCursorMode(CursorMode.Disabled);
+			Input.setCursorMode(CursorMode.Disabled);
 		}
 	}
 }

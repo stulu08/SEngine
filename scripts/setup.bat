@@ -1,22 +1,23 @@
 @echo off
-IF "%PATH_MONO%"=="" mono.bat
+if not "%1"=="am_admin" (
+    powershell -Command "Start-Process -Verb RunAs -FilePath '%0' -ArgumentList 'am_admin', '%~dp0'"
+
+    exit /b
+)
+
+pushd %2
 
 python --version 3>NUL
 if errorlevel 1 goto errorNoPython
 
-echo installing requests
-python3 -m pip install requests
-echo Trying installing vulkan
-setupVulkan.py
-echo Trying to generate Project Files for Visual Studio 2019
-"generateProjects - vs2022.bat"
-pause
-close
+python python/setup.py
+PAUSE
+exit
 
-goto:eof
 
 :errorNoPython
 echo Trying to install python from Microsoft Store
 python
 echo After installing python execute this file again
 pause
+exit

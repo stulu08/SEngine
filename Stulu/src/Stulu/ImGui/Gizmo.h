@@ -19,11 +19,18 @@ namespace Stulu {
 		static void drawGrid(const glm::mat4& matrix, const float& size);
 
 		static void drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color = glm::vec4(1.0f,1.0f,1.0f,1.0f));
-
 		static void drawRect(const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void drawRect(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
 		static void drawOutlineCube(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+		static void drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec3& up = { 0, 1, 0 }, const glm::vec4& color = COLOR_WHITE_VEC4);
+
+		static void drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color = {1,1,1,1}, bool border = false, float overrideBorderSize = 0);
+		static bool drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& position, 
+			const glm::vec2& size = {50,50}, const glm::vec4& color = {1,1,1,1}, 
+			const glm::vec2& uv1 = { 0,1 }, const glm::vec2& uv2 = { 1,0 }, 
+			const int borderSize = 1.0f, const glm::vec4& bgColor = {0,0,0,0});
 	private:
 		static glm::vec2 worldToPos(const glm::vec3& worldPos);
 		
@@ -31,6 +38,7 @@ namespace Stulu {
 		static struct Data {
 			glm::mat4 viewMatrix;
 			glm::mat4 projMatrix;
+			glm::vec3 cameraPosition;
 
 			float mX = 0.f;
 			float mY = 0.f;

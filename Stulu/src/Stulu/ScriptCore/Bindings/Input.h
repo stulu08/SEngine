@@ -50,8 +50,8 @@ namespace StuluBindings {
 			}
 		}
 		static inline void getMousePos(struct Vector2* pos) {
-			pos->x = Stulu::Input::getMousePos().first;
-			pos->y = Stulu::Input::getMousePos().second;
+			pos->x = Stulu::Input::getMousePos().x;
+			pos->y = Stulu::Input::getMousePos().y;
 		}
 
 		static inline bool s_enabled = true;

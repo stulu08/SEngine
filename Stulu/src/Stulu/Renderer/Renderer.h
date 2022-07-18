@@ -22,15 +22,16 @@ namespace Stulu{
 		static void init();
 		static void onWindowResize(WindowResizeEvent& e);
 
-		static void beginScene(const glm::mat4& projection, const glm::mat4& transform = glm::mat4(1.0f));
-		static void beginScene(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& position, const glm::vec3& rotation);
-		static void endScene();
+		static void begin(const glm::mat4& projection, const glm::mat4& view = glm::mat4(1.0f));
+		static void begin(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& position, const glm::vec3& rotation);
+		static void end();
 
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader = nullptr, const glm::mat4& transform = glm::mat4(1.0f), uint32_t count = 0);
-		static void submit(const Ref<VertexArray>& vertexArray, const glm::mat4& transform = glm::mat4(1.0f), uint32_t count = 0);
 
 		static void uploadBufferData(const glm::mat4& projection, const glm::mat4& transform);
 		static void uploadBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation);
+		//to upload data for custom shaders
+		static void uploadBufferData(void* data, uint32_t size);
 
 		inline static RenderAPI::API getRendererAPI() { return RenderAPI::getAPI(); }
 	private:

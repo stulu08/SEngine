@@ -8,6 +8,7 @@
 #include "Bindings/GameObject.h"
 #include "Bindings/Transform.h"
 #include "Bindings/Rigidbody.h"
+#include "Bindings/Graphics.h"
 
 
 namespace Stulu {
@@ -94,5 +95,16 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.InternalCalls::rigidbody_massCenterSet(uint,Stulu.Vector3&)", StuluBindings::Rigidbody::setMassCenterPos);
 		mono_add_internal_call("Stulu.InternalCalls::rigidbody_massCenterGet(uint,Stulu.Vector3&)", StuluBindings::Rigidbody::getMassCenterPos);
 
+		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLine);
+		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawQuad);
+		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", StuluBindings::Graphics::drawCircle);
+		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawLineRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineRect);
+		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawLineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineCube);
+
+		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLine);
+		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawQuad);
+		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", StuluBindings::Graphics::drawCircle);
+		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawLineRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineRect);
+		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawLineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineCube);
 	}
 }

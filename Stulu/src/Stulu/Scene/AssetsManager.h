@@ -11,7 +11,7 @@ namespace Stulu {
 	class Model;
 	enum class AssetType {
 		Unknown = 0,
-		Texture2D = 1, Texture = 2, SkyBox = 3,
+		Texture2D = 1, RenderTexture = 2, SkyBox = 3,
 		Model = 4, Mesh = 5, 
 		Material = 6, Shader = 7,
 		Scene = 8,
@@ -44,27 +44,34 @@ namespace Stulu {
 		static bool existsAndType(const UUID& uuid, const AssetType type);
 
 		static Asset& get(const UUID& uuid);
+		static inline bool saveGet(const UUID& uuid, Asset& outAsset) {
+			if (exists(uuid)) {
+				outAsset = assets[uuid];
+				return true;
+			}
+			return false;
+		}
 		const static AssetType getAssetTypeByPath(const std::string& path);
 		const static type_info& getType(const UUID& uuid);
 		const static AssetType& getAssetType(const UUID& uuid);
 		template<typename T>
 		static inline T* getAs(const UUID& uuid) {
 			ST_PROFILING_FUNCTION();
-			if (exists)
+			if (exists(uuid))
 				return assets[uuid].first._Cast<T>();
 
-			CORE_EROR(exists, "UUID not present in assets");
+			CORE_EROR(exists(uuid), "UUID not present in assets");
 			return nullptr;
 		}
 		static UUID getFromPath(const std::string& path);
 		static UUID getFromPath(const std::string& path, AssetType type);
 		static const AssetType assetTypeFromExtension(const std::string& extension);
 
-		static void loadAllFiles(const std::string& directory);
-		static void loadDirectory(const std::string& directory);
-		static void loadShaders(const std::string& directory);
-		static void loadTextures(const std::string& directory);
-		static void loadMaterials(const std::string& directory);
+		static void loadAllFiles(const std::string& directory, bool loadNewFiles = true);
+		static void loadDirectory(const std::string& directory, bool loadNewFiles = true);
+		static void loadShaders(const std::string& directory, bool loadNewFiles = true);
+		static void loadTextures(const std::string& directory, bool loadNewFiles = true);
+		static void loadMaterials(const std::string& directory, bool loadNewFiles = true);
 
 		static void reloadShaders(const std::string& directory);
 

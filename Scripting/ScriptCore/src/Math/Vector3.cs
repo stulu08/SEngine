@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable 1591
+using System;
 
 namespace Stulu {
 	public struct Vector3 {
@@ -23,12 +24,16 @@ namespace Stulu {
             this.Z = z;
         }
 
+        public Vector3(Vector2 xy, float z) {
+            this.X = xy.x;
+            this.Y = xy.y;
+            this.Z = z;
+        }
         public Vector3(float x, Vector2 yz) {
             this.X = x;
             this.Y = yz.X;
             this.Z = yz.Y;
         }
-
         public Vector3(Vector2 vector) {
             this.X = vector.X;
             this.Y = vector.Y;

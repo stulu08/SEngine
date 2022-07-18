@@ -70,12 +70,12 @@ namespace Stulu {
 				if (ImGui::BeginMenu("Rendering")) {
 					if (ImGui::MenuItem("Orthographic Camera")) {
 						GameObject g = m_scene->createGameObject("Orthographic Camera");
-						g.addComponent<CameraComponent>(CameraMode::Orthographic);
+						g.addComponent<CameraComponent>(CameraMode::Orthographic, true);
 						g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
 					}
 					if (ImGui::MenuItem("Perspective Camera")) {
 						GameObject g = m_scene->createGameObject("Perspective Camera");
-						g.addComponent<CameraComponent>(CameraMode::Perspective);
+						g.addComponent<CameraComponent>(CameraMode::Perspective, true);
 						g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
 					}
 					ImGui::EndMenu();
@@ -115,12 +115,12 @@ namespace Stulu {
 						if (transform.parent == gameObject) {
 							GameObject child(go, m_scene.get());
 							if (child.hasComponent<MeshRendererComponent>()) {
-								child.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+								child.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(id).data);
 							}
 						}
 					});
-					if(gameObject.hasComponent<MeshRendererComponent>())
-						gameObject.getComponent<MeshRendererComponent>().material = AssetsManager::get(id).data._Cast<Material>();
+					if (gameObject.hasComponent<MeshRendererComponent>())
+						gameObject.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(id).data);
 				}
 			}
 			ImGui::EndDragDropTarget();

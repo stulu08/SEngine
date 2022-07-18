@@ -49,13 +49,19 @@ namespace Stulu {
 		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 		ImGuizmo::Enable(true);
 		s_data.mDrawList = ImGui::GetWindowDrawList();
+		Renderer::uploadBufferData(s_data.projMatrix, s_data.viewMatrix, glm::vec3(), glm::vec3());
+		Renderer2D::begin();
 	}
 	void Gizmo::End() {
+		RenderCommand::setDefault();
+		RenderCommand::setDepthTesting(false);
+		Renderer2D::flush();
 	}
 	void Gizmo::setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView) {
 		ST_PROFILING_FUNCTION();
 		s_data.projMatrix = cameraProjection;
 		s_data.viewMatrix = cameraView;
+		s_data.cameraPosition = glm::inverse(cameraView)[3];
 	}
 	void Gizmo::setRect(const float x, const float y, const float width, const float height) {
 		ST_PROFILING_FUNCTION();
@@ -103,7 +109,7 @@ namespace Stulu {
 	}
 	void Gizmo::drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color) {
 		ST_PROFILING_FUNCTION();
-		s_data.mDrawList->AddLine(ST_glmVec2ToImGui(worldToPos(begin)), ST_glmVec2ToImGui(worldToPos(end)), ST_glmVec4ToImGuiColor(color), 2.0f);
+		Renderer2D::drawLine(begin, end, color);
 	}
 
 	void Gizmo::drawRect(const glm::vec3& position, const glm::vec2& scale, const glm::vec4& color) {
@@ -117,11 +123,13 @@ namespace Stulu {
 		drawLine(p3, p0, color);
 	}
 	void Gizmo::drawRect(const glm::mat4& transform, const glm::vec4& color) {
-		static glm::vec4 vertexPositions[4];
-		vertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-		vertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
-		vertexPositions[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
-		vertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
+		static glm::vec4 vertexPositions[4]{
+			{ -0.5f, -0.5f, 0.0f, 1.0f },
+			{ 0.5f, -0.5f, 0.0f, 1.0f },
+			{ 0.5f,  0.5f, 0.0f, 1.0f },
+			{ -0.5f,  0.5f, 0.0f, 1.0f },
+
+		};
 		glm::vec3 lineVertices[4];
 		for (size_t i = 0; i < 4; i++)
 			lineVertices[i] = transform * vertexPositions[i];
@@ -132,15 +140,16 @@ namespace Stulu {
 		drawLine(lineVertices[3], lineVertices[0], color);
 	}
 	void Gizmo::drawOutlineCube(const glm::mat4& transform, const glm::vec4& color) {
-		static glm::vec4 vertexPositions[8];
-		vertexPositions[0] = { -0.5f, -0.5f, -0.5f, 1.0f };
-		vertexPositions[1] = { 0.5f, -0.5f, -0.5f, 1.0f };
-		vertexPositions[2] = { 0.5f,  0.5f, -0.5f, 1.0f };
-		vertexPositions[3] = { -0.5f,  0.5f, -0.5f, 1.0f };
-		vertexPositions[4] = { -0.5f, -0.5f, 0.5f, 1.0f };
-		vertexPositions[5] = { 0.5f, -0.5f, 0.5f, 1.0f };
-		vertexPositions[6] = { 0.5f,  0.5f, 0.5f, 1.0f };
-		vertexPositions[7] = { -0.5f,  0.5f, 0.5f, 1.0f };
+		static glm::vec4 vertexPositions[8]{
+			{ -0.5f, -0.5f, -0.5f, 1.0f },
+			{ 0.5f, -0.5f, -0.5f, 1.0f },
+			{ 0.5f,  0.5f, -0.5f, 1.0f },
+			{ -0.5f,  0.5f, -0.5f, 1.0f },
+			{ -0.5f, -0.5f, 0.5f, 1.0f },
+			{ 0.5f, -0.5f, 0.5f, 1.0f },
+			{ 0.5f,  0.5f, 0.5f, 1.0f },
+			{ -0.5f,  0.5f, 0.5f, 1.0f },
+		};
 		glm::vec3 lineVertices[8];
 		for (size_t i = 0; i < 8; i++)
 			lineVertices[i] = transform * vertexPositions[i];
@@ -160,5 +169,44 @@ namespace Stulu {
 		drawLine(lineVertices[1], lineVertices[5], color);
 		drawLine(lineVertices[2], lineVertices[6], color);
 		drawLine(lineVertices[3], lineVertices[7], color);
+	}
+	void Gizmo::drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale, const glm::vec4& color) {
+		Renderer2D::drawTexturedQuad(Math::createMat4(position, rotation, glm::vec3(scale, .0f)), texture, glm::vec2(1.0f), color);
+	}
+	void Gizmo::drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale, const glm::vec3& up, const glm::vec4& color) {
+		glm::mat4 viewMat = glm::lookAt(position, s_data.cameraPosition, glm::vec3(up));
+		glm::quat rotation = glm::quat(glm::vec3(.0f));
+		Math::decomposeRotationFromViewMatrix(viewMat, rotation);
+		drawTexture(texture, position, rotation, scale, color);
+	}
+	void Gizmo::drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, bool border, float border_size) {
+		ImVec2 p_min(pos.x + s_data.mX, pos.y + s_data.mY);
+		ImVec2 p_max(ImVec2(size.x, size.y) + p_min);
+
+		float rounding = .0f;
+		
+		s_data.mDrawList->AddRectFilled(p_min, p_max, ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w)), rounding);
+		if(border_size == 0)
+			border_size = ImGui::GetStyle().FrameBorderSize;
+		if (border && border_size > 0.0f)
+		{
+			s_data.mDrawList->AddRect(p_min + ImVec2(1, 1), p_max + ImVec2(1, 1), ImGui::GetColorU32(ImGuiCol_BorderShadow), rounding, ImDrawCornerFlags_All, border_size);
+			s_data.mDrawList->AddRect(p_min, p_max, ImGui::GetColorU32(ImGuiCol_Border), rounding, ImDrawCornerFlags_All, border_size);
+		}
+	}
+	bool Gizmo::drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const glm::vec2& uv1, const glm::vec2& uv2, const int borderSize, const glm::vec4& bgColor) {
+		ImVec2 _pos(pos.x + s_data.mX, pos.y + s_data.mY);
+		ImVec2 _max(ImVec2(size.x, size.y) + _pos);
+
+		drawGUIRect(pos, size, bgColor, true);
+
+		//if (bgColor.w > 0.0f)
+			//s_data.mDrawList->AddRectFilled(_pos, _max, ImGui::GetColorU32(ImVec4(bgColor.x, bgColor.y, bgColor.z, bgColor.w)));
+
+		s_data.mDrawList->AddImage(reinterpret_cast<void*>((uint64_t)texture->getRendererID()),
+			_pos, _max, ImVec2(uv1.x, uv1.y), ImVec2(uv2.x, uv2.y),
+			ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w))
+		);
+		return ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(_pos, _max);
 	}
 }

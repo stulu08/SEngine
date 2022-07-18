@@ -32,27 +32,28 @@ namespace Stulu {
 		static const float clamp(float& v, float min, float max);
 
 		static void setPerlinSeed(uint32_t seed);
-		static float simpleNosie(glm::vec2 pos, float offset = 1.0, float scale = 1.0f, glm::vec2 size = glm::vec2(1.0f));
+		static float simpleNosie(const glm::vec2& pos, float offset = 1.0, float scale = 1.0f, const glm::vec2& size = glm::vec2(1.0f));
 		static float perlinNosie(float x, float y, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 		static float perlinAccumalatedNosie(float x, float y, uint32_t octaves = 1, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 		static float perlinNormalizedNosie(float x, float y, uint32_t octaves = 1, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 	
-		static const bool isPosOverQuad(Quad& quad, glm::vec2& pos);
-		static const bool isQuadOverQuad(Quad& quad, Quad& quad2);
+		static bool isPosOverQuad(const Quad& quad, const glm::vec2& pos);
+		static bool isQuadOverQuad(const Quad& quad, const Quad& quad2);
 
-		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale);
-		static const glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& scale);
+		static glm::mat4 createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale);
+		static glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& scale);
 
-		static const glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize);
-		static const float lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
-		static const glm::quat lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
-		static const glm::quat quaternionFromEulerAngle(const glm::vec3& axis, float angle);
-		static const bool decomposeTransformEuler(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
-		static const bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale);
+		static glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize);
+		static float lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
+		static glm::quat lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
+		static glm::quat quaternionFromEulerAngle(const glm::vec3& axis, float angle);
+		static bool decomposeTransformEuler(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
+		static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale);
+		static bool decomposeRotationFromViewMatrix(const glm::mat4& transform, glm::quat& rotation);
 
 		// if count == 0 -> count = vec.size()
 		template<class T>
-		inline static const T avg(const std::vector<T>& vec, int count = 0) {
+		inline static T avg(const std::vector<T>& vec, int count = 0) {
 			if (count == 0)
 				count = (int)vec.size();
 

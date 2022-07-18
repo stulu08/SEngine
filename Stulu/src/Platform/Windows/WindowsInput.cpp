@@ -25,7 +25,7 @@ namespace Stulu {
 		auto state = glfwGetMouseButton(window, button);
 		return state == GLFW_PRESS;
 	}
-	std::pair<float, float> Input::getMousePos() {
+	glm::vec2 Input::getMousePos() {
 		ST_PROFILING_FUNCTION();
 		if (!s_enabled)
 			return {.0f,.0f};
@@ -36,13 +36,11 @@ namespace Stulu {
 	}
 	float Input::getMouseX() {
 		ST_PROFILING_FUNCTION();
-		auto [x, y] = getMousePos();
-		return x;
+		return getMousePos().x;
 	}
 	float Input::getMouseY() {
 		ST_PROFILING_FUNCTION();
-		auto [x, y] = getMousePos();
-		return y;
+		return getMousePos().y;
 	}
 	void Input::setCursorMode(CursorMode mode) {
 		ST_PROFILING_FUNCTION();

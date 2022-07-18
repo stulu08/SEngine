@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable 1591
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Stulu {
     public struct Quaternion : IEquatable<Quaternion> {
+        public static Quaternion Identy = new Quaternion(0, 0, 0, 1);
 		public float W;
         public float X;
         public float Y;
         public float Z;
-        public static Quaternion Identy = new Quaternion(0, 0, 0, 1);
 
         public Quaternion(float x, float y, float z, float w) {
             this.X = x;

@@ -140,6 +140,21 @@ namespace Stulu {
 
 		return { totalVirtualMem,virtualMemUsed,virtualMemUsedByMe,totalPhysMem,physMemUsed,physMemUsedByMe };
 	}
-
+	int Platform::changeWorkingDirectory(const char* dir) {
+		int succes;
+		wchar_t wide_buffer[MAX_PATH];
+		if (MultiByteToWideChar(CP_UTF8, 0, dir, -1, wide_buffer, MAX_PATH) == 0) {
+			//Error
+			CORE_ERROR("Could not map string to UTF-16 string in Platform::changeWorkingDirectory(const char* dir)");
+			return -1;
+		}
+		succes = SetCurrentDirectoryW(wide_buffer);
+		return succes;
+	}
+	std::string Platform::getCurrentWorkingDirectory() {
+		char path[MAX_PATH];
+		GetCurrentDirectoryA(MAX_PATH, path);
+		return path;
+	}
 }
 #endif // PLAFORM_WINDOWS

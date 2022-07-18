@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 #include <stb_image.h>
-#include <Stulu/Scene/Resources.h>
+#include <Stulu/Core/Resources.h>
 #include <Stulu/Renderer/RenderCommand.h>
 #include "OpenGlTexture.h"
 
@@ -23,7 +23,6 @@ namespace Stulu {
 	void OpenGLSkyBox::update(uint32_t resolution, void* data) {
         ST_PROFILING_FUNCTION();
         uint32_t m_captureFBO = 0, m_captureRBO = 0;
-
         if (m_envCubemap)
             glDeleteTextures(1, &m_envCubemap);
         if (m_irradianceMap)
@@ -120,7 +119,6 @@ namespace Stulu {
             glDeleteTextures(1, &m_irradianceMap);
         if (m_prefilterMap)
             glDeleteTextures(1, &m_prefilterMap);
-
 
         m_resolution = resolution;
         glGenFramebuffers(1, &m_captureFBO);
@@ -272,7 +270,9 @@ namespace Stulu {
     */
     void OpenGLSkyBox::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
         ST_PROFILING_FUNCTION();
-        
+        m_settings.wrap = (int)TextureSettings::Wrap::Clamp;
+        m_settings.tiling = glm::vec2(1.0f);
+        m_settings.format = (int)TextureSettings::Format::RGB16F;
         // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
         // --------------------------------------------------------------------------------
         glGenTextures(1, &m_irradianceMap);
@@ -312,7 +312,7 @@ namespace Stulu {
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        
+
         // pbr: create a pre-filter cubemap, and re-scale capture FBO to pre-filter scale.
         // --------------------------------------------------------------------------------
         glGenTextures(1, &m_prefilterMap);
@@ -361,34 +361,38 @@ namespace Stulu {
             }
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        if (!s_brdfLUT) {
-            // pbr: generate a 2D LUT from the BRDF equations used.
-            // ----------------------------------------------------
-            glGenTextures(1, &s_brdfLUT);
 
-            // pre-allocate enough memory for the LUT texture.
-            glBindTexture(GL_TEXTURE_2D, s_brdfLUT);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, m_resolution, m_resolution, 0, GL_RG, GL_FLOAT, 0);
-            // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        /*
+        // pbr: generate a 2D LUT from the BRDF equations used.
+        // ----------------------------------------------------
+        glGenTextures(1, &m_brdfLUT);
 
-            // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
-            glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
-            glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_resolution, m_resolution);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_brdfLUT, 0);
+        // pre-allocate enough memory for the LUT texture.
+        glBindTexture(GL_TEXTURE_2D, m_brdfLUT);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, m_resolution, m_resolution, 0, GL_RG, GL_FLOAT, 0);
+        // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-            glViewport(0, 0, m_resolution, m_resolution);
-            if (!s_brdfShader)
-                s_brdfShader = Shader::create("brdfShader", getBrdfShaderSource());
-            s_brdfShader->bind();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderQuad();
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        }
+        // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+        glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_resolution, m_resolution);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_brdfLUT, 0);
+
+        glViewport(0, 0, m_resolution, m_resolution);
+        if (!s_brdfShader)
+            s_brdfShader = Shader::create("brdfShader", getBrdfShaderSource());
+        s_brdfShader->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderQuad();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        */
+
+        m_brdfLUT = SkyBox::genrateBRDFLUT(m_resolution)->getRendererID();
+
         bind(0);
     }
 
@@ -413,10 +417,10 @@ namespace Stulu {
     }
     void OpenGLSkyBox::bindBRDFLUT(uint32_t slot) const {
         ST_PROFILING_FUNCTION();
-        glBindTextureUnit(slot, s_brdfLUT);
+        glBindTextureUnit(slot, m_brdfLUT);
     }
 
-    void OpenGLSkyBox::draw() {
+    void OpenGLSkyBox::draw() const {
         ST_PROFILING_FUNCTION();
         glDepthFunc(GL_LEQUAL);
         glCullFace(GL_BACK);
@@ -428,112 +432,109 @@ namespace Stulu {
 		return m_envCubemap == other.getRendererID();
 	}
 
-    void renderCube() {
+    OpenGLCubeMap::OpenGLCubeMap(uint32_t resolution, TextureSettings settings)
+        : m_resolution(resolution),m_settings(settings) {
         ST_PROFILING_FUNCTION();
-        static Ref<VertexArray> s_cubeVAO = nullptr;
-        if (!s_cubeVAO) {
-            std::vector<Vertex> vertices{
-                //top
-                {glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-                {glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-                {glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-                {glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-                //bottom														 		 
-                {glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-                {glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-                {glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-                {glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-                //right															 		 
-                {glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-                {glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-                {glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-                {glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-                //left															 		 
-                {glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-                {glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-                {glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-                {glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-                //front															 		 
-                {glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
-                {glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
-                {glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
-                {glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
-                //back															 		 
-                {glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-                {glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-                {glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-                {glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-            };
-            std::vector<uint32_t> indices{
-                //top
-                0,1,2,
-                2,3,0,
-                //bottom
-                6,5,4,
-                4,7,6,
-                //right
-                8,9,10,
-                10,11,8,
-                //left
-                14,13,12,
-                12,15,14,
-                //front
-                18,17,16,
-                16,19,18,
-                //back
-                20,21,22,
-                22,23,20
-            };
+        glGenTextures(1, &m_map);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
 
-            
-            Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-            Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-            
-            s_cubeVAO = Stulu::VertexArray::create();
-            vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
-            vertexBuffer->setLayout(BufferLayout {
-                { Stulu::ShaderDataType::Float3, "a_pos" },
-                { Stulu::ShaderDataType::Float3, "a_normal" },
-                { Stulu::ShaderDataType::Float2, "a_texCoord" },
-                });
-            s_cubeVAO->addVertexBuffer(vertexBuffer);
-            indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
-            s_cubeVAO->setIndexBuffer(indexBuffer);
-        }
-        s_cubeVAO->bind();
-        glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
-        glBindVertexArray(0);
-    }
-    void OpenGLSkyBox::renderQuad()
-    {
-        ST_PROFILING_FUNCTION();
-        if (s_quadVAO == 0)
+        TextureSettings::Format format = (TextureSettings::Format)settings.format;
+        auto[internalformat, dataformat] = TextureFormatToGLenum(format, 4);
+
+        for (uint32_t i = 0; i < 6; i++)
         {
-            float quadVertices[] = {
-                // positions        // texture Coords
-                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-            };
-            // setup plane VAO
-            glGenVertexArrays(1, &s_quadVAO);
-            glGenBuffers(1, &s_quadVBO);
-            glBindVertexArray(s_quadVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, s_quadVBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+            if(isGLTextureFormatFloat(format))
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_FLOAT, nullptr);
+            else
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_UNSIGNED_BYTE, nullptr);
         }
-        glDisable(GL_BLEND);
-        glBindVertexArray(s_quadVAO);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glBindVertexArray(0);
-        glEnable(GL_BLEND);
+        GLenum wrap = 0;
+        switch (settings.wrap)
+        {
+        case (int)TextureSettings::Wrap::Clamp:
+            wrap = GL_CLAMP;
+            break;
+        case (int)TextureSettings::Wrap::Repeat:
+            wrap = GL_REPEAT;
+            break;
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrap);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrap);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrap);
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
 
+    OpenGLCubeMap::~OpenGLCubeMap() {
+        ST_PROFILING_FUNCTION();
+        glDeleteTextures(1, &m_map);
+    }
+
+    void OpenGLCubeMap::bind(uint32_t slot) const {
+        ST_PROFILING_FUNCTION();
+        glBindTextureUnit(slot, m_map);
+    }
+
+    void OpenGLCubeMap::draw() const {
+        ST_PROFILING_FUNCTION();
+        glDepthFunc(GL_LEQUAL);
+        glCullFace(GL_BACK);
+        renderCube();
+        glDepthFunc(GL_LESS);
+    }
+
+    bool OpenGLCubeMap::operator==(const Texture& other) const {
+        return m_map == other.getRendererID();
+    }
+
+    uint32_t OpenGLSkyBox::genrateBRDFLUT(uint32_t resolution) {
+        uint32_t texture, captureFBO, captureRBO;
+
+
+        glGenFramebuffers(1, &captureFBO);
+        glGenRenderbuffers(1, &captureRBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, resolution, resolution);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        //create Texture
+        // pbr: generate a 2D LUT from the BRDF equations used.
+            // ----------------------------------------------------
+        glGenTextures(1, &texture);
+
+        // pre-allocate enough memory for the LUT texture.
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, resolution, resolution, 0, GL_RG, GL_FLOAT, 0);
+        // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+        glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, resolution, resolution);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+        glViewport(0, 0, resolution, resolution);
+        if (!s_brdfShader)
+            s_brdfShader = Shader::create("brdfShader", getBrdfShaderSource());
+        s_brdfShader->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderQuad();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glDeleteFramebuffers(1, &captureFBO);
+        glDeleteRenderbuffers(1, &captureRBO);
+
+        return texture;
+    }
     std::string OpenGLSkyBox::getEquirectangularToCubemapShaderSource() {
         return R"(
             ##add ST_CubemapVertex
@@ -860,62 +861,109 @@ void main() {
 }
         )";
     }
-    OpenGLCubeMap::OpenGLCubeMap(uint32_t resolution, TextureSettings settings)
-        : m_resolution(resolution) {
+    void renderCube() {
         ST_PROFILING_FUNCTION();
-        glGenTextures(1, &m_map);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
+        static Ref<VertexArray> s_cubeVAO = nullptr;
+        if (!s_cubeVAO) {
+            std::vector<Vertex> vertices{
+                //top
+                {glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+                {glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+                {glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+                {glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+                //bottom														 		 
+                {glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+                {glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+                {glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+                {glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+                //right															 		 
+                {glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+                {glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+                {glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+                {glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+                //left															 		 
+                {glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+                {glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+                {glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+                {glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+                //front															 		 
+                {glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+                {glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+                {glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
+                {glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
+                //back															 		 
+                {glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+                {glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+                {glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+                {glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+            };
+            std::vector<uint32_t> indices{
+                //top
+                0,1,2,
+                2,3,0,
+                //bottom
+                6,5,4,
+                4,7,6,
+                //right
+                8,9,10,
+                10,11,8,
+                //left
+                14,13,12,
+                12,15,14,
+                //front
+                18,17,16,
+                16,19,18,
+                //back
+                20,21,22,
+                22,23,20
+            };
 
-        TextureSettings::Format format = (TextureSettings::Format)settings.format;
-        auto[internalformat, dataformat] = TextureFormatToGLenum(format, 4);
 
-        for (uint32_t i = 0; i < 6; i++)
-        {
-            if(isGLTextureFormatFloat(format))
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_FLOAT, nullptr);
-            else
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_UNSIGNED_BYTE, nullptr);
+            Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+            Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+
+            s_cubeVAO = Stulu::VertexArray::create();
+            vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
+            vertexBuffer->setLayout(BufferLayout{
+                { Stulu::ShaderDataType::Float3, "a_pos" },
+                { Stulu::ShaderDataType::Float3, "a_normal" },
+                { Stulu::ShaderDataType::Float2, "a_texCoord" },
+                });
+            s_cubeVAO->addVertexBuffer(vertexBuffer);
+            indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
+            s_cubeVAO->setIndexBuffer(indexBuffer);
         }
-        GLenum wrap = 0;
-        switch (settings.wrap)
+        s_cubeVAO->bind();
+        glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
+    }
+    void OpenGLSkyBox::renderQuad()
+    {
+        ST_PROFILING_FUNCTION();
+        if (s_quadVAO == 0)
         {
-        case (int)TextureSettings::Wrap::Clamp:
-            wrap = GL_CLAMP;
-            break;
-        case (int)TextureSettings::Wrap::Repeat:
-            wrap = GL_REPEAT;
-            break;
+            float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+            };
+            // setup plane VAO
+            glGenVertexArrays(1, &s_quadVAO);
+            glGenBuffers(1, &s_quadVBO);
+            glBindVertexArray(s_quadVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, s_quadVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
         }
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrap);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrap);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrap);
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        glDisable(GL_BLEND);
+        glBindVertexArray(s_quadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+        glEnable(GL_BLEND);
     }
-
-    OpenGLCubeMap::~OpenGLCubeMap() {
-        ST_PROFILING_FUNCTION();
-        glDeleteTextures(1, &m_map);
-    }
-
-    void OpenGLCubeMap::bind(uint32_t slot) const {
-        ST_PROFILING_FUNCTION();
-        glBindTextureUnit(slot, m_map);
-    }
-
-    void OpenGLCubeMap::draw() {
-        ST_PROFILING_FUNCTION();
-        glDepthFunc(GL_LEQUAL);
-        glCullFace(GL_BACK);
-        renderCube();
-        glDepthFunc(GL_LESS);
-    }
-
-    bool OpenGLCubeMap::operator==(const Texture& other) const {
-        return m_map == other.getRendererID();
-    }
-
 }

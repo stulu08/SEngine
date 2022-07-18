@@ -4,35 +4,61 @@
 #include "Stulu/Core/Platform.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Renderer.h"
+#include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Core/Input.h"
-#include "Stulu/Scene/Resources.h"
+#include "Stulu/Core/Resources.h"
 #include "Stulu/ScriptCore/AssemblyManager.h"
 
 namespace Stulu {
-	// we want the best gpu cause shaders wont compile with intel uhd graphics
+#ifdef OPENGL
+	// we want the best gpu cause shaders wont compile with intel uhd graphics on my laptop and windows does not want to use my nvidia card automaticly
 	// enable optimus!
 	extern "C" {
 		_declspec(dllexport) DWORD NvOptimusEnablement = 1;
 		_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 	}
+#endif
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 	Application* Application::s_instance = nullptr;
 
-	Application::Application(ApplicationInfo appInfo, bool hideWindow, bool enableImgui, const std::string& defaultAssetsPath)
-		:m_appInfo(appInfo), m_enableImgui(enableImgui), m_assetPath(defaultAssetsPath) {
+	Application::Application(const ApplicationInfo& appInfo)
+		:m_appInfo(appInfo) {
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-		if (hideWindow)
-			m_window->hide();
-		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), m_assetPath);
-		AssetsManager::loadAllFiles(m_assetPath);
-
 		Renderer::init();
-		if (m_enableImgui) {
+		if (appInfo.HideWindowOnSart) {
+			m_window->hide();
+		}
+		else {
+			//Load Texture for loading
+			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.windowProps.width, m_appInfo.windowProps.height));
+
+			const float zoom = 0.75f;
+			const float aspectRatio = (float)m_appInfo.windowProps.width / (float)m_appInfo.windowProps.height;
+			const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
+			const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
+			
+			Ref<Texture> texture = Resources::getLoadingTexture();
+
+			RenderCommand::setClearColor({ 0,0,0,1 });
+			RenderCommand::clear();
+
+			Renderer::uploadBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
+			Renderer2D::begin();
+			Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .0f, .0f), glm::vec3(1.0f)), texture);
+			Renderer2D::flush();
+
+
+			m_window->onUpdate();
+		}
+		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), appInfo.DefaultAssetsPath);
+		Resources::load();
+
+		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
 		}
@@ -86,7 +112,7 @@ namespace Stulu {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(delta);
 				}
-				if (m_enableImgui) {
+				if (m_appInfo.EnableImgui) {
 					m_imguiLayer->Begin();
 					for (Layer* layer : m_layerStack) {
 						ST_PROFILING_SCOPE("onImguiRender - layerstack");

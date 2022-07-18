@@ -20,33 +20,23 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
-	void Renderer::beginScene(const glm::mat4& projection, const glm::mat4& transform) {
+	void Renderer::begin(const glm::mat4& projection, const glm::mat4& view) {
 		ST_PROFILING_FUNCTION();
-		uploadBufferData(projection, transform);
+		uploadBufferData(projection, view);
 	}
-	void Renderer::beginScene(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& position, const glm::vec3& rotation) {
+	void Renderer::begin(const glm::mat4& projection, const glm::mat4& view, const glm::vec3& position, const glm::vec3& rotation) {
 		ST_PROFILING_FUNCTION();
 		uploadBufferData(projection, view, position, rotation);
 	}
-	void Renderer::endScene() {
+	void Renderer::end() {
 		ST_PROFILING_FUNCTION();
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
 		ST_PROFILING_FUNCTION();
-		if (shader) {
+		if (shader)
 			shader->bind();
-			m_runtimeData.matricesDataUniformBuffer->setData(&transform, sizeof(glm::mat4), sizeof(Renderer::MatricesBufferData) - sizeof(glm::mat4));
-		}
-		vertexArray->bind();
-		RenderCommand::drawIndexed(vertexArray, count);
-	}
-	void Renderer::submit(const Ref<VertexArray>& vertexArray, const glm::mat4& transform, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		m_runtimeData.matricesDataUniformBuffer->setData(&transform, sizeof(glm::mat4), sizeof(Renderer::MatricesBufferData) - sizeof(glm::mat4));
-		vertexArray->bind();
 		RenderCommand::drawIndexed(vertexArray, count);
-
-		glm::mat4(1.0f) * 1.0f;
 	}
 	void Renderer::uploadBufferData(const glm::mat4& projection, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();
@@ -63,5 +53,8 @@ namespace Stulu {
 		m_runtimeData.matricesData.cameraRotation = glm::vec4(rotation, 1.0f);
 		m_runtimeData.matricesData.modelMatrix = glm::mat4(1.0f);
 		m_runtimeData.matricesDataUniformBuffer->setData(&m_runtimeData.matricesData, sizeof(Renderer::MatricesBufferData));
+	}
+	void Renderer::uploadBufferData(void* data, uint32_t size) {
+		m_runtimeData.matricesDataUniformBuffer->setData(data, size);
 	}
 }

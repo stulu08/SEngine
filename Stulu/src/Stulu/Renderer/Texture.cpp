@@ -69,7 +69,7 @@ namespace Stulu {
 			return nullptr;
 		}
 
-		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
+		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;
 	}
 	Ref<SkyBox> SkyBox::create(const std::vector<std::string>& faces, uint32_t resolution)
@@ -86,7 +86,7 @@ namespace Stulu {
 			return nullptr;
 		}
 
-		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
+		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;
 	}
 	Ref<SkyBox> SkyBox::createYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
@@ -113,7 +113,7 @@ namespace Stulu {
 			return nullptr;
 		}
 
-		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
+		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;
 	}
 	void SkyBox::update(const std::string& path) {
@@ -155,8 +155,34 @@ namespace Stulu {
 			return nullptr;
 		}
 
-		CORE_ASSERT(false, "Unknown error in Cube´Map creation");
+		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;;
+	}
+
+
+	Ref<Texture>& SkyBox::genrateBRDFLUT(uint32_t resolution) {
+		//resolution texture
+		static std::unordered_map<uint32_t, Ref<Texture>> textures;
+
+		if (textures.find(resolution) == textures.end()) {
+			TextureSettings settings;
+			settings.format = (uint32_t)TextureSettings::Format::RG;
+			settings.wrap = (uint32_t)TextureSettings::Wrap::Clamp;
+			Ref<Texture> texture = nullptr;
+			switch (Renderer::getRendererAPI())
+			{
+			case RenderAPI::API::OpenGL:
+				texture = createRef<OpenGLTexture2D>(OpenGLSkyBox::genrateBRDFLUT(resolution), resolution, resolution, settings);
+				break;
+			case RenderAPI::API::none:
+				CORE_ASSERT(false, "No renderAPI specified");
+			default:
+				CORE_ASSERT(false, "RenderAPI not suported");
+			}
+			textures[resolution] = texture;
+		}
+
+		return textures.at(resolution);
 	}
 
 

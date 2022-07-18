@@ -22,10 +22,6 @@ project "ScriptCore"
 		"System.Xml",
 		"System.Xml.Linq",
 	}
-	postbuildcommands{
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .. " " .. builddir .. "/data/Managed"
-	}
 	filter "configurations:Debug"
 		runtime "Debug"
 
@@ -62,10 +58,6 @@ project "EditorScriptCore"
 		"System.Xml.Linq",
 		"ScriptCore",
 	}
-	postbuildcommands{
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .. " " .. builddir .. "/data/Managed"
-	}
 	filter "configurations:Debug"
 		runtime "Debug"
 
@@ -76,4 +68,3 @@ project "EditorScriptCore"
 	filter "configurations:Dist"
 		runtime "Release"
 		optimize "on"
-

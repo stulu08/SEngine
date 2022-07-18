@@ -5,6 +5,16 @@
 #include <stb_image.h>
 
 namespace Stulu {
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t openglID, uint32_t width, uint32_t height, const TextureSettings& settings) {
+		m_rendererID = openglID;
+		m_width = width;
+		m_height = height;
+		m_settings = settings;
+
+		TextureSettings::Format form = (TextureSettings::Format)settings.format;
+		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(form);
+		m_dataFormat = format.second;
+	}
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height) {
 		ST_PROFILING_FUNCTION();
 		m_width = width;
@@ -36,14 +46,18 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		glBindTextureUnit(slot, m_rendererID);
 	}
-	void OpenGLTexture2D::setData(void* data, uint32_t size) const{
+	void OpenGLTexture2D::setData(void* data, uint32_t size) {
 		ST_PROFILING_FUNCTION();
 
 		uint32_t pixelSize = m_dataFormat == GL_RGBA ? 4 : 3;
 		CORE_ASSERT(size == m_width * m_height * pixelSize, "Data is not entire Texture");
-		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
+		//GL_UNSIGNED_INT_8_8_8_8 for a hex value like 0xffff00ff
+		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_INT_8_8_8_8, data);
 	}
-
+	void OpenGLTexture2D::setPixel(uint32_t hexData, uint32_t posX, uint32_t posY) {
+		//GL_UNSIGNED_INT_8_8_8_8 for a hex value like 0xffff00ff
+		glTextureSubImage2D(m_rendererID, 0, posX, posY, 1, 1, m_dataFormat, GL_UNSIGNED_INT_8_8_8_8, &hexData);
+	}
 	void OpenGLTexture2D::update() {
 		ST_PROFILING_FUNCTION();
 

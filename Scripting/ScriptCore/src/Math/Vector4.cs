@@ -1,8 +1,5 @@
-﻿using System;
-// Decompiled with JetBrains decompiler
-// Type: Hazel.Vector4
-// Assembly: Hazel-ScriptCore, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: C14E7322-EDE5-4F3C-9776-FE9C2723B8FF
+﻿#pragma warning disable 1591
+using System;
 
 namespace Stulu {
 	public struct Vector4 {

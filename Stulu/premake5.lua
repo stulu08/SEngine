@@ -36,7 +36,6 @@ project "Stulu"
 	if(staticBuild == false) then
 		defines
 		{
-			"_CRT_SECURE_NO_WARNINGS",
 			"ST_DYNAMIC_LINK",
 			"ST_DLL_BUILD"
 		}
@@ -78,13 +77,6 @@ project "Stulu"
 		"VkLayer_utils.lib",
 		
 		"mono-2.0-sgen.lib",
-		
-		"PhysX_static_64.lib",
-		"PhysXCommon_static_64.lib",
-		"PhysXFoundation_static_64.lib",
-		"PhysXPvdSDK_static_64.lib",
-		"PhysXExtensions_static_64.lib",
-		"PhysXCooking_static_64.lib"
 	}
 	libdirs 
 	{ 
@@ -97,7 +89,7 @@ project "Stulu"
 			"%{physx}/bin/static/".. outputdir ..""
 		}
 	else
-		libdirs
+		libdirs 
 		{
 			"%{physx}/bin/dynamic/".. outputdir ..""
 		}
@@ -110,8 +102,6 @@ project "Stulu"
 		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.5\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.5\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.8-Api\"",
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." %{ProjectDir.Stulu}/bin/" .. outputdir .. "/data/Managed",
 	}
 	
 	filter "system:windows"
@@ -121,17 +111,32 @@ project "Stulu"
 			"GLFW_INCLUDE_NONE"
 		}
 
+	filter "architecture:x86_64"
+		links
+		{
+			"PhysX_static_64.lib",
+			"PhysXCommon_static_64.lib",
+			"PhysXFoundation_static_64.lib",
+			"PhysXPvdSDK_static_64.lib",
+			"PhysXExtensions_static_64.lib",
+			"PhysXCooking_static_64.lib",
+			"PhysXCharacterKinematic_static_64.lib"
+		}
+
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
 		runtime "Debug"
+		optimize "off"
 		symbols "on"
 
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
 		optimize "on"
+		symbols "on"
 
 	filter "configurations:Dist"
 		defines "ST_DIST"
 		runtime "Release"
 		optimize "on"
+		symbols "off"

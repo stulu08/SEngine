@@ -1,9 +1,10 @@
 #include "st_pch.h"
 #include "PhysX.h"
-#define PX_PHYSX_STATIC_LIB
 #include "physx/PxPhysicsAPI.h"
+
 #include "Stulu/Core/Time.h"
 #include "Stulu/Scene/Components/Components.h"
+#include "Stulu/Scene/physx/CharacterController.h"
 
 namespace physx {
     class StDefaultAllocator : public physx::PxAllocatorCallback
@@ -155,7 +156,6 @@ namespace Stulu {
         }
 
         PxSetPhysXGpuLoadHook(&gGpuLoadHook);
-
 #if PX_WINDOWS
         // create GPU dispatcher
         physx::PxCudaContextManagerDesc cudaContextManagerDesc;
@@ -163,9 +163,9 @@ namespace Stulu {
 #endif
     }
     void PhysX::shutDown() {
+        if (m_scene)
+            releasePhysics();
         if (m_cudaContextManager) {
-            if (m_scene)
-                m_scene->release();
             m_cudaContextManager->releaseContext();
             m_cudaContextManager->release();
         }
@@ -237,10 +237,13 @@ namespace Stulu {
             CORE_ERROR("Physics Scene creation failed!");
             return;
         }
+        m_controllerManager = PxCreateControllerManager(*m_scene);
+        if (!m_controllerManager) {
+            CORE_ERROR("Physics Controller Manager creation failed!");
+            return;
+        }
     }
     void PhysX::releasePhysics() {
-        if (m_scene)
-            m_scene->release();
         if (m_cpuDispatcher)
             m_cpuDispatcher->release();
         if (m_cooking)
@@ -281,6 +284,32 @@ namespace Stulu {
         mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, kinematic);
         physx::PxRigidBodyExt::updateMassAndInertia(*mactor, mass, &PhysicsVec3fromglmVec3(massLocalCenter));
         return actor;
+    }
+    physx::PxController* PhysX::createCapsuleController(CharacterController& contr, const TransformComponent& transform) {
+        physx::PxCapsuleControllerDesc desc;
+
+        desc.position = physx::PxExtendedVec3(transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z);
+        desc.upDirection = PhysicsVec3fromglmVec3(transform.up);
+
+        desc.height = contr.height;
+        desc.radius = contr.radius;
+        desc.slopeLimit = glm::cos(glm::radians(contr.slopeOffset));
+        desc.contactOffset = contr.skinWidth;//skin width
+        desc.stepOffset = contr.stepOffset;
+        desc.density = contr.density;
+
+        desc.nonWalkableMode = (physx::PxControllerNonWalkableMode::Enum)((int)contr.nonWalkAbleMode);
+        desc.climbingMode = (physx::PxCapsuleClimbingMode::Enum)((int)contr.climbingMode);
+        
+        desc.material = m_physics->createMaterial(contr.material_staticFriction, contr.material_dynamicFriction, contr.material_restitution);
+        
+        desc.invisibleWallHeight = contr.m_invisibleWallHeight;
+        desc.maxJumpHeight = contr.m_maxJumpHeight;
+        desc.scaleCoeff = contr.m_scaleCoeff;
+
+        physx::PxController* controller = m_controllerManager->createController(desc);
+        contr.controller = (void*)controller;
+        return controller;
     }
     //mesh needs to be combined
     physx::PxTriangleMesh* PhysX::createTriangleMesh(Ref<Mesh>& mesh) {

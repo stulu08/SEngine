@@ -5,22 +5,69 @@
 #include <Stulu.h>
 
 namespace Stulu {
+	template<typename T>
+	T* assignFieldValue(MonoClassField* src, MonoObject* object) {
+		T value;
+		mono_field_get_value(object, src, &value);
+
+		//T* dst = (T*)malloc(sizeof(T));
+		T* dst = new T();
+		*dst = value;
+		return dst;
+	}
+	template<typename T>
+	T* updateFieldValue(void* dest, MonoClassField* src, MonoObject* object) {
+		T value;
+		mono_field_get_value(object, src, &value);
+		T* dst = (T*)dest;
+		*dst = value;
+		return dst;
+	}
+
 	MonoObjectInstance::MonoObjectInstance(const std::string& nameSpace, const std::string& className, ScriptAssembly* assembly)
 		:m_nameSpace(nameSpace),m_className(className), m_assembly(assembly),m_constructed(false) {
 		m_classPtr = m_assembly->createClass(m_nameSpace, m_className);
 		if (m_classPtr) {
 			m_objectPtr = mono_object_new(m_assembly->getDomain(), m_classPtr);
 			m_gCHandle = mono_gchandle_new(m_objectPtr, false);
+			m_assembly->RegisterObject(m_objectID, this);
 			return;
 		}
 		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
+	}
+
+	MonoObjectInstance::MonoObjectInstance(const MonoObjectInstance& other) {
+		m_nameSpace = other.m_nameSpace;
+		m_className = other.m_className;
+		m_assembly = other.m_assembly;
+		m_constructed = false;
+
+		m_classPtr = m_assembly->createClass(m_nameSpace, m_className);
+		if (m_classPtr) {
+			m_objectPtr = mono_object_new(m_assembly->getDomain(), m_classPtr);
+			m_gCHandle = mono_gchandle_new(m_objectPtr, false);
+			m_assembly->RegisterObject(m_objectID, this);
+		}else
+			CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
+		m_fieldOrder = other.m_fieldOrder;
+		m_functions = other.m_functions;
+		//copy field value
+		for (auto i : other.m_fields) {
+			if (i.second.value && i.second.type != MonoObjectInstance::MonoClassMember::Type::Other) {
+				size_t size = MonoObjectInstance::MonoClassMember::GetTypeSize(i.second.type);
+				void* newPos = malloc(size);
+				memcpy_s(newPos, size, i.second.value, size);
+				m_fields.insert({ i.first, i.second });
+				m_fields[i.first].value = newPos;
+			}
+		}
 	}
 
 	MonoObjectInstance::~MonoObjectInstance() {
 		if (!m_assembly->getRootDomain())
 			return;
 		for (auto i : m_fields) {
-			if (i.second.value) {
+			if (i.second.value && i.second.type != MonoObjectInstance::MonoClassMember::Type::Other) {
 				delete(i.second.value);
 			}
 			i.second.m_fieldPtr = nullptr;
@@ -30,6 +77,7 @@ namespace Stulu {
 			mono_gchandle_free(m_gCHandle);
 			m_gCHandle = 0;
 		}
+		m_assembly->DeRegisterObject(m_objectID);
 	}
 
 	void MonoObjectInstance::addFunction(const std::string& fnName, const MonoFunction& mfn) {
@@ -149,28 +197,10 @@ namespace Stulu {
 		}
 		
 	}
-	template<typename T>
-	T* assignFieldValue(MonoClassField* src, MonoObject* object) {
-		T value;
-		mono_field_get_value(object, src, &value);
-
-		//T* dst = (T*)malloc(sizeof(T));
-		T* dst = new T();
-		*dst = value;
-		return dst;
-	}
-	template<typename T>
-	T* updateFieldValue(void* dest, MonoClassField* src, MonoObject* object) {
-		T value;
-		mono_field_get_value(object, src, &value);
-
-		T* dst = (T*)dest;
-		*dst = value;
-		return dst;
-	}
 	void MonoObjectInstance::loadAllClassFields() {
 		void* iter = NULL;
 		MonoClassField* field;
+		
 		while (field = mono_class_get_fields(m_classPtr, &iter)) {
 			std::string name = mono_field_get_name(field);
 			if (m_fields.find(name) != m_fields.end()) {
@@ -211,9 +241,12 @@ namespace Stulu {
 				mem.type = MonoClassMember::Type::uint_t;
 				mem.value = assignFieldValue<uint32_t>(field, m_objectPtr);
 			}
-			else
+			else {
 				mem.type = MonoClassMember::Type::Other;
-			m_fields[name] = mem;
+				mem.value = nullptr;
+			}
+			m_fields.insert({ name,mem });
+			m_fieldOrder.push_back(name);
 		}
 	}
 
@@ -240,6 +273,9 @@ namespace Stulu {
 			break;
 		case MonoClassMember::Type::uint_t:
 			mem.value = updateFieldValue<uint32_t>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
+		case MonoClassMember::Type::Other:
+			mem.value = nullptr;
 			break;
 		}
 	}

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/SubTexture2D.h"
 #include "Stulu/Renderer/Renderer.h"
+#include "Stulu/Renderer/Camera.h"
 
 namespace Stulu {
 	class STULU_API Renderer2D {
@@ -10,8 +10,9 @@ namespace Stulu {
 		static void init();
 		static void shutdown();
 		//no rendering
-		static void beginScene();
-		static void endScene();
+		static void begin();
+		static void begin(const Ref<Camera>& cam);
+		static void flush();
 
 		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);
 		static void drawQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color);
@@ -33,11 +34,12 @@ namespace Stulu {
 		static void drawCircle(const glm::vec2& pos, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
 
 		static void drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawLineRect(const glm::mat4& transform, const glm::vec4& color);
 
 	private:
-		static void flushQuads();
-		static void flushCircles();
-		static void flushLines();
+		static void flushQuads(bool bindCam = true);
+		static void flushCircles(bool bindCam = true);
+		static void flushLines(bool bindCam = true);
 
 		static void resetQuadBatch();
 		static void resetCircleBatch();

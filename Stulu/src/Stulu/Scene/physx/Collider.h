@@ -5,9 +5,9 @@ namespace Stulu {
 
 	class STULU_API Collider : public Component {
 	public:
-		float staticFriction = .1f;
-		float dynamicFriction = .1f;
-		float restitution = .0f;
+		float staticFriction = ST_DEFAULT_PHYSX_MATERIAL_STATIC_FRICTION;
+		float dynamicFriction = ST_DEFAULT_PHYSX_MATERIAL_DYNAMIC_FRICTION;
+		float restitution = ST_DEFAULT_PHYSX_MATERIAL_RESTITUTION;
 		virtual void destroy() override;
 	protected:
 		void* shape = nullptr;

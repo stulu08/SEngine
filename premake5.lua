@@ -17,9 +17,10 @@ workspace "Stulu"
 		"premake5.lua",
 		"Editor/premake5.lua",
 		"Stulu/premake5.lua",
+		"Runtime/premake5.lua",
 		"README.md"
 	}
-	architecture "x64"
+	architecture "x86_64"
 
 	filter "configurations:Debug"
 		defines     "_DEBUG"
@@ -39,7 +40,7 @@ builddir = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architectu
 
 
 vulkanSDK = os.getenv("VULKAN_SDK")
-monoDir = os.getenv("PATH_MONO")
+monoDir = os.getenv("MONO_PATH")
 physx = "%{wks.location}/Stulu/vendor/physx"
 
 IncludeDir = {}
@@ -78,7 +79,6 @@ include "Stulu/vendor/yaml-cpp"
 include "Stulu/vendor/ImGuizmo"
 include "Editor/vendor/discord-rpc"
 group "Misc"
-include "VulkanTesting"
 include "Stulu Hub"
 group "Engine"
 include "Stulu"

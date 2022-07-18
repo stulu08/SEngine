@@ -150,16 +150,18 @@ namespace YAML {
 			node.push_back(rhs.binding);
 			node.push_back((uint64_t)rhs.uuid);
 			node.push_back(rhs.type);
+			node.push_back(Stulu::DefaultTetxureToString(rhs.defaultTexture));
 			node.SetStyle(EmitterStyle::Flow);
 			return node;
 		}
 
 		inline static bool decode(const Node& node, Stulu::MaterialTexture& rhs) {
-			if (!node.IsSequence() || node.size() != 3)
+			if (!node.IsSequence() || node.size() != 4)
 				return false;
 			rhs.binding = node[0].as<int>();
 			rhs.uuid = node[1].as<uint64_t>();
 			rhs.type = node[2].as<uint32_t>();
+			rhs.defaultTexture = Stulu::StringToDefaultTexture(node[3].as<std::string>());
 			return true;
 		}
 	};
@@ -283,7 +285,7 @@ namespace Stulu {
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::MaterialTexture& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq;
-		out << v.binding << (uint64_t)v.uuid << v.type;
+		out << v.binding << (uint64_t)v.uuid << v.type << DefaultTetxureToString(v.defaultTexture);
 		out << YAML::EndSeq;
 		return out;
 	}

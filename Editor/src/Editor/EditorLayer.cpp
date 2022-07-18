@@ -18,12 +18,13 @@ namespace Stulu {
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
-		
+
+		fspecs.textureFormat = TextureSettings::Format::RGBA16F;
+		m_sceneFrameBuffer = FrameBuffer::create(fspecs);
+
 		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
-		Resources::load();
 		StyleEditor::init();
 		Previewing::init();
-		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 
 		//load licenses
 		for (auto fileDir : std::filesystem::directory_iterator("Licenses")) {
@@ -53,31 +54,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		newScene();
 		loadPanelConfig();
-
-#if 0
-		GameObject object = m_activeScene->createGameObject("Cube");
-		object.addComponent<MeshFilterComponent>().mesh = Resources::getCubeMeshAsset();
-
-		class RigidBodyForceTest : public Behavior {
-		public:
-			Keyboard::KeyCode keycode = Keyboard::Space;
-			float force = 8.0f;
-
-			virtual void onAwake() override {
-				addComponent<BoxColliderComponent>();
-				addComponent<RigidbodyComponent>();
-			}
-			virtual void onUpdate() override {
-				if (Input::isKeyDown(keycode))
-					getComponent<RigidbodyComponent>().addForce(TRANSFORM_UP_DIRECTION, RigidbodyComponent::ForceMode::Impulse);
-			}
-			virtual void uiFunc() override {
-				ComponentsRender::drawFloatControl("Force", force);
-				ComponentsRender::drawIntControl("Key", (int&)keycode);
-			}
-		};
-		object.addComponent<NativeBehaviourComponent>().bind<RigidBodyForceTest>();
-#endif
+		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 	}
 
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -93,10 +70,51 @@ namespace Stulu {
 
 		if (s_runtime) {
 			m_activeScene->onUpdateRuntime(timestep);
+			SceneRenderer::GenSceneTexture(m_sceneFrameBuffer, m_runtimeScene);
 		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
+		//draw outlines
+		{
+			GameObject selected = m_editorHierarchy.getCurrentObject();
+			if (selected) {
+				m_sceneCamera.getCamera()->getFrameBuffer()->bind();
+				Renderer::begin(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().transform), glm::vec3(.0f), glm::vec3(.0f));
+				auto& tc = selected.getComponent<TransformComponent>();
 
+				RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
+				RenderCommand::setCullMode(CullMode::BackAndFront);
+				RenderCommand::setDepthTesting(false);
+				static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
+					float scaleAdd = .02f;
+					return tc.worldScale + (scaleAdd * tc.worldScale);
+				};
+
+				MeshFilterComponent meshFilter;
+				if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
+					if (meshFilter.mesh.hasMesh) {
+						selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
+						Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition, tc.worldRotation, getScaleAdd(tc)));
+
+					}
+				}
+				//each child ouline
+				m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
+					entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
+					) {
+						if (transform.parent == selected) {
+							GameObject object = GameObject{ go , m_activeScene.get() };
+							if (meshFilter.mesh.hasMesh) {
+								meshRenderer.m_enabledStencilBufferNextFrame = true;
+								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(transform)));
+							}
+						}
+					});
+				RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
+				Renderer::end();
+				m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
+			}
+		}
 		
 	}
 	void EditorLayer::onImguiRender(Timestep timestep) {
@@ -108,10 +126,13 @@ namespace Stulu {
 		drawMenuBar();
 		if (m_showGameViewport) {
 			auto cam = m_activeScene->getMainCamera();
-			if (cam && cam.hasComponent<CameraComponent>()) {
-				m_gameViewport.draw(cam.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer(), &m_showGameViewport);
+			if (s_runtime) {
+			//if (cam && cam.hasComponent<CameraComponent>()) {
+				//m_gameViewport.draw(cam.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer(), &m_showGameViewport);
+				m_gameViewport.draw(m_sceneFrameBuffer, &m_showGameViewport);
 				if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height)) {
 					m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
+					m_sceneFrameBuffer->resize(m_gameViewport.width, m_gameViewport.height);
 				}
 			}
 			else {
@@ -154,8 +175,9 @@ namespace Stulu {
 				SceneData& data = m_activeScene->m_data;
 				ComponentsRender::drawFloatSliderControl("Exposure", data.toneMappingExposure, .0f, 5.0f);
 				ComponentsRender::drawFloatSliderControl("Gamma", data.gamma, .0f, 5.0f);
+				ComponentsRender::drawFloatSliderControl("Env Lod", data.env_lod, 0.0f, 4.0f);
 				ComponentsRender::drawBoolControl("Enviroment mapping", data.useReflectionMapReflections); ImGui::SameLine();
-				ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene");
+				ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene, is still in dev and u should not use it");
 				if (ImGui::TreeNodeEx("Physics")) {
 					ComponentsRender::drawBoolControl("Enabled 3D Physics", data.enablePhsyics3D);
 					ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
@@ -164,6 +186,74 @@ namespace Stulu {
 					ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads,0,16);
 					ImGui::TreePop();
 				}
+
+
+
+				bool wireframe = (data.shaderFlags & ST_ShaderViewFlags_DisplayVertices);
+				if (ComponentsRender::drawBoolControl("Wireframe", wireframe))
+					if (wireframe)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayVertices;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayVertices;
+
+				bool diffuse = (data.shaderFlags & ST_ShaderViewFlags_DisplayDiffuse);
+				if(ComponentsRender::drawBoolControl("Diffuse", diffuse))
+					if(diffuse)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayDiffuse;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayDiffuse;
+				
+				bool specular = (data.shaderFlags & ST_ShaderViewFlags_DisplaySpecular);
+				if(ComponentsRender::drawBoolControl("Specular", specular))
+					if(specular)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplaySpecular;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplaySpecular;
+
+
+				bool lighting = (data.shaderFlags & ST_ShaderViewFlags_EnableLighting);
+				if(ComponentsRender::drawBoolControl("Lighting", lighting))
+					if (lighting)
+						data.shaderFlags |= ST_ShaderViewFlags_EnableLighting;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_EnableLighting;
+
+				bool dispNormals = (data.shaderFlags & ST_ShaderViewFlags_DisplayNormal);
+				if(ComponentsRender::drawBoolControl("Normals", dispNormals))
+					if (dispNormals)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayNormal;
+					else
+							data.shaderFlags &= ~ST_ShaderViewFlags_DisplayNormal;
+
+				bool dispRough = (data.shaderFlags & ST_ShaderViewFlags_DisplayRoughness);
+				if (ComponentsRender::drawBoolControl("Roughness", dispRough))
+					if (dispRough)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayRoughness;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayRoughness;
+
+				bool dispMetall = (data.shaderFlags & ST_ShaderViewFlags_DisplayMetallic);
+				if (ComponentsRender::drawBoolControl("Metallic", dispMetall))
+					if (dispMetall)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayMetallic;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayMetallic;
+
+				bool dispAmbient = (data.shaderFlags & ST_ShaderViewFlags_DisplayAmbient);
+				if (ComponentsRender::drawBoolControl("Ambient Occlusion", dispAmbient))
+					if (dispAmbient)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayAmbient;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayAmbient;
+
+				bool dispTexCoords = (data.shaderFlags & ST_ShaderViewFlags_DisplayTexCoords);
+				if (ComponentsRender::drawBoolControl("Tex Coords", dispTexCoords))
+					if (dispTexCoords)
+						data.shaderFlags |= ST_ShaderViewFlags_DisplayTexCoords;
+					else
+						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayTexCoords;
+
+
 			}
 			ImGui::End();
 		}
@@ -174,127 +264,174 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (m_showSceneViewport) {
 			if (ImGui::Begin("Scene", &m_showSceneViewport)) {
-				GameObject selected = m_editorHierarchy.getCurrentObject();
-				if (selected) {
-					Gizmo::Begin();
-					if (Gizmo::TransformEdit(selected.getComponent<TransformComponent>(), m_gizmoEditType)) {
-						if (getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
-							getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
+				m_sceneCamera.getCamera()->getFrameBuffer()->bind();
+				Gizmo::Begin();
+				const glm::vec3& cameraPos = m_sceneCamera.getTransform().worldPosition;
+				const float gizmoViewDistance = 50.0f;
+
+				//draw Buttons
+				//if (Gizmo::drawGUITextureButton(EditorResources::getCameraTexture(), glm::vec2(200, 100)))
+					//CORE_INFO("Is Over");
+
+				//draw all cameras
+				for (entt::entity goID : m_activeScene->getAllGameObjectsWith<CameraComponent>()) {
+					GameObject go = GameObject(goID, m_activeScene.get());
+					TransformComponent& transf = go.getComponent<TransformComponent>();
+					float camDistance = glm::distance(cameraPos, transf.worldPosition);
+
+					if(camDistance <= gizmoViewDistance)
+						Renderer2D::drawTexturedQuad(Math::createMat4(transf.worldPosition, transf.worldRotation, 
+							glm::vec3(.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))), EditorResources::getCameraTexture());
+				}
+				//draw all lights
+				for (entt::entity goID : m_activeScene->getAllGameObjectsWith<LightComponent>()) {
+					GameObject go = GameObject(goID, m_activeScene.get());
+					TransformComponent& transf = go.getComponent<TransformComponent>();
+					LightComponent& light = go.getComponent<LightComponent>();
+					float camDistance = glm::distance(cameraPos, transf.worldPosition);
+
+					if (camDistance <= gizmoViewDistance) {
+						switch (light.lightType)
+						{
+						case LightComponent::Area:
+							Gizmo::drawTextureBillBoard(EditorResources::getLightTexture(), transf.worldPosition, glm::vec3(.75f), glm::vec3(0, 1, 0), glm::vec4(light.color, 1.0f));
+							break;
+						case LightComponent::Directional:
+							Renderer2D::drawTexturedQuad(
+								Math::createMat4(transf.worldPosition, transf.worldRotation, glm::vec3(1.125f,.75f,.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))),
+								EditorResources::getDirectionalLightTexture(), glm::vec2(1.0f), glm::vec4(light.color, 1.0f));
+							break;
+						case LightComponent::Spot:
+							Renderer2D::drawTexturedQuad(
+								Math::createMat4(transf.worldPosition, transf.worldRotation, glm::vec3(.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))),
+								EditorResources::getSpotLightTexture(), glm::vec2(1.0f), glm::vec4(light.color, 1.0f));
+							break;
 						}
 					}
-					drawColliders();
-					Gizmo::End();
 				}
+
+				if (m_editorHierarchy.getCurrentObject()) {
+					GameObject selected = m_editorHierarchy.getCurrentObject();
+					onDrawGizmoSelected(selected);
+				}
+
+				Gizmo::End();
+				m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 				
 			}
 			ImGui::End();
-		}
-	}
-	void EditorLayer::drawColliders() {
-		GameObject selected = m_editorHierarchy.getCurrentObject();
-		if (selected != GameObject::null) {
-			auto& tc = selected.getComponent<TransformComponent>();
-
-
-			m_sceneCamera.getCamera()->getFrameBuffer()->bind();
-			RenderCommand::setCullMode(CullMode::BackAndFront);
-			RenderCommand::setWireFrame(true);
-			RenderCommand::setDepthTesting(false);
-
-			BoxColliderComponent boxCollider;
-			if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
-				glm::vec3 position = tc.worldPosition + boxCollider.offset;
-				glm::vec3 scale = tc.worldScale * (boxCollider.size * 2.0f);
-
-
-
-				Renderer::submit(Resources::getCubeMeshAsset().mesh->getVertexArray(),
-					EditorResources::getGreenColorShader(),
-					Math::createMat4(position, tc.worldRotation, scale));
-			}
-			SphereColliderComponent sphereCollider;
-			if (selected.saveGetComponent<SphereColliderComponent>(sphereCollider)) {
-				glm::vec3 position = tc.worldPosition + sphereCollider.offset;
-				glm::vec3 scale = tc.worldScale * (sphereCollider.radius * 2.0f);
-
-				Renderer::submit(Resources::getSphereMeshAsset().mesh->getVertexArray(),
-					EditorResources::getGreenColorShader(),
-					Math::createMat4(position, tc.worldRotation, scale));
-			}
-			CapsuleColliderComponent capsuleCollider;
-			if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
-				glm::vec3 position = tc.worldPosition + capsuleCollider.offset;
-				glm::vec3 scale;
-				if (capsuleCollider.horizontal)
-					scale = tc.worldScale * (glm::vec3(capsuleCollider.radius, capsuleCollider.height / 2.0f, capsuleCollider.radius));
-				else
-					scale = tc.worldScale * (glm::vec3(capsuleCollider.height / 2.0f, capsuleCollider.radius, capsuleCollider.radius));
-
-				Renderer::submit(Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
-					EditorResources::getGreenColorShader(),
-					Math::createMat4(position, tc.worldRotation, scale));
-			}
-			MeshColliderComponent meshCollider;
-			if (selected.saveGetComponent<MeshColliderComponent>(meshCollider)) {
-				glm::vec3 position = tc.worldPosition;
-				glm::vec3 scale = tc.worldScale;
-
-				if (meshCollider.mesh.hasMesh) {
-					if (meshCollider.convex && meshCollider.convexMesh)
-						Renderer::submit(meshCollider.convexMesh->getVertexArray(),
-							EditorResources::getGreenColorShader(),
-							Math::createMat4(position, tc.worldRotation, scale));
-					else
-						Renderer::submit(meshCollider.mesh.mesh->getVertexArray(),
-							EditorResources::getGreenColorShader(),
-							Math::createMat4(position, tc.worldRotation, scale));
-				}
-			}
-
-			RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
-			RenderCommand::setWireFrame(false);
-
-			static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
-				float scaleAdd = .02f;
-				return tc.worldScale + (scaleAdd * tc.worldScale);
-			};
-
-			MeshFilterComponent meshFilter;
-			if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
-				if (meshFilter.mesh.hasMesh) {
-					selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
-					Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition, tc.worldRotation, getScaleAdd(tc)));
-
-				}
-			}
-			//each child ouline
-			m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
-				entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
-				) {
-					if (transform.parent == selected) {
-						GameObject object = GameObject{ go , m_activeScene.get() };
-						if (meshFilter.mesh.hasMesh) {
-							meshRenderer.m_enabledStencilBufferNextFrame = true;
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(transform)));
-						}
-					}
-				});
-			RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
-			m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 		}
 	}
 	void EditorLayer::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
 		if(m_sceneViewport.focused && m_sceneViewport.hovered)
 			m_sceneCamera.onEvent(e);
-		if (e.getEventType() == EventType::WindowResize)
+		if (e.getEventType() == EventType::WindowResize) {
 			m_sceneCamera.onResize((float)static_cast<WindowResizeEvent&>(e).getWidth(), (float)static_cast<WindowResizeEvent&>(e).getHeight());
+		}
 		
 		m_activeScene->onEvent(e);
 
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
 		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(EditorLayer::onApplicationQuit));
+	}
+	void EditorLayer::onDrawGizmoSelected(GameObject selected) {
+		auto& tc = selected.getComponent<TransformComponent>();
+		if (Gizmo::TransformEdit(tc, m_gizmoEditType)) {
+			if (getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
+				getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
+			}
+		}
+		
+		//camera view frustum
+		if (selected.hasComponent<CameraComponent>()) {
+			CameraComponent camera = selected.getComponent<CameraComponent>();
+			float zNear = camera.settings.zNear;
+			float zFar = camera.settings.zFar;
+			float aspect = camera.settings.aspectRatio;
+			if (camera.mode == CameraMode::Perspective) {
+				float fovHalf = glm::radians(camera.settings.fov);
+				//near plane
+				glm::vec3 begin = tc.worldPosition + tc.forward * zNear;
+				Gizmo::drawRect(Math::createMat4(begin, tc.worldRotation, glm::vec3(aspect, 1.0f, 1.0f)), COLOR_WHITE_VEC4);
+
+				//far plane
+				
+				//tan(a) = gegenKathete/ankhatete | gegenKathete = tan(a) * ankhatete | zFar = ankhatete
+				float alphaTan = glm::tan(fovHalf);
+				float gegenKathetet = alphaTan * zFar;
+
+				float farHeightHalf = zFar / 2;
+				float farWidthHalf = zFar * aspect / 2;
+
+				float nearHeightHalf = 1.0f / 2;
+				float nearWidthHalf = aspect / 2;
+
+
+				glm::vec3 topRight = tc.worldPosition + glm::vec3(farWidthHalf, farHeightHalf +gegenKathetet, .0f) + tc.forward * zFar;
+				Gizmo::drawLine(begin + glm::vec3(nearWidthHalf, nearHeightHalf, .0f), topRight);
+
+				glm::vec3 bottomRight = tc.worldPosition + glm::vec3(farWidthHalf, -(farHeightHalf +gegenKathetet), .0f) + tc.forward * zFar;
+				Gizmo::drawLine(begin + glm::vec3(nearWidthHalf, -nearHeightHalf, .0f), bottomRight);
+
+				glm::vec3 topLeft = tc.worldPosition + glm::vec3(-farWidthHalf, farHeightHalf + gegenKathetet, .0f) + tc.forward * zFar;
+				Gizmo::drawLine(begin + glm::vec3(-nearWidthHalf, nearHeightHalf, .0f), topLeft);
+
+				glm::vec3 bottomLeft = tc.worldPosition + glm::vec3(-farWidthHalf, -(farHeightHalf + gegenKathetet), .0f) + tc.forward * zFar;
+				Gizmo::drawLine(begin + glm::vec3(-nearWidthHalf, -nearHeightHalf, .0f), bottomLeft);
+			}
+		}
+		
+		//colliders
+		RenderCommand::setWireFrame(true);
+		BoxColliderComponent boxCollider;
+		if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
+			glm::vec3 position = tc.worldPosition + boxCollider.offset;
+			glm::vec3 scale = tc.worldScale * (boxCollider.size * 2.0f);
+			glm::mat4 transform = Math::createMat4(position, tc.worldRotation, scale);
+
+			Gizmo::drawOutlineCube(transform, COLOR_GREEN);
+		}
+		SphereColliderComponent sphereCollider;
+		if (selected.saveGetComponent<SphereColliderComponent>(sphereCollider)) {
+			glm::vec3 position = tc.worldPosition + sphereCollider.offset;
+			glm::vec3 scale = tc.worldScale * (sphereCollider.radius * 2.0f);
+
+			Renderer::submit(Resources::getSphereMeshAsset().mesh->getVertexArray(),
+				EditorResources::getGreenColorShader(),
+				Math::createMat4(position, tc.worldRotation, scale));
+		}
+		CapsuleColliderComponent capsuleCollider;
+		if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
+			glm::vec3 position = tc.worldPosition + capsuleCollider.offset;
+			glm::vec3 scale;
+			if (capsuleCollider.horizontal)
+				scale = tc.worldScale * (glm::vec3(capsuleCollider.radius, capsuleCollider.height / 2.0f, capsuleCollider.radius));
+			else
+				scale = tc.worldScale * (glm::vec3(capsuleCollider.height / 2.0f, capsuleCollider.radius, capsuleCollider.radius));
+
+			Renderer::submit(Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
+				EditorResources::getGreenColorShader(),
+				Math::createMat4(position, tc.worldRotation, scale));
+		}
+		MeshColliderComponent meshCollider;
+		if (selected.saveGetComponent<MeshColliderComponent>(meshCollider)) {
+			glm::vec3 position = tc.worldPosition;
+			glm::vec3 scale = tc.worldScale;
+
+			if (meshCollider.mesh.hasMesh) {
+				if (meshCollider.convex && meshCollider.convexMesh)
+					Renderer::submit(meshCollider.convexMesh->getVertexArray(),
+						EditorResources::getGreenColorShader(),
+						Math::createMat4(position, tc.worldRotation, scale));
+				else
+					Renderer::submit(meshCollider.mesh.mesh->getVertexArray(),
+						EditorResources::getGreenColorShader(),
+						Math::createMat4(position, tc.worldRotation, scale));
+			}
+		}
+		RenderCommand::setWireFrame(false);
 	}
 	void EditorLayer::drawMenuBar() {
 		ST_PROFILING_FUNCTION();
@@ -716,7 +853,6 @@ namespace Stulu {
 		std::filesystem::copy(getEditorProject().dataPath + "/ProjectAssembly.dll", projectDataPath + "/Managed", std::filesystem::copy_options::overwrite_existing);
 
 		copyAllFilesFromDir("build", dir);
-		//copyAllFilesFromDir(getEditorProject().assetPath, projectDataPath + "/assets");
 		std::vector<std::string> AllScnenesToBuild;
 		for (auto& id : m_buildData.scenesToBuild) {
 			if (AssetsManager::existsAndType(id, AssetType::Scene))
@@ -740,11 +876,13 @@ namespace Stulu {
 		if (std::filesystem::exists(dir + "/build")) {
 			std::filesystem::remove_all(dir + "/build");
 		}
-
+		//copy engine stuff
+		copyAllFilesFromDir("data/PhysX", dir + "/data/PhysX");
 		copyAllFilesFromDir("mono", dir + "/mono");
-		copyAllFilesFromDir("assets/Meshes", dir + "/Stulu/Meshes");
-		copyAllFilesFromDir("assets/Shaders", dir + "/Stulu/Shaders");
-		copyAllFilesFromDir("assets/SkyBox", dir + "/Stulu/SkyBox");
+		copyAllFilesFromDir("Stulu", dir + "/Stulu");
+		std::filesystem::create_directories(dir + "/data/Managed");
+		std::filesystem::copy("data/Managed/Stulu.ScriptCore.dll", dir + "/data/Managed/Stulu.ScriptCore.dll", std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy("mono-2.0-sgen.dll", dir + "/mono-2.0-sgen.dll", std::filesystem::copy_options::overwrite_existing);
 
 		//generate app file
 		std::string name(m_buildData.name);

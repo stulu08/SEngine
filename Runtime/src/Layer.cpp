@@ -9,7 +9,12 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
+		FrameBufferSpecs fspecs = FrameBufferSpecs();
+		fspecs.width = Stulu::Application::get().getWindow().getWidth();
+		fspecs.height = Stulu::Application::get().getWindow().getHeight();
 
+		fspecs.textureFormat = TextureSettings::Format::RGBA16F;
+		m_fbDrawData.m_sceneFBo = FrameBuffer::create(fspecs);
 		{
 			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
 			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
@@ -53,7 +58,6 @@ namespace Stulu {
 		}
 		)");
 		}
-		Resources::load();
 	}
 
 	RuntimeLayer::~RuntimeLayer() {
@@ -74,13 +78,12 @@ namespace Stulu {
 		StuluBindings::Input::s_enabled = true;
 		m_activeScene->onUpdateRuntime(timestep);
 		//draw texture to screen
-		GameObject cO = m_activeScene->getMainCamera();
-		if (cO) {
-			auto& tex = cO.getComponent<CameraComponent>().getTexture();
-			RenderCommand::setViewport(0, 0, tex->getWidth(), tex->getHeight());
+		{
+			SceneRenderer::GenSceneTexture(m_fbDrawData.m_sceneFBo, m_activeScene);
+			RenderCommand::setViewport(0, 0, m_fbDrawData.m_sceneFBo->getTexture()->getWidth(), m_fbDrawData.m_sceneFBo->getTexture()->getHeight());
 			RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 			RenderCommand::clear();
-			tex->bind(0);
+			m_fbDrawData.m_sceneFBo->getTexture()->bind(0);
 			m_fbDrawData.m_quadShader->bind();
 			m_fbDrawData.m_quadVertexArray->bind();
 			RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
@@ -101,6 +104,7 @@ namespace Stulu {
 	}
 	bool RuntimeLayer::onResize(WindowResizeEvent& e) {
 		m_activeScene->onViewportResize(e.getWidth(), e.getHeight());
+		m_fbDrawData.m_sceneFBo->resize(e.getWidth(), e.getHeight());
 		return false;
 	}
 	void RuntimeLayer::OpenScene(const std::string& path) {
@@ -117,7 +121,7 @@ namespace Stulu {
 				m_activeScene->onRuntimeStop();
 
 			m_activeScene = nScene;
-			m_activeScene->onViewportResize(Application::getWidth(), Application::getHeight());
+			onResize(WindowResizeEvent(Application::getWidth(), Application::getHeight()));
 			Scene::setActiveScene(m_activeScene.get());
 			onRuntimeStart();
 			ST_TRACE("Opened Scene {0}", path);
@@ -132,7 +136,7 @@ namespace Stulu {
 		if (m_activeScene)
 			m_activeScene->onRuntimeStop();
 		m_activeScene = createRef<Scene>();
-		m_activeScene->onViewportResize(Application::getWidth(), Application::getHeight());
+		onResize(WindowResizeEvent(Application::getWidth(), Application::getHeight()));
 		Scene::setActiveScene(m_activeScene.get());
 		onRuntimeStart();
 		ST_TRACE("New Scene loaded");

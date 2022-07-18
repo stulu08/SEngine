@@ -1,4 +1,6 @@
 #pragma once
+#include "Core.h"
+
 
 namespace Stulu {
 	/// <summary>
@@ -22,6 +24,9 @@ namespace Stulu {
 		static std::string browseFolder();
 
 		static bool createDirectory(const char* directory);
+
+		static int changeWorkingDirectory(const char* dir = NULL);
+		static std::string getCurrentWorkingDirectory();
 
 		static MemoryUsageInfo getMemoryUsage();
 	};

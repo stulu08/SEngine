@@ -38,10 +38,15 @@ namespace Stulu {
 		/// </summary>
 		virtual void onUpdate() { }
 		/// <summary>
-		/// After every GameObject is drawn
+		/// Before every 3D GameObject is drawn
 		/// </summary>
 		/// <param name="timestep">Last Frametime without scaling</param>
 		virtual void onRender(Timestep timestep) { }
+		/// <summary>
+		/// Before every 2D GameObject is drawn
+		/// </summary>
+		/// <param name="timestep">Last Frametime without scaling</param>
+		virtual void onRender2D(Timestep timestep) { }
 		/// <summary>
 		/// When the Component is destroyed
 		/// </summary>

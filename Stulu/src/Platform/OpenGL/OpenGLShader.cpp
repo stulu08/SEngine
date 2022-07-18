@@ -7,7 +7,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Stulu/Scene/Resources.h"
+#include "Stulu/Core/Resources.h"
 
 namespace Stulu {
 	static GLenum shaderTypeFromString(const std::string& type) {

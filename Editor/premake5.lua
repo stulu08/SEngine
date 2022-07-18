@@ -9,7 +9,7 @@ project "Editor"
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
 	debugdir ("" .. builddir .. "")
-	debugargs { "%{wks.location}DebugProject" }
+	debugargs { "%{wks.location}/DebugProject/DebugProject.sproj" }
 	dependson { "EditorScriptCore","Runtime" }
 	defines
 	{
@@ -44,11 +44,19 @@ project "Editor"
 	}
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."/build",
+
 		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
+
 		"{COPYDIR} %{ProjectDir.Editor}/EditorFiles " .. builddir .. "",
+
 		"{COPYDIR} %{ProjectDir.Stulu}/bin/" .. outputdir .. " " .. builddir .. "",
-		"{COPYDIR} %{ProjectDir.Runtime}/bin/" .. outputdir .. " " .. builddir .. "/build",
-		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and there are huge and i dont have a lot of space left
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." " .. builddir .. "/data/Managed",
+		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." " .. builddir .. "/data/Managed",
+
+		"{COPYFILE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exe\" \"" .. builddir .. "/build/Stulu Runtime.exe\"",
+		"{COPYDIR} %{ProjectDir.Runtime}/Files " .. builddir .. "/build",
+
+		"{DELETE} " .. builddir .. "/Stulu.lib", --we dont need these files and i dont have a lot of space left
 		"{DELETE} " .. builddir .. "/Stulu.idb",
 		"{DELETE} " .. builddir .. "/Stulu.pdb",
 		"{DELETE} " .. builddir .. "/data/Managed/Stulu.ScriptCore.pdb",
@@ -57,10 +65,7 @@ project "Editor"
 	links
 	{
 		"Stulu", 
-		"discord-rpc",
-		"ImGuizmo",
-		"ImGui",
-
+		"discord-rpc"
 	}
 	filter "system:windows"
 		systemversion "latest"
@@ -69,14 +74,18 @@ project "Editor"
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
 		runtime "Debug"
+		optimize "off"
 		symbols "on"
 
 	filter "configurations:Release"
 		defines "ST_RELEASE"
 		runtime "Release"
 		optimize "on"
+		symbols "on"
 
 	filter "configurations:Dist"
 		defines "ST_DIST"
+		kind "WindowedApp"
 		runtime "Release"
 		optimize "on"
+		symbols "off"

@@ -10,18 +10,20 @@ namespace Stulu {
 		virtual ~OpenGLCubeMap();
 
 		virtual void bind(uint32_t slot) const override;
-		virtual void draw() override;
+		virtual void draw() const override;
 
 		virtual uint32_t getRendererID() const override { return m_map; }
 		virtual uint32_t getMap() const override { return m_map; }
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }
+		virtual TextureSettings& getSettings() override { return m_settings; }
 
 		virtual bool operator == (const Texture& other) const override;
 		virtual operator int() override { return m_map; }
 	private:
 		uint32_t m_resolution;
 		uint32_t m_map = 0;
+		TextureSettings m_settings;
 	};
 	class STULU_API OpenGLSkyBox : public SkyBox {
 	public:
@@ -37,7 +39,7 @@ namespace Stulu {
 		virtual void bindPrefilter(uint32_t slot) const override;
 		virtual void bindBRDFLUT(uint32_t slot) const override;
 
-		virtual void draw() override;
+		virtual void draw() const override;
 
 		virtual uint32_t getRendererID() const override { return m_envCubemap; }
 
@@ -45,10 +47,11 @@ namespace Stulu {
 		virtual uint32_t getEnviroment() const override { return m_envCubemap; }
 		virtual uint32_t getIrradianceMap() const override { return m_irradianceMap; }
 		virtual uint32_t getPrefilterMap() const override { return m_prefilterMap; }
-		virtual uint32_t getBRDFLUT() const override { return s_brdfLUT; }
+		virtual uint32_t getBRDFLUT() const override { return m_brdfLUT; }
 
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }
+		virtual TextureSettings& getSettings() override { return m_settings; }
 
 		virtual bool operator == (const Texture& other) const override;
 		virtual operator int() override { return m_envCubemap; }
@@ -56,17 +59,20 @@ namespace Stulu {
 		virtual void update(uint32_t resolution, void* data) override;
 		virtual void update(const std::vector<std::string>& faces, uint32_t resolution) override;
 		virtual void update(const std::string& hdrTexturePath, uint32_t resolution) override;
+
+		static uint32_t genrateBRDFLUT(uint32_t resolution);
 	private:
+		TextureSettings m_settings;
 		uint32_t m_resolution;//need to be set in constructor
 		uint32_t m_envCubemap;//need to be set in constructor
 		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
-		static inline uint32_t s_brdfLUT = 0;
+		uint32_t m_brdfLUT = 0;
 		static inline uint32_t s_quadVAO = 0, s_quadVBO = 0;
 		static inline Ref<Shader> s_brdfShader = nullptr, s_prefilterShader = nullptr, s_irradianceShader = nullptr, s_equirectangularToCubemapShader = nullptr, s_skyboxShader = nullptr;
 
 		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
 
-		void renderQuad();
+		static void renderQuad();
 
 		static std::string getEquirectangularToCubemapShaderSource();
 		static std::string getIrradianceShaderSource();
