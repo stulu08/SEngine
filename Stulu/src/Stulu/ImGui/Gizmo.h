@@ -25,6 +25,8 @@ namespace Stulu {
 
 		static void drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4);
 		static void drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec3& up = { 0, 1, 0 }, const glm::vec4& color = COLOR_WHITE_VEC4);
+		
+		static void drawCircleBillBoard(const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4, float thickness = 1.0f, float fade = .005f, const glm::vec3& up = { 0, 1, 0 });
 
 		static void drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color = {1,1,1,1}, bool border = false, float overrideBorderSize = 0);
 		static bool drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& position, 

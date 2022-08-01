@@ -4,7 +4,12 @@
 namespace Stulu {
 	class GameViewportPanel {
 	public:
-		GameViewportPanel() {};
+		GameViewportPanel() {
+			ImVec2 viewportSize = sizes[m_selectedSize];
+			width = (uint32_t)viewportSize.x;
+			height = (uint32_t)viewportSize.y;
+			windowPos = glm::vec2(.0f);
+		}
 		void draw(const Ref<FrameBuffer>& frameBuffer, bool* open);
 
 		uint32_t width = 1;

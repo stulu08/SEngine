@@ -74,17 +74,42 @@ namespace Stulu {
 		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
-		//draw outlines
-		{
-			GameObject selected = m_editorHierarchy.getCurrentObject();
-			if (selected) {
-				m_sceneCamera.getCamera()->getFrameBuffer()->bind();
-				Renderer::begin(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().transform), glm::vec3(.0f), glm::vec3(.0f));
-				auto& tc = selected.getComponent<TransformComponent>();
 
+		drawObjectOutlines();
+	}
+
+	void EditorLayer::drawObjectOutlines() {
+		GameObject selected = m_editorHierarchy.getCurrentObject();
+		if (selected) {
+			auto& tc = selected.getComponent<TransformComponent>();
+			m_sceneCamera.getCamera()->getFrameBuffer()->bind();
+			Renderer::begin(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().transform), glm::vec3(.0f), glm::vec3(.0f));
+			RenderCommand::setDepthTesting(false);
+			//draw object to stencil buffer with 0x1
+			{
+				RenderCommand::setStencil(StencilMode::WriteToBuffer);
+				MeshFilterComponent meshFilter;
+				if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
+					if (meshFilter.mesh.hasMesh) {
+						Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getTransparentShader(), tc.transform);
+					}
+				}
+				m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
+					entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
+					) {
+						if (transform.parent == selected) {
+							GameObject object = GameObject{ go , m_activeScene.get() };
+							if (meshFilter.mesh.hasMesh) {
+								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getTransparentShader(), tc.transform);
+							}
+						}
+					});
+				RenderCommand::setStencil(StencilMode::DisableWriting);
+			}
+			//draw only where stencil not buffer equals 
+			RenderCommand::setCullMode(CullMode::BackAndFront);
+			{
 				RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
-				RenderCommand::setCullMode(CullMode::BackAndFront);
-				RenderCommand::setDepthTesting(false);
 				static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
 					float scaleAdd = .02f;
 					return tc.worldScale + (scaleAdd * tc.worldScale);
@@ -93,11 +118,11 @@ namespace Stulu {
 				MeshFilterComponent meshFilter;
 				if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
 					if (meshFilter.mesh.hasMesh) {
-						selected.getComponent<MeshRendererComponent>().m_enabledStencilBufferNextFrame = true;
 						Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(tc.worldPosition, tc.worldRotation, getScaleAdd(tc)));
 
 					}
 				}
+
 				//each child ouline
 				m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
 					entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
@@ -105,17 +130,16 @@ namespace Stulu {
 						if (transform.parent == selected) {
 							GameObject object = GameObject{ go , m_activeScene.get() };
 							if (meshFilter.mesh.hasMesh) {
-								meshRenderer.m_enabledStencilBufferNextFrame = true;
 								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(transform)));
 							}
 						}
 					});
+
 				RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
-				Renderer::end();
-				m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 			}
+			Renderer::end();
+			m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 		}
-		
 	}
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
@@ -125,18 +149,15 @@ namespace Stulu {
 
 		drawMenuBar();
 		if (m_showGameViewport) {
-			auto cam = m_activeScene->getMainCamera();
 			if (s_runtime) {
-			//if (cam && cam.hasComponent<CameraComponent>()) {
-				//m_gameViewport.draw(cam.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer(), &m_showGameViewport);
 				m_gameViewport.draw(m_sceneFrameBuffer, &m_showGameViewport);
-				if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height)) {
-					m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
-					m_sceneFrameBuffer->resize(m_gameViewport.width, m_gameViewport.height);
-				}
 			}
 			else {
 				m_gameViewport.draw(nullptr, &m_showGameViewport);
+			}
+			if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height)) {
+				m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
+				m_sceneFrameBuffer->resize(m_gameViewport.width, m_gameViewport.height);
 			}
 		}
 		if (m_showSceneViewport) {
@@ -350,36 +371,42 @@ namespace Stulu {
 			float zNear = camera.settings.zNear;
 			float zFar = camera.settings.zFar;
 			float aspect = camera.settings.aspectRatio;
+			glm::mat4 nearTransform;
+			glm::mat4 farTransform;
+
 			if (camera.mode == CameraMode::Perspective) {
-				float fovHalf = glm::radians(camera.settings.fov);
-				//near plane
-				glm::vec3 begin = tc.worldPosition + tc.forward * zNear;
-				Gizmo::drawRect(Math::createMat4(begin, tc.worldRotation, glm::vec3(aspect, 1.0f, 1.0f)), COLOR_WHITE_VEC4);
+				float fovHalf = glm::radians(camera.settings.fov*0.5f);
+				float nearHeight = 1.0f;
+				float nearWidth = nearHeight * aspect;
+				float farHeight = 2.0f * zFar * (glm::tan(fovHalf));//because tan(fov) = ankhatet / gegenkahtet irgendwas
+				float farWidth = farHeight * aspect;
+				glm::vec3 nearPos = tc.worldPosition + tc.forward * zNear;
+				glm::vec3 farPos = tc.worldPosition + tc.forward * zFar;
 
-				//far plane
-				
-				//tan(a) = gegenKathete/ankhatete | gegenKathete = tan(a) * ankhatete | zFar = ankhatete
-				float alphaTan = glm::tan(fovHalf);
-				float gegenKathetet = alphaTan * zFar;
+				nearTransform = Math::createMat4(nearPos, tc.worldRotation, glm::vec3(nearWidth, nearHeight, 1.0f));
+				farTransform = Math::createMat4(farPos, tc.worldRotation, glm::vec3(farWidth, farHeight, 1.0f));
+			}
+			else {
+				float zoom = camera.settings.zoom;
+				float height = 1.0f * zoom;;
+				float width = height * aspect;
+				glm::vec3 nearPos = tc.worldPosition + tc.forward * zNear;
+				glm::vec3 farPos = tc.worldPosition + tc.forward * zFar;
 
-				float farHeightHalf = zFar / 2;
-				float farWidthHalf = zFar * aspect / 2;
+				nearTransform = Math::createMat4(nearPos, tc.worldRotation, glm::vec3(width, height, 1.0f));
+				farTransform = Math::createMat4(farPos, tc.worldRotation, glm::vec3(width, height, 1.0f));
+			}
 
-				float nearHeightHalf = 1.0f / 2;
-				float nearWidthHalf = aspect / 2;
-
-
-				glm::vec3 topRight = tc.worldPosition + glm::vec3(farWidthHalf, farHeightHalf +gegenKathetet, .0f) + tc.forward * zFar;
-				Gizmo::drawLine(begin + glm::vec3(nearWidthHalf, nearHeightHalf, .0f), topRight);
-
-				glm::vec3 bottomRight = tc.worldPosition + glm::vec3(farWidthHalf, -(farHeightHalf +gegenKathetet), .0f) + tc.forward * zFar;
-				Gizmo::drawLine(begin + glm::vec3(nearWidthHalf, -nearHeightHalf, .0f), bottomRight);
-
-				glm::vec3 topLeft = tc.worldPosition + glm::vec3(-farWidthHalf, farHeightHalf + gegenKathetet, .0f) + tc.forward * zFar;
-				Gizmo::drawLine(begin + glm::vec3(-nearWidthHalf, nearHeightHalf, .0f), topLeft);
-
-				glm::vec3 bottomLeft = tc.worldPosition + glm::vec3(-farWidthHalf, -(farHeightHalf + gegenKathetet), .0f) + tc.forward * zFar;
-				Gizmo::drawLine(begin + glm::vec3(-nearWidthHalf, -nearHeightHalf, .0f), bottomLeft);
+			Gizmo::drawRect(nearTransform, COLOR_WHITE_VEC4);
+			Gizmo::drawRect(farTransform, COLOR_WHITE_VEC4);
+			static glm::vec4 edgesPos[4]{
+				{ -0.5f, -0.5f, 0.0f, 1.0f },
+				{ 0.5f, -0.5f, 0.0f, 1.0f },
+				{ 0.5f,  0.5f, 0.0f, 1.0f },
+				{ -0.5f,  0.5f, 0.0f, 1.0f },
+			};
+			for (size_t i = 0; i < 4; i++) {
+				Gizmo::drawLine(nearTransform * edgesPos[i], farTransform * edgesPos[i]);
 			}
 		}
 		
@@ -397,10 +424,12 @@ namespace Stulu {
 		if (selected.saveGetComponent<SphereColliderComponent>(sphereCollider)) {
 			glm::vec3 position = tc.worldPosition + sphereCollider.offset;
 			glm::vec3 scale = tc.worldScale * (sphereCollider.radius * 2.0f);
-
-			Renderer::submit(Resources::getSphereMeshAsset().mesh->getVertexArray(),
-				EditorResources::getGreenColorShader(),
-				Math::createMat4(position, tc.worldRotation, scale));
+			
+			//Renderer::submit(Resources::getSphereMeshAsset().mesh->getVertexArray(),
+			//	EditorResources::getGreenColorShader(),
+			//	Math::createMat4(position, tc.worldRotation, scale));
+			Gizmo::drawCircleBillBoard(position, scale, COLOR_GREEN, .01f);
+			//Renderer2D::drawCircle(Math::createMat4(position, tc.worldRotation, scale), COLOR_GREEN, .02f);
 		}
 		CapsuleColliderComponent capsuleCollider;
 		if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
@@ -671,7 +700,7 @@ namespace Stulu {
 			m_editorScene = nScene;
 			m_activeScene = m_editorScene;
 			m_editorHierarchy.setScene(m_activeScene);
-			m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
+			m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
 			ST_TRACE("Opened Scene {0}", path);
 			DiscordRPC::setState("Editing " + path.substr(path.find_last_of("/\\") + 1, path.npos));
 		}
@@ -685,7 +714,7 @@ namespace Stulu {
 		m_currentScenePath = "";
 		m_editorScene = createRef<Scene>();
 		m_activeScene = m_editorScene;
-		m_activeScene->onViewportResize(m_sceneViewport.width, m_sceneViewport.height);
+		m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.width);
 		m_editorHierarchy.setScene(m_activeScene);
 		DiscordRPC::setState("Editing a scene");
 		ST_TRACE("New Scene loaded");

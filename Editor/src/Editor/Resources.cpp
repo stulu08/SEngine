@@ -98,6 +98,7 @@ GameObjects:
         textureHeight: 1080
       mode: 0
       depth: -1
+      renderTexture: 0
     SkyBoxComponent :
       texture: 11
       blur: 0
@@ -157,6 +158,18 @@ GameObjects:
 		void main()
 		{
 		    FragColor = vec4(0.0f,1.0f,.0f, 1.0f);
+		})");
+		return s_shader;
+	}
+	Ref<Shader>& EditorResources::getTransparentShader() {
+		static Ref<Shader> s_shader = Shader::create("Green Color Shader", R"(
+		##add ST_vertex
+		##type fragment
+		#version 460 core
+		out vec4 FragColor;
+		void main()
+		{
+		    FragColor = vec4(0.0f,0.0f,0.0f,0.0f);
 		})");
 		return s_shader;
 	}

@@ -70,15 +70,20 @@ namespace Stulu {
 		}
 		)", R"(
 		#version 460
+		##add ST_functions
 		in vec2 v_tex;
 		layout (binding = 0) uniform sampler2D texSampler;
 		out vec4 a_color;
 		void main()
 		{
 			vec4 color = texture2D(texSampler, v_tex);
-			if(color.a == 0.0f)
-				discard;
-			a_color = color;
+			//if(color.a == 0.0f)
+			//	discard;
+			//a_color = color;
+			a_color.r = when_gt(color.r, 1.0);
+			a_color.g = when_gt(color.g, 1.0);
+			a_color.b = when_gt(color.b, 1.0);
+			a_color.a = 1.0;
 		}
 		)");
 		}
@@ -319,6 +324,7 @@ namespace Stulu {
 		}
 
 		//stencil
+		
 		RenderCommand::setStencil(StencilMode::WriteToBuffer);
 		for (const RenderObject& object : s_runtimeData.stencilDrawList) {
 			if (last != object.material->getUUID()) {
@@ -330,6 +336,7 @@ namespace Stulu {
 			Renderer::submit(object.vertexArray, nullptr, object.transform);
 		}
 		RenderCommand::setStencil(StencilMode::DisableWriting);
+		
 	}
 	void SceneRenderer::drawSkyBox(const Ref<CubeMap>& skybox) {
 		ST_PROFILING_FUNCTION();

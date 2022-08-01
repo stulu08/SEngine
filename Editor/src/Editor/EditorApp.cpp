@@ -3,7 +3,6 @@
 #include "DiscordRPC.h"
 namespace Stulu {
 	void loadEditorMonoBindings();
-		
 	Application* Stulu::CreateApplication() {
 		uint64_t rp = 733733383645167637;
 		DiscordRPC::init(std::to_string(rp).c_str());

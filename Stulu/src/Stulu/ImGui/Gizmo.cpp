@@ -128,7 +128,6 @@ namespace Stulu {
 			{ 0.5f, -0.5f, 0.0f, 1.0f },
 			{ 0.5f,  0.5f, 0.0f, 1.0f },
 			{ -0.5f,  0.5f, 0.0f, 1.0f },
-
 		};
 		glm::vec3 lineVertices[4];
 		for (size_t i = 0; i < 4; i++)
@@ -171,13 +170,15 @@ namespace Stulu {
 		drawLine(lineVertices[3], lineVertices[7], color);
 	}
 	void Gizmo::drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale, const glm::vec4& color) {
-		Renderer2D::drawTexturedQuad(Math::createMat4(position, rotation, glm::vec3(scale, .0f)), texture, glm::vec2(1.0f), color);
+		Renderer2D::drawTexturedQuad(Math::createMat4(position, rotation, glm::vec3(scale, 1.0f)), texture, glm::vec2(1.0f), color);
 	}
 	void Gizmo::drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale, const glm::vec3& up, const glm::vec4& color) {
 		glm::mat4 viewMat = glm::lookAt(position, s_data.cameraPosition, glm::vec3(up));
-		glm::quat rotation = glm::quat(glm::vec3(.0f));
-		Math::decomposeRotationFromViewMatrix(viewMat, rotation);
-		drawTexture(texture, position, rotation, scale, color);
+		Renderer2D::drawTexturedQuad(glm::inverse(viewMat) * glm::scale(glm::mat4(1.0f), glm::vec3(scale, 1.0f)), texture, glm::vec2(1.0f), color);
+	}
+	void Gizmo::drawCircleBillBoard(const glm::vec3& position, const glm::vec2& scale, const glm::vec4& color, float thickness, float fade, const glm::vec3& up) {
+		glm::mat4 viewMat = glm::lookAt(position, s_data.cameraPosition, glm::vec3(up));
+		Renderer2D::drawCircle(glm::inverse(viewMat) * glm::scale(glm::mat4(1.0f), glm::vec3(scale,1.0f)), color, thickness, fade);
 	}
 	void Gizmo::drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, bool border, float border_size) {
 		ImVec2 p_min(pos.x + s_data.mX, pos.y + s_data.mY);

@@ -30,5 +30,6 @@ namespace Stulu {
 
 		static Ref<Shader>& getOutlineShader();
 		static Ref<Shader>& getGreenColorShader();
+		static Ref<Shader>& getTransparentShader();
 	};
 }

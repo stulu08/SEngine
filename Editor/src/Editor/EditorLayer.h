@@ -64,6 +64,7 @@ namespace Stulu {
 			uint32_t width = 1920, height = 1080;
 		} m_buildData;
 
+		void drawObjectOutlines();
 		void onDrawGizmoSelected(GameObject gameObject);
 		void drawMenuBar();
 		void drawLicenseWindow();

@@ -33,8 +33,8 @@ namespace Stulu {
 		virtual void uploadIntUniform(const std::string& name, const int32_t _int);
 		virtual void uploadIntArrayUniform(const std::string& name, const int* values, uint32_t count);
 
-		virtual std::unordered_map<std::string, Ref<ShaderProperity>> getProperitys() override { return m_properitys; }
-		virtual Ref<ShaderProperity> getProperity(std::string properityName) override { return m_properitys[properityName]; }
+		virtual std::unordered_map<std::string, Ref<ShaderProperity>>& getProperitys() override { return m_properitys; }
+		virtual Ref<ShaderProperity>& getProperity(std::string properityName) override { return m_properitys[properityName]; }
 		virtual bool hasProperity(std::string properityName) override { return m_properitys.find(properityName) != m_properitys.end(); }
 
 	private:

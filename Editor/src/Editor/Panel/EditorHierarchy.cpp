@@ -56,6 +56,8 @@ namespace Stulu {
 				if (ImGui::BeginMenu("2D")) {
 					if (ImGui::MenuItem("SpriteRenderer"))
 						m_scene->createGameObject("SpriteRenderer").addComponent<SpriteRendererComponent>();
+					if (ImGui::MenuItem("CircleRenderer"))
+						m_scene->createGameObject("CircleRenderer").addComponent<CircleRendererComponent>();
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Lights")) {

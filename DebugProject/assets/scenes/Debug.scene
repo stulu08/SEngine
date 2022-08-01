@@ -1,0 +1,204 @@
+Scene: Untitled
+Settings:
+  gamma: 2.20000005
+  toneMappingExposure: 1
+  env_lod: 1.00999999
+  useReflectionMapReflections: false
+  enablePhsyics3D: true
+  physicsData.gravity: [0, -9.80000019, 0]
+  physicsData.length: 1
+  physicsData.speed: 9.81000042
+  physicsData.workerThreads: 4
+GameObjects:
+  - GameObject: 5670089260245529101
+    GameObjectBaseComponent:
+      name: Perspective Camera
+      tag: MainCam
+    TransformComponent:
+      position: [0, 0, 2.11292887]
+      rotation: [-0.057296738, 0.033858005, 0.00194426766, 0.997780979]
+      scale: [1.00000346, 1, 1.00000346]
+    ScriptingComponent:
+      Scripts:
+        - Name: SpectatorCamera
+          Namespace: ""
+          Fields:
+            - Name: moveSpeed
+              Type: 4
+              Value: 8
+            - Name: mouseSensitivityHorizontal
+              Type: 4
+              Value: 0.800000012
+            - Name: accelerationMultiplier
+              Type: 4
+              Value: 2
+            - Name: mouseSensitivityVertical
+              Type: 4
+              Value: 1
+            - Name: mouse
+              Type: 2
+              Value: [0, 0, 0]
+    CameraComponent:
+      Camera Settings:
+        clearType: 1
+        clearColor: [0, 0, 0, 1]
+        fov: 80
+        zoom: 1
+        zNear: 0.00999999978
+        zFar: 250
+        isRenderTarget: false
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
+      mode: 0
+      depth: 1
+      renderTexture: 0
+    SkyBoxComponent:
+      texture: 16848474546725552001
+      mapType: 0
+  - GameObject: 2650778381182683346
+    GameObjectBaseComponent:
+      name: Sphere
+      tag: default
+    TransformComponent:
+      position: [-1.29999995, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 10180780483293440874
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
+    RigidbodyComponent:
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      rotationZ: true
+      moveX: true
+      moveY: true
+      moveZ: true
+      kinematic: true
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]
+  - GameObject: 3510622616463047706
+    GameObjectBaseComponent:
+      name: Sphere
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 6406533344464972463
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
+    RigidbodyComponent:
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      rotationZ: true
+      moveX: true
+      moveY: true
+      moveZ: true
+      kinematic: true
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]
+  - GameObject: 9568876697666900036
+    GameObjectBaseComponent:
+      name: Sphere
+      tag: default
+    TransformComponent:
+      position: [1.29999995, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 9972622737535507648
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
+    RigidbodyComponent:
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      rotationZ: true
+      moveX: true
+      moveY: true
+      moveZ: true
+      kinematic: true
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]
+  - GameObject: 10457580873017808924
+    GameObjectBaseComponent:
+      name: SpriteRenderer
+      tag: default
+    TransformComponent:
+      position: [0, 4.3900938, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    SpriteRendererComponent:
+      color: [1, 1, 1, 1]
+      tiling: [1, 1]
+      texture: 384205837227570756
+  - GameObject: 3680151403373991770
+    GameObjectBaseComponent:
+      name: Render Cam
+      tag: ""
+    TransformComponent:
+      position: [0, 1.97374701, 3.25624156]
+      rotation: [-0.276592404, -0, 0, 0.960987329]
+      scale: [1, 0.999999762, 0.999999762]
+    CameraComponent:
+      Camera Settings:
+        clearType: 1
+        clearColor: [0, 0, 0, 1]
+        fov: 80
+        zoom: 1
+        zNear: 0.00999999978
+        zFar: 250
+        isRenderTarget: true
+        aspectRatio: 1
+        textureWidth: 1000
+        textureHeight: 1000
+      mode: 0
+      depth: 1
+      renderTexture: 384205837227570756
+    SkyBoxComponent:
+      texture: 16848474546725552001
+      mapType: 0
+  - GameObject: 2304783174236353143
+    GameObjectBaseComponent:
+      name: Directional Light
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [-0.353553414, -0.353553414, -0.14644663, 0.853553355]
+      scale: [1, 1, 1]
+    LightComponent:
+      color: [1, 1, 1]
+      lightType: 0
+      strength: 1.79999995
+      areaRadius: 1
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15

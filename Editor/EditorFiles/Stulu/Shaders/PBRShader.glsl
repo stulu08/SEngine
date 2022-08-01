@@ -1,4 +1,5 @@
 ##properity Color()			|albedo
+##properity Color(hdr=true)	|emissionHDRColor
 ##properity Range(0.0,1.0)	|metallic
 ##properity Range(0.0,1.0)	|roughness
 ##properity Range(0.0,1.0)	|ao
@@ -12,17 +13,19 @@ layout(std140, binding = 4) uniform material {
 	float metallic;
 	float roughness;
 	float ao;
+	vec4 emissionHDRColor;
 	vec2 textureTilling;
 };
-
 layout(binding = 4) uniform sampler2D albedoMap;
 layout(binding = 5) uniform sampler2D metallicMap;
 layout(binding = 6) uniform sampler2D roughnessMap;
 layout(binding = 7) uniform sampler2D normalMap;
 layout(binding = 8) uniform sampler2D aoMap;
+layout(binding = 9) uniform sampler2D emissionMap;
 /*
 struct PBRData {
 	vec3  albedo;
+	vec4  emission;
 	float metallic;
 	float roughness;
 	float ao;

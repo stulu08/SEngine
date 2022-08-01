@@ -106,17 +106,20 @@ namespace Stulu {
 
 					switch (pType)
 					{
-					case Stulu::ShaderProperity::Type::Color4:
-						m_properitys[typeName] = createRef<ShaderProperityColor4>();
-						break;
 					case Stulu::ShaderProperity::Type::Range:
 						m_properitys[typeName] = createRef<ShaderProperityRange>(values);
+						break;
+					case Stulu::ShaderProperity::Type::Color:
+						m_properitys[typeName] = createRef<ShaderProperityColor>(values);
 						break;
 					case Stulu::ShaderProperity::Type::Enum:
 						m_properitys[typeName] = createRef<ShaderProperityEnum>(values);
 						break;
 					case Stulu::ShaderProperity::Type::Marker:
 						m_properitys[typeName] = createRef<ShaderProperityMarker>(values);
+						break;
+					default:
+						CORE_ERROR("Not able to create ShaderProperity: {0}", typeName);
 						break;
 					}
 

@@ -100,6 +100,7 @@ namespace Stulu {
 					texture.defaultTexture->bind(texture.binding);
 			}
 		}
+		return;
 		/*
 		uint32_t stride = 0;
 		s_materialBuffer->setData(&m_transparenceMode, sizeof(uint32_t), 0);

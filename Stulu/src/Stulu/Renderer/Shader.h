@@ -29,7 +29,7 @@ namespace Stulu {
 	class STULU_API ShaderProperity {
 	public:
 		enum class Type{
-			None,Color4,Range,Enum,Marker
+			None,Color,Range,Enum,Marker
 		};
 		virtual Type getType() const = 0;
 
@@ -60,8 +60,8 @@ namespace Stulu {
 		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) = 0;
 		
 		//proprityName, properity
-		virtual std::unordered_map<std::string, Ref<ShaderProperity>> getProperitys() = 0;
-		virtual Ref<ShaderProperity> getProperity(std::string properityName) = 0;
+		virtual std::unordered_map<std::string, Ref<ShaderProperity>>& getProperitys() = 0;
+		virtual Ref<ShaderProperity>& getProperity(std::string properityName) = 0;
 		virtual bool hasProperity(std::string properityName) = 0;
 
 	protected:
@@ -79,24 +79,31 @@ namespace Stulu {
 	private:
 		std::unordered_map<std::string, Ref<Shader>> m_shaders;
 	};
-
+	//will change this so that the props are needed for every material properity, and not like now, where they only modify how certein ones are displayed in editor
 	class STULU_API ShaderProperityRange : public ShaderProperity {
 	public:
 		ShaderProperityRange(const std::string& values);
 		ShaderProperityRange(const float min, const float max)
 			: m_min(min), m_max(max) {}
 
-		float getMin() { return m_min; }
-		float getMax() { return m_max; }
+		float getMin() const { return m_min; }
+		float getMax() const { return m_max; }
 
 		virtual Type getType() const override { return Type::Range; }
 	private:
 		float m_min = .01f, m_max = 1.0f;
 	};
-	class STULU_API ShaderProperityColor4 : public ShaderProperity {
+	class STULU_API ShaderProperityColor : public ShaderProperity {
 	public:
-		ShaderProperityColor4() {}
-		virtual Type getType() const override { return Type::Color4; }
+		ShaderProperityColor(const std::string& values);
+		ShaderProperityColor(bool hdr)
+			: m_hdr(hdr) {}
+
+		bool isHDR() const { return m_hdr; }
+
+		virtual Type getType() const override { return Type::Color; }
+	private:
+		bool m_hdr = false;
 	};
 	class STULU_API ShaderProperityEnum : public ShaderProperity {
 	public:
@@ -104,7 +111,7 @@ namespace Stulu {
 		ShaderProperityEnum(const std::vector<std::string>& names)
 			: m_names(names) {}
 
-		const std::vector<std::string>& getNames() { return m_names; }
+		const std::vector<std::string>& getNames() const { return m_names; };
 
 		virtual Type getType() const override { return Type::Enum; }
 	private:
@@ -114,7 +121,7 @@ namespace Stulu {
 	public:
 		ShaderProperityMarker(const std::string& text);
 
-		const std::string& getText() { return m_text; }
+		const std::string& getText() const { return m_text; }
 
 		virtual Type getType() const override { return Type::Marker; }
 	private:

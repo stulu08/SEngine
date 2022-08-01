@@ -90,7 +90,6 @@ namespace Stulu{
 	const std::vector<std::pair<std::string, std::string>> Shader::s_preProcessorAdds{
 			{"ST_default",R"(
 ##add ST_vertex
-
 ##type fragment
 #version 460 core
 out vec4 FragColor;
@@ -138,6 +137,15 @@ void main()
 }
 )"},//ST_vertex
 			{"ST_functions", R"(
+#define st_impl_for_all_types(func) \
+func(vec4);		\
+func(vec3);		\
+func(vec2);		\
+func(float);	\
+func(int);		\
+func(uint);		\
+func(double);
+
 const uint ShaderViewFlag_EnableLighting	= 0x00000001u;
 const uint ShaderViewFlag_DisplayDiffuse	= 0x00000002u;
 const uint ShaderViewFlag_DisplaySpecular	= 0x00000004u;
@@ -147,7 +155,6 @@ const uint ShaderViewFlag_DisplayMetallic	= 0x00000020u;
 const uint ShaderViewFlag_DisplayAmbient	= 0x00000040u;
 const uint ShaderViewFlag_DisplayTexCoords	= 0x00000080u;
 const uint ShaderViewFlag_DisplayVertices	= 0x00000100u;
-
 const float PI = 3.14159265359;
 
 bool isFlagEnabled(uint flags, uint flag) {
@@ -243,13 +250,37 @@ float filterAlpha(float alpha, uint mode, float cutOut = 1.0f) {
 	else{
 		return 1.0;//ignore alpha
 	}
+
 }
 vec3 srgbToLin(vec3 color){
 	return pow(color, vec3(2.2));
 }
+//i know it should be srgb_alpha_ToLin but I do nothing with the alpha
 vec4 srgbToLin(vec4 color){
-	return vec4(pow(color.xyz, vec3(2.2)), color.a);
+	return vec4(srgbToLin(color.xyz), color.a);
 }
+//functions for branchless stuff
+
+#define st_when_eq_impl(type) type when_eq(type x, type y) { return type(1.0) - abs(sign(x-y));}
+#define st_when_neq_impl(type) type when_neq(type x, type y) { return abs(sign(x-y));}
+#define st_when_gt_impl(type) type when_gt(type x, type y) { return max(sign(x-y), type(0.0));}
+#define st_when_lt_impl(type) type when_lt(type x, type y) { return max(sign(y-x), type(0.0));}
+#define st_when_ge_impl(type) type when_ge(type x, type y) { return type(1.0)-when_gt(x,y);}
+#define st_when_le_impl(type) type when_le(type x, type y) { return type(1.0)-when_lt(x,y);}
+#define st_and_impl(type) type and(type a, type b) { return a*b;}
+#define st_or_impl(type) type or(type a, type b) { return min(a+b, type(1.0));}
+#define st_not_impl(type) type not(type a, type b) { return type(1.0)-a;}
+
+st_impl_for_all_types(st_when_eq_impl);
+st_impl_for_all_types(st_when_neq_impl)
+st_impl_for_all_types(st_when_gt_impl)
+st_impl_for_all_types(st_when_lt_impl)
+st_impl_for_all_types(st_when_ge_impl)
+st_impl_for_all_types(st_when_le_impl)
+st_impl_for_all_types(st_and_impl)
+st_impl_for_all_types(st_or_impl)
+st_impl_for_all_types(st_not_impl)
+
 )"},//ST_functions
 			{"ST_bindings",
 
@@ -441,8 +472,8 @@ vec4 ST_pbr_calculation(inout PBRData data)
 	};
 
 	ShaderProperity::Type ShaderProperity::typeFromString(const std::string& str) {
-		if (str == "Color" || str == "Color4" || str == "color" || str == "color4") {
-			return Type::Color4;
+		if (str == "Color" || str == "color") {
+			return Type::Color;
 		}
 		if (str == "Range" || str == "range") {
 			return Type::Range;
@@ -493,5 +524,18 @@ vec4 ST_pbr_calculation(inout PBRData data)
 			index += 2;
 		}
 	}
+
+	ShaderProperityColor::ShaderProperityColor(const std::string& values) 
+		:m_hdr(false) {
+		std::stringstream stream(values);
+		std::string arg;
+		while (std::getline(stream, arg, ',')) {
+			if (arg._Starts_with("hdr") || arg._Starts_with("HDR")) {
+				if (arg.find("true"))
+					m_hdr = true;
+			}
+		}
+	}
+
 
 }

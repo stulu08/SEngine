@@ -111,6 +111,15 @@ namespace Stulu {
 				out << YAML::Key << "texture" << YAML::Value << (uint64_t)spriteRendererComponent.texture->uuid;
 			out << YAML::EndMap;
 		}
+		if (gameObject.hasComponent<CircleRendererComponent>()) {
+			out << YAML::Key << "CircleRendererComponent";
+			out << YAML::BeginMap;
+			auto& spriteRendererComponent = gameObject.getComponent<CircleRendererComponent>();
+			out << YAML::Key << "color" << YAML::Value << spriteRendererComponent.color;
+			out << YAML::Key << "thickness" << YAML::Value << spriteRendererComponent.thickness;
+			out << YAML::Key << "fade" << YAML::Value << spriteRendererComponent.fade;
+			out << YAML::EndMap;
+		}
 		if (gameObject.hasComponent<LightComponent>()) {
 			out << YAML::Key << "LightComponent";
 			out << YAML::BeginMap;
@@ -380,6 +389,14 @@ namespace Stulu {
 						src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
 						if (spriteRendererNode["texture"])
 							src.texture = std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
+					}
+					auto circleRendererNode = gameObject["CircleRendererComponent"];
+					if (circleRendererNode) {
+						auto& src = deserialized.addComponent<CircleRendererComponent>();
+						src.color = circleRendererNode["color"].as<glm::vec4>();
+						src.thickness = circleRendererNode["thickness"].as<float>();
+						src.fade = circleRendererNode["fade"].as<float>();
+						
 					}
 
 					auto lightComponentNode = gameObject["LightComponent"];

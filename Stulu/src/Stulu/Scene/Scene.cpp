@@ -157,6 +157,13 @@ namespace Stulu {
 				else
 					Renderer2D::drawQuad(transform, sprite.color);
 			}
+			auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
+			for (auto gameObject : circleView)
+			{
+				ST_PROFILING_SCOPE("Rendering Sprite");
+				auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
+				Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
+			}
 			Renderer2D::flush();
 			cameraComp.getNativeCamera()->unbindFrameBuffer();
 
@@ -218,6 +225,13 @@ namespace Stulu {
 				Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
 			else
 				Renderer2D::drawQuad(transform, sprite.color);
+		}
+		auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
+		for (auto gameObject : circleView)
+		{
+			ST_PROFILING_SCOPE("Rendering Sprite");
+			auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
+			Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
 		}
 		Renderer2D::flush();
 		camera.getCamera()->unbindFrameBuffer();
@@ -691,6 +705,8 @@ namespace Stulu {
 	void STULU_API Scene::onComponentAdded<MeshRendererComponent>(GameObject gameObject, MeshRendererComponent& component) { if (!gameObject.hasComponent<MeshFilterComponent>()) gameObject.addComponent<MeshFilterComponent>(); }
 	template<>
 	void STULU_API Scene::onComponentAdded<SpriteRendererComponent>(GameObject gameObject, SpriteRendererComponent& component) { }
+	template<>
+	void STULU_API Scene::onComponentAdded<CircleRendererComponent>(GameObject gameObject, CircleRendererComponent& component) { }
 	template<>
 	void STULU_API Scene::onComponentAdded<RigidbodyComponent>(GameObject gameObject, RigidbodyComponent& component) { }
 	template<>

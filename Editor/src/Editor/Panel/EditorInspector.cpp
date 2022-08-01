@@ -37,6 +37,7 @@ namespace Stulu {
 				drawComponent<CameraComponent>(gameObject, "Camera");
 				drawComponent<SkyBoxComponent>(gameObject, "SkyBox");
 				drawComponent<SpriteRendererComponent>(gameObject, "SpriteRenderer");
+				drawComponent<CircleRendererComponent>(gameObject, "CircleRenderer");
 				drawComponent<LightComponent>(gameObject, "Light");
 				drawComponent<MeshRendererComponent>(gameObject, "MeshRenderer");
 				drawComponent<MeshFilterComponent>(gameObject, "MeshFilter");
@@ -105,6 +106,9 @@ namespace Stulu {
 					}
 					if (ImGui::MenuItem("SpriteRenderer")) {
 						gameObject.saveAddComponent<SpriteRendererComponent>();
+					}
+					if (ImGui::MenuItem("CircleRenderer")) {
+						gameObject.saveAddComponent<CircleRendererComponent>();
 					}
 					if (ImGui::MenuItem("Light")) {
 						gameObject.saveAddComponent<LightComponent>();

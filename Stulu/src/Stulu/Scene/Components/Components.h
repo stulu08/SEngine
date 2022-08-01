@@ -78,6 +78,17 @@ namespace Stulu {
 		SpriteRendererComponent(const glm::vec4 color)
 			: color(color) {};
 	};
+	class CircleRendererComponent : public Component {
+	public:
+		glm::vec4 color = COLOR_WHITE;
+		float thickness = 1.0f;
+		float fade = .005f;
+
+		CircleRendererComponent() = default;
+		CircleRendererComponent(const CircleRendererComponent&) = default;
+		CircleRendererComponent(const glm::vec4 color)
+			: color(color) {};
+	};
 
 	class LightComponent : public Component {
 	public:
@@ -172,6 +183,7 @@ namespace Stulu {
 		<
 		TransformComponent,
 		SpriteRendererComponent,
+		CircleRendererComponent,
 		LightComponent,
 		SkyBoxComponent,
 		MeshRendererComponent,

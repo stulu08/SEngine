@@ -98,7 +98,7 @@ namespace Stulu {
 			break;
 		}
 	}
-
+	//will make this more usefull but this is enough for now
 	void OpenGLRenderAPI::setStencil(StencilMode v) {
 		ST_PROFILING_FUNCTION();
 		switch (v)
