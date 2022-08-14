@@ -3,6 +3,7 @@
 #include "Stulu/Renderer/VertexArray.h"
 #include "Stulu/Core/UUID.h"
 #include "glm/glm.hpp"
+#include <Stulu/Scene/VFC.h>
 
 namespace Stulu {
 	class STULU_API SubMesh {
@@ -10,11 +11,11 @@ namespace Stulu {
 		SubMesh() {}
 		SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 
-		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; }
-		const size_t& getVerticesCount() { return m_verticesCount; }
-		const std::vector<Vertex>& getVertices() { return m_vertices; }
-		const size_t& getIndicesCount() { return m_indicesCount; }
-		const std::vector<uint32_t>& getIndices() { return m_indices; }
+		const Ref<Stulu::VertexArray>& getVertexArray() const { return m_vertexArray; }
+		const size_t& getVerticesCount() const { return m_verticesCount; }
+		const std::vector<Vertex>& getVertices() const { return m_vertices; }
+		const size_t& getIndicesCount() const { return m_indicesCount; }
+		const std::vector<uint32_t>& getIndices() const { return m_indices; }
 	private:
 		Ref<Stulu::VertexArray> m_vertexArray;
 		std::vector<Vertex> m_vertices;
@@ -34,7 +35,6 @@ namespace Stulu {
 		const void recalculate();
 
 		void setVertices(std::vector<Vertex>& vertices) { m_vertices = vertices; }
-
 		void setIndices(std::vector<uint32_t>& indices) { m_indices = indices; }
 
 		SubMesh& getSubMesh(const size_t index) {
@@ -51,17 +51,18 @@ namespace Stulu {
 			m_subMeshCount++;
 		}
 
-		size_t getSubMeshCount() { return m_subMeshCount; } const
-		size_t getVerticesCount() { return m_verticesCount; } const
-		std::vector<Vertex>& getVertices() { return m_vertices; } const
-		size_t getIndicesCount() { return m_indicesCount; } const
-		std::vector<uint32_t>& getIndices() { return m_indices; } const
+		size_t getSubMeshCount() const { return m_subMeshCount; }
+		size_t getVerticesCount() const { return m_verticesCount; }
+		size_t getIndicesCount() const { return m_indicesCount; }
+		const std::vector<Vertex>& getVertices() const { return m_vertices; }
+		const std::vector<uint32_t>& getIndices() const { return m_indices; }
 
 		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
-		const Ref<Stulu::VertexArray>& getVertexArray() { return m_vertexArray; } const
-		
-		Vertex getFurthestVertexFromPos(const glm::vec3& pos, uint64_t scanCount = 0);
-		glm::vec3 getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t scanCount = 0);
+		const Ref<Stulu::VertexArray>& getVertexArray() const { return m_vertexArray; }
+		const Ref<BoundingBox>& getBoundingBox() const { return m_boundingBox; }
+
+		Vertex getFurthestVertexFromPos(const glm::vec3& pos, uint64_t scanCount = 0) const;
+		glm::vec3 getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t scanCount = 0) const;
 
 		//for generating a convex mesh
 		static Mesh copyAndLimit(const Ref<Mesh>& mesh, uint64_t vertLimit = 0);
@@ -77,6 +78,8 @@ namespace Stulu {
 		size_t m_subMeshCount = 0;
 		size_t m_verticesCount = 0;
 		size_t m_indicesCount = 0;
+
+		Ref<BoundingBox> m_boundingBox = nullptr;
 
 		static BufferLayout s_defaultLayout;
 

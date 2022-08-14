@@ -55,20 +55,31 @@ namespace Stulu {
 	}
 	bool Math::isPosOverQuad(const Quad& quad, const glm::vec2& pos) {
 		return (
-			pos.x > quad.pos.x && 
-			pos.y > quad.pos.y && 
-			pos.x < quad.pos.x + quad.width && 
-			pos.y < quad.pos.y + quad.height
+			pos.x >= quad.pos.x && pos.x <= quad.pos.x + quad.width &&
+			pos.y >= quad.pos.y && pos.y <= quad.pos.y + quad.height
 			);
 	}
 	bool Math::isQuadOverQuad(const Quad& quad1, const Quad& quad2) {
 		return (
-			quad1.pos.x < quad2.pos.x + quad2.width &&
-			quad1.pos.x + quad1.width > quad2.pos.x &&
-			quad1.pos.y < quad2.pos.y + quad2.height &&
-			quad1.pos.y + quad1.height > quad2.pos.y
+			quad1.pos.x <= quad2.pos.x + quad2.width  && quad1.pos.x + quad1.width >= quad2.pos.x &&
+			quad1.pos.y <= quad2.pos.y + quad2.height && quad1.pos.y + quad1.height >= quad2.pos.y
 			);
 	}
+	bool Math::isAABBOverPos(const AABB& cube, const glm::vec3& pos) {
+		return (
+			pos.x >= cube.min.x && pos.x <= cube.max.x &&
+			pos.y >= cube.min.y && pos.y <= cube.max.y &&
+			pos.z >= cube.min.z && pos.z <= cube.max.z
+			);
+	}
+	bool Math::isAABBoverAABB(const AABB& cube1, const AABB& cube2) {
+		return (
+			cube1.min.x <= cube2.max.x && cube1.max.x >= cube2.min.x &&
+			cube1.min.y <= cube2.max.y && cube1.max.y >= cube2.min.y &&
+			cube1.min.x <= cube2.max.x && cube1.max.z >= cube2.min.z
+			);
+	}
+
 	glm::mat4 Math::createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale) {
 		return glm::translate(glm::mat4(1.0f), pos)
 			* glm::toMat4(rotation)
@@ -95,7 +106,7 @@ namespace Stulu {
 	}
 	glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
 		glm::vec3 forwardVector = glm::normalize(destPoint - sourcePoint);
-
+		
 		float dot = glm::dot(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
 
 		if (std::abs(dot - (-1.0f)) < 0.000001f) {

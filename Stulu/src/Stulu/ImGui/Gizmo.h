@@ -22,6 +22,7 @@ namespace Stulu {
 		static void drawRect(const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void drawRect(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void drawOutlineCube(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		static void drawOutlineCube(const glm::vec3& min, const glm::vec3& max, const glm::mat4& transform, const glm::vec4& color);
 
 		static void drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4);
 		static void drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec3& up = { 0, 1, 0 }, const glm::vec4& color = COLOR_WHITE_VEC4);

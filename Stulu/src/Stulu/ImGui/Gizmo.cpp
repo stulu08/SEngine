@@ -169,6 +169,24 @@ namespace Stulu {
 		drawLine(lineVertices[2], lineVertices[6], color);
 		drawLine(lineVertices[3], lineVertices[7], color);
 	}
+	void Gizmo::drawOutlineCube(const glm::vec3& min, const glm::vec3& max, const glm::mat4& transform, const glm::vec4& color) {
+		//back
+		drawLine(transform * glm::vec4{ min.x, min.y, min.z, 1.0f }, transform * glm::vec4{ min.x, max.y, min.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ max.x, min.y, min.z, 1.0f }, transform * glm::vec4{ max.x, max.y, min.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ min.x, min.y, min.z, 1.0f }, transform * glm::vec4{ max.x, min.y, min.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ min.x, max.y, min.z, 1.0f }, transform * glm::vec4{ max.x, max.y, min.z, 1.0f }, color);
+		//front
+		drawLine(transform * glm::vec4{ min.x, min.y, max.z, 1.0f }, transform * glm::vec4{ min.x, max.y, max.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ max.x, min.y, max.z, 1.0f }, transform * glm::vec4{ max.x, max.y, max.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ min.x, min.y, max.z, 1.0f }, transform * glm::vec4{ max.x, min.y, max.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ min.x, max.y, max.z, 1.0f }, transform * glm::vec4{ max.x, max.y, max.z, 1.0f }, color);
+		//connections between front and back
+		drawLine(transform * glm::vec4{ min.x, max.y, min.z, 1.0f }, transform * glm::vec4{ min.x, max.y, max.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ max.x, max.y, min.z, 1.0f }, transform * glm::vec4{ max.x, max.y, max.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ min.x, min.y, min.z, 1.0f }, transform * glm::vec4{ min.x, min.y, max.z, 1.0f }, color);
+		drawLine(transform * glm::vec4{ max.x, min.y, min.z, 1.0f }, transform * glm::vec4{ max.x, min.y, max.z, 1.0f }, color);
+
+	}
 	void Gizmo::drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale, const glm::vec4& color) {
 		Renderer2D::drawTexturedQuad(Math::createMat4(position, rotation, glm::vec3(scale, 1.0f)), texture, glm::vec2(1.0f), color);
 	}

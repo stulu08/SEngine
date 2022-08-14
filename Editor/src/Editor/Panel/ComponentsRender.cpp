@@ -50,12 +50,11 @@ namespace Stulu {
 			recalc |= drawFloatControl("Zoom", component.settings.zoom);
 		}
 		else if (component.mode == CameraMode::Perspective) {
-			recalc |= drawFloatControl("Fov", component.settings.fov);
+			recalc |= drawFloatSliderControl("Fov", component.settings.fov, .0f, 180.0f);
 		}
-		recalc |= drawFloatControl("Far", component.settings.zFar);
+		recalc |= drawFloatControl("Far", component.settings.zFar, component.settings.zNear);
 
-		recalc |= drawFloatControl("Near", component.settings.zNear);
-
+		recalc |= drawFloatControl("Near", component.settings.zNear, .001f, component.settings.zFar);
 
 		recalc |= drawBoolControl("Is Render Target", component.settings.isRenderTarget);
 
@@ -532,10 +531,19 @@ namespace Stulu {
 
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
-		change |= ImGui::DragFloat("##FLOAT", &v, speed, min, max, "%.2f");
+		change |= ImGui::DragFloat("##FLOAT", &v, speed, min, max, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
 		ImGui::EndColumns();
+
+		if(min != max && change) {
+			if (min > max) {
+				v = glm::max(min, v);
+			}
+			else {
+				v = glm::clamp(v, min, max);
+			}
+		}
 
 		ImGui::PopID();
 		return change;
@@ -551,7 +559,7 @@ namespace Stulu {
 
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
-		change |= ImGui::SliderFloat("##FLOATSLIDER", &v, min, max, "%.2f");
+		change |= ImGui::SliderFloat("##FLOATSLIDER", &v, min, max, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
 		ImGui::EndColumns();
@@ -572,11 +580,11 @@ namespace Stulu {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 
 
-		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -598,15 +606,15 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 
-		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
-		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
-		change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -628,19 +636,19 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 
-		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##W", &vec.w, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##W", &vec.w, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -662,19 +670,19 @@ namespace Stulu {
 		ImGui::PushMultiItemsWidths(4, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 
-		change |= ImGui::DragFloat("##X", &quat.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##X", &quat.x, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##Y", &quat.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Y", &quat.y, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##Z", &quat.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##Z", &quat.z, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		change |= ImGui::DragFloat("##W", &quat.w, 0.1f, 0.0f, 0.0f, "%.2f");
+		change |= ImGui::DragFloat("##W", &quat.w, 0.1f, 0.0f, 0.0f, "%.3f");
 		ImGui::PopItemWidth();
 
 		ImGui::PopStyleVar();
@@ -753,21 +761,21 @@ namespace Stulu {
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 
 
-			change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.2f");
+			change |= ImGui::DragFloat("##X", &vec.x, 0.1f, 0.0f, 0.0f, "%.3f");
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
-			change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.2f");
-			ImGui::PopItemWidth();
-			ImGui::SameLine();
-
-
-			change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.2f");
+			change |= ImGui::DragFloat("##Y", &vec.y, 0.1f, 0.0f, 0.0f, "%.3f");
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
 
-			change |= ImGui::DragFloat("##W", &vec.w, 0.1f, 0.0f, 0.0f, "%.2f");
+			change |= ImGui::DragFloat("##Z", &vec.z, 0.1f, 0.0f, 0.0f, "%.3f");
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+
+
+			change |= ImGui::DragFloat("##W", &vec.w, 0.1f, 0.0f, 0.0f, "%.3f");
 			ImGui::PopItemWidth();
 
 			ImGui::PopStyleVar();
@@ -780,117 +788,7 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawHDRColorEdit(const std::string& header, glm::vec4& color) {
-		using namespace ImGui;
-		ImGuiWindow* window = GetCurrentWindow();
-		ImGuiColorEditFlags flags = 0;
-		const char label = header.c_str();
-		if (window->SkipItems)
-			return false;
-
-		ImGuiContext& g = *GImGui;
-		const ImGuiStyle& style = g.Style;
-		const float square_sz = GetFrameHeight();
-		const float w_full = CalcItemWidth();
-		const float w_button = (flags & ImGuiColorEditFlags_NoSmallPreview) ? 0.0f : (square_sz + style.ItemInnerSpacing.x);
-		const float w_inputs = w_full - w_button;
-		const char* label_display_end = FindRenderedTextEnd(label);
-		g.NextItemData.ClearFlags();
-
-		BeginGroup();
-		PushID(label);
-
-		// If we're not showing any slider there's no point in doing any HSV conversions
-		const ImGuiColorEditFlags flags_untouched = flags;
-		if (flags & ImGuiColorEditFlags_NoInputs)
-			flags = (flags & (~ImGuiColorEditFlags__DisplayMask)) | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_NoOptions;
-
-		// Context menu: display and modify options (before defaults are applied)
-		if (!(flags & ImGuiColorEditFlags_NoOptions))
-			ColorEditOptionsPopup(col, flags);
-
-		// Read stored options
-		if (!(flags & ImGuiColorEditFlags__DisplayMask))
-			flags |= (g.ColorEditOptions & ImGuiColorEditFlags__DisplayMask);
-		if (!(flags & ImGuiColorEditFlags__DataTypeMask))
-			flags |= (g.ColorEditOptions & ImGuiColorEditFlags__DataTypeMask);
-		if (!(flags & ImGuiColorEditFlags__PickerMask))
-			flags |= (g.ColorEditOptions & ImGuiColorEditFlags__PickerMask);
-		if (!(flags & ImGuiColorEditFlags__InputMask))
-			flags |= (g.ColorEditOptions & ImGuiColorEditFlags__InputMask);
-		flags |= (g.ColorEditOptions & ~(ImGuiColorEditFlags__DisplayMask | ImGuiColorEditFlags__DataTypeMask | ImGuiColorEditFlags__PickerMask | ImGuiColorEditFlags__InputMask));
-		IM_ASSERT(ImIsPowerOfTwo(flags & ImGuiColorEditFlags__DisplayMask)); // Check that only 1 is selected
-		IM_ASSERT(ImIsPowerOfTwo(flags & ImGuiColorEditFlags__InputMask));   // Check that only 1 is selected
-
-		const bool alpha = (flags & ImGuiColorEditFlags_NoAlpha) == 0;
-		const bool hdr = (flags & ImGuiColorEditFlags_HDR) != 0;
-		const int components = alpha ? 4 : 3;
-
-		// Convert to the formats we need
-		float f[4] = { col[0], col[1], col[2], alpha ? col[3] : 1.0f };
-		if ((flags & ImGuiColorEditFlags_InputHSV) && (flags & ImGuiColorEditFlags_DisplayRGB))
-			ColorConvertHSVtoRGB(f[0], f[1], f[2], f[0], f[1], f[2]);
-		else if ((flags & ImGuiColorEditFlags_InputRGB) && (flags & ImGuiColorEditFlags_DisplayHSV))
-		{
-			// Hue is lost when converting from greyscale rgb (saturation=0). Restore it.
-			ColorConvertRGBtoHSV(f[0], f[1], f[2], f[0], f[1], f[2]);
-			if (memcmp(g.ColorEditLastColor, col, sizeof(float) * 3) == 0)
-			{
-				if (f[1] == 0)
-					f[0] = g.ColorEditLastHue;
-				if (f[2] == 0)
-					f[1] = g.ColorEditLastSat;
-			}
-		}
-		int i[4] = { IM_F32_TO_INT8_UNBOUND(f[0]), IM_F32_TO_INT8_UNBOUND(f[1]), IM_F32_TO_INT8_UNBOUND(f[2]), IM_F32_TO_INT8_UNBOUND(f[3]) };
-
-		bool value_changed = false;
-		bool value_changed_as_float = false;
-
-		const ImVec2 pos = window->DC.CursorPos;
-		const float inputs_offset_x = (style.ColorButtonPosition == ImGuiDir_Left) ? w_button : 0.0f;
-		window->DC.CursorPos.x = pos.x + inputs_offset_x;
-
-		if ((flags & (ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_DisplayHSV)) != 0 && (flags & ImGuiColorEditFlags_NoInputs) == 0)
-		{
-			// RGB/HSV 0..255 Sliders
-			const float w_item_one = ImMax(1.0f, IM_FLOOR((w_inputs - (style.ItemInnerSpacing.x) * (components - 1)) / (float)components));
-			const float w_item_last = ImMax(1.0f, IM_FLOOR(w_inputs - (w_item_one + style.ItemInnerSpacing.x) * (components - 1)));
-
-			const bool hide_prefix = (w_item_one <= CalcTextSize((flags & ImGuiColorEditFlags_Float) ? "M:0.000" : "M:000").x);
-			static const char* ids[4] = { "##X", "##Y", "##Z", "##W" };
-			static const char* fmt_table_int[3][4] =
-			{
-				{   "%3d",   "%3d",   "%3d",   "%3d" }, // Short display
-				{ "R:%3d", "G:%3d", "B:%3d", "A:%3d" }, // Long display for RGBA
-				{ "H:%3d", "S:%3d", "V:%3d", "A:%3d" }  // Long display for HSVA
-			};
-			static const char* fmt_table_float[3][4] =
-			{
-				{   "%0.3f",   "%0.3f",   "%0.3f",   "%0.3f" }, // Short display
-				{ "R:%0.3f", "G:%0.3f", "B:%0.3f", "A:%0.3f" }, // Long display for RGBA
-				{ "H:%0.3f", "S:%0.3f", "V:%0.3f", "A:%0.3f" }  // Long display for HSVA
-			};
-			const int fmt_idx = hide_prefix ? 0 : (flags & ImGuiColorEditFlags_DisplayHSV) ? 2 : 1;
-
-			for (int n = 0; n < components; n++)
-			{
-				if (n > 0)
-					SameLine(0, style.ItemInnerSpacing.x);
-				SetNextItemWidth((n + 1 < components) ? w_item_one : w_item_last);
-
-				// FIXME: When ImGuiColorEditFlags_HDR flag is passed HS values snap in weird ways when SV values go below 0.
-				if (flags & ImGuiColorEditFlags_Float)
-				{
-					value_changed |= DragFloat(ids[n], &f[n], 1.0f / 255.0f, 0.0f, hdr ? 0.0f : 1.0f, fmt_table_float[fmt_idx][n]);
-					value_changed_as_float |= value_changed;
-				}
-				else
-				{
-					value_changed |= DragInt(ids[n], &i[n], 1.0f, 0, hdr ? 0 : 255, fmt_table_int[fmt_idx][n]);
-				}
-				if (!(flags & ImGuiColorEditFlags_NoOptions))
-					OpenPopupContextItem("context");
-			}
+		return false;
 	}
 	void ComponentsRender::drawHelpMarker(const char* desc) {
 		ST_PROFILING_FUNCTION();

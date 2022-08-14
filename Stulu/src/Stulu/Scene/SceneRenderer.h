@@ -10,6 +10,8 @@ namespace Stulu {
 			Ref<VertexArray> vertexArray;
 			glm::mat4 transform;
 			CullMode cullmode = CullMode::Back;
+			Ref<BoundingBox> boundingBox = nullptr;
+			TransformComponent* transformComp = nullptr;
 
 			inline RenderObject& operator=(RenderObject& b) {
 				material = b.material;

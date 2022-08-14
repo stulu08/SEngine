@@ -157,6 +157,10 @@ namespace Stulu {
 		camComp.cam = sceneCam.getCamera();
 		camComp.reflectionFrameBuffer = sceneCam.reflectionFrameBuffer;
 		camComp.reflectionMap = sceneCam.reflectionMap;
+		camComp.settings.zFar = sceneCam.m_zFar;
+		camComp.settings.zNear = sceneCam.m_zNear;
+		camComp.settings.fov = sceneCam.m_fov;
+		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
 
 	}
@@ -167,6 +171,10 @@ namespace Stulu {
 		camComp.cam = sceneCam.getCamera();
 		camComp.reflectionFrameBuffer = sceneCam.reflectionFrameBuffer;
 		camComp.reflectionMap = sceneCam.reflectionMap;
+		camComp.settings.zFar = sceneCam.m_zFar;
+		camComp.settings.zNear = sceneCam.m_zNear;
+		camComp.settings.fov = sceneCam.m_fov;
+		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
 	}
 	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp, bool bdrawSkyBox) {
@@ -201,6 +209,8 @@ namespace Stulu {
 			return glm::distance(transform.worldPosition, glm::vec3(a.transform[3])) > glm::distance(transform.worldPosition, glm::vec3(b.transform[3]));//sort the vector backwards
 			});
 
+
+		VFC::setCamera(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, cameraComp.settings.zFar, cameraComp.settings.fov, transform);
 
 		//reflection map pass
 		//https://www.adriancourreges.com/blog/2015/11/02/gta-v-graphics-study/
@@ -303,6 +313,12 @@ namespace Stulu {
 
 		//opaque
 		for (const RenderObject& object : s_runtimeData.drawList) {
+			if (object.boundingBox && object.transformComp) {
+				if (!VFC::isInView(object.boundingBox, *object.transformComp)) {
+					continue;
+				}
+			}
+
 			if (last != object.material->getUUID()) {
 				object.material->uploadData();
 				object.material->getShader()->bind();
@@ -314,6 +330,11 @@ namespace Stulu {
 
 		//transparent
 		for (const auto& object : s_runtimeData.transparentDrawList) {
+			if (object.boundingBox && object.transformComp) {
+				if (!VFC::isInView(object.boundingBox, *object.transformComp)) {
+					continue;
+				}
+			}
 			if (last != object.material->getUUID()) {
 				object.material->uploadData();
 				object.material->getShader()->bind();
@@ -365,9 +386,9 @@ namespace Stulu {
 		else {
 			if (material->isTransparent())
 				s_runtimeData.transparentDrawList.push_back(RenderObject{
-				material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode });
+				material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
 			else
-				s_runtimeData.drawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode });
+				s_runtimeData.drawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
 		}
 		ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh.mesh->getIndicesCount());
 		ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh.mesh->getVerticesCount());

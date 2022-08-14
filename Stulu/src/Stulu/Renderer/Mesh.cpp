@@ -30,6 +30,8 @@ namespace Stulu {
 		m_vertices = vertices;
 		m_indices = indices;
 		recalculate();
+
+		m_boundingBox = VFC::createBoundingBox(this);
 	}
 	Mesh::Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount) {
 		ST_PROFILING_FUNCTION();
@@ -45,6 +47,8 @@ namespace Stulu {
 		m_indices = std::vector<uint32_t>(indices, indices + indicesCount);
 		m_verticesCount = verticesCount;
 		m_indicesCount = indicesCount;
+
+		m_boundingBox = VFC::createBoundingBox(this);
 	}
 	Mesh::Mesh(void* vertices, size_t verticesSize, uint32_t* indices, size_t indicesCount, BufferLayout layout) {
 		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
@@ -55,6 +59,8 @@ namespace Stulu {
 		m_vertexArray->addVertexBuffer(vertexBuffer);
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)indicesCount, indices);
 		m_vertexArray->setIndexBuffer(indexBuffer);
+
+		m_boundingBox = VFC::createBoundingBox(this);
 	}
 	const void Mesh::recalculate() {
 		ST_PROFILING_FUNCTION();
@@ -70,7 +76,7 @@ namespace Stulu {
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
-	const Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) {
+	Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
 			vertLimit = getVerticesCount();
 
@@ -93,7 +99,7 @@ namespace Stulu {
 		}
 		return furthest;
 	}
-	glm::vec3 Mesh::getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t vertLimit) {
+	glm::vec3 Mesh::getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
 			vertLimit = getVerticesCount();
 

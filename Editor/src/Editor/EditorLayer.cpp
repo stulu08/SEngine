@@ -364,7 +364,14 @@ namespace Stulu {
 				getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
 			}
 		}
-		
+		if (selected.hasComponent<MeshFilterComponent>()) {
+			MeshFilterComponent meshFilter = selected.getComponent<MeshFilterComponent>();
+
+			if (meshFilter.mesh.mesh->getBoundingBox()) {
+				Ref<BoundingBoxAABB>& aabb = std::dynamic_pointer_cast<BoundingBoxAABB>(meshFilter.mesh.mesh->getBoundingBox());
+				Gizmo::drawOutlineCube(Math::createMat4(aabb->getCenter(), aabb->getExtents()*2.0f) * tc.transform, COLOR_PINK_VEC4);
+			}
+		}
 		//camera view frustum
 		if (selected.hasComponent<CameraComponent>()) {
 			CameraComponent camera = selected.getComponent<CameraComponent>();
@@ -378,7 +385,7 @@ namespace Stulu {
 				float fovHalf = glm::radians(camera.settings.fov*0.5f);
 				float nearHeight = 1.0f;
 				float nearWidth = nearHeight * aspect;
-				float farHeight = 2.0f * zFar * (glm::tan(fovHalf));//because tan(fov) = ankhatet / gegenkahtet irgendwas
+				float farHeight = 2.0f * zFar * (glm::tan(fovHalf));//because tan(fov) = ankhatet / gegenkahtet irgendwas mathe 9te klasse
 				float farWidth = farHeight * aspect;
 				glm::vec3 nearPos = tc.worldPosition + tc.forward * zNear;
 				glm::vec3 farPos = tc.worldPosition + tc.forward * zFar;
