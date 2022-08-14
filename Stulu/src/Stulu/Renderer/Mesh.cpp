@@ -30,8 +30,6 @@ namespace Stulu {
 		m_vertices = vertices;
 		m_indices = indices;
 		recalculate();
-
-		m_boundingBox = VFC::createBoundingBox(this);
 	}
 	Mesh::Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount) {
 		ST_PROFILING_FUNCTION();
@@ -75,6 +73,8 @@ namespace Stulu {
 		m_vertexArray->addVertexBuffer(vertexBuffer);
 		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
 		m_vertexArray->setIndexBuffer(indexBuffer);
+
+		m_boundingBox = VFC::createBoundingBox(this);
 	}
 	Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
 		if (vertLimit == 0 || vertLimit > getVerticesCount())

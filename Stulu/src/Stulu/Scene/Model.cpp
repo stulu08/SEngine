@@ -100,13 +100,19 @@ namespace Stulu {
         if (parent != UUID::null)
             mesh.parentMeshAsset = parent;
 
-        //should work but it doesn't work
-        //mesh.transform = *(glm::mat4*)&node->mTransformation;
         aiVector3D a_pos, a_scale;
-        aiQuaternion a_rot;
-        node->mTransformation.Decompose(a_scale, a_rot, a_pos);
+
+        //aiQuaternion a_rot;
+        //node->mTransformation.Decompose(a_scale, a_rot, a_pos);
+        //glm::quat rot(a_rot.w, a_rot.x, a_rot.y, a_rot.z);
+
+        aiVector3D a_euler;
+        node->mTransformation.Decompose(a_scale, a_euler, a_pos);
+        glm::quat rot(glm::vec3(a_euler.x, a_euler.y, a_euler.z));
+
+        
         glm::vec3 pos(a_pos.x,a_pos.y,a_pos.z), sca(a_scale.x, a_scale.y, a_scale.z);
-        glm::quat rot(a_rot.w, a_rot.x, a_rot.y, a_rot.z);
+
         mesh.transform = Math::createMat4(pos, rot, sca);
         
         meshes.push_back(mesh);

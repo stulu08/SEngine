@@ -369,7 +369,7 @@ namespace Stulu {
 
 			if (meshFilter.mesh.mesh->getBoundingBox()) {
 				Ref<BoundingBoxAABB>& aabb = std::dynamic_pointer_cast<BoundingBoxAABB>(meshFilter.mesh.mesh->getBoundingBox());
-				Gizmo::drawOutlineCube(Math::createMat4(aabb->getCenter(), aabb->getExtents()*2.0f) * tc.transform, COLOR_PINK_VEC4);
+				Gizmo::drawOutlineCube(aabb->getMin(), aabb->getMax(), tc.transform, COLOR_PINK_VEC4);
 			}
 		}
 		//camera view frustum
