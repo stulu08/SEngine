@@ -38,8 +38,9 @@ namespace Stulu {
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilMask(0x00);
 
 		setDefault();
 #ifdef ST_GRAPHICS_API_DEBUG_LOGGING

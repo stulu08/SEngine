@@ -59,10 +59,16 @@ namespace Stulu {
 		out vec2 v_tex;
 		layout(std140, binding = 0) uniform matrices
 		{
-			float z;
+			mat4 viewProjection;
+			mat4 viewMatrix;
+			mat4 projMatrix;
+			vec4 cameraPosition;
+			vec4 cameraRotation;
+			mat4 transform;
 		};
 		void main()
 		{
+			float z = transform[3].z;
 			v_tex=a_texCoords;
 			vec3 pos = a_pos;
 			pos.z = z;
@@ -72,18 +78,17 @@ namespace Stulu {
 		#version 460
 		##add ST_functions
 		in vec2 v_tex;
+		##add ST_functions
+		##add ST_bindings
 		layout (binding = 0) uniform sampler2D texSampler;
 		out vec4 a_color;
 		void main()
 		{
 			vec4 color = texture2D(texSampler, v_tex);
-			//if(color.a == 0.0f)
-			//	discard;
-			//a_color = color;
-			a_color.r = when_gt(color.r, 1.0);
-			a_color.g = when_gt(color.g, 1.0);
-			a_color.b = when_gt(color.b, 1.0);
-			a_color.a = 1.0;
+			if(color.a == 0.0f)
+				discard;
+			
+			a_color = enableGammaCorrection ? gammaCorrect(color, gamma, toneMappingExposure) : color;
 		}
 		)");
 		}
@@ -100,7 +105,6 @@ namespace Stulu {
 		ST_PROFILING_RENDERDATA_END();
 		s_runtimeData.drawList.clear();
 		s_runtimeData.transparentDrawList.clear();
-		s_runtimeData.stencilDrawList.clear();
 	}
 
 	void SceneRenderer::LoadLights(Scene* scene) {
@@ -162,7 +166,6 @@ namespace Stulu {
 		camComp.settings.fov = sceneCam.m_fov;
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
-
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, Scene* scene) {
 		ST_PROFILING_FUNCTION();
@@ -215,8 +218,6 @@ namespace Stulu {
 		//reflection map pass
 		//https://www.adriancourreges.com/blog/2015/11/02/gta-v-graphics-study/
 		if (useReflectionMap && reflectionFrameBuffer && reflectionMap) {
-			s_shaderSceneData.enableGammaCorrection = 0;
-			s_runtimeData.sceneDataBuffer->setData(&s_shaderSceneData, sizeof(s_shaderSceneData));
 			//						  fb,    index
 			static std::unordered_map<void*, uint32_t> mapIndexMap;
 			uint32_t& reflectionRenderIndex = mapIndexMap[cam.get()];
@@ -231,8 +232,6 @@ namespace Stulu {
 				reflectionRenderIndex = 0;
 			else
 				reflectionRenderIndex++;
-			s_shaderSceneData.enableGammaCorrection = 1;
-			s_runtimeData.sceneDataBuffer->setData(&s_shaderSceneData, sizeof(s_shaderSceneData));
 			
 		}else
 			reflectionMap = nullptr;
@@ -290,15 +289,29 @@ namespace Stulu {
 		for (auto& goID : cams) {
 			CameraComponent& cam = cams.get<CameraComponent>(goID);
 			if (!cam.settings.isRenderTarget) {
-				Renderer::uploadBufferData(&cam.depth, sizeof(cam.depth));
 
 				cam.getFrameBuffer()->getTexture()->bind(0);
 				s_runtimeData.fbDrawData.m_quadShader->bind();
 				
-				sceneFbo->bind();
-				RenderCommand::drawIndexed(s_runtimeData.fbDrawData.m_quadVertexArray);
+				sceneFbo->bind(); 
+				Renderer::submit(s_runtimeData.fbDrawData.m_quadVertexArray, nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0,0,cam.depth)));
 				sceneFbo->unbind();
 			}
+		}
+	}
+
+	void SceneRenderer::ApplyPostProcessing(SceneCamera& sceneCam, Scene* scene) {
+		s_postProcessingData.time = Time::time;
+		s_postProcessingData.delta = Time::deltaTime;
+		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(s_postProcessingData));
+		{
+
+			sceneCam.getCamera()->getFrameBuffer()->getTexture()->bind(0);
+			s_runtimeData.fbDrawData.m_quadShader->bind();
+
+			sceneCam.getDisplayBuffer()->bind();
+			Renderer::submit(s_runtimeData.fbDrawData.m_quadVertexArray, nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 1)));
+			sceneCam.getDisplayBuffer()->unbind();
 		}
 	}
 
@@ -343,21 +356,6 @@ namespace Stulu {
 			RenderCommand::setCullMode(object.cullmode);
 			Renderer::submit(object.vertexArray, object.material->getShader(), object.transform);
 		}
-
-		//stencil
-		
-		RenderCommand::setStencil(StencilMode::WriteToBuffer);
-		for (const RenderObject& object : s_runtimeData.stencilDrawList) {
-			if (last != object.material->getUUID()) {
-				object.material->uploadData();
-				object.material->getShader()->bind();
-				last = object.material->getUUID();
-			}
-			RenderCommand::setCullMode(object.cullmode);
-			Renderer::submit(object.vertexArray, nullptr, object.transform);
-		}
-		RenderCommand::setStencil(StencilMode::DisableWriting);
-		
 	}
 	void SceneRenderer::drawSkyBox(const Ref<CubeMap>& skybox) {
 		ST_PROFILING_FUNCTION();
@@ -379,7 +377,6 @@ namespace Stulu {
 		}
 		else {
 			material = Resources::getDefaultMaterial();
-		}
 		if (mesh.m_enabledStencilBufferNextFrame) {
 			s_runtimeData.stencilDrawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode });
 		}
@@ -393,7 +390,7 @@ namespace Stulu {
 		ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh.mesh->getIndicesCount());
 		ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh.mesh->getVerticesCount());
 	}
-	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& mat, const glm::mat4& transform, bool stencil) {
+	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& mat, const glm::mat4& transform) {
 		ST_PROFILING_FUNCTION();
 		if (!vertexArray)
 			return;
@@ -405,16 +402,12 @@ namespace Stulu {
 			material = Resources::getDefaultMaterial();
 		}
 
-		if (stencil) {
-			s_runtimeData.stencilDrawList.push_back(RenderObject{ material,vertexArray,transform,CullMode::Back });
-		}
-		else {
-			if (material->isTransparent())
-				s_runtimeData.transparentDrawList.push_back(RenderObject{
-				material,vertexArray,transform,CullMode::Back });
-			else
-				s_runtimeData.drawList.push_back(RenderObject{ material,vertexArray,transform, CullMode::Back });
-		}
+
+		if (material->isTransparent())
+			s_runtimeData.transparentDrawList.push_back(RenderObject{
+			material,vertexArray,transform,CullMode::Back });
+		else
+			s_runtimeData.drawList.push_back(RenderObject{ material,vertexArray,transform, CullMode::Back });
 
 
 		s_runtimeData.drawList.push_back(RenderObject{ material,vertexArray,transform });

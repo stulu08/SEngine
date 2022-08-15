@@ -146,7 +146,7 @@ func(int);		\
 func(uint);		\
 func(double);
 
-const uint ShaderViewFlag_EnableLighting	= 0x00000001u;
+const uint ShaderViewFlag_DisplayLighting	= 0x00000001u;
 const uint ShaderViewFlag_DisplayDiffuse	= 0x00000002u;
 const uint ShaderViewFlag_DisplaySpecular	= 0x00000004u;
 const uint ShaderViewFlag_DisplayNormal		= 0x00000008u;
@@ -155,6 +155,8 @@ const uint ShaderViewFlag_DisplayMetallic	= 0x00000020u;
 const uint ShaderViewFlag_DisplayAmbient	= 0x00000040u;
 const uint ShaderViewFlag_DisplayTexCoords	= 0x00000080u;
 const uint ShaderViewFlag_DisplayVertices	= 0x00000100u;
+const uint ShaderViewFlag_DisplayEmission	= 0x00000200u;
+const uint ShaderViewFlag_DisplayDepth		= 0x00000400u;
 const float PI = 3.14159265359;
 
 bool isFlagEnabled(uint flags, uint flag) {
@@ -331,6 +333,7 @@ layout (binding = 3) uniform sampler2D BRDFLUTMap;
 			{"ST_pbr_calculation",R"(
 struct PBRData {
 	vec3  albedo;
+	vec3  emission;
 	float metallic;
 	float roughness;
 	float ao;
@@ -353,7 +356,8 @@ vec4 ST_pbr_calculation(inout PBRData data)
 	F0 = mix(F0, data.albedo, data.metallic);
 	
 	vec3 Lo = vec3(0.0);
-	if(isFlagEnabled(viewFlags, ShaderViewFlag_EnableLighting)){
+	//lighting
+	{
 		for(int i = 0; i < lightCount; i++){
 			float distance = length(lights[i].positionAndType.xyz - data.worldPos);
 
@@ -406,6 +410,8 @@ vec4 ST_pbr_calculation(inout PBRData data)
 			float NdotL = max(dot(N, L), 0.0);                
 			Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w;
 		}
+		//emission
+		Lo += data.emission;
 	}
 	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, data.roughness);
 	vec3 kS = F;
@@ -432,7 +438,9 @@ vec4 ST_pbr_calculation(inout PBRData data)
 	vec3 color = ambient + Lo;
 	
 	//filter flags
-	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
+	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
+		color = vec3(Lo);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
 		color = vec3(diffuse);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
 		color = vec3(specular);
@@ -448,8 +456,10 @@ vec4 ST_pbr_calculation(inout PBRData data)
 		color = vec3(data.texCoords, 0);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
 		color = vec3(data.albedo);
-	
-	return gammaCorrect(vec4(color, data.alpha), gamma , toneMappingExposure);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayEmission))
+		color = vec3(data.emission);
+
+	return vec4(color, data.alpha);
 }
 )"},//ST_pbr_calculation
 			{ "ST_CubemapVertex",R"(

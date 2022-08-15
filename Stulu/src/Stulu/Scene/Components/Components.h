@@ -125,8 +125,6 @@ namespace Stulu {
 		Ref<Material> material = nullptr;
 		CullMode cullmode = CullMode::Back;
 
-		bool m_enabledStencilBufferNextFrame = false;
-
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
 	};

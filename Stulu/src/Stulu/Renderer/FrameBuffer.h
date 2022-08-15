@@ -18,6 +18,9 @@ namespace Stulu {
 
 		virtual uint32_t getColorAttachmentRendereID() const = 0;
 		virtual uint32_t getDepthAttachmentRendereID() const = 0;
+
+		virtual void bindDepthAttachment(uint32_t slot) const = 0;
+
 	};
 	class STULU_API FrameBuffer {
 	public:

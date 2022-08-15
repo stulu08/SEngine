@@ -287,73 +287,16 @@ namespace Stulu {
 					ImGui::TreePop();
 				}
 
-
-
-				bool wireframe = (data.shaderFlags & ST_ShaderViewFlags_DisplayVertices);
-				if (ComponentsRender::drawBoolControl("Wireframe", wireframe))
-					if (wireframe)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayVertices;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayVertices;
-
-				bool diffuse = (data.shaderFlags & ST_ShaderViewFlags_DisplayDiffuse);
-				if(ComponentsRender::drawBoolControl("Diffuse", diffuse))
-					if(diffuse)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayDiffuse;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayDiffuse;
-				
-				bool specular = (data.shaderFlags & ST_ShaderViewFlags_DisplaySpecular);
-				if(ComponentsRender::drawBoolControl("Specular", specular))
-					if(specular)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplaySpecular;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplaySpecular;
-
-
-				bool lighting = (data.shaderFlags & ST_ShaderViewFlags_EnableLighting);
-				if(ComponentsRender::drawBoolControl("Lighting", lighting))
-					if (lighting)
-						data.shaderFlags |= ST_ShaderViewFlags_EnableLighting;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_EnableLighting;
-
-				bool dispNormals = (data.shaderFlags & ST_ShaderViewFlags_DisplayNormal);
-				if(ComponentsRender::drawBoolControl("Normals", dispNormals))
-					if (dispNormals)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayNormal;
-					else
-							data.shaderFlags &= ~ST_ShaderViewFlags_DisplayNormal;
-
-				bool dispRough = (data.shaderFlags & ST_ShaderViewFlags_DisplayRoughness);
-				if (ComponentsRender::drawBoolControl("Roughness", dispRough))
-					if (dispRough)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayRoughness;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayRoughness;
-
-				bool dispMetall = (data.shaderFlags & ST_ShaderViewFlags_DisplayMetallic);
-				if (ComponentsRender::drawBoolControl("Metallic", dispMetall))
-					if (dispMetall)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayMetallic;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayMetallic;
-
-				bool dispAmbient = (data.shaderFlags & ST_ShaderViewFlags_DisplayAmbient);
-				if (ComponentsRender::drawBoolControl("Ambient Occlusion", dispAmbient))
-					if (dispAmbient)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayAmbient;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayAmbient;
-
-				bool dispTexCoords = (data.shaderFlags & ST_ShaderViewFlags_DisplayTexCoords);
-				if (ComponentsRender::drawBoolControl("Tex Coords", dispTexCoords))
-					if (dispTexCoords)
-						data.shaderFlags |= ST_ShaderViewFlags_DisplayTexCoords;
-					else
-						data.shaderFlags &= ~ST_ShaderViewFlags_DisplayTexCoords;
-
-
+				ComponentsRender::drawBoolBitFlagControl("Wireframe", ST_ShaderViewFlags_DisplayVertices, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Depth", ST_ShaderViewFlags_DisplayDepth, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Lighting", ST_ShaderViewFlags_DisplayLighting, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Normals", ST_ShaderViewFlags_DisplayNormal, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Tex Coords", ST_ShaderViewFlags_DisplayTexCoords, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Diffuse", ST_ShaderViewFlags_DisplayDiffuse, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Specular", ST_ShaderViewFlags_DisplaySpecular, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Roughness", ST_ShaderViewFlags_DisplayRoughness, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Ambient Occlusion", ST_ShaderViewFlags_DisplayAmbient, data.shaderFlags);
+				ComponentsRender::drawBoolBitFlagControl("Emission", ST_ShaderViewFlags_DisplayEmission, data.shaderFlags);
 			}
 			ImGui::End();
 		}
@@ -495,9 +438,24 @@ namespace Stulu {
 				Gizmo::drawLine(nearTransform * edgesPos[i], farTransform * edgesPos[i]);
 			}
 		}
-		
+		if (selected.hasComponent<LightComponent>()) {
+			LightComponent light = selected.getComponent<LightComponent>();
+
+			const glm::vec3& position = tc.worldPosition;
+			glm::vec3 scale = glm::vec3(1.0f);
+
+			if (light.lightType == LightComponent::Area) {
+				scale = glm::vec3(light.areaRadius * 2.0f);
+				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
+				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(90.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
+				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, 90.0f, .0f))), scale), COLOR_GREEN, .02f);
+			}
+			else if (light.lightType == LightComponent::Spot) {
+				
+			}
+			
+		}
 		//colliders
-		RenderCommand::setWireFrame(true);
 		BoxColliderComponent boxCollider;
 		if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
 			glm::vec3 position = tc.worldPosition + boxCollider.offset;
@@ -511,12 +469,11 @@ namespace Stulu {
 			glm::vec3 position = tc.worldPosition + sphereCollider.offset;
 			glm::vec3 scale = tc.worldScale * (sphereCollider.radius * 2.0f);
 			
-			//Renderer::submit(Resources::getSphereMeshAsset().mesh->getVertexArray(),
-			//	EditorResources::getGreenColorShader(),
-			//	Math::createMat4(position, tc.worldRotation, scale));
-			Gizmo::drawCircleBillBoard(position, scale, COLOR_GREEN, .01f);
-			//Renderer2D::drawCircle(Math::createMat4(position, tc.worldRotation, scale), COLOR_GREEN, .02f);
+			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
+			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(90.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
+			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, 90.0f, .0f))), scale), COLOR_GREEN, .02f);
 		}
+		RenderCommand::setWireFrame(true);
 		CapsuleColliderComponent capsuleCollider;
 		if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
 			glm::vec3 position = tc.worldPosition + capsuleCollider.offset;

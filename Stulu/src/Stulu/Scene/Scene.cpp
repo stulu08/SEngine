@@ -110,7 +110,6 @@ namespace Stulu {
 				if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
 					ST_PROFILING_SCOPE("Rendering Mesh");
 					SceneRenderer::RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
-					group.get<MeshRendererComponent>(gameObject).m_enabledStencilBufferNextFrame = false;
 				}
 			}
 		}
@@ -180,7 +179,6 @@ namespace Stulu {
 				if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
 					ST_PROFILING_SCOPE("Rendering Mesh Editor");
 					SceneRenderer::RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
-					group.get<MeshRendererComponent>(gameObject).m_enabledStencilBufferNextFrame = false;
 				}
 			}
 		}
@@ -241,6 +239,8 @@ namespace Stulu {
 			RenderCommand::setWireFrame(false);
 
 		SceneRenderer::End();
+
+		SceneRenderer::ApplyPostProcessing(camera, this);
 	}
 
 	void Scene::onRuntimeStart() {

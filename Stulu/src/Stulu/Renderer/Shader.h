@@ -4,7 +4,7 @@
 
 namespace Stulu {
 #define ST_MAXLIGHTS 50
-#define ST_ShaderViewFlags_EnableLighting ((uint32_t)ShaderViewFlags::EnableLighting)
+#define ST_ShaderViewFlags_DisplayLighting ((uint32_t)ShaderViewFlags::DisplayLighting)
 #define ST_ShaderViewFlags_DisplayDiffuse ((uint32_t)ShaderViewFlags::DisplayDiffuse)
 #define ST_ShaderViewFlags_DisplaySpecular ((uint32_t)ShaderViewFlags::DisplaySpecular)
 #define ST_ShaderViewFlags_DisplayNormal ((uint32_t)ShaderViewFlags::DisplayNormal)
@@ -13,8 +13,10 @@ namespace Stulu {
 #define ST_ShaderViewFlags_DisplayAmbient ((uint32_t)ShaderViewFlags::DisplayAmbient)
 #define ST_ShaderViewFlags_DisplayTexCoords ((uint32_t)ShaderViewFlags::DisplayTexCoords)
 #define ST_ShaderViewFlags_DisplayVertices ((uint32_t)ShaderViewFlags::DisplayVertices)
+#define ST_ShaderViewFlags_DisplayEmission ((uint32_t)ShaderViewFlags::DisplayEmission)
+#define ST_ShaderViewFlags_DisplayDepth ((uint32_t)ShaderViewFlags::DisplayDepth)
 	enum class ShaderViewFlags {
-		EnableLighting = 1 << 0,
+		DisplayLighting = 1 << 0,
 		//the following will only display itself(DisplayNormal will only display normal map)
 		DisplayDiffuse = 1 << 1,
 		DisplaySpecular = 1 << 2,
@@ -24,6 +26,8 @@ namespace Stulu {
 		DisplayAmbient = 1 << 6,
 		DisplayTexCoords = 1 << 7,
 		DisplayVertices = 1 << 8,
+		DisplayEmission = 1 << 9,
+		DisplayDepth = 1 << 10,
 	};
 
 	class STULU_API ShaderProperity {

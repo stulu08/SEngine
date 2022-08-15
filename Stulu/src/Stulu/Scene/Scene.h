@@ -17,8 +17,8 @@ namespace Stulu {
 		float env_lod = 1.0f;
 		bool enablePhsyics3D = true;
 		bool useReflectionMapReflections = false;
-		PhysicsData physicsData;
-		uint32_t shaderFlags = ((uint32_t)ShaderViewFlags::EnableLighting);
+		PhysicsData physicsData = PhysicsData();
+		uint32_t shaderFlags = 0;
 	};
 
 	class STULU_API SceneCamera;

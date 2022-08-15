@@ -13,7 +13,7 @@ layout(std140, binding = 4) uniform material {
 	float metallic;
 	float roughness;
 	float ao;
-	vec4 emissionHDRColor;
+	vec4 emission;
 	vec2 textureTilling;
 };
 layout(binding = 4) uniform sampler2D albedoMap;
@@ -25,7 +25,7 @@ layout(binding = 9) uniform sampler2D emissionMap;
 /*
 struct PBRData {
 	vec3  albedo;
-	vec4  emission;
+	vec3  emission;
 	float metallic;
 	float roughness;
 	float ao;
@@ -42,10 +42,14 @@ void main (){
 	
 	a_albedo *= srgbToLin(texture(albedoMap, vertex.texCoords * textureTilling).rgba);
 	data.albedo = a_albedo.rgb;
+
+	data.emission = (emission.rgb * texture(emissionMap, vertex.texCoords * textureTilling).rgb) * emission.a;
+
 	data.ao = max(ao, texture(aoMap, vertex.texCoords * textureTilling).r);
-	data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
 	data.metallic = max(metallic, texture(metallicMap, vertex.texCoords * textureTilling).r);
 	data.roughness = max(roughness, texture(metallicMap, vertex.texCoords * textureTilling).g);
+
+	data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
 
 	data.worldPos = vertex.worldPos;
 	data.texCoords = vertex.texCoords * textureTilling;
@@ -59,7 +63,7 @@ void main (){
 
 //may need this
 /*
-const uint ShaderViewFlag_EnableLighting	= 0x00000001u;
+const uint ShaderViewFlag_DisplayLighting	= 0x00000001u;
 const uint ShaderViewFlag_DisplayDiffuse	= 0x00000002u;
 const uint ShaderViewFlag_DisplaySpecular	= 0x00000004u;
 const uint ShaderViewFlag_DisplayNormal		= 0x00000008u;
@@ -68,6 +72,8 @@ const uint ShaderViewFlag_DisplayMetallic	= 0x00000020u;
 const uint ShaderViewFlag_DisplayAmbient	= 0x00000040u;
 const uint ShaderViewFlag_DisplayTexCoords	= 0x00000080u;
 const uint ShaderViewFlag_DisplayVertices	= 0x00000100u;
+const uint ShaderViewFlag_DisplayEmission	= 0x00000200u;
+const uint ShaderViewFlag_DisplayDepth		= 0x00000400u;
 const float PI = 3.14159265359;
 
 

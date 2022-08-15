@@ -178,13 +178,13 @@ namespace Stulu {
 					MaterialDataType{ShaderDataType::Float,.0f,"metallic",1},
 					MaterialDataType{ShaderDataType::Float,.5f,"roughness",2},
 					MaterialDataType{ShaderDataType::Float,.1f,"ao",3},
-					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f),"emissionHDRColor",4},
+					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f,1.0f,1.0f,.0f),"emission",4},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(),1,UUID::null},"albedoMap",5},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,UUID::null},"metallicMap",6},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,UUID::null},"roughnessMap",7},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,UUID::null},"normalMap",8},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,UUID::null},"aoMap",9},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getBlackTexture(),1,UUID::null},"emissionMap",10},
+					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getWhiteTexture(),1,UUID::null},"emissionMap",10},
 					MaterialDataType{ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",11},
 
 				})),"",UUID(12) });
@@ -199,13 +199,13 @@ namespace Stulu {
 					MaterialDataType{ShaderDataType::Float,1.0f,"metallic",1},
 					MaterialDataType{ShaderDataType::Float,.0f,"roughness",2},
 					MaterialDataType{ShaderDataType::Float,1.0f,"ao",3},
-					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f),"emissionHDRColor",4},
+					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f,1.0f,1.0f,.0f),"emission",4},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(),1,UUID::null},"albedoMap",5},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,UUID::null},"metallicMap",6},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,UUID::null},"roughnessMap",7},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,UUID::null},"normalMap",8},
 					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,UUID::null},"aoMap",9},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getBlackTexture(),1,UUID::null},"emissionMap",10},
+					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getWhiteTexture(),1,UUID::null},"emissionMap",10},
 					MaterialDataType{ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",11},
 
 				})),"",UUID(13) });
@@ -279,7 +279,7 @@ namespace Stulu {
 				color = vec4(mapColor, 1.0f);
 			}
 			
-			FragColor = enableGammaCorrection ? gammaCorrect(color, gamma, toneMappingExposure) : color;
+			FragColor = color;
 		})";
 			AssetsManager::update(UUID(7), Asset{ AssetType::Shader, Shader::create("SkyBox",src),"",UUID(7) });
 		}

@@ -39,11 +39,13 @@ namespace Stulu {
 		static void Clear(CameraComponent& cam);
 
 		static void RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
-		static void RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& material, const glm::mat4& transform, bool stencil = false);
+		static void RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& material, const glm::mat4& transform);
 		static void RegisterObject(const RenderObject& object);
 
 		//combines all the textures of the cameras, sorting by layer index
 		static void GenSceneTexture(const Ref<FrameBuffer>& sceneFbo, const Ref<Scene>& scene);
+
+		static void ApplyPostProcessing(SceneCamera& camera, Scene* scene);
 
 		//if useReflectionMap is false, a normal skybox will be used
 		static void drawScene(const Ref<CubeMap>& reflectionMap);
@@ -60,7 +62,6 @@ namespace Stulu {
 			} fbDrawData;
 			std::vector<RenderObject> drawList;
 			std::vector<RenderObject> transparentDrawList;
-			std::vector<RenderObject> stencilDrawList;
 		};
 		static RuntimeData s_runtimeData;
 

@@ -17,7 +17,10 @@ namespace Stulu {
 			height = (uint32_t)viewportSize.y;
 			ImTextureID viewPortTexture;
 
-			viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getRendererID());
+			if(getEditorScene()->getData().shaderFlags & ST_ShaderViewFlags_DisplayDepth)
+				viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getDepthAttachmentRendereID());
+			else
+				viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getDisplayBuffer()->getTexture()->getColorAttachmentRendereID());
 
 			ImGui::Image(viewPortTexture, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
 

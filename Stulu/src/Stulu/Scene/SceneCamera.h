@@ -22,6 +22,7 @@ namespace Stulu {
 
 		float getAspectRatio() { return m_aspectRatio; }
 
+		Ref<FrameBuffer>& getDisplayBuffer() { return m_displayBuffer; }
 
 		const TransformComponent& getTransform() const { return m_transform; }
 		TransformComponent& getTransform() { return m_transform; }
@@ -34,6 +35,7 @@ namespace Stulu {
 		Ref<Camera> m_cam;
 		Ref<CubeMap> reflectionMap = nullptr;
 		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
+		Ref<FrameBuffer> m_displayBuffer = nullptr;
 		TransformComponent m_transform;
 
 		float m_cameraMoveSpeed = 1.0f;

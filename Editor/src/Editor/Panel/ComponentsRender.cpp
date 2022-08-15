@@ -411,6 +411,15 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
+	bool ComponentsRender::drawBoolBitFlagControl(const std::string& header, uint32_t flag, uint32_t& flags) {
+		bool value = (flags & flag);
+		if (ComponentsRender::drawBoolControl(header, value))
+			if (value)
+				flags |= flag;
+			else
+				flags &= ~flag;
+		return value;
+	}
 	bool ComponentsRender::drawIntControl(const std::string& header, int& v) {
 		ST_PROFILING_FUNCTION();
 		ImGui::PushID(header.c_str());
@@ -788,7 +797,10 @@ namespace Stulu {
 		return change;
 	}
 	bool ComponentsRender::drawHDRColorEdit(const std::string& header, glm::vec4& color) {
-		return false;
+		bool change = false;
+		change |= ImGui::ColorEdit3((header + " Color").c_str(), glm::value_ptr(color), ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float);
+		change |= ImGui::DragFloat((header + " Intensity").c_str(), &color[3]);
+		return change;
 	}
 	void ComponentsRender::drawHelpMarker(const char* desc) {
 		ST_PROFILING_FUNCTION();
@@ -1072,6 +1084,7 @@ namespace Stulu {
 	bool ComponentsRender::drawControl(const std::string& header, glm::vec4& value) { return drawVector4Control(header, value); }
 	template<>
 	bool ComponentsRender::drawControl(const std::string& header, glm::mat4& value) { return drawMat4Control(header, value); }
+	//returns true if changed
 	template<>
 	bool ComponentsRender::drawControl(const std::string& header, bool& value) { return drawBoolControl(header, value); }
 

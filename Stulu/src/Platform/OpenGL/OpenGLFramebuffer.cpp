@@ -101,4 +101,8 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		glBindTextureUnit(slot, m_colorAttachment);
 	}
+	void OpenGLFrameBufferTexture::bindDepthAttachment(uint32_t slot) const {
+		ST_PROFILING_FUNCTION();
+		glBindTextureUnit(slot, m_depthAttachment);
+	}
 }

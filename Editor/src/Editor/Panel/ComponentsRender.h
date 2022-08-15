@@ -34,7 +34,9 @@ namespace Stulu {
 		static void drawComponent(GameObject gameObject, T& component);
 
 		static bool drawStringControl(const std::string& header, std::string& v);
+		//returns true if changed
 		static bool drawBoolControl(const std::string& header, bool& v);
+		static bool drawBoolBitFlagControl(const std::string& header, uint32_t flag, uint32_t& flags);
 		static bool drawIntControl(const std::string& header, int& v);
 		static bool drawInt3Control(const std::string& header, int& x, int& y, int& z);
 		static bool drawIntSliderControl(const std::string& header, int& v, int min = 0, int max = 10);
