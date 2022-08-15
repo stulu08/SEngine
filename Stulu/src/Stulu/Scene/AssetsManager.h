@@ -8,7 +8,8 @@
 
 namespace Stulu {
 	bool FileExists(const std::string& name);
-	class Model;
+	class STULU_API Model;
+	struct MeshAsset;
 	enum class AssetType {
 		Unknown = 0,
 		Texture2D = 1, RenderTexture = 2, SkyBox = 3,
@@ -36,6 +37,8 @@ namespace Stulu {
 		static void addOrReload(const std::string& path);
 		static UUID addDirectory(const std::string& path);
 
+		static MeshAsset& createMeshAsset(const Ref<Mesh>& mesh, const std::string & = "New Mesh", UUID = UUID());
+
 		static void update(const UUID& uuid, const Asset& data);
 
 		static void remove(const UUID& uuid, bool deleteFile = false, bool deleteMetaFile = false);
@@ -55,13 +58,22 @@ namespace Stulu {
 		const static type_info& getType(const UUID& uuid);
 		const static AssetType& getAssetType(const UUID& uuid);
 		template<typename T>
-		static inline T* getAs(const UUID& uuid) {
+		static inline T* getAsPtr(const UUID& uuid) {
 			ST_PROFILING_FUNCTION();
 			if (exists(uuid))
-				return assets[uuid].first._Cast<T>();
-
-			CORE_EROR(exists(uuid), "UUID not present in assets");
+				return assets[uuid].data._Cast<T>();
+			else
+				CORE_ERROR("UUID not present in assets");
 			return nullptr;
+		}
+		template<typename T>
+		static inline T& getAs(const UUID& uuid) {
+			ST_PROFILING_FUNCTION();
+			if (exists(uuid))
+				return std::any_cast<T&>(assets[uuid].data);
+			else
+				CORE_ERROR("UUID not present in assets");
+			return T();
 		}
 		static UUID getFromPath(const std::string& path);
 		static UUID getFromPath(const std::string& path, AssetType type);

@@ -136,9 +136,19 @@ namespace Stulu {
 
 		MeshFilterComponent() = default;
 		MeshFilterComponent(const MeshFilterComponent&) = default;
-		MeshFilterComponent(const Ref<Mesh>& _mesh) {mesh.mesh = _mesh;}
+		MeshFilterComponent(const Ref<Mesh>& _mesh) { setMesh(_mesh); }
 		MeshFilterComponent(MeshAsset& mesh)
 			: mesh(mesh){}
+
+		void setMesh(Ref<Mesh> meshObj, const std::string& name = "New Mesh") {
+			if (meshObj)
+				mesh.hasMesh = true;
+			mesh.mesh = meshObj;
+			mesh.name = name;
+		}
+		void setMesh(MeshAsset meshAsset) {
+			mesh = meshAsset;
+		}
 	};
 	class Behavior;
 	class NativeBehaviourComponent : public Component {

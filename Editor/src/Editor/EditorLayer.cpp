@@ -50,6 +50,72 @@ namespace Stulu {
 
 	}
 
+	uint32_t terrainSize = 128;//in quads
+	PerlinSettings noiseSettings = { 1, 3.0f, 10.0f, glm::vec2((float)terrainSize) };
+
+	void generateDebugTerrain() {
+		noiseSettings.size = glm::vec2((float)terrainSize);
+
+		Ref<Mesh> mesh = createRef<Mesh>();
+		std::vector<Vertex> vertices(terrainSize * terrainSize * 4);
+		std::vector<uint32_t> indices(terrainSize * terrainSize * 6);
+		Math::setPerlinSeed(Random::getInt(0, 99999));
+		for (uint32_t x = 0, i = 0, v = 0; x < terrainSize; x++) {
+			for (uint32_t z = 0; z < terrainSize; z++) {
+				glm::vec2 pos;
+				Vertex vertex;
+				float fallOff;
+
+
+				glm::vec2 origin = glm::vec2(terrainSize / 2.0f);
+				float maxDistance = glm::distance(glm::vec2(.0f), origin * .9f); //add extra 10% because better
+				
+
+				pos = glm::vec2(x - .5f, z + .5f);
+				fallOff = 1.0f - glm::distance(pos, origin) / maxDistance;
+				vertex.pos = glm::vec3(pos.x, Math::simpleNosie(pos, noiseSettings) * fallOff, pos.y);
+				vertex.texCoords = glm::vec2(0, 1);
+				vertices[v++] = vertex;
+
+				pos = glm::vec2(x + .5f, z + .5f);
+				fallOff = 1.0f - glm::distance(pos, origin) / maxDistance;
+				vertex.pos = glm::vec3(pos.x, Math::simpleNosie(pos, noiseSettings) * fallOff, pos.y);
+				vertex.texCoords = glm::vec2(1, 1);
+				vertices[v++] = vertex;
+
+				pos = glm::vec2(x - .5f, z - .5f);
+				fallOff = 1.0f - glm::distance(pos, origin) / maxDistance;
+				vertex.pos = glm::vec3(pos.x, Math::simpleNosie(pos, noiseSettings) * fallOff, pos.y);
+				vertex.texCoords = glm::vec2(0, 0);
+				vertices[v++] = vertex;
+
+				pos = glm::vec2(x + .5f, z - .5f);
+				fallOff = 1.0f - glm::distance(pos, origin) / maxDistance;
+				vertex.pos = glm::vec3(pos.x, Math::simpleNosie(pos, noiseSettings) * fallOff, pos.y);
+				vertex.texCoords = glm::vec2(1, 0);
+				vertices[v++] = vertex;
+
+				indices[i + 0] = v - 2;
+				indices[i + 1] = v - 4;
+				indices[i + 2] = v - 3;
+
+				indices[i + 3] = v - 3;
+				indices[i + 4] = v - 1;
+				indices[i + 5] = v - 2;
+
+				i += 6;
+			}
+		}
+		mesh->setVertices(vertices);
+		mesh->setIndices(indices);
+		mesh->calculateNormals();
+		mesh->recalculate();
+		GameObject go = Scene::activeScene()->findGameObjectByName("Terrain");
+		if(!go)
+			go = Scene::activeScene()->createGameObject("Terrain");
+
+		go.saveAddComponent<MeshFilterComponent>().setMesh(mesh, "Terrain Mesh");
+	}
 	void EditorLayer::onAttach() {
 		ST_PROFILING_FUNCTION();
 		newScene();
@@ -146,6 +212,19 @@ namespace Stulu {
 		ImGui::DockSpaceOverViewport();
 
 		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
+
+		if(ImGui::Begin("Debug Window")) {
+			ImGui::Text("Terrain");
+
+			ComponentsRender::drawUIntControl("Size", terrainSize);
+			ComponentsRender::drawFloatControl("Frequency", noiseSettings.frequency);
+			ComponentsRender::drawUIntControl("Octaves", noiseSettings.octaves);
+			ComponentsRender::drawFloatControl("Max Height", noiseSettings.multiplier);
+
+			if (ImGui::Button("Generate"))
+				generateDebugTerrain();
+		}
+		ImGui::End();
 
 		drawMenuBar();
 		if (m_showGameViewport) {

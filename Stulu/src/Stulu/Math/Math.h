@@ -48,6 +48,12 @@ namespace Stulu {
 		glm::vec3 min;
 		glm::vec3 max;
 	};
+	struct PerlinSettings {
+		uint32_t octaves = 4;
+		float frequency = 1.0f;
+		float multiplier = 1.0f;
+		glm::vec2 size = glm::vec2(1.0f);
+	};
 #define TRANSFORM_UP_DIRECTION glm::vec3(.0f,1.0f,.0f)
 #define TRANSFORM_RIGHT_DIRECTION glm::vec3(1.0f,.0f,.0f)
 #define TRANSFORM_FOREWARD_DIRECTION glm::vec3(.0f,.0f,-1.0f)
@@ -64,6 +70,7 @@ namespace Stulu {
 		static const float clamp(float& v, float min, float max);
 
 		static void setPerlinSeed(uint32_t seed);
+		static float simpleNosie(const glm::vec2& pos, const PerlinSettings& settings, bool _0_1_ = true);
 		static float simpleNosie(const glm::vec2& pos, float offset = 1.0, float scale = 1.0f, const glm::vec2& size = glm::vec2(1.0f));
 		static float perlinNosie(float x, float y, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);
 		static float perlinAccumalatedNosie(float x, float y, uint32_t octaves = 1, float frequenzy = 1.0f, float sizeX = 1.0f, float sizeY = 1.0f, bool _0_1_ = true);

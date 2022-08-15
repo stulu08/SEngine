@@ -23,6 +23,14 @@ namespace Stulu {
 	void Math::setPerlinSeed(uint32_t seed) {
 		noise.reseed(seed);
 	}
+	float Math::simpleNosie(const glm::vec2& pos, const PerlinSettings& con, bool _0_1_) {
+		float freqX = con.size.x / con.frequency;
+		float freqY = con.size.y / con.frequency;
+		if (_0_1_)
+			return (float)noise.accumulatedOctaveNoise2D_0_1(pos.x / freqX, pos.y / freqY, con.octaves) * con.multiplier;
+		else
+			return (float)noise.accumulatedOctaveNoise2D(pos.x / freqX, pos.y / freqY, con.octaves) * con.multiplier;
+	}
 	float Math::simpleNosie(const glm::vec2& pos, float offset, float scale, const glm::vec2& size) {
 		return perlinNosie((pos.x + 0.1f) / size.x * scale + offset, (pos.y + 0.1f) / size.y * scale + offset);
 	}

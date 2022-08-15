@@ -106,6 +106,17 @@ namespace Stulu {
 		return uuid;
 	}
 
+	MeshAsset& AssetsManager::createMeshAsset(const Ref<Mesh>& mesh, const std::string& name, UUID uuid) {
+		MeshAsset asset;
+		asset.mesh = mesh;
+		asset.name = name;
+		asset.uuid = uuid;
+		if (mesh)
+			asset.hasMesh = true;
+		AssetsManager::update(uuid, { AssetType::Mesh, asset, "",uuid });
+		return getAs<MeshAsset>(uuid);
+	}
+
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
 		switch (data.type)
 		{

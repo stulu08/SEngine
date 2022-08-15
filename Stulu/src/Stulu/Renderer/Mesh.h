@@ -27,12 +27,14 @@ namespace Stulu {
 	};
 	class STULU_API Mesh {
 	public:
-		Mesh() {}
+		Mesh() = default;
+		Mesh(const Mesh&) = default;
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 		Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount);
 		Mesh(void* vertices, size_t verticesSize, uint32_t* indices, size_t indicesCount, BufferLayout layout = s_defaultLayout);
 
 		const void recalculate();
+		const void calculateNormals();
 
 		void setVertices(std::vector<Vertex>& vertices) { m_vertices = vertices; }
 		void setIndices(std::vector<uint32_t>& indices) { m_indices = indices; }

@@ -3,9 +3,9 @@
 
 namespace Stulu {
 	struct Vertex {
-		glm::vec3 pos;
-		glm::vec3 normal;
-		glm::vec2 texCoords;
+		glm::vec3 pos = glm::vec3(.0f);
+		glm::vec3 normal = glm::vec3(.0f, 1.0f, .0f);
+		glm::vec2 texCoords = glm::vec3(.0f);
 	};
 
 	class STULU_API VertexArray {

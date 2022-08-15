@@ -76,6 +76,39 @@ namespace Stulu {
 
 		m_boundingBox = VFC::createBoundingBox(this);
 	}
+	const void Mesh::calculateNormals()
+	{
+		size_t indexCount = m_indices.size();
+
+		m_vertices.reserve(m_vertices.size());
+
+		for (int i = 0; i < indexCount; i += 3)
+		{
+			// get the three vertices that make the faces
+			glm::vec3 p0 = m_vertices[m_indices[i + 0]].pos;
+			glm::vec3 p1 = m_vertices[m_indices[i + 1]].pos;
+			glm::vec3 p2 = m_vertices[m_indices[i + 2]].pos;
+
+			glm::vec3 e1 = p1 - p0;
+			glm::vec3 e2 = p2 - p0;
+			glm::vec3 normal = glm::cross(e1, e2);
+			normal = glm::normalize(normal);
+
+			// Store the face's normal for each of the vertices that make up the face.
+			m_vertices[m_indices[i + 0]].normal += normal;
+			m_vertices[m_indices[i + 1]].normal += normal;
+			m_vertices[m_indices[i + 2]].normal += normal;
+		}
+
+
+		// Now loop through each vertex vector, and avarage out all the normals stored.
+		for (int i = 0; i < m_vertices.size(); ++i)
+		{
+			m_vertices[i].normal = glm::normalize(m_vertices[i].normal);
+		}
+		m_vertices.reserve(m_vertices.size());
+
+	}
 	Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
 			vertLimit = getVerticesCount();
