@@ -16,7 +16,7 @@ namespace Stulu {
 		static void setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView);
 		static void setRect(const float x, const float y, const float width, const float height);
 
-
+		static bool IsUsing();
 
 		static bool TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate);
 		static void drawGrid(const glm::mat4& transform, float size);

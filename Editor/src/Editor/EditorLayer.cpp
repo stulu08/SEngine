@@ -242,7 +242,7 @@ namespace Stulu {
 			m_sceneViewport.draw(m_sceneCamera, &m_showSceneViewport);
 		}
 		Application::get().getImGuiLayer()->blockEvents(
-		!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused)
+		!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing()
 		);
 		StuluBindings::Input::s_enabled = m_gameViewport.focused;
 
@@ -503,7 +503,6 @@ namespace Stulu {
 			Input::s_enabled = true;
 		}
 
-
 		if (s_runtime) {
 			m_activeScene->onUpdateRuntime(timestep);
 			SceneRenderer::GenSceneTexture(m_sceneFrameBuffer, m_runtimeScene);
@@ -675,14 +674,6 @@ namespace Stulu {
 				const glm::vec3& cameraPos = m_sceneCamera.getTransform().worldPosition;
 				const float gizmoViewDistance = 50.0f;
 
-				for (int i = 0; i < 10; i++) {
-					for (int j = 0; j < 10; j++) {
-						for (int k = 0; k < 10; k++) {
-							//Gizmo::drawSphere(Math::createMat4(glm::vec3(i, j, k), glm::vec3(.5f)), glm::vec4(glm::vec3(i, j, k) / 10.0f, 1.0f));
-						}
-					}
-				}
-				Gizmo::drawSphere(glm::translate(glm::mat4(1.0f), glm::vec3(0.f)));
 
 				//draw all cameras
 				for (entt::entity goID : m_activeScene->getAllGameObjectsWith<CameraComponent>()) {

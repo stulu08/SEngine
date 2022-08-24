@@ -9,8 +9,8 @@
 #include "ImGuizmo.h"
 
 namespace Stulu {
-	struct Gizmo3DVertex {
-		glm::mat4 transform;
+	struct CubeVertex {
+		glm::vec3 position;
 		glm::vec4 color;
 	};
 	static struct Data {
@@ -27,27 +27,22 @@ namespace Stulu {
 		float mDisplayRatio = 1.f;
 		ImDrawList* mDrawList;
 
-
-		static const uint32_t maxCubes = 500;
-		static const uint32_t maxSpheres = 500;
+		static const uint32_t maxCubes = 1000;
+		static const uint32_t maxIndices = maxCubes * 36;
+		static const uint32_t maxVertices = maxCubes * 8;
 
 		Ref<Shader> cubeShader;
 		Ref<VertexArray> cubeVertexArray;
 		Ref<VertexBuffer> cubeVertexBuffer;
 
-		Ref<VertexArray> sphereVertexArray;
-		Ref<VertexBuffer> sphereVertexBuffer;
-		Ref<Shader> sphereShader;
-
 		uint32_t cubeIndexCount = 0;
-		Gizmo3DVertex* cubeVertexBufferBase = nullptr;
-		Gizmo3DVertex* cubeVertexBufferPtr = nullptr;
+		CubeVertex* cubeVertexBufferBase = nullptr;
+		CubeVertex* cubeVertexBufferPtr = nullptr;
 
-		uint32_t sphereIndexCount = 0;
-		Gizmo3DVertex* sphereVertexBufferBase = nullptr;
-		Gizmo3DVertex* sphereVertexBufferPtr = nullptr;
+		glm::vec4 cubeVertexPositions[8];
 
 
+		bool used = false;
 	}s_data;
 
 	ImVec4 ST_glmVec4ToImGui(const glm::vec4& vec) {
@@ -127,7 +122,7 @@ namespace Stulu {
 			s_data.cubeVertexPositions[7] = { -.5f,  .5f, -.5f, 1.0f };
 		}
 
-		{//quads
+		{//cubes
 			s_data.cubeVertexArray = VertexArray::create();
 			s_data.cubeVertexBuffer = VertexBuffer::create(s_data.maxVertices * sizeof(CubeVertex));
 			s_data.cubeVertexBuffer->setLayout({
@@ -138,22 +133,10 @@ namespace Stulu {
 			s_data.cubeVertexArray->setIndexBuffer(indexBuffer);
 			s_data.cubeVertexBufferBase = new CubeVertex[s_data.maxVertices];
 		}
-		{//circles
-			s_data.sphereVertexArray = VertexArray::create();
-			s_data.sphereVertexBuffer = VertexBuffer::create(s_data.maxVertices * sizeof(SphereVertex));
-			s_data.sphereVertexBuffer->setLayout({
-				{ ShaderDataType::Float3, "a_pos" },
-				{ ShaderDataType::Float3, "a_localPos" },
-				{ ShaderDataType::Float4, "a_color"         },
-				});
-			s_data.sphereVertexArray->addVertexBuffer(s_data.sphereVertexBuffer);
-			s_data.sphereVertexArray->setIndexBuffer(indexBuffer);
-			s_data.sphereVertexBufferBase = new SphereVertex[s_data.maxVertices];
-		}
-		s_data.sphereShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoSphere.glsl");
 		s_data.cubeShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoCube.glsl");
 	}
 	void Gizmo::Begin() {
+		s_data.used = false;
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 		ImGuizmo::Enable(true);
@@ -190,7 +173,9 @@ namespace Stulu {
 		s_data.mYMax = s_data.mY + s_data.mHeight;
 		s_data.mDisplayRatio = width / height;
 	}
-
+	bool Gizmo::IsUsing() {
+		return s_data.used;
+	}
 
 	bool Gizmo::TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType) {
 		ST_PROFILING_FUNCTION();
@@ -200,7 +185,7 @@ namespace Stulu {
 		ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
 			(ImGuizmo::OPERATION)((int)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
 		if (ImGuizmo::IsUsing()) {
-			
+			s_data.used = true;
 			glm::vec3 position, scale;
 			glm::quat rotation;
 			if (tc.parent) {
@@ -336,7 +321,7 @@ namespace Stulu {
 		}
 
 		for (int i = 0; i < 8; i++) {
-			s_data.cubeVertexBufferPtr->pos = transform * s_data.cubeVertexPositions[i];
+			s_data.cubeVertexBufferPtr->position = transform * s_data.cubeVertexPositions[i];
 			s_data.cubeVertexBufferPtr->color = color;
 			s_data.cubeVertexBufferPtr++;
 		}
@@ -347,19 +332,7 @@ namespace Stulu {
 	}
 
 	void Gizmo::drawSphere(const glm::mat4& transform, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
-		if (s_data.sphereIndexCount >= s_data.maxIndices) {
-			flushSpheres();
-			resetSpheres();
-		}
-
-		for (size_t i = 0; i < 8; i++) {
-			s_data.sphereVertexBufferPtr->pos = transform * s_data.cubeVertexPositions[i];
-			s_data.sphereVertexBufferPtr->localPos = s_data.cubeVertexPositions[i];
-			s_data.sphereVertexBufferPtr->color = color;
-			s_data.sphereVertexBufferPtr++;
-		}
-		s_data.sphereIndexCount += 36;
+		//will do this using instancing
 	}
 	void Gizmo::drawSphere(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const glm::vec4& color) {
 		drawSphere(Math::createMat4(position, rotation, scale), color);
@@ -394,7 +367,10 @@ namespace Stulu {
 			_pos, _max, ImVec2(uv1.x, uv1.y), ImVec2(uv2.x, uv2.y),
 			ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w))
 		);
-		return ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(_pos, _max);
+
+		bool pressed = ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(_pos, _max);
+		s_data.used |= pressed;
+		return pressed;
 	}
 
 	void Gizmo::resetCubes() {
@@ -402,11 +378,8 @@ namespace Stulu {
 		s_data.cubeVertexBufferPtr = s_data.cubeVertexBufferBase;
 	}
 	void Gizmo::resetSpheres() {
-		s_data.sphereIndexCount = 0;
-		s_data.sphereVertexBufferPtr = s_data.sphereVertexBufferBase;
 	}
 	void Gizmo::flushCubes() {
-		ST_PROFILING_FUNCTION();
 		if (s_data.cubeIndexCount > 0) {
 			uint32_t dataSize = uint32_t((uint8_t*)s_data.cubeVertexBufferPtr - (uint8_t*)s_data.cubeVertexBufferBase);
 			s_data.cubeVertexBuffer->setData(s_data.cubeVertexBufferBase, dataSize);
@@ -418,15 +391,5 @@ namespace Stulu {
 		}
 	}
 	void Gizmo::flushSpheres() {
-		ST_PROFILING_FUNCTION();
-		if (s_data.sphereIndexCount > 0) {
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_data.sphereVertexBufferPtr - (uint8_t*)s_data.sphereVertexBufferBase);
-			s_data.sphereVertexBuffer->setData(s_data.sphereVertexBufferBase, dataSize);
-
-			s_data.sphereShader->bind();
-			RenderCommand::setDepthTesting(false);
-			RenderCommand::setCullMode(CullMode::Back);
-			RenderCommand::drawIndexed(s_data.sphereVertexArray, s_data.sphereIndexCount);
-		}
 	}
 }
