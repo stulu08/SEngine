@@ -1106,6 +1106,7 @@ namespace Stulu {
 		scene->onRuntimeStop();
 
 
+		SceneRenderer::ApplyPostProcessing(camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer());
 		items[asset.uuid] = camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer()->getTexture();
 		scene.reset();
 		SceneRenderer::init();
@@ -1180,9 +1181,8 @@ namespace Stulu {
 			}
 			auto& transform = camera.getComponent<TransformComponent>();
 			transform.position = glm::vec3(furthestX, furthestY, furthestZ);
+			transform.rotation = Math::lookAt(transform.position, glm::vec3(.0f));
 
-			glm::mat4 trans = glm::lookAt(transform.position, glm::vec3(.0f), transform.up);
-			Math::decomposeTransform(glm::inverse(trans), transform.position, transform.rotation, transform.scale);
 		}
 	}
 }

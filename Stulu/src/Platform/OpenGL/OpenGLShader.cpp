@@ -94,10 +94,10 @@ namespace Stulu {
 			while (std::getline(stream, line)) {
 				size_t pos = line.find(token);
 				if (pos != std::string::npos) {
-					line.replace(pos, token.length()+1, "");//remove
+					line.replace(pos, token.length() + 1, "");//remove
 					size_t firstBracket = line.find_first_of('(');
 					size_t lastBracket = line.find_first_of(')');
-					std::string values = line.substr(firstBracket+1, lastBracket - firstBracket - 1);
+					std::string values = line.substr(firstBracket + 1, lastBracket - firstBracket - 1);
 					ShaderProperity::Type pType = ShaderProperity::typeFromString(line.substr(0, firstBracket));
 
 					std::string typeName = line.substr(line.find_first_of('|') + 1);

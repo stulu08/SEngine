@@ -142,11 +142,14 @@ namespace Stulu {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count) {
+	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count, const uint32_t instanceCount) {
 		ST_PROFILING_FUNCTION();
 		vertexArray->bind();
 		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
-		glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
+		if(instanceCount < 1)
+			glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
+		else
+			glDrawElementsInstanced(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr, instanceCount);
 	}
 	void OpenGLRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) {
 		ST_PROFILING_FUNCTION();

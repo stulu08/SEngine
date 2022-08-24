@@ -38,10 +38,13 @@ struct PBRData {
 */
 void main (){
 	PBRData data;
-	vec4 a_albedo = albedo;
+	vec4 a_albedo = albedo * vertex.color;
 	
 	a_albedo *= srgbToLin(texture(albedoMap, vertex.texCoords * textureTilling).rgba);
 	data.albedo = a_albedo.rgb;
+	data.alpha = filterAlpha(a_albedo.a, transparencyMode, alphaCutOff);
+	if(data.alpha == 0.0)
+		discard;
 
 	data.emission = (emission.rgb * texture(emissionMap, vertex.texCoords * textureTilling).rgb) * emission.a;
 
@@ -53,11 +56,8 @@ void main (){
 
 	data.worldPos = vertex.worldPos;
 	data.texCoords = vertex.texCoords * textureTilling;
-	
-	data.alpha = filterAlpha(a_albedo.a, transparencyMode, alphaCutOff);
 
-	if(data.alpha == 0.0)
-		discard;
+	
 	FragColor = ST_pbr_calculation(data);
 }
 
@@ -139,6 +139,7 @@ struct vertInput
 	vec3 worldPos;
 	vec3 normal;
 	vec2 texCoords;
+	vec4 color;
 };
 layout (location = 0) in vertInput vertex;
 */

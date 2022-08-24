@@ -85,8 +85,8 @@ namespace Stulu {
 		void main()
 		{
 			vec4 color = texture2D(texSampler, v_tex);
-			if(color.a == 0.0f)
-				discard;
+			//if(color.a == 0.0f)
+			//	discard;
 			
 			a_color = enableGammaCorrection ? gammaCorrect(color, gamma, toneMappingExposure) : color;
 		}
@@ -277,11 +277,8 @@ namespace Stulu {
 			int32_t dB = cams.get<CameraComponent>(b).depth;
 			return dA < dB;
 			});
-
-		s_postProcessingData.time = Time::time;
-		s_postProcessingData.delta = Time::deltaTime;
-		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(s_postProcessingData));
-
+	
+		
 		sceneFbo->bind();
 		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
 		RenderCommand::clear();
@@ -289,29 +286,35 @@ namespace Stulu {
 		for (auto& goID : cams) {
 			CameraComponent& cam = cams.get<CameraComponent>(goID);
 			if (!cam.settings.isRenderTarget) {
-
-				cam.getFrameBuffer()->getTexture()->bind(0);
-				s_runtimeData.fbDrawData.m_quadShader->bind();
-				
-				sceneFbo->bind(); 
-				Renderer::submit(s_runtimeData.fbDrawData.m_quadVertexArray, nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0,0,cam.depth)));
-				sceneFbo->unbind();
+				ApplyPostProcessing(sceneFbo, cam.getFrameBuffer()->getTexture());
 			}
 		}
 	}
 
-	void SceneRenderer::ApplyPostProcessing(SceneCamera& sceneCam, Scene* scene) {
+	void SceneRenderer::ApplyPostProcessing(SceneCamera& sceneCam) {
+		ApplyPostProcessing(sceneCam.getCamera()->getFrameBuffer());
+	}
+
+	void SceneRenderer::ApplyPostProcessing(CameraComponent& camera) {
+		ApplyPostProcessing(camera.getFrameBuffer());
+	}
+
+	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer) {
+		ApplyPostProcessing(frameBuffer, frameBuffer->getTexture());
+	}
+
+	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source) {
 		s_postProcessingData.time = Time::time;
 		s_postProcessingData.delta = Time::deltaTime;
 		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(s_postProcessingData));
 		{
 
-			sceneCam.getCamera()->getFrameBuffer()->getTexture()->bind(0);
+			source->bind(0);
 			s_runtimeData.fbDrawData.m_quadShader->bind();
 
-			sceneCam.getDisplayBuffer()->bind();
-			Renderer::submit(s_runtimeData.fbDrawData.m_quadVertexArray, nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 1)));
-			sceneCam.getDisplayBuffer()->unbind();
+			destination->bind();
+			Renderer::submit(s_runtimeData.fbDrawData.m_quadVertexArray, nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1)));
+			destination->unbind();
 		}
 	}
 
@@ -377,16 +380,13 @@ namespace Stulu {
 		}
 		else {
 			material = Resources::getDefaultMaterial();
-		if (mesh.m_enabledStencilBufferNextFrame) {
-			s_runtimeData.stencilDrawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode });
 		}
-		else {
-			if (material->isTransparent())
-				s_runtimeData.transparentDrawList.push_back(RenderObject{
-				material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
-			else
-				s_runtimeData.drawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
-		}
+		if (material->isTransparent())
+			s_runtimeData.transparentDrawList.push_back(RenderObject{
+			material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
+		else
+			s_runtimeData.drawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
+		
 		ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh.mesh->getIndicesCount());
 		ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh.mesh->getVerticesCount());
 	}

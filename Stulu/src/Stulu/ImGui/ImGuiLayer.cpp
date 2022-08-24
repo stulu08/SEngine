@@ -7,6 +7,7 @@
 #include "examples/imgui_impl_opengl3.h"
 
 #include "ImGuizmo.h"
+#include "Gizmo.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Core/Input.h"
 
@@ -48,6 +49,8 @@ namespace Stulu {
 
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 460");
+
+		Gizmo::init();
 	}
 
 	void ImGuiLayer::onDetach()

@@ -12,7 +12,6 @@ namespace Stulu {
 
 		ST_PROFILING_FUNCTION();
 		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar);
-		m_displayBuffer = FrameBuffer::create(FrameBufferSpecs{ Stulu::Application::getWidth(),Stulu::Application::getHeight(),1,false,TextureSettings::Format::RGBA16F});
 		if (reflectionMap == nullptr)
 			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings{ (int)TextureSettings::Format::RGB16F });
 		if (reflectionFrameBuffer == nullptr)
@@ -53,7 +52,6 @@ namespace Stulu {
 		m_aspectRatio = width / height;
 		m_cam->setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
 		m_cam->getFrameBuffer()->resize((uint32_t)width, (uint32_t)height);
-		m_displayBuffer->resize((uint32_t)width, (uint32_t)height);
 	}
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
 		ST_PROFILING_FUNCTION();

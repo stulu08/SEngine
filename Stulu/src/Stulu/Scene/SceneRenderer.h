@@ -45,7 +45,10 @@ namespace Stulu {
 		//combines all the textures of the cameras, sorting by layer index
 		static void GenSceneTexture(const Ref<FrameBuffer>& sceneFbo, const Ref<Scene>& scene);
 
-		static void ApplyPostProcessing(SceneCamera& camera, Scene* scene);
+		static void ApplyPostProcessing(SceneCamera& camera);
+		static void ApplyPostProcessing(CameraComponent& camera);
+		static void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer);
+		static void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source);
 
 		//if useReflectionMap is false, a normal skybox will be used
 		static void drawScene(const Ref<CubeMap>& reflectionMap);

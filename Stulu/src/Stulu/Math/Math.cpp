@@ -7,13 +7,13 @@ namespace Stulu {
 
 	siv::PerlinNoise noise = siv::PerlinNoise(0);
 
-	const glm::vec3 Math::QuaternionToEuler(const glm::quat& q) {
+	glm::vec3 Math::QuaternionToEuler(const glm::quat& q) {
 		return glm::eulerAngles(q);
 	}
-	const glm::quat Math::EulerToQuaternion(const glm::vec3& euler) {
+	glm::quat Math::EulerToQuaternion(const glm::vec3& euler) {
 		return glm::quat(euler);
 	}
-	const float Math::clamp(float& v, float min, float max) {
+	float Math::clamp(float& v, float min, float max) {
 		if (v < min)
 			v = min;
 		else if (v > max)
@@ -42,7 +42,6 @@ namespace Stulu {
 		else
 			return (float)noise.noise2D(x / freqX, y / freqY);
 	}
-
 	float Math::perlinAccumalatedNosie(float x, float y, uint32_t octaves, float frequenzy, float sizeX, float sizeY, bool _0_1_) {
 		
 		float freqX = sizeX / frequenzy;
@@ -52,7 +51,6 @@ namespace Stulu {
 		else
 			return (float)noise.accumulatedOctaveNoise2D(x / freqX, y / freqY,octaves);
 	}
-
 	float Math::perlinNormalizedNosie(float x, float y, uint32_t octaves, float frequenzy, float sizeX, float sizeY, bool _0_1_) {
 		float freqX = sizeX / frequenzy;
 		float freqY = sizeY / frequenzy;
@@ -61,6 +59,7 @@ namespace Stulu {
 		else
 			return (float)noise.normalizedOctaveNoise2D(x / freqX, y / freqY, octaves);
 	}
+
 	bool Math::isPosOverQuad(const Quad& quad, const glm::vec2& pos) {
 		return (
 			pos.x >= quad.pos.x && pos.x <= quad.pos.x + quad.width &&
@@ -97,13 +96,17 @@ namespace Stulu {
 		return glm::translate(glm::mat4(1.0f), pos)
 			* glm::scale(glm::mat4(1.0f), scale);
 	}
-	glm::vec3 Math::screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize) {
-		double x = 2.0 * pos.x / windowSize.x - 1;
-		double y = 2.0 * pos.y / windowSize.y - 1;
-		glm::vec4 screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
+	glm::vec3 Math::screenToWorld(const glm::vec2& screenPos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize) {
+		float x = 2.0f * screenPos.x / windowSize.x - 1.0f;
+		float y = 2.0f * screenPos.y / windowSize.y - 1.0f;
+		glm::vec4 _screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
 		glm::mat4 viewProjectionInverse = inverse(viewProjectionMatrix);
-		glm::vec4 worldPos = viewProjectionInverse * screenPos;
-		return glm::vec3(worldPos);
+		glm::vec4 worldPos = viewProjectionInverse * _screenPos;
+		worldPos.w = 1.0f / worldPos.w;
+		return glm::vec3(
+			worldPos.x * worldPos.w, 
+			worldPos.y * worldPos.w, 
+			worldPos.z * worldPos.w);
 	}
 	//in degrees
 	float Math::lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
@@ -112,22 +115,11 @@ namespace Stulu {
 		float rot_z = std::atan2f(diff.y, diff.x) * M_RAD2DEG;
 		return rot_z - 90.0f;
 	}
-	glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint) {
-		glm::vec3 forwardVector = glm::normalize(destPoint - sourcePoint);
-		
-		float dot = glm::dot(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
-
-		if (std::abs(dot - (-1.0f)) < 0.000001f) {
-			return glm::quat(PI,TRANSFORM_UP_DIRECTION.x, TRANSFORM_UP_DIRECTION.y, TRANSFORM_UP_DIRECTION.z);
-		}
-		if (std::abs(dot - (1.0f)) < 0.000001f) {
-			return glm::quat(1.0f, 0.0f,0.0f,0.0f);
-		}
-
-		float rotAngle = (float)std::acos(dot);
-		glm::vec3 rotAxis = glm::cross(TRANSFORM_FOREWARD_DIRECTION, forwardVector);
-		rotAxis = glm::normalize(rotAxis);
-		return quaternionFromEulerAngle(rotAxis, rotAngle);
+	glm::quat Math::lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint, const glm::vec3& up) {
+		return glm::quatLookAt(direction(sourcePoint, destPoint), up);
+	}
+	glm::vec3 Math::direction(const glm::vec3& position, const glm::vec3& destination) {
+		return glm::normalize(position - destination);
 	}
 	glm::quat Math::quaternionFromEulerAngle(const glm::vec3& axis, float angle) {
 		float halfAngle = angle * .5f;

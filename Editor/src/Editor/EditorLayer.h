@@ -71,13 +71,15 @@ namespace Stulu {
 		void drawBuildWindow();
 		bool onShortCut(KeyDownEvent& e);
 		bool onApplicationQuit(WindowCloseEvent& e);
+		bool onGameObjectPick(MouseButtonDownEvent& e);
 		void SaveScene();
 		void OpenScene();
 		void newScene();
 		void onRuntimeStart();
 		void onRuntimeStop();
-		void buildProject(const std::string& dir = "testbuildDir");
 
+		void buildProject(const std::string& dir = "testbuildDir");
+		
 		Ref<Scene> m_activeScene = nullptr;
 		Ref<Scene> m_editorScene = nullptr, m_runtimeScene = nullptr;
 

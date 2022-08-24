@@ -13,7 +13,7 @@ namespace Stulu {
 	public:
 		virtual bool isOnFrustum(const Frustum& camFrustum, const TransformComponent& transform) const = 0;
 		virtual bool isOnOrForwardPlan(const Plane& plan) const = 0;
-
+		virtual bool isRayIntersecting(const glm::vec3& pos, const glm::vec3& normal) const = 0;
 		virtual BoundingBoxType getType() const = 0;
 	};
 	class STULU_API BoundingBoxAABB : public BoundingBox{
@@ -26,6 +26,36 @@ namespace Stulu {
 
 		virtual bool isOnFrustum(const Frustum& camFrustum, const TransformComponent& transform) const override;
 		virtual bool isOnOrForwardPlan(const Plane& plan) const override;
+		virtual bool isRayIntersecting(const glm::vec3& pos, const glm::vec3& normal) const override  {
+			//https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html
+			float t1 = (m_aabb.min.x - pos.x) / normal.x;
+			float t2 = (m_aabb.max.x - pos.x) / normal.x;
+			float t3 = (m_aabb.min.y - pos.x) / normal.y;
+			float t4 = (m_aabb.max.y - pos.x) / normal.y;
+			float t5 = (m_aabb.min.z - pos.x) / normal.z;
+			float t6 = (m_aabb.max.z - pos.x) / normal.z;
+
+			float tmin = glm::max(glm::max(glm::min(t1, t2), glm::min(t3, t4)), glm::min(t5, t6));
+			float tmax = glm::min(glm::min(glm::max(t1, t2), glm::max(t3, t4)), glm::max(t5, t6));
+
+			// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
+			if (tmax < 0) {
+				return false;
+			}
+
+			// if tmin > tmax, ray doesn't intersect AABB
+			if (tmin > tmax) {
+				return false;
+			}
+			return true;
+			/*
+			if (tmin < 0f) {
+				return tmax;
+			}
+			return tmin;
+			*/
+		}
+
 
 		virtual BoundingBoxType getType() const override { return BoundingBoxType::AABB; }
 		const glm::vec3& getCenter() const { return m_center; };

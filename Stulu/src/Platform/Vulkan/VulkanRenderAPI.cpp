@@ -19,8 +19,7 @@ namespace Stulu {
 		
 	}
 
-	void VulkanRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count){
-
+	void VulkanRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count, const uint32_t instanceCount){
 	}
 	void VulkanRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count){
 

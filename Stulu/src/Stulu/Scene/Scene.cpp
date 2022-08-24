@@ -240,7 +240,7 @@ namespace Stulu {
 
 		SceneRenderer::End();
 
-		SceneRenderer::ApplyPostProcessing(camera, this);
+		SceneRenderer::ApplyPostProcessing(camera);
 	}
 
 	void Scene::onRuntimeStart() {

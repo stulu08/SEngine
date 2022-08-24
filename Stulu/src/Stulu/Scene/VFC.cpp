@@ -80,8 +80,8 @@ namespace Stulu {
 
         // Scaled orientation
         const glm::vec3 right = transform.right * m_extents.x * transform.worldScale.x;
-        const glm::vec3 up = transform.up * m_extents.y * transform.worldScale.x;
-        const glm::vec3 forward = transform.forward * m_extents.z * transform.worldScale.x;
+        const glm::vec3 up = transform.up * m_extents.y * transform.worldScale.y;
+        const glm::vec3 forward = transform.forward * m_extents.z * transform.worldScale.z;
 
         const float newIi = std::abs(glm::dot(glm::vec3{ 1.f, 0.f, 0.f }, right)) +
             std::abs(glm::dot(glm::vec3{ 1.f, 0.f, 0.f }, up)) +

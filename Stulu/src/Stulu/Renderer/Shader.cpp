@@ -101,6 +101,7 @@ struct vertInput
 	vec3 worldPos;
 	vec3 normal;
 	vec2 texCoords;
+	vec4 color;
 };
 layout (location = 0) in vertInput vertex;
 )"},//ST_default
@@ -110,6 +111,7 @@ layout (location = 0) in vertInput vertex;
 layout (location = 0) in vec3 a_pos;
 layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_texCoords;
+layout (location = 3) in vec4 a_color;
 
 layout(std140, binding = 0) uniform matrices
 {
@@ -125,6 +127,7 @@ struct vertOutput
 	vec3 worldPos;
 	vec3 normal;
 	vec2 texCoords;
+	vec4 color;
 };
 layout (location = 0) out vertOutput _output;
 
@@ -133,6 +136,7 @@ void main()
     _output.worldPos = vec3(transform * vec4(a_pos, 1.0));
     _output.normal = transpose(inverse(mat3(transform))) * a_normal;
     _output.texCoords = a_texCoords;
+	_output.color = a_color;
     gl_Position =  viewProjection * transform * vec4(a_pos, 1.0);
 }
 )"},//ST_vertex
@@ -468,6 +472,8 @@ vec4 ST_pbr_calculation(inout PBRData data)
 		layout (location = 0) in vec3 a_pos;
 		layout (location = 1) in vec3 a_normal;
 		layout (location = 2) in vec2 a_texcoord;
+		layout (location = 3) in vec4 a_color;
+
 		out vec3 WorldPos;
 
 		uniform mat4 projection;

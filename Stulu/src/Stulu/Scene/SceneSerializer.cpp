@@ -388,7 +388,8 @@ namespace Stulu {
 						src.color = spriteRendererNode["color"].as<glm::vec4>();
 						src.tiling = spriteRendererNode["tiling"].as<glm::vec2>();
 						if (spriteRendererNode["texture"])
-							src.texture = std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
+							if(AssetsManager::exists(UUID(spriteRendererNode["texture"].as<uint64_t>())))
+								src.texture = std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
 					}
 					auto circleRendererNode = gameObject["CircleRendererComponent"];
 					if (circleRendererNode) {

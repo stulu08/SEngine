@@ -65,9 +65,9 @@ namespace Stulu {
 #define M_RAD2DEG	360.0f / (PI * 2.0f)
 	class STULU_API Math {
 	public:
-		static const glm::vec3 QuaternionToEuler(const glm::quat& q);
-		static const glm::quat EulerToQuaternion(const glm::vec3& euler);
-		static const float clamp(float& v, float min, float max);
+		static glm::vec3 QuaternionToEuler(const glm::quat& q);
+		static glm::quat EulerToQuaternion(const glm::vec3& euler);
+		static float clamp(float& v, float min, float max);
 
 		static void setPerlinSeed(uint32_t seed);
 		static float simpleNosie(const glm::vec2& pos, const PerlinSettings& settings, bool _0_1_ = true);
@@ -79,16 +79,21 @@ namespace Stulu {
 		static bool isPosOverQuad(const Quad& quad, const glm::vec2& pos);
 		static bool isQuadOverQuad(const Quad& quad, const Quad& quad2);
 
-		static bool isAABBOverPos(const AABB& cube, const glm::vec3& pos);
-		static bool isAABBoverAABB(const AABB& cube1, const AABB& cube2);
+		static bool isAABBOverPos(const AABB& aabb, const glm::vec3& pos);
+		static bool isAABBoverAABB(const AABB& aabb1, const AABB& aabb2);
 
 		static glm::mat4 createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale);
 		static glm::mat4 createMat4(const glm::vec3& pos, const glm::vec3& scale);
 
 		static glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize);
+
 		static float lookAt2D(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
-		static glm::quat lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint);
+		static glm::quat lookAt(const glm::vec3& sourcePoint, const glm::vec3& destPoint, const glm::vec3& up = TRANSFORM_UP_DIRECTION);
+
+		static glm::vec3 direction(const glm::vec3& position, const glm::vec3& destination);
+
 		static glm::quat quaternionFromEulerAngle(const glm::vec3& axis, float angle);
+
 		static bool decomposeTransformEuler(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 		static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale);
 		static bool decomposeRotationFromViewMatrix(const glm::mat4& transform, glm::quat& rotation);

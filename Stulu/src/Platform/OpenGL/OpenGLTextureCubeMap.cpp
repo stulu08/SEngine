@@ -928,6 +928,7 @@ void main() {
                 { Stulu::ShaderDataType::Float3, "a_pos" },
                 { Stulu::ShaderDataType::Float3, "a_normal" },
                 { Stulu::ShaderDataType::Float2, "a_texCoord" },
+                { Stulu::ShaderDataType::Float4, "a_color" },
                 });
             s_cubeVAO->addVertexBuffer(vertexBuffer);
             indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());

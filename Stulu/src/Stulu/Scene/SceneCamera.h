@@ -20,9 +20,12 @@ namespace Stulu {
 		const Ref<Camera>& getCamera() const { return m_cam; }
 
 
-		float getAspectRatio() { return m_aspectRatio; }
-
-		Ref<FrameBuffer>& getDisplayBuffer() { return m_displayBuffer; }
+		float getAspectRatio() const { return m_aspectRatio; }
+		float getAspectRatioX() const { return m_aspectRatio; }
+		float getAspectRatioY() const { return 1.0f; }
+		float getNear() const { return m_zNear; }
+		float getFar() const { return m_zFar; }
+		float getFov() const { return m_fov; }
 
 		const TransformComponent& getTransform() const { return m_transform; }
 		TransformComponent& getTransform() { return m_transform; }
@@ -35,7 +38,6 @@ namespace Stulu {
 		Ref<Camera> m_cam;
 		Ref<CubeMap> reflectionMap = nullptr;
 		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
-		Ref<FrameBuffer> m_displayBuffer = nullptr;
 		TransformComponent m_transform;
 
 		float m_cameraMoveSpeed = 1.0f;

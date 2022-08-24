@@ -31,9 +31,9 @@ namespace Stulu{
 		inline static void clear() {
 			s_renderAPI->clear();
 		}
-		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
+		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0, const uint32_t instanceCount = 0) {
 			ST_PROFILING_RENDERDATA_ADDDRAWCALLS(1);
-			s_renderAPI->drawIndexed(vertexArray, count);
+			s_renderAPI->drawIndexed(vertexArray, count, instanceCount);
 		}
 		inline static void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
 			ST_PROFILING_RENDERDATA_ADDDRAWCALLS(1);

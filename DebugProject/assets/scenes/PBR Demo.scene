@@ -10,6 +10,63 @@ Settings:
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
+  - GameObject: 9568876697666900036
+    GameObjectBaseComponent:
+      name: Sphere
+      tag: default
+    TransformComponent:
+      position: [1.29999995, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 9972622737535507648
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
+  - GameObject: 3510622616463047706
+    GameObjectBaseComponent:
+      name: Sphere
+      tag: default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 2868944140944619295
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
+  - GameObject: 2650778381182683346
+    GameObjectBaseComponent:
+      name: Sphere
+      tag: default
+    TransformComponent:
+      position: [-1.29999995, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 10180780483293440874
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.5
+      offset: [0, 0, 0]
   - GameObject: 5670089260245529101
     GameObjectBaseComponent:
       name: Perspective Camera
@@ -61,107 +118,12 @@ GameObjects:
         zNear: 0.00999999978
         zFar: 250
         isRenderTarget: false
-        aspectRatio: 1
-        textureWidth: 1
-        textureHeight: 1
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
       mode: 0
       depth: 1
       renderTexture: 0
-    SkyBoxComponent:
-      texture: 16848474546725552001
-      mapType: 0
-  - GameObject: 2650778381182683346
-    GameObjectBaseComponent:
-      name: Sphere
-      tag: default
-    TransformComponent:
-      position: [-1.29999995, 0, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    MeshRendererComponent:
-      material: 10180780483293440874
-      cullMode: 0
-    MeshFilterComponent:
-      mesh: 404
-    SphereColliderComponent:
-      dynamicFriction: 0.600000024
-      staticFriction: 0.600000024
-      restitution: 0
-      radius: 0.5
-      offset: [0, 0, 0]
-  - GameObject: 3510622616463047706
-    GameObjectBaseComponent:
-      name: Sphere
-      tag: default
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    MeshRendererComponent:
-      material: 2868944140944619295
-      cullMode: 0
-    MeshFilterComponent:
-      mesh: 404
-    SphereColliderComponent:
-      dynamicFriction: 0.600000024
-      staticFriction: 0.600000024
-      restitution: 0
-      radius: 0.5
-      offset: [0, 0, 0]
-  - GameObject: 9568876697666900036
-    GameObjectBaseComponent:
-      name: Sphere
-      tag: default
-    TransformComponent:
-      position: [1.29999995, 0, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    MeshRendererComponent:
-      material: 9972622737535507648
-      cullMode: 0
-    MeshFilterComponent:
-      mesh: 404
-    SphereColliderComponent:
-      dynamicFriction: 0.600000024
-      staticFriction: 0.600000024
-      restitution: 0
-      radius: 0.5
-      offset: [0, 0, 0]
-  - GameObject: 10457580873017808924
-    GameObjectBaseComponent:
-      name: SpriteRenderer
-      tag: default
-    TransformComponent:
-      position: [0, 4.3900938, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    SpriteRendererComponent:
-      color: [1, 1, 1, 1]
-      tiling: [1, 1]
-      texture: 384205837227570756
-  - GameObject: 3680151403373991770
-    GameObjectBaseComponent:
-      name: Render Cam
-      tag: ""
-    TransformComponent:
-      position: [0, 1.97374701, 3.25624156]
-      rotation: [-0.276592404, -0, 0, 0.960987329]
-      scale: [1, 0.999999762, 0.999999762]
-    CameraComponent:
-      Camera Settings:
-        clearType: 1
-        clearColor: [0, 0, 0, 1]
-        fov: 80
-        zoom: 1
-        zNear: 0.00999999978
-        zFar: 250
-        isRenderTarget: true
-        aspectRatio: 1
-        textureWidth: 1000
-        textureHeight: 1000
-      mode: 0
-      depth: 1
-      renderTexture: 384205837227570756
     SkyBoxComponent:
       texture: 16848474546725552001
       mapType: 0

@@ -25,6 +25,8 @@ namespace Stulu {
 		fprintf(file, createPopUpFileContent.c_str());
 		fclose(file);
 	};
+	static float icoSize = 70.0f;
+
 	void AssetBrowserPanel::render(bool* open) {
 		ST_PROFILING_FUNCTION();
 		std::string pathBefore = m_path.string();
@@ -42,7 +44,6 @@ namespace Stulu {
 				ImGui::SameLine();
 			}
 			ImGui::Text("%s", m_path.string().c_str());
-			static float icoSize = 70.0f;
 			float itemSize = icoSize + 22.0f;
 			float width = ImGui::GetContentRegionAvailWidth();
 			int cCount = std::max((int)(width / itemSize), 1);
@@ -349,7 +350,6 @@ namespace Stulu {
 			return Previewing::get().get(asset.uuid);
 			break;
 		case Stulu::AssetType::Model:
-			//return EditorResources::getObjectTexture();
 			return Previewing::get().get(asset.uuid);
 			break;
 		case Stulu::AssetType::Mesh:

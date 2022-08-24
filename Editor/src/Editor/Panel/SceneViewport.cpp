@@ -20,10 +20,10 @@ namespace Stulu {
 			if(getEditorScene()->getData().shaderFlags & ST_ShaderViewFlags_DisplayDepth)
 				viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getDepthAttachmentRendereID());
 			else
-				viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getDisplayBuffer()->getTexture()->getColorAttachmentRendereID());
+				viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getColorAttachmentRendereID());
+			startPos = ImGui::GetCursorPos() + ImGui::GetWindowPos();
 
 			ImGui::Image(viewPortTexture, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
-
 
 			if (ImGui::BeginDragDropTarget()) {
 				bool news = false;

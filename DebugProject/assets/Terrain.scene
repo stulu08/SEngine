@@ -1,0 +1,65 @@
+Scene: Untitled
+Settings:
+  gamma: 2.20000005
+  toneMappingExposure: 1
+  env_lod: 1
+  useReflectionMapReflections: false
+  enablePhsyics3D: true
+  physicsData.gravity: [0, -9.80000019, 0]
+  physicsData.length: 1
+  physicsData.speed: 9.81000042
+  physicsData.workerThreads: 4
+GameObjects:
+  - GameObject: 91324720934723243
+    GameObjectBaseComponent:
+      name: Directional Light
+      tag: default
+    TransformComponent:
+      position: [0, -2.53458739e-13, 3.5]
+      rotation: [1.2206263e-07, 3.18996801e-15, 2.61338631e-08, 1]
+      scale: [1, 1, 1]
+    LightComponent:
+      color: [1, 1, 1]
+      lightType: 0
+      strength: 1
+      areaRadius: 1
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15
+  - GameObject: 1511857955403913349
+    GameObjectBaseComponent:
+      name: Perspective Camera
+      tag: MainCam
+    TransformComponent:
+      position: [0, 0, 0.787358999]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    CameraComponent:
+      Camera Settings:
+        clearType: 1
+        clearColor: [0, 0, 0, 1]
+        fov: 80
+        zoom: 1
+        zNear: 0.00999999978
+        zFar: 250
+        isRenderTarget: false
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
+      mode: 0
+      depth: 1
+      renderTexture: 0
+    SkyBoxComponent:
+      texture: 1253514222315557586
+      mapType: 0
+  - GameObject: 2903616040819496040
+    GameObjectBaseComponent:
+      name: Terrain
+      tag: default
+    TransformComponent:
+      position: [-64, 0, -64]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      cullMode: 0
+    MeshFilterComponent:
+      mesh: 7485997372229685798

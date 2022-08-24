@@ -8,6 +8,7 @@ namespace Stulu {
 		SceneViewportPanel() {};
 		void draw(SceneCamera& cam, bool* open);
 
+		ImVec2 startPos;
 		uint32_t width = 1;
 		uint32_t height = 1;
 

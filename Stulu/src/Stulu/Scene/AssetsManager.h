@@ -69,11 +69,12 @@ namespace Stulu {
 		template<typename T>
 		static inline T& getAs(const UUID& uuid) {
 			ST_PROFILING_FUNCTION();
-			if (exists(uuid))
-				return std::any_cast<T&>(assets[uuid].data);
-			else
+			if (!exists(uuid)) {
 				CORE_ERROR("UUID not present in assets");
-			return T();
+
+			}
+
+			return std::any_cast<T&>(assets[uuid].data);
 		}
 		static UUID getFromPath(const std::string& path);
 		static UUID getFromPath(const std::string& path, AssetType type);
