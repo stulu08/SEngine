@@ -136,58 +136,6 @@ namespace Stulu {
 		}
 		mesh->setVertices(vertices);
 		mesh->setIndices(triangles);
-		/*
-		std::vector<Vertex> vertices(terrainSize * terrainSize * 4);
-		std::vector<uint32_t> indices(terrainSize * terrainSize * 6);
-		for (uint32_t x = 0, i = 0, v = 0; x < terrainSize; x++) {
-			for (uint32_t z = 0; z < terrainSize; z++) {
-				glm::vec2 pos;
-				Vertex vertex;
-				float y;
-
-
-				pos = glm::vec2(x - .5f, z + .5f);
-				y = getYLevel(pos);
-				vertex.pos = glm::vec3(pos.x, y, pos.y);
-				vertex.texCoords = glm::vec2(0, 1);
-				vertex.color = getColorByHeight(y);
-				vertices[v++] = vertex;
-
-				pos = glm::vec2(x + .5f, z + .5f);
-				y = getYLevel(pos);
-				vertex.pos = glm::vec3(pos.x, y, pos.y);
-				vertex.texCoords = glm::vec2(1, 1);
-				vertex.color = getColorByHeight(y);
-				vertices[v++] = vertex;
-
-				pos = glm::vec2(x - .5f, z - .5f);
-				y = getYLevel(pos);
-				vertex.pos = glm::vec3(pos.x, y, pos.y);
-				vertex.texCoords = glm::vec2(0, 0);
-				vertex.color = getColorByHeight(y);
-				vertices[v++] = vertex;
-
-				pos = glm::vec2(x + .5f, z - .5f);
-				y = getYLevel(pos);
-				vertex.pos = glm::vec3(pos.x, y, pos.y);
-				vertex.texCoords = glm::vec2(1, 0);
-				vertex.color = getColorByHeight(y);
-				vertices[v++] = vertex;
-
-				indices[i + 0] = v - 2;
-				indices[i + 1] = v - 4;
-				indices[i + 2] = v - 3;
-
-				indices[i + 3] = v - 3;
-				indices[i + 4] = v - 1;
-				indices[i + 5] = v - 2;
-
-				i += 6;
-			}
-		}
-		mesh->setVertices(vertices);
-		mesh->setIndices(indices);
-		*/
 
 
 		mesh->calculateNormals();
@@ -673,15 +621,18 @@ namespace Stulu {
 				Gizmo::Begin();
 				const glm::vec3& cameraPos = m_sceneCamera.getTransform().worldPosition;
 				const float gizmoViewDistance = 50.0f;
-
+				/*
 				for (int i = 0; i < 10; i++) {
 					for (int j = 0; j < 10; j++) {
 						for (int k = 0; k < 10; k++) {
-							Gizmo::drawSphere(Math::createMat4(glm::vec3(i, j, k), glm::vec3(.75f)), glm::vec4(glm::vec3(i, j, k) / 10.0f, 1));
+							Gizmo::drawSphere(Math::createMat4(
+								glm::vec3(i, j, k), 
+								glm::vec3(glm::abs(glm::sin(Time::applicationRuntime.getSeconds()+glm::length(glm::vec3(i,j,k)))))), 
+								glm::vec4(glm::vec3(i, j, k) / 10.0f, 1));
 						}
 					}
 				}
-
+				*/
 				//draw all cameras
 				for (entt::entity goID : m_activeScene->getAllGameObjectsWith<CameraComponent>()) {
 					GameObject go = GameObject(goID, m_activeScene.get());
@@ -707,7 +658,7 @@ namespace Stulu {
 							break;
 						case LightComponent::Directional:
 							Renderer2D::drawTexturedQuad(
-								Math::createMat4(transf.worldPosition, transf.worldRotation, glm::vec3(1.125f,.75f,.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))),
+								Math::createMat4(transf.worldPosition, transf.worldRotation, glm::vec3(1.5f,.75f,1.5f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))),
 								EditorResources::getDirectionalLightTexture(), glm::vec2(1.0f), glm::vec4(light.color, 1.0f));
 							break;
 						case LightComponent::Spot:
@@ -723,7 +674,7 @@ namespace Stulu {
 					GameObject selected = m_editorHierarchy.getCurrentObject();
 					onDrawGizmoSelected(selected);
 				}
-
+				m_activeScene->updateAssemblyScripts("onDrawGizmos()");
 				Gizmo::End();
 				
 			}
@@ -877,7 +828,7 @@ namespace Stulu {
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onShortCut));
 		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(EditorLayer::onApplicationQuit));
-		dispacther.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onGameObjectPick));
+		//dispacther.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onGameObjectPick));
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
 		ST_PROFILING_FUNCTION();

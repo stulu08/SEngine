@@ -5,7 +5,7 @@
 #include "Stulu/ScriptCore/Bindings/Types.h"
 
 namespace StuluBindings {
-	class Graphics {
+	class Graphics2D {
 	public:
 		static inline void drawLine(struct Vector3* start, struct Vector3* end, struct Vector4* color) {
 			Stulu::Renderer2D::drawLine(start->toNative_s(), end->toNative_s(), color->toNative_s());

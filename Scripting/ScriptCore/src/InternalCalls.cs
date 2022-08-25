@@ -139,5 +139,19 @@ namespace Stulu {
 		internal extern static void renderer2D_drawLineRect(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void renderer2D_drawLineCube(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
+
+		//Gizmo
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawLine(ref Vector3 begin, ref Vector3 end, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawRect(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawOutlineCube(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawCircle(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, float thickness, float fade);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawCube(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawSphere(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 	}
 }

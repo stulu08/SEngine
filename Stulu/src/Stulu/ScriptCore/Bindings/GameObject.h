@@ -1,21 +1,27 @@
 #pragma once
 #include "Stulu/Scene/GameObject.h"
 #include <Stulu/Scene/Components/Components.h>
+#define StuluGameObject_RegisterComponent(Name, Type) \
+{\
+	using namespace Stulu; \
+	::StuluBindings::GameObject::addComponentRegister[Name] = [](::Stulu::GameObject go) { go.addComponent<Type>(); }; \
+	::StuluBindings::GameObject::hasComponentRegister[Name] = [](::Stulu::GameObject go) -> bool { return go.hasComponent<Type>(); }; \
+	::StuluBindings::GameObject::removeComponentRegister[Name] = [](::Stulu::GameObject go) -> bool { return go.removeComponent<Type>(); }; \
+}
 
 namespace StuluBindings {
 	class GameObject {
 	public:
+		static inline std::unordered_map<std::string, std::function<void(::Stulu::GameObject)>> addComponentRegister;
+		static inline std::unordered_map<std::string, std::function<bool(::Stulu::GameObject)>> hasComponentRegister;
+		static inline std::unordered_map<std::string, std::function<bool(::Stulu::GameObject)>> removeComponentRegister;
+	
 		static inline void addComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
-				if (typeName == "Stulu.TransformComponent") {
-					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
-					gobj.addComponent<Stulu::TransformComponent>();
-				}
-				else if (typeName == "Stulu.RigidbodyComponent") {
-					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
-					gobj.addComponent<Stulu::RigidbodyComponent>();
+				if (addComponentRegister.find(typeName) != addComponentRegister.end()) {
+					return addComponentRegister[typeName](Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()));
 				}
 			}
 		}
@@ -23,13 +29,8 @@ namespace StuluBindings {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
-				if (typeName == "Stulu.TransformComponent") {
-					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
-					return gobj.hasComponent<Stulu::TransformComponent>();
-				}
-				else if (typeName == "Stulu.RigidbodyComponent") {
-					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
-					return gobj.hasComponent<Stulu::RigidbodyComponent>();
+				if (hasComponentRegister.find(typeName) != hasComponentRegister.end()) {
+					return hasComponentRegister[typeName](Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()));
 				}
 			}
 			return false;
@@ -38,15 +39,9 @@ namespace StuluBindings {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
-				if (typeName == "Stulu.TransformComponent") {
-					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
-					return gobj.removeComponent<Stulu::TransformComponent>();
+				if (removeComponentRegister.find(typeName) != removeComponentRegister.end()) {
+					return removeComponentRegister[typeName](Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()));
 				}
-				else if (typeName == "Stulu.RigidbodyComponent") {
-					Stulu::GameObject gobj = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
-					return gobj.removeComponent<Stulu::RigidbodyComponent>();
-				}
-
 			}
 			return false;
 		}

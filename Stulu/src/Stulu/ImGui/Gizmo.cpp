@@ -45,7 +45,7 @@ namespace Stulu {
 		glm::vec4 cubeVertexPositions[8];
 
 		//using instancing
-		static const uint32_t maxSpheres = 100;
+		static const uint32_t maxSpheres = 180;
 		Ref<Shader> sphereShader;
 		Ref<VertexArray> sphereVertexArray;
 		SphereInstanceData* sphereDataBufferBase = nullptr;

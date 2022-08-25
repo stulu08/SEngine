@@ -65,7 +65,7 @@ namespace Stulu {
 		}
 		public bool hasComponent<T>() where T : GameObjectAttached => InternalCalls.gameObject_has_component(id, typeof(T));
 		public bool hasComponent(Type type) => InternalCalls.gameObject_has_component(id, type);
-		public bool removeComponent<T>() where T : Component {
+		public bool removeComponent<T>() where T : GameObjectAttached {
 			Type type = typeof(T);
 			bool rmoved = InternalCalls.gameObject_remove_component(id, type);
 			if (rmoved && m_componentCache.ContainsKey(type))

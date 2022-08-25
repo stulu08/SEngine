@@ -2,15 +2,6 @@
 #include "AssemblyManager.h"
 #include "Stulu/Core/Application.h"
 
-#include "Bindings/Log.h"
-#include "Bindings/Time.h"
-#include "Bindings/Input.h"
-#include "Bindings/GameObject.h"
-#include "Bindings/Transform.h"
-#include "Bindings/Rigidbody.h"
-#include "Bindings/Graphics.h"
-
-
 namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
 		mono_set_dirs(monoAssemblyPath.c_str(), monoConfigPath.c_str());
@@ -29,12 +20,32 @@ namespace Stulu {
 			mono_jit_cleanup(m_monoDomain);
 		}
 	}
+}
+
+
+
+#include "Bindings/Log.h"
+#include "Bindings/Time.h"
+#include "Bindings/Input.h"
+#include "Bindings/GameObject.h"
+#include "Bindings/Transform.h"
+#include "Bindings/Rigidbody.h"
+#include "Bindings/Graphics2D.h"
+#include "Bindings/Gizmo.h"
+
+#define add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), StuluBindings::_Binding)
+#define _add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), _Binding)
+
+namespace Stulu {
 	void AssemblyManager::loadScriptCore(const std::string& assemblyPath, const std::string& coreAssemblyPath) {
 		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_monoDomain, coreAssemblyPath);
 		m_assembly = createRef<ScriptAssembly>(m_monoDomain, assemblyPath.c_str());
 
 		MonoClass* componentClass = m_scriptCoreAssembly->createClass("Stulu", "Component");
 		m_assembly->loadAllClasses(componentClass);
+
+		StuluGameObject_RegisterComponent("Stulu.TransformComponent", TransformComponent);
+		StuluGameObject_RegisterComponent("Stulu.RigidbodyComponent", RigidbodyComponent);
 
 		mono_add_internal_call("Stulu.InternalCalls::application_exit(int)", Application::exit);
 		mono_add_internal_call("Stulu.InternalCalls::application_getWidth()", Application::getWidth);
@@ -95,16 +106,18 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.InternalCalls::rigidbody_massCenterSet(uint,Stulu.Vector3&)", StuluBindings::Rigidbody::setMassCenterPos);
 		mono_add_internal_call("Stulu.InternalCalls::rigidbody_massCenterGet(uint,Stulu.Vector3&)", StuluBindings::Rigidbody::getMassCenterPos);
 
-		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLine);
-		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawQuad);
-		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", StuluBindings::Graphics::drawCircle);
-		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawLineRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineRect);
-		mono_add_internal_call("Stulu.InternalCalls::renderer2D_drawLineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineCube);
+		add_call("renderer2D_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawLine);
+		add_call("renderer2D_drawQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawQuad);
+		add_call("renderer2D_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", Graphics2D::drawCircle);
+		add_call("renderer2D_drawLineRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawLineRect);
+		add_call("renderer2D_drawLineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawLineCube);
 
-		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLine);
-		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawQuad);
-		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", StuluBindings::Graphics::drawCircle);
-		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawLineRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineRect);
-		mono_add_internal_call("Stulu.InternalCalls::gizmos_drawLineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", StuluBindings::Graphics::drawLineCube);
+		add_call("gizmo_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawLine);
+		add_call("gizmo_drawRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawRect);
+		add_call("gizmo_drawOutlineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawOutlineCube);
+		add_call("gizmo_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", Gizmo::drawCircle);
+		add_call("gizmo_drawCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawCube);
+		add_call("gizmo_drawSphere(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawSphere);
+
 	}
 }
