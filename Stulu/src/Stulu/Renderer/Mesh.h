@@ -58,6 +58,8 @@ namespace Stulu {
 		size_t getIndicesCount() const { return m_indicesCount; }
 		const std::vector<Vertex>& getVertices() const { return m_vertices; }
 		const std::vector<uint32_t>& getIndices() const { return m_indices; }
+		std::vector<Vertex>& getVertices() { return m_vertices; }
+		std::vector<uint32_t>& getIndices() { return m_indices; }
 
 		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
 		const Ref<Stulu::VertexArray>& getVertexArray() const { return m_vertexArray; }

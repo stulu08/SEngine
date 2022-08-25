@@ -239,6 +239,7 @@ namespace Stulu {
 			}
 		}
 		if (m_showSceneViewport) {
+			Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
 			m_sceneViewport.draw(m_sceneCamera, &m_showSceneViewport);
 		}
 		Application::get().getImGuiLayer()->blockEvents(
@@ -669,11 +670,17 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (m_showSceneViewport) {
 			if (ImGui::Begin("Scene", &m_showSceneViewport)) {
-				m_sceneCamera.getCamera()->getFrameBuffer()->bind();
 				Gizmo::Begin();
 				const glm::vec3& cameraPos = m_sceneCamera.getTransform().worldPosition;
 				const float gizmoViewDistance = 50.0f;
 
+				for (int i = 0; i < 10; i++) {
+					for (int j = 0; j < 10; j++) {
+						for (int k = 0; k < 10; k++) {
+							Gizmo::drawSphere(Math::createMat4(glm::vec3(i, j, k), glm::vec3(.75f)), glm::vec4(glm::vec3(i, j, k) / 10.0f, 1));
+						}
+					}
+				}
 
 				//draw all cameras
 				for (entt::entity goID : m_activeScene->getAllGameObjectsWith<CameraComponent>()) {
@@ -718,7 +725,6 @@ namespace Stulu {
 				}
 
 				Gizmo::End();
-				m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 				
 			}
 			ImGui::End();

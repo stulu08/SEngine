@@ -170,6 +170,79 @@ namespace Stulu {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(405)).data);
 	}
 
+	Ref<VertexArray>& Resources::getFullscreenVA() {
+		static Ref<VertexArray> m_quadVertexArray;
+		if (!m_quadVertexArray) {
+			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+			m_quadVertexArray = Stulu::VertexArray::create();
+			float vertices[20]{
+				-1.0f,-1.0f,.0f, 0.0f,0.0f,
+				1.0f,-1.0f,.0f, 1.0f,0.0f,
+				1.0f,1.0f,.0f, 1.0f,1.0f,
+				-1.0f,1.0f,.0f, 0.0f,1.0f,
+			};
+			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(20 * sizeof(float)), vertices);
+			vertexBuffer->setLayout({
+		{ Stulu::ShaderDataType::Float3, "a_pos" },
+		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
+				});
+			m_quadVertexArray->addVertexBuffer(vertexBuffer);
+			uint32_t indices[6]{
+				0,1,2,
+				2,3,0
+			};
+			indexBuffer = Stulu::IndexBuffer::create((uint32_t)6, indices);
+			m_quadVertexArray->setIndexBuffer(indexBuffer);
+		}
+		return m_quadVertexArray;
+	}
+
+	Ref<Shader>& Resources::getFullscreenShader() {
+		static Ref<Shader> m_quadShader;
+
+		if (!m_quadShader) {
+			m_quadShader = Shader::create("quadFullScreen", R"(
+		#version 460
+		layout (location = 0) in vec3 a_pos;
+		layout (location = 1) in vec2 a_texCoords;
+		out vec2 v_tex;
+		layout(std140, binding = 0) uniform matrices
+		{
+			mat4 viewProjection;
+			mat4 viewMatrix;
+			mat4 projMatrix;
+			vec4 cameraPosition;
+			vec4 cameraRotation;
+			mat4 transform;
+		};
+		void main()
+		{
+			float z = transform[3].z;
+			v_tex=a_texCoords;
+			vec3 pos = a_pos;
+			pos.z = z;
+			gl_Position=vec4(pos, 1.0);
+		}
+		)", R"(
+		#version 460
+		##add ST_functions
+		in vec2 v_tex;
+		layout (binding = 0) uniform sampler2D texSampler;
+		out vec4 a_color;
+		void main()
+		{
+			vec4 color = texture2D(texSampler, v_tex);
+			if(color.a == 0.0f)
+				discard;
+			
+			a_color = color;
+		}
+		)");
+		}
+		return m_quadShader;
+	}
+
 	Ref<Material> Resources::getDefaultMaterial() {
 		if (!AssetsManager::exists(UUID(12))) {
 			AssetsManager::update(UUID(12), { AssetType::Material,createRef<Material>(AssetsManager::get(UUID(9)),

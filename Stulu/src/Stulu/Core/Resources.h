@@ -24,6 +24,9 @@ namespace Stulu {
 		static MeshAsset& getSphereMeshAsset();
 		static MeshAsset& getCapsuleMeshAsset();
 
+		static Ref<VertexArray>& getFullscreenVA();
+		static Ref<Shader>& getFullscreenShader();
+
 		static Ref<Material> getDefaultMaterial();
 		static Ref<Material> getReflectiveMaterial();
 

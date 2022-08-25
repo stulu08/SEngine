@@ -31,7 +31,9 @@ namespace Stulu{
 		static void uploadBufferData(const glm::mat4& projection, const glm::mat4& transform);
 		static void uploadBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation);
 		//to upload data for custom shaders
-		static void uploadBufferData(void* data, uint32_t size);
+		static void uploadBufferData(void* data, uint32_t size, uint32_t offset = 0);
+		//16kb
+		static uint32_t getBufferMaxSize() { return 16000u; };
 
 		inline static RenderAPI::API getRendererAPI() { return RenderAPI::getAPI(); }
 	private:

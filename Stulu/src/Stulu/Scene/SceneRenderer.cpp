@@ -28,31 +28,9 @@ namespace Stulu {
 		if (Material::s_materialBuffer == nullptr)
 			Material::s_materialBuffer = UniformBuffer::create(sizeof(uint32_t) * 4000, 4);//max = 16KB = 4B * 4000
 
-		if (!s_runtimeData.fbDrawData.m_quadVertexArray) {
-			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-			s_runtimeData.fbDrawData.m_quadVertexArray = Stulu::VertexArray::create();
-			float vertices[20]{
-				-1.0f,-1.0f,.0f, 0.0f,0.0f,
-				1.0f,-1.0f,.0f, 1.0f,0.0f,
-				1.0f,1.0f,.0f, 1.0f,1.0f,
-				-1.0f,1.0f,.0f, 0.0f,1.0f,
-			};
-			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(20 * sizeof(float)), vertices);
-			vertexBuffer->setLayout({
-		{ Stulu::ShaderDataType::Float3, "a_pos" },
-		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-				});
-			s_runtimeData.fbDrawData.m_quadVertexArray->addVertexBuffer(vertexBuffer);
-			uint32_t indices[6]{
-				0,1,2,
-				2,3,0
-			};
-			indexBuffer = Stulu::IndexBuffer::create((uint32_t)6, indices);
-			s_runtimeData.fbDrawData.m_quadVertexArray->setIndexBuffer(indexBuffer);
-		}
+		
 		if (!s_runtimeData.fbDrawData.m_quadShader) {
-			s_runtimeData.fbDrawData.m_quadShader = Shader::create("quadFullScreen", R"(
+			s_runtimeData.fbDrawData.m_quadShader = Shader::create("quadFullScreenPP", R"(
 		#version 460
 		layout (location = 0) in vec3 a_pos;
 		layout (location = 1) in vec2 a_texCoords;
@@ -313,7 +291,7 @@ namespace Stulu {
 			s_runtimeData.fbDrawData.m_quadShader->bind();
 
 			destination->bind();
-			Renderer::submit(s_runtimeData.fbDrawData.m_quadVertexArray, nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1)));
+			Renderer::submit(Resources::getFullscreenVA(), nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1)));
 			destination->unbind();
 		}
 	}

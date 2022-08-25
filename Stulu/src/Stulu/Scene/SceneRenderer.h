@@ -61,7 +61,6 @@ namespace Stulu {
 
 			struct FBDrawData{
 				Ref<Shader> m_quadShader;
-				Ref<VertexArray> m_quadVertexArray;
 			} fbDrawData;
 			std::vector<RenderObject> drawList;
 			std::vector<RenderObject> transparentDrawList;

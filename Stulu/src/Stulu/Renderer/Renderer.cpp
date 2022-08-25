@@ -12,7 +12,7 @@ namespace Stulu {
 		RenderCommand::init();
 #if OPENGL
 		Renderer2D::init();
-		m_runtimeData.matricesDataUniformBuffer = UniformBuffer::create(sizeof(Renderer::MatricesBufferData), 0);
+		m_runtimeData.matricesDataUniformBuffer = UniformBuffer::create(getBufferMaxSize(), 0);
 #endif
 	}
 
@@ -54,7 +54,7 @@ namespace Stulu {
 		m_runtimeData.matricesData.modelMatrix = glm::mat4(1.0f);
 		m_runtimeData.matricesDataUniformBuffer->setData(&m_runtimeData.matricesData, sizeof(Renderer::MatricesBufferData));
 	}
-	void Renderer::uploadBufferData(void* data, uint32_t size) {
-		m_runtimeData.matricesDataUniformBuffer->setData(data, size);
+	void Renderer::uploadBufferData(void* data, uint32_t size, uint32_t offset) {
+		m_runtimeData.matricesDataUniformBuffer->setData(data, size, offset);
 	}
 }

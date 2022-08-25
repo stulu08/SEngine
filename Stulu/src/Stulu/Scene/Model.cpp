@@ -234,6 +234,9 @@ namespace Stulu {
                 }
                 else
                     vertex.texCoords = glm::vec2(0.0f, 0.0f);
+                if (mesh->mColors[0]) {
+                    vertex.color = { mesh->mColors[i]->r, mesh->mColors[i]->g, mesh->mColors[i]->b, mesh->mColors[i]->a };
+                }
 
                 vertices.push_back(vertex);
             }

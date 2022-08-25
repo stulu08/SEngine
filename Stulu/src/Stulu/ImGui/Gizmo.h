@@ -15,6 +15,7 @@ namespace Stulu {
 		static void End();
 		static void setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView);
 		static void setRect(const float x, const float y, const float width, const float height);
+		static void ApplyToFrameBuffer(const Ref<FrameBuffer>& camera);
 
 		static bool IsUsing();
 
@@ -36,10 +37,10 @@ namespace Stulu {
 		static void drawCircleBillBoard(const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4, float thickness = 1.0f, float fade = .005f, const glm::vec3& up = { 0, 1, 0 });
 
 		static void drawCube(const glm::mat4& transformation, const glm::vec4& color = COLOR_WHITE_VEC4);
-		static void drawCube(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawCube(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const glm::vec4& color = COLOR_WHITE_VEC4);
 
 		static void drawSphere(const glm::mat4& transformation, const glm::vec4& color = COLOR_WHITE_VEC4);
-		static void drawSphere(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawSphere(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const glm::vec4& color = COLOR_WHITE_VEC4);
 
 		static void drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color = {1,1,1,1}, bool border = false, float overrideBorderSize = 0);
 		static bool drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& position, 

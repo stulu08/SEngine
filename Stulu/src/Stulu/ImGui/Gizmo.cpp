@@ -13,6 +13,10 @@ namespace Stulu {
 		glm::vec3 position;
 		glm::vec4 color;
 	};
+	struct SphereInstanceData {
+		glm::mat4 transform = glm::mat4(1.0f);
+		glm::vec4 color = glm::vec4(1.0f);
+	};
 	static struct Data {
 		glm::mat4 viewMatrix;
 		glm::mat4 projMatrix;
@@ -27,20 +31,26 @@ namespace Stulu {
 		float mDisplayRatio = 1.f;
 		ImDrawList* mDrawList;
 
+		Ref<FrameBuffer> drawBuffer;
+
 		static const uint32_t maxCubes = 1000;
 		static const uint32_t maxIndices = maxCubes * 36;
 		static const uint32_t maxVertices = maxCubes * 8;
-
 		Ref<Shader> cubeShader;
 		Ref<VertexArray> cubeVertexArray;
 		Ref<VertexBuffer> cubeVertexBuffer;
-
 		uint32_t cubeIndexCount = 0;
 		CubeVertex* cubeVertexBufferBase = nullptr;
 		CubeVertex* cubeVertexBufferPtr = nullptr;
-
 		glm::vec4 cubeVertexPositions[8];
 
+		//using instancing
+		static const uint32_t maxSpheres = 100;
+		Ref<Shader> sphereShader;
+		Ref<VertexArray> sphereVertexArray;
+		SphereInstanceData* sphereDataBufferBase = nullptr;
+		SphereInstanceData* sphereDataBufferPtr = nullptr;
+		uint32_t sphereInstanceCount = 0;
 
 		bool used = false;
 	}s_data;
@@ -58,8 +68,9 @@ namespace Stulu {
 	void Gizmo::init() {
 		ST_PROFILING_FUNCTION();
 
-		Ref<IndexBuffer> indexBuffer;
-		{//indices
+		s_data.drawBuffer = FrameBuffer::create(FrameBufferSpecs{ Application::getWidth(), Application::getHeight(),1,false,TextureSettings::Format::RGBA });
+		{//cubes
+			Ref<IndexBuffer> indexBuffer;
 			uint32_t* cubeIndices = new uint32_t[s_data.maxIndices];
 			uint32_t offset = 0;
 			for (uint32_t i = 0; i < s_data.maxIndices; i += 36) {
@@ -120,9 +131,8 @@ namespace Stulu {
 			s_data.cubeVertexPositions[5] = {  .5f, -.5f, -.5f, 1.0f };
 			s_data.cubeVertexPositions[6] = {  .5f,  .5f, -.5f, 1.0f };
 			s_data.cubeVertexPositions[7] = { -.5f,  .5f, -.5f, 1.0f };
-		}
 
-		{//cubes
+
 			s_data.cubeVertexArray = VertexArray::create();
 			s_data.cubeVertexBuffer = VertexBuffer::create(s_data.maxVertices * sizeof(CubeVertex));
 			s_data.cubeVertexBuffer->setLayout({
@@ -132,16 +142,42 @@ namespace Stulu {
 			s_data.cubeVertexArray->addVertexBuffer(s_data.cubeVertexBuffer);
 			s_data.cubeVertexArray->setIndexBuffer(indexBuffer);
 			s_data.cubeVertexBufferBase = new CubeVertex[s_data.maxVertices];
+			s_data.cubeShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoCube.glsl");
 		}
-		s_data.cubeShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoCube.glsl");
+		{//spheres
+			s_data.sphereVertexArray = VertexArray::create();
+			//copy sphere mesh
+			{
+				Ref<Mesh>& sphereMesh = Resources::getSphereMesh();
+
+				Ref<VertexBuffer> vb = VertexBuffer::create((uint32_t)(sphereMesh->getVerticesCount() * sizeof(Vertex)), &sphereMesh->getVertices()[0]);
+				vb->setLayout(Mesh::getDefaultLayout());
+				s_data.sphereVertexArray->addVertexBuffer(vb);
+
+				Ref<IndexBuffer> ib = IndexBuffer::create((uint32_t)sphereMesh->getIndicesCount(), sphereMesh->getIndices().data());
+				s_data.sphereVertexArray->setIndexBuffer(ib);
+			}
+			
+			s_data.sphereDataBufferBase = new SphereInstanceData[s_data.maxSpheres];
+			s_data.sphereShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoSphere.glsl");
+		}
 	}
 	void Gizmo::Begin() {
+		//check for resize
+		if (s_data.mWidth != s_data.drawBuffer->getTexture()->getWidth() || s_data.mHeight != s_data.drawBuffer->getTexture()->getHeight()) {
+			s_data.drawBuffer->resize((uint32_t)s_data.mWidth, (uint32_t)s_data.mHeight);
+		}
+
 		s_data.used = false;
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 		ImGuizmo::Enable(true);
 		s_data.mDrawList = ImGui::GetWindowDrawList();
 
+		RenderCommand::setDefault();
+		s_data.drawBuffer->bind();
+		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
+		RenderCommand::clear();
 		Renderer::uploadBufferData(s_data.projMatrix, s_data.viewMatrix, glm::vec3(), glm::vec3());
 
 		resetCubes();
@@ -149,12 +185,18 @@ namespace Stulu {
 		Renderer2D::begin();
 	}
 	void Gizmo::End() {
-		RenderCommand::setDefault();
-		RenderCommand::setDepthTesting(false);
-
 		flushCubes();
 		flushSpheres();
 		Renderer2D::flush();
+		s_data.drawBuffer->unbind();
+	}
+	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
+		RenderCommand::setDepthTesting(false);
+		camera->bind();
+		s_data.drawBuffer->getTexture()->bind(0);
+		Resources::getFullscreenShader()->bind();
+		Renderer::submit(Resources::getFullscreenVA(), nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1)));
+		camera->unbind();
 	}
 	void Gizmo::setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView) {
 		ST_PROFILING_FUNCTION();
@@ -314,7 +356,6 @@ namespace Stulu {
 	}
 
 	void Gizmo::drawCube(const glm::mat4& transform, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		if (s_data.cubeIndexCount >= s_data.maxIndices) {
 			flushCubes();
 			resetCubes();
@@ -327,14 +368,23 @@ namespace Stulu {
 		}
 		s_data.cubeIndexCount += 36;
 	}
-	void Gizmo::drawCube(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const glm::vec4& color) {
+	void Gizmo::drawCube(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const glm::vec4& color) {
 		drawCube(Math::createMat4(position, rotation, scale), color);
 	}
 
 	void Gizmo::drawSphere(const glm::mat4& transform, const glm::vec4& color) {
-		//will do this using instancing
+		if (s_data.sphereInstanceCount >= s_data.maxSpheres) {
+			flushSpheres();
+			resetSpheres();
+		}
+
+		s_data.sphereDataBufferPtr->transform = transform;
+		s_data.sphereDataBufferPtr->color = color;
+		s_data.sphereDataBufferPtr++;
+
+		s_data.sphereInstanceCount++;
 	}
-	void Gizmo::drawSphere(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale, const glm::vec4& color) {
+	void Gizmo::drawSphere(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const glm::vec4& color) {
 		drawSphere(Math::createMat4(position, rotation, scale), color);
 	}
 
@@ -378,6 +428,8 @@ namespace Stulu {
 		s_data.cubeVertexBufferPtr = s_data.cubeVertexBufferBase;
 	}
 	void Gizmo::resetSpheres() {
+		s_data.sphereInstanceCount = 0;
+		s_data.sphereDataBufferPtr = s_data.sphereDataBufferBase;
 	}
 	void Gizmo::flushCubes() {
 		if (s_data.cubeIndexCount > 0) {
@@ -385,11 +437,19 @@ namespace Stulu {
 			s_data.cubeVertexBuffer->setData(s_data.cubeVertexBufferBase, dataSize);
 
 			s_data.cubeShader->bind();
-			RenderCommand::setDepthTesting(false);
-			RenderCommand::setCullMode(CullMode::Back);
 			RenderCommand::drawIndexed(s_data.cubeVertexArray, s_data.cubeIndexCount);
 		}
 	}
 	void Gizmo::flushSpheres() {
+		if (s_data.sphereInstanceCount > 0) {
+			
+			uint32_t dataSize = uint32_t((uint8_t*)s_data.sphereDataBufferPtr - (uint8_t*)s_data.sphereDataBufferBase);
+			//uint32_t dataSize = s_data.sphereInstanceCount * (uint32_t)sizeof(SphereInstanceData);
+			Renderer::uploadBufferData(s_data.sphereDataBufferBase, dataSize, sizeof(Renderer::MatricesBufferData) - sizeof(glm::mat4));
+
+			s_data.sphereShader->bind();
+			RenderCommand::drawIndexed(s_data.sphereVertexArray, 0, s_data.sphereInstanceCount);
+			
+		}
 	}
 }
