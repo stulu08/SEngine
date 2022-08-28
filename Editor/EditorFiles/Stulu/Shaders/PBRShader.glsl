@@ -53,7 +53,7 @@ void main (){
 	data.roughness = max(roughness, texture(metallicMap, vertex.texCoords * textureTilling).g);
 
 	data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
-
+	//data.normal = vertex.normal;
 	data.worldPos = vertex.worldPos;
 	data.texCoords = vertex.texCoords * textureTilling;
 

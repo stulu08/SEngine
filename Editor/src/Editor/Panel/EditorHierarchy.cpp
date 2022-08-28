@@ -136,7 +136,7 @@ namespace Stulu {
 			});
 			ImGui::TreePop();
 		}
-		ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvailWidth(),1));
+		ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x,1));
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT_HIERARCHY_MOVE")) {
 				ST_ASSERT(payload->DataSize == sizeof(GameObject), "GAMEOBJECT_HIERARCHY_MOVE Drag Drop payload size wrong");

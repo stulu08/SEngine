@@ -4,9 +4,27 @@
 namespace Stulu {
 	enum class GizmoTransformEditMode {
 		None = -1,
-		Translate = 0,
-		Rotate = 1,
-		Scale = 2,
+
+		Translate_X = (1u << 0),
+		Translate_Y = (1u << 1),
+		Translate_Z = (1u << 2),
+		Rotate_X = (1u << 3),
+		Rotate_Y = (1u << 4),
+		Rotate_Z = (1u << 5),
+		Rotate_Screen = (1u << 6),//the white thing when rotating
+		Scale_X = (1u << 7),
+		Scale_Y = (1u << 8),
+		Scale_Z = (1u << 9),
+		Bounds = (1u << 10),
+		Scale_XU = (1u << 11),//universal
+		Scale_YU = (1u << 12),//universal
+		Scale_ZU = (1u << 13),//universal
+
+		Translate = Translate_X | Translate_Y | Translate_Z,
+		Rotate = Rotate_X | Rotate_Y | Rotate_Z | Rotate_Screen,
+		Scale = Scale_X | Scale_Y | Scale_Z,
+		ScaleEu = Scale_XU | Scale_YU | Scale_ZU, // universal
+		Universal = Translate | Rotate | ScaleEu
 	};
 	class Gizmo {
 	public:
@@ -19,7 +37,7 @@ namespace Stulu {
 
 		static bool IsUsing();
 
-		static bool TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate);
+		static bool TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
 		static void drawGrid(const glm::mat4& transform, float size);
 
 		static void drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color = glm::vec4(1.0f,1.0f,1.0f,1.0f));

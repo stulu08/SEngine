@@ -621,18 +621,6 @@ namespace Stulu {
 				Gizmo::Begin();
 				const glm::vec3& cameraPos = m_sceneCamera.getTransform().worldPosition;
 				const float gizmoViewDistance = 50.0f;
-				/*
-				for (int i = 0; i < 10; i++) {
-					for (int j = 0; j < 10; j++) {
-						for (int k = 0; k < 10; k++) {
-							Gizmo::drawSphere(Math::createMat4(
-								glm::vec3(i, j, k), 
-								glm::vec3(glm::abs(glm::sin(Time::applicationRuntime.getSeconds()+glm::length(glm::vec3(i,j,k)))))), 
-								glm::vec4(glm::vec3(i, j, k) / 10.0f, 1));
-						}
-					}
-				}
-				*/
 				//draw all cameras
 				for (entt::entity goID : m_activeScene->getAllGameObjectsWith<CameraComponent>()) {
 					GameObject go = GameObject(goID, m_activeScene.get());
@@ -683,11 +671,19 @@ namespace Stulu {
 	}
 	void EditorLayer::onDrawGizmoSelected(GameObject selected) {
 		auto& tc = selected.getComponent<TransformComponent>();
-		if (Gizmo::TransformEdit(tc, m_gizmoEditType)) {
-			if (getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
-				getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
+		{
+			bool snap = Input::isKeyDown(Keyboard::LeftControl);
+			float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+			// Snap to 45 degrees for rotation
+			if (m_gizmoEditType == GizmoTransformEditMode::Rotate)
+				snapValue = 45.0f;
+			if (Gizmo::TransformEdit(tc, m_gizmoEditType, glm::vec3(snapValue))) {
+				if (getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
+					getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
+				}
 			}
 		}
+		
 		if (selected.hasComponent<MeshFilterComponent>()) {
 			MeshFilterComponent meshFilter = selected.getComponent<MeshFilterComponent>();
 
@@ -852,6 +848,10 @@ namespace Stulu {
 			case Keyboard::R:
 				m_gizmoEditType = GizmoTransformEditMode::Rotate;
 				DiscordRPC::setDetails("Rotation in " + getEditorProject().name);
+				break;
+			case Keyboard::U:
+				m_gizmoEditType = GizmoTransformEditMode::Universal;
+				DiscordRPC::setDetails("Using Universal mode in " + getEditorProject().name);
 				break;
 			case Keyboard::S:
 				if (control) {

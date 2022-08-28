@@ -134,7 +134,7 @@ layout (location = 0) out vertOutput _output;
 void main()
 {
     _output.worldPos = vec3(transform * vec4(a_pos, 1.0));
-    _output.normal = transpose(inverse(mat3(transform))) * a_normal;
+    _output.normal = vec3(transform * vec4(a_normal, 0.0));
     _output.texCoords = a_texCoords;
 	_output.color = a_color;
     gl_Position =  viewProjection * transform * vec4(a_pos, 1.0);
@@ -214,7 +214,7 @@ vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map)
 {
 	vec3 textureValue = texture(map, tex).xyz;
 	if(textureValue == vec3(0))
-		return normal;
+		return normalize(normal);
     vec3 tangentNormal = textureValue * 2.0 - 1.0;
 	
     vec3 Q1  = dFdx(world);

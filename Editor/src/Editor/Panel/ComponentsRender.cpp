@@ -813,6 +813,7 @@ namespace Stulu {
 			ImGui::PopTextWrapPos();
 			ImGui::EndTooltip();
 		}
+
 	}
 
 	bool ComponentsRender::drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap) {

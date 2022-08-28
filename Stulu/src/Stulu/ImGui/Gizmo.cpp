@@ -3,8 +3,8 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "examples/imgui_impl_glfw.h"
-#include "examples/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
 #include "ImGuizmo.h"
 
@@ -33,6 +33,7 @@ namespace Stulu {
 
 		Ref<FrameBuffer> drawBuffer;
 
+		//using batching
 		static const uint32_t maxCubes = 1000;
 		static const uint32_t maxIndices = maxCubes * 36;
 		static const uint32_t maxVertices = maxCubes * 8;
@@ -45,7 +46,7 @@ namespace Stulu {
 		glm::vec4 cubeVertexPositions[8];
 
 		//using instancing
-		static const uint32_t maxSpheres = 180;
+		static const uint32_t maxSpheres = 180; //the buffer has 16kb or smth like this and 180 * sizeof(SphereInstanceData) is smth near 15kb thats why not more than 180, 187 is also find and it breaks at 200 cause yes
 		Ref<Shader> sphereShader;
 		Ref<VertexArray> sphereVertexArray;
 		SphereInstanceData* sphereDataBufferBase = nullptr;
@@ -219,13 +220,16 @@ namespace Stulu {
 		return s_data.used;
 	}
 
-	bool Gizmo::TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType) {
+	bool Gizmo::TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType, const glm::vec3& snap) {
 		ST_PROFILING_FUNCTION();
 		if (gizmoEditType == GizmoTransformEditMode::None)
 			return false;
 		glm::mat4 transform = tc.transform;
+		float* snapArray = nullptr;
+		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
+			snapArray = new float[3] { snap.x, snap.y, snap.z };
 		ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
-			(ImGuizmo::OPERATION)((int)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
+			(ImGuizmo::OPERATION)((int)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapArray);
 		if (ImGuizmo::IsUsing()) {
 			s_data.used = true;
 			glm::vec3 position, scale;

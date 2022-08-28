@@ -45,7 +45,7 @@ namespace Stulu {
 			}
 			ImGui::Text("%s", m_path.string().c_str());
 			float itemSize = icoSize + 22.0f;
-			float width = ImGui::GetContentRegionAvailWidth();
+			float width = ImGui::GetContentRegionAvail().x;
 			int cCount = std::max((int)(width / itemSize), 1);
 			ImGui::Separator();
 			ImGui::Columns(cCount, 0, false);
