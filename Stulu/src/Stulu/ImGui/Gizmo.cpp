@@ -225,9 +225,9 @@ namespace Stulu {
 		if (gizmoEditType == GizmoTransformEditMode::None)
 			return false;
 		glm::mat4 transform = tc.transform;
-		float* snapArray = nullptr;
+		float* snapArray = new float[3]{ snap.x, snap.y, snap.z };
 		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
-			snapArray = new float[3] { snap.x, snap.y, snap.z };
+			snapArray = nullptr;
 		ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
 			(ImGuizmo::OPERATION)((int)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapArray);
 		if (ImGuizmo::IsUsing()) {

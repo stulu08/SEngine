@@ -672,11 +672,12 @@ namespace Stulu {
 	void EditorLayer::onDrawGizmoSelected(GameObject selected) {
 		auto& tc = selected.getComponent<TransformComponent>();
 		{
-			bool snap = Input::isKeyDown(Keyboard::LeftControl);
-			float snapValue = 0.5f; // Snap to 0.5m for translation/scale
-			// Snap to 45 degrees for rotation
-			if (m_gizmoEditType == GizmoTransformEditMode::Rotate)
-				snapValue = 45.0f;
+			float snapValue;
+			if (Input::isKeyDown(Keyboard::LeftControl)) {
+				snapValue = 0.5f;
+				if (m_gizmoEditType == GizmoTransformEditMode::Rotate)
+					snapValue = 45.0f;
+			}
 			if (Gizmo::TransformEdit(tc, m_gizmoEditType, glm::vec3(snapValue))) {
 				if (getEditorLayer().isRuntime() && getEditorScene()->getData().enablePhsyics3D) {
 					getEditorScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
