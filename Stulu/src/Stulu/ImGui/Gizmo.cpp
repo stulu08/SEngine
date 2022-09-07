@@ -7,6 +7,11 @@
 #include "backends/imgui_impl_opengl3.h"
 
 #include "ImGuizmo.h"
+#include "ImCurveEdit.h"
+#include "ImGradient.h"
+#include "GraphEditor.h"
+#include "ImSequencer.h"
+#include "ImZoomSlider.h"
 
 namespace Stulu {
 	struct CubeVertex {

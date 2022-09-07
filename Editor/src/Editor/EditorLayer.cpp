@@ -2,10 +2,11 @@
 #include "Editor/EditorApp.h"
 #include "Editor/DiscordRPC.h"
 
-#include <ImGuizmo/ImGuizmo.h>
-
 #include "Stulu/ScriptCore/Bindings/Input.h"
+
 #include <imgui/imgui_internal.h>
+#include <imgui/imgui.h>
+
 
 namespace Stulu {
 	void copyAllFilesFromDir(const std::string& from, const std::string& to);
@@ -445,7 +446,7 @@ namespace Stulu {
 #pragma region Scene
 	void EditorLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
-		if (!ImGuizmo::IsUsing()) {
+		if (!Gizmo::IsUsing()) {
 			Input::s_enabled = m_sceneViewport.hovered || m_sceneViewport.focused;
 			m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
@@ -673,7 +674,7 @@ namespace Stulu {
 	void EditorLayer::onDrawGizmoSelected(GameObject selected) {
 		auto& tc = selected.getComponent<TransformComponent>();
 		{
-			float snapValue;
+			float snapValue = .0f;
 			if (Input::isKeyDown(Keyboard::LeftControl)) {
 				snapValue = 0.5f;
 				if (m_gizmoEditType == GizmoTransformEditMode::Rotate)
@@ -685,6 +686,7 @@ namespace Stulu {
 				}
 			}
 		}
+		
 		
 		if (selected.hasComponent<MeshFilterComponent>()) {
 			MeshFilterComponent meshFilter = selected.getComponent<MeshFilterComponent>();
