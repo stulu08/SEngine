@@ -42,6 +42,7 @@ namespace Stulu {
 			mat4 projMatrix;
 			vec4 cameraPosition;
 			vec4 cameraRotation;
+			vec4 cameraNearFar;
 			mat4 transform;
 		};
 		void main()
@@ -63,8 +64,8 @@ namespace Stulu {
 		void main()
 		{
 			vec4 color = texture2D(texSampler, v_tex);
-			//if(color.a == 0.0f)
-			//	discard;
+			if(color.a == 0.0f)
+				discard;
 			
 			a_color = enableGammaCorrection ? gammaCorrect(color, gamma, toneMappingExposure) : color;
 		}
@@ -201,7 +202,7 @@ namespace Stulu {
 			uint32_t& reflectionRenderIndex = mapIndexMap[cam.get()];
 			reflectionFrameBuffer->bind();
 			reflectionFrameBuffer->attachCubeMapFace(reflectionMap, reflectionRenderIndex);
-			Renderer::uploadBufferData(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f), calcView(reflectionRenderIndex, transform), transform.worldPosition, transform.eulerAnglesWorldDegrees);
+			Renderer::uploadBufferData(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f), calcView(reflectionRenderIndex, transform), transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 			RenderCommand::clear();
 			drawSkyBox(camSkyBoxTexture);
 			drawScene(nullptr);
@@ -215,7 +216,7 @@ namespace Stulu {
 			reflectionMap = nullptr;
 		//default render pass
 		cam->bindFrameBuffer();
-		Renderer::uploadBufferData(proj, view, transform.worldPosition, transform.eulerAnglesWorldDegrees);
+		Renderer::uploadBufferData(proj, view, transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 		if (bdrawSkyBox)
 			drawSkyBox(camSkyBoxTexture);
 		else if (camSkyBoxTexture)
@@ -339,8 +340,8 @@ namespace Stulu {
 		}
 	}
 	void SceneRenderer::drawSkyBox(const Ref<CubeMap>& skybox) {
-		ST_PROFILING_FUNCTION();
-		if (skybox) {
+		ST_PROFILING_FUNCTION();  
+		if (skybox && !(s_shaderSceneData.shaderFlags & ST_ShaderViewFlags_DisplayDepth)) {
 			auto& shader = Resources::getSkyBoxShader();
 			shader->bind();
 			skybox->bind();

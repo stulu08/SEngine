@@ -88,6 +88,7 @@ vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map);
 vec4 gammaCorrect(vec4 color, float _gamma, float exposure);
 vec3 gammaCorrect(vec3 color, float _gamma, float exposure);
 float filterAlpha(float alpha, uint mode, float cutOut = 1.0f);
+float linearizeDepth(float depth, float near, float far);
 vec3 srgbToLin(vec3 color);
 vec4 srgbToLin(vec4 color);
 
@@ -106,6 +107,7 @@ layout(std140, binding = 0) uniform matrices
 	mat4 projMatrix;
 	vec4 cameraPosition;
 	vec4 cameraRotation;
+	vec4 cameraNearFar;
 	mat4 transform;
 };
 layout(std140, binding = 1) uniform lightData

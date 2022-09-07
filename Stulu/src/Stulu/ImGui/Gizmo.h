@@ -2,8 +2,8 @@
 #include <Stulu.h>
 #include <Stulu/Scene/Components/Components.h>
 namespace Stulu {
-	enum class GizmoTransformEditMode {
-		None = -1,
+	enum GizmoTransformEditMode : uint32_t {
+		None = 0,
 
 		Translate_X = (1u << 0),
 		Translate_Y = (1u << 1),

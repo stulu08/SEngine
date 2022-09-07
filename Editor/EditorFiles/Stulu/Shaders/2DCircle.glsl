@@ -13,6 +13,7 @@ layout(std140, binding = 0) uniform matrices
 	mat4 projMatrix;
 	vec4 cameraPosition;
 	vec4 cameraRotation;
+	vec4 cameraNearFar;
 	mat4 transform;
 };
 
@@ -53,7 +54,7 @@ void main() {
     float circle = smoothstep(0.0, Input.fade, distance);
     circle *= smoothstep(Input.thickness + Input.fade, Input.thickness, distance);
 
-	if (circle == 0.0)
+	if (circle == 0.0 || Input.color == 0.0)
 		discard;
 
     // Set output color

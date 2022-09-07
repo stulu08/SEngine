@@ -10,6 +10,7 @@ layout(std140, binding = 0) uniform matrices
 	mat4 projMatrix;
 	vec4 cameraPosition;
 	vec4 cameraRotation;
+	vec4 cameraNearFar;
 	mat4 transform;
 };
 

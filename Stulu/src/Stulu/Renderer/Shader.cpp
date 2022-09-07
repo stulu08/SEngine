@@ -120,6 +120,7 @@ layout(std140, binding = 0) uniform matrices
 	mat4 projMatrix;
 	vec4 cameraPosition;
 	vec4 cameraRotation;
+	vec4 cameraNearFar;
 	mat4 transform;
 };
 struct vertOutput
@@ -258,6 +259,10 @@ float filterAlpha(float alpha, uint mode, float cutOut = 1.0f) {
 	}
 
 }
+float linearizeDepth(float depth, float near, float far) {
+	float z = depth * 2.0 - 1.0; // back to NDC 
+    return ((2.0 * near * far) / (far + near - z * (far - near)));
+}
 vec3 srgbToLin(vec3 color){
 	return pow(color, vec3(2.2));
 }
@@ -306,6 +311,7 @@ layout(std140, binding = 0) uniform matrices
 	mat4 projMatrix;
 	vec4 cameraPosition;
 	vec4 cameraRotation;
+	vec4 cameraNearFar;
 	mat4 transform;
 };
 layout(std140, binding = 1) uniform lightData
@@ -444,6 +450,8 @@ vec4 ST_pbr_calculation(inout PBRData data)
 	//filter flags
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
 		color = vec3(Lo);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
+		color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y)/cameraNearFar.y);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
 		color = vec3(diffuse);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))

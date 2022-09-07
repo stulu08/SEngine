@@ -78,7 +78,6 @@ namespace Stulu {
 		std::unordered_map<GLenum, std::string> shaderSources;
 		std::string shaderSrc = _src;
 		{//##add
-			//everyone can only be added once 
 			for (auto& p : s_preProcessorAdds) {
 				std::string token = "##add " + p.first;
 				size_t pos = shaderSrc.find(token);

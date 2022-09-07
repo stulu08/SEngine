@@ -13,6 +13,7 @@ layout(std140, binding = 0) uniform matrices
 	mat4 projMatrix;
 	vec4 cameraPosition;
 	vec4 cameraRotation;
+	vec4 cameraNearFar;
 	mat4 transform;
 };
 struct VertData{
@@ -85,5 +86,7 @@ void main() {
 		case 30: color = texture(u_textures[30], Input.texCoord * Input.textureTiling) * Input.color; break;
 		case 31: color = texture(u_textures[31], Input.texCoord * Input.textureTiling) * Input.color; break;
 	}
+	if(color.a == 0.0)
+		discard;
 	a_color = color;
 }

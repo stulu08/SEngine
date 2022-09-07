@@ -187,7 +187,8 @@ namespace Stulu {
 			}
 		}
 		if (m_showSceneViewport) {
-			Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
+			if (!(m_activeScene->getData().shaderFlags & ST_ShaderViewFlags_DisplayDepth))
+				Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
 			m_sceneViewport.draw(m_sceneCamera, &m_showSceneViewport);
 		}
 		Application::get().getImGuiLayer()->blockEvents(
@@ -878,6 +879,21 @@ namespace Stulu {
 					ST_TRACE("New Scene");
 				}
 				break;
+#define ST_GizmoTransformEditMode_ONE_AXIS_IMPL_SHORTCUT(key) \
+			case Keyboard::##key: \
+				if (m_gizmoEditType & GizmoTransformEditMode::Translate_X || m_gizmoEditType & GizmoTransformEditMode::Translate_Y || m_gizmoEditType & GizmoTransformEditMode::Translate_Z) { \
+					m_gizmoEditType = GizmoTransformEditMode::Translate_##key; \
+				}\
+				if (m_gizmoEditType & GizmoTransformEditMode::Rotate_X || m_gizmoEditType & GizmoTransformEditMode::Rotate_Y || m_gizmoEditType & GizmoTransformEditMode::Rotate_Z) { \
+					m_gizmoEditType = GizmoTransformEditMode::Rotate_##key; \
+				} \
+				if (m_gizmoEditType & GizmoTransformEditMode::Scale_X || m_gizmoEditType & GizmoTransformEditMode::Scale_Y || m_gizmoEditType & GizmoTransformEditMode::Scale_Z) { \
+					m_gizmoEditType = GizmoTransformEditMode::Scale_##key; \
+				} \
+				break;
+				ST_GizmoTransformEditMode_ONE_AXIS_IMPL_SHORTCUT(X);
+				ST_GizmoTransformEditMode_ONE_AXIS_IMPL_SHORTCUT(Y);
+				ST_GizmoTransformEditMode_ONE_AXIS_IMPL_SHORTCUT(Z);
 		}
 		return false;
 	}

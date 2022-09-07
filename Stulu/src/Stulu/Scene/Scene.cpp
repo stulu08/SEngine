@@ -127,7 +127,8 @@ namespace Stulu {
 			CameraComponent& cameraComp = go.getComponent<CameraComponent>();
 			TransformComponent& transformComp = go.getComponent<TransformComponent>();
 
-			Renderer::uploadBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform), transformComp.worldPosition, transformComp.eulerAnglesDegrees);
+			Renderer::uploadBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform), 
+				transformComp.worldPosition, transformComp.eulerAnglesDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 			
 			//clear 
 			cameraComp.getNativeCamera()->bindFrameBuffer();
@@ -185,7 +186,7 @@ namespace Stulu {
 		GameObject mc = getMainCamera();
 
 		Renderer::uploadBufferData(camera.getCamera()->getProjectionMatrix(), glm::inverse(camera.getTransform().transform),
-			camera.getTransform().worldPosition, camera.getTransform().eulerAnglesDegrees);
+			camera.getTransform().worldPosition, camera.getTransform().eulerAnglesDegrees, camera.getNear(), camera.getFar());
 		//clear 
 		camera.getCamera()->bindFrameBuffer();
 		if (mc) {

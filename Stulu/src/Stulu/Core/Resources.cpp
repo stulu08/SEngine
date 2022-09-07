@@ -214,6 +214,7 @@ namespace Stulu {
 			mat4 projMatrix;
 			vec4 cameraPosition;
 			vec4 cameraRotation;
+			vec4 cameraNearFar;
 			mat4 transform;
 		};
 		void main()
@@ -305,6 +306,7 @@ namespace Stulu {
 			mat4 projMatrix;
 			vec4 cameraPosition;
 			vec4 cameraRotation;
+			vec4 cameraNearFar;
 			mat4 transform;
 		};
 		struct vertOutput
