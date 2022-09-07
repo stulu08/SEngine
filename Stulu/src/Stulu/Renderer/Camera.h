@@ -1,7 +1,7 @@
 #pragma once
 #include "Stulu/Renderer/FrameBuffer.h"
 namespace Stulu {
-	enum CameraMode { Perspective = 0, Orthographic = 1 };
+	enum class CameraMode { Perspective = 0, Orthographic = 1 };
 	class STULU_API Camera {
 	public:
 		virtual ~Camera(){}

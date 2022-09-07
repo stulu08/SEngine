@@ -29,6 +29,8 @@ namespace Stulu {
 
 		const TransformComponent& getTransform() const { return m_transform; }
 		TransformComponent& getTransform() { return m_transform; }
+		const Frustum& getFrustum() const { return m_frustum; }
+		Frustum& getFrustum() { return m_frustum; }
 		void setTransform(const TransformComponent& transform) { m_transform = transform; }
 
 	private:
@@ -39,6 +41,7 @@ namespace Stulu {
 		Ref<CubeMap> reflectionMap = nullptr;
 		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
 		TransformComponent m_transform;
+		Frustum m_frustum;
 
 		float m_cameraMoveSpeed = 1.0f;
 		float m_cameraSensitivity = .8f;

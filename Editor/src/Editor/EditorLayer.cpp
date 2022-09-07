@@ -688,14 +688,6 @@ namespace Stulu {
 		}
 		
 		
-		if (selected.hasComponent<MeshFilterComponent>()) {
-			MeshFilterComponent meshFilter = selected.getComponent<MeshFilterComponent>();
-
-			if (meshFilter.mesh.mesh && meshFilter.mesh.mesh->getBoundingBox()) {
-				Ref<BoundingBoxAABB>& aabb = std::dynamic_pointer_cast<BoundingBoxAABB>(meshFilter.mesh.mesh->getBoundingBox());
-				Gizmo::drawOutlineCube(aabb->getMin(), aabb->getMax(), tc.transform, COLOR_PINK_VEC4);
-			}
-		}
 		//camera view frustum
 		if (selected.hasComponent<CameraComponent>()) {
 			CameraComponent camera = selected.getComponent<CameraComponent>();

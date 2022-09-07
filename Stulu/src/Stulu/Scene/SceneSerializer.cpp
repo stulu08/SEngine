@@ -375,7 +375,7 @@ namespace Stulu {
 
 
 						cc.mode = (CameraMode)cameraComponentNode["mode"].as<int>();
-						cc.depth = (CameraMode)cameraComponentNode["depth"].as<int>();
+						cc.depth = cameraComponentNode["depth"].as<int>();
 						cc.renderTexture = (UUID)cameraComponentNode["renderTexture"].as<uint64_t>();
 						cc.updateMode();
 						cc.updateProjection();

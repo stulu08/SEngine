@@ -41,7 +41,7 @@ namespace Stulu {
 
 		const char* const clerTypes[] = { "Color","Skybox" };
 		ImGui::Combo("Clear Mode", (int*)&component.settings.clearType, clerTypes, IM_ARRAYSIZE(clerTypes));
-		if (component.settings.clearType == CameraComponent::Color)
+		if (component.settings.clearType == CameraComponent::ClearType::Color)
 			ImGui::ColorEdit4("Clear Color", glm::value_ptr(component.settings.clearColor));
 
 		bool recalc = false;

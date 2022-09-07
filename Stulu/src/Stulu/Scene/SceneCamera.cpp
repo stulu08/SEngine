@@ -21,6 +21,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		m_mouseDelta = Input::getMouseDelta() * 0.003f;
 		m_mouseDelta = glm::clamp(m_mouseDelta, glm::vec2(-1.0f), glm::vec2(1.0f));
+		m_frustum = VFC::createFrustum(m_aspectRatio, m_zNear, m_zFar, m_fov, m_transform);
 	}
 	void SceneCamera::updateMove(Timestep timestep) {
 		ST_PROFILING_FUNCTION();

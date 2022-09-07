@@ -12,22 +12,23 @@ namespace Stulu {
 		CameraComponent(const CameraComponent&) = default;
 		CameraComponent(const CameraMode mode, bool reflectionMap = true);
 
-		const void onResize(uint32_t width, uint32_t height);
-		const void updateSize();
-		const void updateProjection();
-		const void updateMode();
+		void onResize(uint32_t width, uint32_t height);
+		void updateSize();
+		void updateProjection();
+		void updateMode();
 
-		const glm::mat4& getProjection() { return cam->getProjectionMatrix(); }
+		const glm::mat4& getProjection() const { return cam->getProjectionMatrix(); }
 
-		const Ref<Camera>& getNativeCamera() { return cam; }
-		const Ref<FrameBuffer>& getFrameBuffer() { return cam->getFrameBuffer(); }
-		const Ref<FrameBufferTexture>& getTexture() { return cam->getFrameBuffer()->getTexture(); }
+		const Ref<Camera>& getNativeCamera() const { return cam; }
+		const Ref<FrameBuffer>& getFrameBuffer() const { return cam->getFrameBuffer(); }
+		const Ref<FrameBufferTexture>& getTexture() const { return cam->getFrameBuffer()->getTexture(); }
+		const Frustum& getFrustum() const { return frustum; }
 
-		enum ClearType { Color = 0, Skybox = 1 };
+		enum class ClearType { Color = 0, Skybox = 1 };
 		struct Settings {
 			float fov = 80.0f, zoom = 1.0f, zNear = .01f, zFar = 250.0f;
 			bool isRenderTarget = false;
-			ClearType clearType = Color;
+			ClearType clearType = ClearType::Color;
 			//if static aspect
 			float aspectRatio = 0.0f;//readonly
 			uint32_t textureWidth = 100, textureHeight = 100;
@@ -35,6 +36,7 @@ namespace Stulu {
 			glm::vec4 clearColor = glm::vec4(glm::vec3(.0f), 1.0f);
 		} settings;
 		CameraMode mode = CameraMode::Perspective;
+		Frustum frustum;
 		int depth = 1;
 		UUID renderTexture = UUID::null;
 	private:

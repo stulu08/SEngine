@@ -144,6 +144,7 @@ namespace Stulu {
 		camComp.settings.zNear = sceneCam.m_zNear;
 		camComp.settings.fov = sceneCam.m_fov;
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
+		camComp.frustum = sceneCam.getFrustum();
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, Scene* scene) {
@@ -157,6 +158,7 @@ namespace Stulu {
 		camComp.settings.zNear = sceneCam.m_zNear;
 		camComp.settings.fov = sceneCam.m_fov;
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
+		camComp.frustum = sceneCam.getFrustum();
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
 	}
 	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp, bool bdrawSkyBox) {
@@ -171,7 +173,7 @@ namespace Stulu {
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
 		uint32_t camSkyBoxMapType = 0;
-		if ((entt::entity)cameraComp.gameObject != entt::null && cameraComp.settings.clearType == CameraComponent::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
+		if ((entt::entity)cameraComp.gameObject != entt::null && cameraComp.settings.clearType == CameraComponent::ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
 			auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
 			camSkyBoxTexture = s.texture;
 			camSkyBoxMapType = (uint32_t)s.mapType;
@@ -191,8 +193,8 @@ namespace Stulu {
 			return glm::distance(transform.worldPosition, glm::vec3(a.transform[3])) > glm::distance(transform.worldPosition, glm::vec3(b.transform[3]));//sort the vector backwards
 			});
 
-
-		VFC::setCamera(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, cameraComp.settings.zFar, cameraComp.settings.fov, transform);
+		VFC::setCamera(cameraComp.getFrustum());
+		
 
 		//reflection map pass
 		//https://www.adriancourreges.com/blog/2015/11/02/gta-v-graphics-study/
@@ -235,11 +237,11 @@ namespace Stulu {
 		RenderCommand::setDefault();
 		switch (cam.settings.clearType)
 		{
-		case CameraComponent::Color:
+		case CameraComponent::ClearType::Color:
 			RenderCommand::setClearColor(cam.settings.clearColor);
 			s_shaderSceneData.clearColor = cam.settings.clearColor;
 			break;
-		case CameraComponent::Skybox:
+		case CameraComponent::ClearType::Skybox:
 			RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, 1.0f));
 			s_shaderSceneData.clearColor = glm::vec4(.0f, .0f, .0f, 1.0f);
 			break;

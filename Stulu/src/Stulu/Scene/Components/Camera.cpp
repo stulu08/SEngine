@@ -22,25 +22,27 @@ namespace Stulu {
 		}
 
 	}
-	const void CameraComponent::onResize(uint32_t width, uint32_t height) {
+	void CameraComponent::onResize(uint32_t width, uint32_t height) {
 		ST_PROFILING_FUNCTION();
 		settings.textureWidth = width;
 		settings.textureHeight = height;
 		updateSize();
 	}
-	const void CameraComponent::updateSize() {
+	void CameraComponent::updateSize() {
 		ST_PROFILING_FUNCTION();
 		settings.aspectRatio = (float)settings.textureWidth / (float)settings.textureHeight;
 		cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);
 		updateProjection();
 	}
-	const void CameraComponent::updateProjection() {
+	void CameraComponent::updateProjection() {
 		ST_PROFILING_FUNCTION();
 		if (mode == CameraMode::Perspective) {
 			cam->setProjection(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);
+			frustum = VFC::createFrustum(settings.aspectRatio, settings.zNear, settings.zFar, settings.fov, gameObject.getComponent<TransformComponent>());
 		}
 		else if (mode == CameraMode::Orthographic) {
 			cam->setProjection(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar);
+			frustum = VFC::createFrustum(settings.aspectRatio, settings.zNear, settings.zFar, 0, gameObject.getComponent<TransformComponent>());
 		}
 		if (AssetsManager::existsAndType(renderTexture, AssetType::RenderTexture)) {
 			Asset& asset = AssetsManager::get(renderTexture);
@@ -52,10 +54,9 @@ namespace Stulu {
 				std::any_cast<Ref<Texture>>(asset.data)->uuid = renderTexture;
 			}
 		}
-
 		
 	}
-	const void CameraComponent::updateMode() {
+	void CameraComponent::updateMode() {
 		ST_PROFILING_FUNCTION();
 		if (mode == CameraMode::Orthographic) {
 			cam.reset(new OrthographicCamera(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar));

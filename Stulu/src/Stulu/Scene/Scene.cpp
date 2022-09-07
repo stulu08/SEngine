@@ -126,7 +126,14 @@ namespace Stulu {
 			GameObject go = GameObject(goID, this);
 			CameraComponent& cameraComp = go.getComponent<CameraComponent>();
 			TransformComponent& transformComp = go.getComponent<TransformComponent>();
-
+			if (cameraComp.mode == CameraMode::Perspective) {
+				cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, 
+					cameraComp.settings.zFar, cameraComp.settings.fov, transformComp);
+			}
+			else if (cameraComp.mode == CameraMode::Orthographic) {
+				cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, 
+					cameraComp.settings.zFar, 0, transformComp);
+			}
 			Renderer::uploadBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform), 
 				transformComp.worldPosition, transformComp.eulerAnglesDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 			

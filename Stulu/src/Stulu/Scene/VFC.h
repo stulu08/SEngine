@@ -73,6 +73,8 @@ namespace Stulu {
 		static Ref<BoundingBox> createBoundingBox(const Mesh* mesh);
 		static bool isInView(const Ref<BoundingBox>& boundingBox, const TransformComponent& transform);
 		static Frustum setCamera(float aspect, float zNear, float zFar, float fovY, TransformComponent& transform);
+		static inline void setCamera(const Frustum& frustum) { s_frustum = frustum; }
+		static Frustum createFrustum(float aspect, float zNear, float zFar, float fovY, TransformComponent& transform);
 
 		static void setEnabled(bool value) { s_isEnabled = value; }
 	private:

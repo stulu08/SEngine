@@ -25,7 +25,11 @@ namespace Stulu {
         
     }
     Frustum VFC::setCamera(float aspect, float zNear, float zFar, float DegfovY, TransformComponent& tc) {
-        Frustum     frustum;
+        s_frustum = createFrustum(aspect, zNear, zFar, DegfovY, tc);
+        return s_frustum;
+    }
+    Frustum VFC::createFrustum(float aspect, float zNear, float zFar, float DegfovY, TransformComponent& tc) {
+        Frustum frustum;
 
         float fovY = glm::radians(DegfovY);
 
@@ -33,13 +37,13 @@ namespace Stulu {
         const float halfHSide = halfVSide * aspect;
         const glm::vec3 frontMultFar = zFar * tc.forward;
 
-        s_frustum.nearFace = { tc.worldPosition + zNear * tc.forward, tc.forward };
-        s_frustum.farFace = { tc.worldPosition + frontMultFar, -tc.forward };
-        s_frustum.rightFace = { tc.worldPosition, glm::cross(tc.up, frontMultFar + tc.right * halfHSide) };
-        s_frustum.leftFace = { tc.worldPosition, glm::cross(frontMultFar - tc.right * halfHSide, tc.up) };
-        s_frustum.topFace = { tc.worldPosition, glm::cross(tc.right, frontMultFar - tc.up * halfVSide) };
-        s_frustum.bottomFace = { tc.worldPosition, glm::cross(frontMultFar + tc.up * halfVSide, tc.right) };
-        return s_frustum;
+        frustum.nearFace = { tc.worldPosition + zNear * tc.forward, tc.forward };
+        frustum.farFace = { tc.worldPosition + frontMultFar, -tc.forward };
+        frustum.rightFace = { tc.worldPosition, glm::cross(tc.up, frontMultFar + tc.right * halfHSide) };
+        frustum.leftFace = { tc.worldPosition, glm::cross(frontMultFar - tc.right * halfHSide, tc.up) };
+        frustum.topFace = { tc.worldPosition, glm::cross(tc.right, frontMultFar - tc.up * halfVSide) };
+        frustum.bottomFace = { tc.worldPosition, glm::cross(frontMultFar + tc.up * halfVSide, tc.right) };
+        return frustum;
     }
     BoundingBoxAABB::BoundingBoxAABB(const Mesh* mesh) {
         glm::vec3 min;
