@@ -39,9 +39,12 @@ namespace Stulu {
 			s_glfwInitilized = true;
 		}
 		if (Renderer::getRendererAPI() == RenderAPI::API::OpenGL) {
-#ifdef ST_DEBUG
+#ifndef ST_DIST
 			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		}
 		if (Renderer::getRendererAPI() == RenderAPI::API::Vulkan){
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
