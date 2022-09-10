@@ -5,10 +5,12 @@
 #include "Platform/OpenGL/OpenGLRenderAPI.h"
 
 namespace Stulu {
-#if OPENGL
+#ifdef OPENGL
 	Scope<RenderAPI> RenderCommand::s_renderAPI = createScope<OpenGLRenderAPI>();
-#elif VULKAN
-	Scope<RenderAPI> RenderCommand::s_renderAPI = createScope<VulkanRenderAPI>();
-#endif // OPENGL
+#else 
+	#ifdef VULKAN
+		Scope<RenderAPI> RenderCommand::s_renderAPI = createScope<VulkanRenderAPI>();
+	#endif
+#endif
 
 }

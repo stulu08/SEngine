@@ -169,7 +169,7 @@ namespace Stulu {
 
 		const Ref<FrameBuffer>& reflectionFrameBuffer = cameraComp.reflectionFrameBuffer;
 		Ref<CubeMap> reflectionMap = cameraComp.reflectionMap;
-		bool useReflectionMap = cameraComp.gameObject.getScene()->m_data.useReflectionMapReflections;
+		bool useReflectionMap = cameraComp.gameObject.getScene()->m_data.graphicsData.useReflectionMapReflections;
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
 		uint32_t camSkyBoxMapType = 0;
@@ -179,13 +179,15 @@ namespace Stulu {
 			camSkyBoxMapType = (uint32_t)s.mapType;
 		}
 		//upload shader scene data
-		s_shaderSceneData.gamma = cameraComp.gameObject.getScene()->m_data.gamma;
-		s_shaderSceneData.toneMappingExposure = cameraComp.gameObject.getScene()->m_data.toneMappingExposure;
-		s_shaderSceneData.env_lod = cameraComp.gameObject.getScene()->m_data.env_lod;
+		s_shaderSceneData.gamma = cameraComp.gameObject.getScene()->m_data.graphicsData.gamma;
+		s_shaderSceneData.toneMappingExposure = cameraComp.gameObject.getScene()->m_data.graphicsData.toneMappingExposure;
+		s_shaderSceneData.env_lod = cameraComp.gameObject.getScene()->m_data.graphicsData.env_lod;
 		s_shaderSceneData.enableGammaCorrection = 1;
 		s_shaderSceneData.skyboxMapType = camSkyBoxMapType;
 		s_shaderSceneData.useSkybox = camSkyBoxTexture != nullptr;
 		s_shaderSceneData.shaderFlags = cameraComp.gameObject.getScene()->m_data.shaderFlags;
+		s_runtimeData.bloomData.bloomTreshold = cameraComp.gameObject.getScene()->m_data.graphicsData.bloomTreshold;
+		s_runtimeData.bloomData.bloomIntensity = cameraComp.gameObject.getScene()->m_data.graphicsData.bloomIntensity;
 		s_runtimeData.sceneDataBuffer->setData(&s_shaderSceneData, sizeof(s_shaderSceneData));
 
 		//transparent sorting
@@ -287,6 +289,12 @@ namespace Stulu {
 	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source) {
 		s_postProcessingData.time = Time::time;
 		s_postProcessingData.delta = Time::deltaTime;
+		//bloom
+		{
+			
+		}
+
+		//gamma correction and tonemapping
 		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(s_postProcessingData));
 		{
 

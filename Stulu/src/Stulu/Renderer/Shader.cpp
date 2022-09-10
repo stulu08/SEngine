@@ -2,9 +2,26 @@
 #include "Shader.h"
 #include "Renderer.h"
 #include "Platform/OpenGL/OpenGLShader.h"
+#include "Platform/OpenGL/OpenGLComputeShader.h"
 #include "Platform/Vulkan/VulkanShader.h"
 
 namespace Stulu{
+	Ref<ComputeShader> ComputeShader::create(const std::string& name, const std::string& src) {
+		switch (Renderer::getRendererAPI())
+		{
+		case RenderAPI::API::OpenGL:
+			return std::make_shared<OpenGLComputeShader>(name, src);
+		case RenderAPI::API::none:
+			CORE_ASSERT(false, "No renderAPI specified")
+				return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported")
+				return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in ComputeShader creation")
+			return nullptr;
+	}
 	Ref<Shader> Shader::create(const std::string& path) {
 		switch (Renderer::getRendererAPI())
 		{
@@ -560,6 +577,4 @@ vec4 ST_pbr_calculation(inout PBRData data)
 			}
 		}
 	}
-
-
 }

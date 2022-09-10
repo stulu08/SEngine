@@ -83,7 +83,8 @@ namespace Stulu {
 		if (ImGui::Button("Show Preview"))
 			ImGui::OpenPopup(popupName.c_str());
 		if (ImGui::BeginPopup(popupName.c_str())) {
-			ImGui::Image(reinterpret_cast<void*>((uint64_t)component.getTexture()->getColorAttachmentRendereID()), ImVec2((float)component.settings.textureWidth, (float)component.settings.textureHeight) * 0.25f, ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::Image(component.getTexture(), glm::vec2((float)component.settings.textureWidth, (float)component.settings.textureHeight) * 0.25f, glm::vec2(0, 1), glm::vec2(1, 0));
+			//ImGui::Image(reinterpret_cast<void*>((uint64_t)component.getTexture()->getColorAttachmentRendereID()), ImVec2((float)component.settings.textureWidth, (float)component.settings.textureHeight) * 0.25f, ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::EndPopup();
 		}
 		
@@ -802,6 +803,70 @@ namespace Stulu {
 		change |= ImGui::DragFloat((header + " Intensity").c_str(), &color[3]);
 		return change;
 	}
+	Ref<Texture>& ComponentsRender::getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t resultWidth, uint32_t resultHeight) {
+		static std::unordered_map<std::string, Ref<Texture>> storage;
+		std::string ident = std::to_string((uint64_t)texture->getNativeRendererObject()) + "_" + std::to_string(mipLevel) + "_" + std::to_string(resultWidth) + "_" + std::to_string(resultHeight);
+		if (storage.find(ident) == storage.end()) {
+			FrameBufferSpecs specs;
+			specs.width = resultWidth;
+			specs.height = resultHeight;
+			specs.textureFormat = (TextureSettings::Format)texture->getSettings().format;
+			Ref<FrameBuffer> buffer = FrameBuffer::create(specs);
+
+			static Ref<Shader> m_quadShader;
+			if (!m_quadShader) {//shader
+					m_quadShader = Shader::create("ComponentsRender::getTextureMip", R"(
+		#version 460
+		layout (location = 0) in vec3 a_pos;
+		layout (location = 1) in vec2 a_texCoords;
+		out vec2 v_tex;
+		out float v_level;
+		layout(std140, binding = 0) uniform matrices
+		{
+			mat4 viewProjection;
+			mat4 viewMatrix;
+			mat4 projMatrix;
+			vec4 cameraPosition;
+			vec4 cameraRotation;
+			vec4 cameraNearFar;
+			mat4 transform;
+		};
+		void main() {
+			v_tex = a_texCoords;
+			v_level = transform[0][0];
+			gl_Position=vec4(a_pos,1.0);
+		}
+		)", 
+		R"(
+		#version 460
+		layout (binding = 0) uniform sampler2D texSampler;
+		
+		out vec4 a_color;
+
+		in vec2 v_tex;
+		in float v_level;
+
+		void main()
+		{
+			vec4 color = textureLod(texSampler, v_tex, v_level);
+			a_color = color;
+		}
+		)");
+			}
+
+			RenderCommand::setDepthTesting(false);
+			buffer->bind();
+			texture->bind(0);
+			m_quadShader->bind();
+			glm::mat4 data = glm::mat4(1.0f);
+			data[0][0] = mipLevel;
+			Renderer::submit(Resources::getFullscreenVA(), nullptr, data);
+			buffer->unbind();
+
+			storage[ident] = buffer->getTexture();
+		}
+		return storage[ident];
+	}
 	void ComponentsRender::drawHelpMarker(const char* desc) {
 		ST_PROFILING_FUNCTION();
 		ImGui::TextDisabled("(?)");
@@ -827,15 +892,18 @@ namespace Stulu {
 
 		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
-		void* texture = reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID());
+		//void* texture = reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID());
+		Ref<Texture> texture = EditorResources::getEmptySlotTexture();
 
 		if (AssetsManager::exists(uuid))
 			if (cubeMap) {
 				ImGui::Text("SkyBox");
-				texture = reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID());
+				texture = Previewing::get().get(uuid);
+				//texture = reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID());
 			}
 			else
-				texture = reinterpret_cast<void*>((uint64_t)std::any_cast<Ref<Texture>>(AssetsManager::get(uuid).data)->getRendererID());
+				texture = std::any_cast<Ref<Texture>>(AssetsManager::get(uuid).data);
+				//texture = reinterpret_cast<void*>((uint64_t)std::any_cast<Ref<Texture>>(AssetsManager::get(uuid).data)->getRendererID());
 
 
 		ImGui::Image(texture, ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
@@ -888,9 +956,11 @@ namespace Stulu {
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
 		bool exists = uuid != UUID::null && AssetsManager::existsAndType(uuid, AssetType::Material);
 		if (!exists)
-			ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(EditorResources::getEmptySlotTexture(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			//ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getEmptySlotTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		else {
-			ImGui::Image(reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			ImGui::Image(Previewing::get().get(uuid), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+			//ImGui::Image(reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 		}
 		if (canChange) {
 			if (ImGui::BeginDragDropTarget()) {
@@ -1052,7 +1122,8 @@ namespace Stulu {
 		bool change = false;
 		ImGui::Text(header.c_str());
 
-		ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getObjectTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+		//ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getObjectTexture()->getRendererID()), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
+		ImGui::Image(EditorResources::getObjectTexture(), ImVec2(30, 30), ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 1));
 
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Mesh)).c_str())) {
@@ -1101,7 +1172,7 @@ namespace Stulu {
 			return;
 		setUpScene(asset);
 		scene->getData().enablePhsyics3D = false;
-		scene->getData().useReflectionMapReflections = false;
+		scene->getData().graphicsData.useReflectionMapReflections = false;
 		scene->onRuntimeStart();
 		scene->onUpdateRuntime(Timestep(.05f));
 		scene->onRuntimeStop();

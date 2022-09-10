@@ -3,8 +3,6 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 
 #include "ImGuizmo.h"
 #include "ImCurveEdit.h"
@@ -422,7 +420,8 @@ namespace Stulu {
 		//if (bgColor.w > 0.0f)
 			//s_data.mDrawList->AddRectFilled(_pos, _max, ImGui::GetColorU32(ImVec4(bgColor.x, bgColor.y, bgColor.z, bgColor.w)));
 
-		s_data.mDrawList->AddImage(reinterpret_cast<void*>((uint64_t)texture->getRendererID()),
+		s_data.mDrawList->AddImage(ImGui::StuluTextureToImGui(texture),
+		//s_data.mDrawList->AddImage(reinterpret_cast<void*>((uint64_t)texture->getRendererID()),
 			_pos, _max, ImVec2(uv1.x, uv1.y), ImVec2(uv2.x, uv2.y),
 			ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w))
 		);

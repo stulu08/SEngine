@@ -35,6 +35,7 @@ namespace Stulu {
 		bool m_showSceneViewport = true;
 		bool m_showProfiling = true;
 		bool m_showSceneSettingsPanel = true;
+		bool m_showDebugWindow = true;
 		bool m_showLicensesWindow = false;
 		bool m_showBuildWindow = false;
 

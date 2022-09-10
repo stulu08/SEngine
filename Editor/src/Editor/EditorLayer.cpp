@@ -9,6 +9,7 @@
 
 
 namespace Stulu {
+	Ref<Texture2D> textTexture;
 	void copyAllFilesFromDir(const std::string& from, const std::string& to);
 
 	EditorLayer::EditorLayer()
@@ -150,31 +151,79 @@ namespace Stulu {
 	}
 #pragma endregion
 #pragma region GUI
+	Ref<Texture2D> debugTexture;
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		ImGui::DockSpaceOverViewport();
-
-		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
-
-		if(ImGui::Begin("Debug Window")) {
-			ImGui::Text("Terrain");
-
-			ComponentsRender::drawUIntControl("Seed", terrainSeed); ImGui::SameLine();
-			if(ImGui::Button("New")) {
-				terrainSeed = Random::getInt(0, INT32_MAX);
-			}
-			ComponentsRender::drawUIntControl("Size", terrainSize);
-			ComponentsRender::drawFloatControl("Frequency", noiseSettings.frequency);
-			ComponentsRender::drawUIntControl("Octaves", noiseSettings.octaves);
-			ComponentsRender::drawFloatControl("Max Height", noiseSettings.multiplier);
-			ComponentsRender::drawBoolControl("Use FallOff", terrainFallOff);
-
-			if (ImGui::Button("Generate"))
-				generateDebugTerrain();
-		}
-		ImGui::End();
-
 		drawMenuBar();
+
+		SceneData& data = m_activeScene->m_data;
+		if (m_showDebugWindow) {
+			if (ImGui::Begin("Debug Window", &m_showDebugWindow)) {
+				static uint32_t mip = 0;
+				if (ImGui::TreeNodeEx("Display Only:")) {
+					ComponentsRender::drawBoolBitFlagControl("Wireframe", ST_ShaderViewFlags_DisplayVertices, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Depth", ST_ShaderViewFlags_DisplayDepth, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Lighting", ST_ShaderViewFlags_DisplayLighting, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Normals", ST_ShaderViewFlags_DisplayNormal, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Tex Coords", ST_ShaderViewFlags_DisplayTexCoords, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Diffuse", ST_ShaderViewFlags_DisplayDiffuse, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Specular", ST_ShaderViewFlags_DisplaySpecular, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Roughness", ST_ShaderViewFlags_DisplayRoughness, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Ambient Occlusion", ST_ShaderViewFlags_DisplayAmbient, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Emission", ST_ShaderViewFlags_DisplayEmission, data.shaderFlags);
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNodeEx("Terrain")) {
+					ComponentsRender::drawUIntControl("Seed", terrainSeed); ImGui::SameLine();
+					if (ImGui::Button("New")) {
+						terrainSeed = Random::getInt(0, INT32_MAX);
+					}
+					ComponentsRender::drawUIntControl("Size", terrainSize);
+					ComponentsRender::drawFloatControl("Frequency", noiseSettings.frequency);
+					ComponentsRender::drawUIntControl("Octaves", noiseSettings.octaves);
+					ComponentsRender::drawFloatControl("Max Height", noiseSettings.multiplier);
+					ComponentsRender::drawBoolControl("Use FallOff", terrainFallOff);
+
+					if (ImGui::Button("Generate"))
+						generateDebugTerrain();
+					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		}
+		if (m_showSceneSettingsPanel) {
+			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
+				if (ImGui::TreeNodeEx("Graphics")) {
+					ComponentsRender::drawFloatSliderControl("Exposure", data.graphicsData.toneMappingExposure, .0f, 5.0f);
+					ComponentsRender::drawFloatSliderControl("Gamma", data.graphicsData.gamma, .0f, 5.0f);
+					if (ImGui::TreeNodeEx("Bloom")) {
+						ComponentsRender::drawBoolControl("Bloom", data.graphicsData.bloom);
+						ComponentsRender::drawFloatControl("Intensity", data.graphicsData.bloomIntensity, .001f);
+						ComponentsRender::drawFloatControl("Treshold", data.graphicsData.bloomTreshold, .1f);
+						ImGui::TreePop();
+					}
+					if (ImGui::TreeNodeEx("These still need work")) {
+						ComponentsRender::drawFloatSliderControl("Env Lod", data.graphicsData.env_lod, 0.0f, 4.0f);
+						ComponentsRender::drawBoolControl("Enviroment mapping", data.graphicsData.useReflectionMapReflections); ImGui::SameLine();
+						ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene, is still in dev and u should not use it");
+						ImGui::TreePop();
+					}
+					
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNodeEx("Physics")) {
+					ComponentsRender::drawBoolControl("3D Physics", data.enablePhsyics3D);
+					ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
+					ComponentsRender::drawFloatControl("Speed", data.physicsData.speed);
+					ComponentsRender::drawFloatControl("Length", data.physicsData.length);
+					ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads, 0, 16);
+					ImGui::TreePop();
+				}
+			}
+			ImGui::End();
+		}
+
 		if (m_showGameViewport) {
 			if (s_runtime) {
 				m_gameViewport.draw(m_sceneFrameBuffer, &m_showGameViewport);
@@ -192,11 +241,6 @@ namespace Stulu {
 				Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
 			m_sceneViewport.draw(m_sceneCamera, &m_showSceneViewport);
 		}
-		Application::get().getImGuiLayer()->blockEvents(
-		!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing()
-		);
-		StuluBindings::Input::s_enabled = m_gameViewport.focused;
-
 		if (m_showProfiling) {
 			m_profilingPanel.draw(timestep, &m_showProfiling);
 		}
@@ -220,38 +264,11 @@ namespace Stulu {
 		if (m_showBuildWindow) {
 			drawBuildWindow();
 		}
-		if (m_showSceneSettingsPanel) {
-			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
-				SceneData& data = m_activeScene->m_data;
-				ComponentsRender::drawFloatSliderControl("Exposure", data.toneMappingExposure, .0f, 5.0f);
-				ComponentsRender::drawFloatSliderControl("Gamma", data.gamma, .0f, 5.0f);
-				ComponentsRender::drawFloatSliderControl("Env Lod", data.env_lod, 0.0f, 4.0f);
-				ComponentsRender::drawBoolControl("Enviroment mapping", data.useReflectionMapReflections); ImGui::SameLine();
-				ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene, is still in dev and u should not use it");
-				if (ImGui::TreeNodeEx("Physics")) {
-					ComponentsRender::drawBoolControl("Enabled 3D Physics", data.enablePhsyics3D);
-					ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
-					ComponentsRender::drawFloatControl("Speed", data.physicsData.speed);
-					ComponentsRender::drawFloatControl("Length", data.physicsData.length);
-					ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads,0,16);
-					ImGui::TreePop();
-				}
 
-				ComponentsRender::drawBoolBitFlagControl("Wireframe", ST_ShaderViewFlags_DisplayVertices, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Depth", ST_ShaderViewFlags_DisplayDepth, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Lighting", ST_ShaderViewFlags_DisplayLighting, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Normals", ST_ShaderViewFlags_DisplayNormal, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Tex Coords", ST_ShaderViewFlags_DisplayTexCoords, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Diffuse", ST_ShaderViewFlags_DisplayDiffuse, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Specular", ST_ShaderViewFlags_DisplaySpecular, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Roughness", ST_ShaderViewFlags_DisplayRoughness, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Ambient Occlusion", ST_ShaderViewFlags_DisplayAmbient, data.shaderFlags);
-				ComponentsRender::drawBoolBitFlagControl("Emission", ST_ShaderViewFlags_DisplayEmission, data.shaderFlags);
-			}
-			ImGui::End();
-		}
-		
+		Application::get().getImGuiLayer()->blockEvents(!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing());
+		StuluBindings::Input::s_enabled = m_gameViewport.focused;
 
+		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
 	}
 	void EditorLayer::drawMenuBar() {
 		ST_PROFILING_FUNCTION();
@@ -352,7 +369,8 @@ namespace Stulu {
 		{
 			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) + (size));
 			Ref<Texture> tex = s_runtime ? EditorResources::getStopTexture() : EditorResources::getPlayTexture();
-			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
+			//if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
+			if (ImGui::ImageButton(tex, { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
 				if (s_runtime) {
 					onRuntimeStop();
 				}
@@ -367,7 +385,8 @@ namespace Stulu {
 				icoColor = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
 			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) - (size));
 			Ref<Texture> tex = EditorResources::getPauseTexture();
-			if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, ImVec4(0,0,0,0), icoColor)) {
+			//if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, ImVec4(0,0,0,0), icoColor)) {
+			if (ImGui::ImageButton(tex, { size, size }, { 0, 1 }, { 1, 0 }, 0, ImVec4(0,0,0,0), icoColor)) {
 				if (paused) {
 					Time::Scale = 1.0f;
 				}
@@ -407,7 +426,8 @@ namespace Stulu {
 				}
 				ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 				ImVec4 bgColor = { 0,0,0,0 };
-				ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getSceneTexture()->getRendererID()), ImVec2(30, 30), { 0, 1 }, { 1, 0 }, icoColor, bgColor);
+				//ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getSceneTexture()->getRendererID()), ImVec2(30, 30), { 0, 1 }, { 1, 0 }, icoColor, bgColor);
+				ImGui::Image(EditorResources::getSceneTexture(), ImVec2(30, 30), { 0, 1 }, { 1, 0 }, icoColor, bgColor);
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Scene)).c_str())) {
 						UUID id = *(UUID*)payload->Data;
@@ -490,7 +510,7 @@ namespace Stulu {
 	}
 	void EditorLayer::SaveScene() {
 		ST_PROFILING_FUNCTION();
-		std::string path = Platform::saveFile("Scene Files\0 * .scene\0", EditorApp::getProject().path.c_str());
+		std::string path = Platform::saveFile("Scene File (*.scene)\0 *.scene\0Stulu Scene File (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0", EditorApp::getProject().path.c_str());
 		if (!path.empty())
 			SaveScene(path);
 	}
@@ -500,8 +520,10 @@ namespace Stulu {
 			m_activeScene->onRuntimeStop();
 			s_runtime = false;
 		}
-
-		std::string path = Platform::openFile("Scene Files\0 * .scene\0", EditorApp::getProject().path.c_str());
+	
+		std::string path = Platform::openFile(
+			"Scene Files (*.scene)\0 *.scene\0Stulu Scene Files (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0"
+			, EditorApp::getProject().path.c_str());
 		if (!path.empty())
 			OpenScene(path);
 	}

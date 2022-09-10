@@ -230,10 +230,18 @@ namespace Stulu {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
-		out << YAML::Key << "gamma" << YAML::Value << m_scene->m_data.gamma;
-		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.toneMappingExposure;
-		out << YAML::Key << "env_lod" << YAML::Value << m_scene->m_data.env_lod;
-		out << YAML::Key << "useReflectionMapReflections" << YAML::Value << m_scene->m_data.useReflectionMapReflections;
+
+		out << YAML::Key << "gamma" << YAML::Value << m_scene->m_data.graphicsData.gamma;
+		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.graphicsData.toneMappingExposure;
+
+		out << YAML::Key << "env_lod" << YAML::Value << m_scene->m_data.graphicsData.env_lod;
+
+		out << YAML::Key << "useReflectionMapReflections" << YAML::Value << m_scene->m_data.graphicsData.useReflectionMapReflections;
+
+		out << YAML::Key << "bloom" << YAML::Value << m_scene->m_data.graphicsData.bloom;
+		out << YAML::Key << "bloomIntensity" << YAML::Value << m_scene->m_data.graphicsData.bloomIntensity;
+		out << YAML::Key << "bloomTreshold" << YAML::Value << m_scene->m_data.graphicsData.bloomTreshold;
+
 		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
 		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
 		out << YAML::Key << "physicsData.length" << YAML::Value << m_scene->m_data.physicsData.length;
@@ -263,17 +271,26 @@ namespace Stulu {
 
 			if (data["Settings"]) {
 				YAML::Node settings = data["Settings"];
-
-				if (settings["gamma"])
-					m_scene->m_data.gamma = settings["gamma"].as<float>();
-				if (settings["toneMappingExposure"])
-					m_scene->m_data.toneMappingExposure = settings["toneMappingExposure"].as<float>();
 				if (settings["shaderFlags"])
 					m_scene->m_data.shaderFlags = settings["shaderFlags"].as<uint32_t>();
+
+				if (settings["gamma"])
+					m_scene->m_data.graphicsData.gamma = settings["gamma"].as<float>();
+				if (settings["toneMappingExposure"])
+					m_scene->m_data.graphicsData.toneMappingExposure = settings["toneMappingExposure"].as<float>();
+
 				if (settings["env_lod"])
-					m_scene->m_data.env_lod = settings["env_lod"].as<float>();
+					m_scene->m_data.graphicsData.env_lod = settings["env_lod"].as<float>();
 				if (settings["useReflectionMapReflections"])
-					m_scene->m_data.useReflectionMapReflections = settings["useReflectionMapReflections"].as<bool>();
+					m_scene->m_data.graphicsData.useReflectionMapReflections = settings["useReflectionMapReflections"].as<bool>();
+
+				if (settings["bloom"])
+					m_scene->m_data.graphicsData.bloom = settings["bloom"].as<bool>();
+				if (settings["bloomIntensity"])
+					m_scene->m_data.graphicsData.bloomIntensity = settings["bloomIntensity"].as<float>();
+				if (settings["bloomTreshold"])
+					m_scene->m_data.graphicsData.bloomTreshold = settings["bloomTreshold"].as<float>();
+
 				if (settings["enablePhsyics3D"])
 					m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
 				if (settings["physicsData.gravity"])

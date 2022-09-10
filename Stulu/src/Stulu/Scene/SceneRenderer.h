@@ -64,6 +64,15 @@ namespace Stulu {
 			} fbDrawData;
 			std::vector<RenderObject> drawList;
 			std::vector<RenderObject> transparentDrawList;
+
+			struct Bloom {
+				//https://www.youtube.com/watch?v=tI70-HIc5ro
+				Ref<ComputeShader> shader;
+				std::vector<Ref<Texture>> textures;
+				float bloomIntensity = 1.0f;
+				float bloomTreshold = 1.1f;
+				const uint32_t maxMip = 8;
+			} bloomData;
 		};
 		static RuntimeData s_runtimeData;
 
@@ -90,7 +99,6 @@ namespace Stulu {
 			uint32_t skyboxMapType = 0;
 			uint32_t shaderFlags = 0;
 		};
-
 		static LightData s_lightData;
 		static PostProcessingData s_postProcessingData;
 		static ShaderSceneData s_shaderSceneData;

@@ -10,7 +10,7 @@ namespace Stulu {
 	void Renderer::init() {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::init();
-#if OPENGL
+#ifdef OPENGL
 		Renderer2D::init();
 		m_runtimeData.matricesDataUniformBuffer = UniformBuffer::create(getBufferMaxSize(), 0);
 #endif

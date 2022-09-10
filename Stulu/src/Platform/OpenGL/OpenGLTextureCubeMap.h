@@ -12,8 +12,8 @@ namespace Stulu {
 		virtual void bind(uint32_t slot) const override;
 		virtual void draw() const override;
 
-		virtual uint32_t getRendererID() const override { return m_map; }
-		virtual uint32_t getMap() const override { return m_map; }
+		virtual void* getNativeRendererObject() const override { return (void*)(&m_map); }
+		virtual void* getMap() const override { return getNativeRendererObject(); }
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }
 		virtual TextureSettings& getSettings() override { return m_settings; }
@@ -41,13 +41,13 @@ namespace Stulu {
 
 		virtual void draw() const override;
 
-		virtual uint32_t getRendererID() const override { return m_envCubemap; }
+		virtual void* getNativeRendererObject() const override { return (void*)(&m_envCubemap); }
 
-		virtual uint32_t getMap() const override { return m_envCubemap; }
-		virtual uint32_t getEnviroment() const override { return m_envCubemap; }
-		virtual uint32_t getIrradianceMap() const override { return m_irradianceMap; }
-		virtual uint32_t getPrefilterMap() const override { return m_prefilterMap; }
-		virtual uint32_t getBRDFLUT() const override { return m_brdfLUT; }
+		virtual void* getMap() const override { return (void*)(&m_envCubemap);; }
+		virtual void* getEnviroment() const override { return (void*)(&m_envCubemap);; }
+		virtual void* getIrradianceMap() const override { return (void*)(&m_irradianceMap);; }
+		virtual void* getPrefilterMap() const override { return (void*)(&m_prefilterMap);; }
+		virtual void* getBRDFLUT() const override { return (void*)(&m_brdfLUT);; }
 
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }

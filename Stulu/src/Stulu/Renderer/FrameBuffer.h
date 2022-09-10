@@ -7,6 +7,11 @@ namespace Stulu {
 		uint32_t samples = 1;
 		bool swapChainTarget = false;
 		TextureSettings::Format textureFormat = TextureSettings::Format::RGBA16F;
+		FrameBufferSpecs() = default;
+		FrameBufferSpecs(uint32_t width, uint32_t height = 1, uint32_t samples = 1, bool swapChainTarget = false, TextureSettings::Format textureFormat = TextureSettings::Format::RGBA16F)
+			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget), textureFormat(textureFormat) { }
+		FrameBufferSpecs(uint32_t width, uint32_t height = 1, uint32_t samples = 1, bool swapChainTarget = false, int textureFormat = (int)TextureSettings::Format::RGBA16F)
+			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget), textureFormat((TextureSettings::Format)textureFormat) { }
 	};
 	class STULU_API FrameBufferTexture : public Texture{
 	public:
@@ -16,8 +21,8 @@ namespace Stulu {
 		virtual void resize(uint32_t width, uint32_t height) = 0;
 		
 
-		virtual uint32_t getColorAttachmentRendereID() const = 0;
-		virtual uint32_t getDepthAttachmentRendereID() const = 0;
+		virtual void* getColorAttachmentRendereObject() const = 0;
+		virtual void* getDepthAttachmentRendereObject() const = 0;
 
 		virtual void bindDepthAttachment(uint32_t slot) const = 0;
 
@@ -30,7 +35,7 @@ namespace Stulu {
 		virtual void invalidate() = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;
 
-		virtual void attachCubeMapFace(const Ref<CubeMap> cubemap, uint32_t face) = 0;
+		virtual void attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face) = 0;
 
 		virtual FrameBufferSpecs& getSpecs() = 0;
 		virtual Ref<FrameBufferTexture>& getTexture() = 0;

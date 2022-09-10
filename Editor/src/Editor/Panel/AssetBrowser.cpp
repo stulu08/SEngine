@@ -69,7 +69,8 @@ namespace Stulu {
 					ImGui::PushID(filename.string().c_str());
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 					
-					ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)ico->getRendererID()), { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
+					//ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)ico->getRendererID()), { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
+					ImGui::ImageButton(ico, { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 				}
 				if (ImGui::BeginDragDropSource()) {
 					UUID uuid = AssetsManager::getFromPath(path.string());

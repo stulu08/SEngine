@@ -46,7 +46,13 @@ namespace Stulu {
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 		}
-		if (Renderer::getRendererAPI() == RenderAPI::API::Vulkan){
+		else if (Renderer::getRendererAPI() == RenderAPI::API::GLES) {
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+		}
+		else if (Renderer::getRendererAPI() == RenderAPI::API::Vulkan){
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		}

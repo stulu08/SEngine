@@ -63,6 +63,8 @@ namespace Stulu {
 
 		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
 		const Ref<Stulu::VertexArray>& getVertexArray() const { return m_vertexArray; }
+		const Ref<Stulu::VertexBuffer>& getVertexBuffer() const { return m_vertexArray->getVertexBuffers()[0]; }
+		const Ref<Stulu::IndexBuffer>& getIndexBuffer() const { return m_vertexArray->getIndexBuffer(); }
 		const Ref<BoundingBox>& getBoundingBox() const { return m_boundingBox; }
 
 		Vertex getFurthestVertexFromPos(const glm::vec3& pos, uint64_t scanCount = 0) const;

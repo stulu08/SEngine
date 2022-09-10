@@ -2,7 +2,6 @@
 #include "Editor/Resources.h"
 #include <imgui/imgui.h>
 namespace Stulu {
-
 	class Previewing {
 	public:
 		inline static void init() {
@@ -52,6 +51,8 @@ namespace Stulu {
 		static bool drawComboControl(const std::string& header, int& current_item, const std::vector<std::string>& items);
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 		static bool drawHDRColorEdit(const std::string& header, glm::vec4& color);
+
+		static Ref<Texture>& getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t textureWidth, uint32_t textureHeight);
 
 		static void drawHelpMarker(const char* desc);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap = false);

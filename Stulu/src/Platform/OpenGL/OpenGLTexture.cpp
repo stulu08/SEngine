@@ -10,32 +10,47 @@ namespace Stulu {
 		m_width = width;
 		m_height = height;
 		m_settings = settings;
-
+		m_hasMips = m_settings.levels > 1;
 		TextureSettings::Format form = (TextureSettings::Format)settings.format;
 		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(form);
 		m_dataFormat = format.second;
 	}
-	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height) {
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings) {
 		ST_PROFILING_FUNCTION();
 		m_width = width;
 		m_height = height;
-		m_settings = TextureSettings();
-		GLenum internalFormat = GL_RGBA8;
-		m_dataFormat = GL_RGBA;
+		m_settings = settings;
+		m_hasMips = m_settings.levels > 1;
 
+		TextureSettings::Format form = (TextureSettings::Format)settings.format;
+		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(form);
+		m_dataFormat = format.second;
+		GLenum wrap = 0;
+		switch (m_settings.wrap)
+		{
+		case (int)TextureSettings::Wrap::Clamp:
+			wrap = GL_CLAMP;
+			break;
+		case (int)TextureSettings::Wrap::Repeat:
+			wrap = GL_REPEAT;
+			break;
+		}
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-		glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
+		glTextureStorage2D(m_rendererID, m_settings.levels, format.first, m_width, m_height);
 
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, m_hasMips ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, wrap);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, wrap);
 
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		if (m_hasMips)
+			glGenerateMipmap(GL_TEXTURE_2D);
+		
 	}
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, const TextureSettings& settings)
 		:m_path(path), m_settings(settings) {
 		ST_PROFILING_FUNCTION();
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
 		update();
 	}
 	OpenGLTexture2D::~OpenGLTexture2D() {
@@ -46,40 +61,44 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		glBindTextureUnit(slot, m_rendererID);
 	}
-	void OpenGLTexture2D::setData(void* data, uint32_t size) {
+	void OpenGLTexture2D::setData(void* data, uint32_t size, uint32_t mipLevel) {
 		ST_PROFILING_FUNCTION();
+		
+		//make available for other formats
+		//uint32_t pixelSize = m_dataFormat == GL_RGBA ? 4 : 3;
+		//CORE_ASSERT(size == m_width * m_height * pixelSize, "Data is not entire Texture");
 
-		uint32_t pixelSize = m_dataFormat == GL_RGBA ? 4 : 3;
-		CORE_ASSERT(size == m_width * m_height * pixelSize, "Data is not entire Texture");
-		//GL_UNSIGNED_INT_8_8_8_8 for a hex value like 0xffff00ff
-		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_INT_8_8_8_8, data);
+		glTextureSubImage2D(m_rendererID, mipLevel, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
 	}
-	void OpenGLTexture2D::setPixel(uint32_t hexData, uint32_t posX, uint32_t posY) {
+	void OpenGLTexture2D::setPixel(uint32_t hexData, uint32_t posX, uint32_t posY, uint32_t mipLevel) {
 		//GL_UNSIGNED_INT_8_8_8_8 for a hex value like 0xffff00ff
-		glTextureSubImage2D(m_rendererID, 0, posX, posY, 1, 1, m_dataFormat, GL_UNSIGNED_INT_8_8_8_8, &hexData);
+		glTextureSubImage2D(m_rendererID, mipLevel, posX, posY, 1, 1, m_dataFormat, GL_UNSIGNED_INT_8_8_8_8, &hexData);
 	}
 	void OpenGLTexture2D::update() {
 		ST_PROFILING_FUNCTION();
-
+		if (m_rendererID)
+			glDeleteTextures(1, &m_rendererID);
+		m_hasMips = m_settings.levels > 1;
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
-		stbi_uc* textureData = nullptr;
-		float* floatData = nullptr;
+		void* textureData = nullptr;
+		bool float_ = false;
 		{
 			ST_PROFILING_SCOPE("reading file - OpenGLTexture2D::OpenGLTexture2D(const std::string&)");
 			if (isGLTextureFormatFloat((TextureSettings::Format)m_settings.format)) {
-				floatData = stbi_loadf(m_path.c_str(), &width, &height, &channels, 0);
-				CORE_ASSERT(floatData, "Texture failed to load: {0}", m_path);
+				textureData = stbi_loadf(m_path.c_str(), &width, &height, &channels, 0);
+				float_ = true;
 			}
 			else {
 				textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
-				CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
 			}
+			CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
 		}
 		m_width = width;
 		m_height = height;
 
-		std::pair<GLenum, GLenum> format = TextureFormatToGLenum((TextureSettings::Format&)m_settings.format, channels);
+		TextureSettings::Format form = (TextureSettings::Format)m_settings.format;
+		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(form, channels);
 		GLenum internalFormat = format.first;
 		m_dataFormat = format.second;
 		GLenum wrap = 0;
@@ -93,27 +112,25 @@ namespace Stulu {
 			break;
 		}
 		
-		glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
+		glBindTexture(GL_TEXTURE_2D, m_rendererID);
+		glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
 
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, m_hasMips ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, wrap);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, wrap);
 
-		if(floatData)
-			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_FLAT, floatData);
-		else
-			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, textureData);
+		if (textureData) {
+			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, float_ ? GL_FLOAT : GL_UNSIGNED_BYTE, textureData);
+			stbi_image_free(textureData);
+		}
 
-		stbi_image_free(textureData);
-	}
-
-	uint32_t OpenGLTexture2D::getRendererID() const {
-		return m_rendererID;
+		if (m_hasMips)
+			glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	bool OpenGLTexture2D::operator==(const Texture& other) const {
-		return m_rendererID == other.getRendererID();
+		return m_rendererID == *static_cast<uint32_t*>(other.getNativeRendererObject());
 	}
 	std::pair<uint32_t, uint32_t> TextureFormatToGLenum(TextureSettings::Format& format, int channels) {
 		GLenum internalFormat, m_dataFormat;

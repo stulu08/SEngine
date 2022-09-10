@@ -24,12 +24,12 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Texture2D creation");
 		return nullptr;
 	}
-	Ref<Texture2D> Texture2D::create(uint32_t width, uint32_t height)
+	Ref<Texture2D> Texture2D::create(uint32_t width, uint32_t height, const TextureSettings& settings)
 	{
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return std::make_shared<OpenGLTexture2D>(width, height);
+			return std::make_shared<OpenGLTexture2D>(width, height, settings);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;

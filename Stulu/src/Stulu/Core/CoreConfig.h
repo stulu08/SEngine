@@ -1,11 +1,11 @@
 #pragma once
+#define USING_GLFW 1
 //define OPENGL or Vulkan, only for debugging
 #define OPENGL 1
 
-#if OPENGL
-	#define VULKAN 0
-#else
-	#define VULKAN 1
+#if OPENGL == 0
+	#define VULKAN
+	#undef OPENGL
 #endif
 #ifdef ST_DEBUG
 	#define ST_PROFILING 0

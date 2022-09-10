@@ -2,9 +2,11 @@
 #include "RenderAPI.h"
 
 namespace Stulu{
-#if OPENGL
+#ifdef OPENGL
 	RenderAPI::API RenderAPI::s_api = RenderAPI::API::OpenGL;
-#elif VULKAN
-	RenderAPI::API RenderAPI::s_api = RenderAPI::API::Vulkan;
+#else 
+	#ifdef VULKAN
+		RenderAPI::API RenderAPI::s_api = RenderAPI::API::Vulkan;
+	#endif
 #endif
 }

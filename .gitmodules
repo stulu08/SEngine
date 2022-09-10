@@ -22,3 +22,6 @@
 [submodule "Stulu/vendor/yaml-cpp"]
 	path = Stulu/vendor/yaml-cpp
 	url = https://github.com/stulu08/yaml-cpp
+[submodule "Stulu/vendor/HLSLcc"]
+	path = Stulu/vendor/HLSLcc
+	url = https://github.com/stulu08/HLSLcc

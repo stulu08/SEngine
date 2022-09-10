@@ -48,8 +48,8 @@ namespace Stulu {
 		m_specs.height = height;
 		invalidate();
 	}
-	void OpenGLFramebuffer::attachCubeMapFace(const Ref<CubeMap> cubemap, uint32_t face) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, cubemap->getMap(), 0);
+	void OpenGLFramebuffer::attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, (int)*cubemap, 0);
 	}
 	FrameBufferSpecs& OpenGLFramebuffer::getSpecs() {
 		return m_specs;
