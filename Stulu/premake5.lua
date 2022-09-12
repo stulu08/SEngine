@@ -104,6 +104,7 @@ project "Stulu"
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/bin/" .. outputdir .. "/mono/4.8-Api\"",
 	}
 	
+	
 	filter "system:windows"
 		systemversion "latest"
 		defines

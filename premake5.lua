@@ -30,6 +30,12 @@ workspace "Stulu"
 
 	filter { "system:windows", "configurations:Dist", "toolset:not mingw" }
 		flags		{ "LinkTimeOptimization" }
+	
+	filter "action:vs*"
+		linkoptions {
+			"/ignore:4006",
+			"/ignore:4099"
+		}
 
 staticBuild = true
 staticRuntime = true

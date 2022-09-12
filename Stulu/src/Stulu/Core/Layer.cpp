@@ -4,7 +4,7 @@
 namespace Stulu {
 
 	Layer::Layer(const std::string& name /*= "Layer"*/)
-	:m_dName(name) {}
+		:m_dName(name) {}
 
 	Layer::~Layer()
 	{

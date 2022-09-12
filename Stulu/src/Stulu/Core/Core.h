@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma warning(disable : 4251) //idk it was just there and i dont remember adding it
-#pragma warning(disable : 4099) //pdb not found
 //#include "CoreConfig.h" in Log.h
 //#include "PlatformConfig.h" in Log.h
 #include "Log.h"
