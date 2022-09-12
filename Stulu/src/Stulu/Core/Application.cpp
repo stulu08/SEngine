@@ -83,6 +83,7 @@ namespace Stulu {
 	}
 
 	void Application::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
@@ -109,6 +110,7 @@ namespace Stulu {
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
 			if (!m_minimized) {
+				ST_PROFILING_RENDERDATA_BEGIN();
 				for (Layer* layer : m_layerStack) {
 					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(delta);
@@ -125,6 +127,7 @@ namespace Stulu {
 					}
 					m_imguiLayer->End();
 				}
+				ST_PROFILING_RENDERDATA_END();
 			}
 			Input::update();
 			m_window->onUpdate();
@@ -152,8 +155,8 @@ namespace Stulu {
 		exit(0);
 		return m_runnig;
 	}
-	bool Application::onWindowResize(WindowResizeEvent& e)
-	{
+	bool Application::onWindowResize(WindowResizeEvent& e) {
+		ST_PROFILING_FUNCTION();
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
 		m_minimized ? 0 : Renderer::onWindowResize(e);
 		return m_minimized;

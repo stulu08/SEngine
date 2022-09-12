@@ -11,15 +11,12 @@ namespace Stulu {
 	}
 
 	const void PerspectiveCamera::setProjection(float fov, float aspect, float z_near, float z_far) {
-		ST_PROFILING_FUNCTION();
 		m_projcetionMatrix = glm::perspective(glm::radians(fov), aspect, z_near, z_far);
 	}
 	const void PerspectiveCamera::bindFrameBuffer() const {
-		ST_PROFILING_FUNCTION();
 		m_frameBuffer->bind();
 	}
 	const void PerspectiveCamera::unbindFrameBuffer() const {
-		ST_PROFILING_FUNCTION();
 		m_frameBuffer->unbind();
 	}
 }

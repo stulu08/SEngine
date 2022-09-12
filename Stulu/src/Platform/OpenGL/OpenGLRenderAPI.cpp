@@ -73,17 +73,14 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
-		ST_PROFILING_FUNCTION();
 		glViewport(x, y, width, height);
 	}
 	void OpenGLRenderAPI::setWireFrame(bool value) {
-		ST_PROFILING_FUNCTION();
 		glPolygonMode(GL_FRONT, value ? GL_LINE : GL_FILL);
 		glPolygonMode(GL_BACK, value ? GL_LINE : GL_FILL);
 	}
 
 	void OpenGLRenderAPI::setCullMode(CullMode v) {
-		ST_PROFILING_FUNCTION();
 		switch (v)
 		{
 		case Stulu::CullMode::Back:
@@ -101,7 +98,6 @@ namespace Stulu {
 	}
 	//will make this more usefull but this is enough for now
 	void OpenGLRenderAPI::setStencil(StencilMode v) {
-		ST_PROFILING_FUNCTION();
 		switch (v)
 		{
 		case Stulu::StencilMode::DisableWriting:
@@ -134,16 +130,13 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setClearColor(const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 	void OpenGLRenderAPI::clear() {
-		ST_PROFILING_FUNCTION();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count, const uint32_t instanceCount) {
-		ST_PROFILING_FUNCTION();
 		vertexArray->bind();
 		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
 		if(instanceCount < 1)
@@ -152,8 +145,27 @@ namespace Stulu {
 			glDrawElementsInstanced(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr, instanceCount);
 	}
 	void OpenGLRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		vertexArray->bind();
 		glDrawArrays(GL_LINES, 0, count);
+	}
+
+	const glm::ivec3 OpenGLRenderAPI::getMaxComputeWorkGroupCount() const {
+		glm::ivec3 count = { 0,0,0 };
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &count.x);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &count.y);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &count.z);
+		return count;
+	}
+	const glm::ivec3 OpenGLRenderAPI::getMaxComputeWorkGroupSizes() const {
+		glm::ivec3 size = { 0,0,0 };
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &size.x);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &size.y);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &size.z);
+		return size;
+	}
+	const uint32_t OpenGLRenderAPI::getMaxComputeWorkGroupInvocationCount() const {
+		int32_t invc = 0;
+		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &invc);
+		return (uint32_t)invc;
 	}
 }

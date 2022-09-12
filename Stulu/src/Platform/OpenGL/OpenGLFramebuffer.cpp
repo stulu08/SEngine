@@ -15,12 +15,10 @@ namespace Stulu {
 		glDeleteFramebuffers(1, &m_rendererID);
 	}
 	void OpenGLFramebuffer::bind() const {
-		ST_PROFILING_FUNCTION();
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		glViewport(0, 0, m_specs.width, m_specs.height);
 	}
 	void OpenGLFramebuffer::unbind() const {
-		ST_PROFILING_FUNCTION();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	void OpenGLFramebuffer::invalidate() {
@@ -61,7 +59,7 @@ namespace Stulu {
 		m_height = height;
 		m_settings.wrap = (int)TextureSettings::Wrap::Clamp;
 		m_settings.tiling = glm::vec2(1.0f);
-		m_settings.format = (int)TextureSettings::Format::RGB16F;
+		m_settings.format = (int)TextureSettings::Format::RGBA16F;
 	}
 	OpenGLFrameBufferTexture::~OpenGLFrameBufferTexture() {
 		ST_PROFILING_FUNCTION();
@@ -104,11 +102,9 @@ namespace Stulu {
 		m_height = height;
 	}
 	void OpenGLFrameBufferTexture::bind(uint32_t slot) const {
-		ST_PROFILING_FUNCTION();
 		glBindTextureUnit(slot, m_colorAttachment);
 	}
 	void OpenGLFrameBufferTexture::bindDepthAttachment(uint32_t slot) const {
-		ST_PROFILING_FUNCTION();
 		glBindTextureUnit(slot, m_depthAttachment);
 	}
 }

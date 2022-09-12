@@ -46,6 +46,7 @@ namespace Stulu {
 				drawComponent<SphereColliderComponent>(gameObject, "Sphere Collider");
 				drawComponent<CapsuleColliderComponent>(gameObject, "Capsule Collider");
 				drawComponent<MeshColliderComponent>(gameObject, "Mesh Collider");
+				drawComponent<PostProcessingComponent>(gameObject, "Post Processing");
 
 				if (gameObject.hasComponent<NativeBehaviourComponent>())
 					drawComponent<NativeBehaviourComponent>(gameObject, gameObject.getComponent<NativeBehaviourComponent>().behaviorName);
@@ -101,26 +102,42 @@ namespace Stulu {
 					ImGui::OpenPopup("AddComponent");
 
 				if (ImGui::BeginPopup("AddComponent")) {
-					if (ImGui::MenuItem("Camera")) {
-						gameObject.saveAddComponent<CameraComponent>(CameraMode::Perspective, true);
+					if (ImGui::BeginMenu("Camera Rendering")) {
+						if (ImGui::MenuItem("Perspective Camera")) {
+							gameObject.saveAddComponent<CameraComponent>(CameraMode::Perspective, true);
+							gameObject.saveAddComponent<PostProcessingComponent>();
+						}
+						if (ImGui::MenuItem("Orthographic Camera")) {
+							gameObject.saveAddComponent<CameraComponent>(CameraMode::Orthographic, false);
+						}
+						if (ImGui::MenuItem("SkyBox")) {
+							gameObject.saveAddComponent<SkyBoxComponent>();
+						}
+						if (ImGui::MenuItem("PostProcessing")) {
+							gameObject.saveAddComponent<PostProcessingComponent>();
+						}
+						ImGui::EndMenu();
 					}
-					if (ImGui::MenuItem("SpriteRenderer")) {
-						gameObject.saveAddComponent<SpriteRendererComponent>();
+					if (ImGui::BeginMenu("3D Rendering")) {
+						if (ImGui::MenuItem("Light")) {
+							gameObject.saveAddComponent<LightComponent>();
+						}
+						if (ImGui::MenuItem("Mesh Renderer")) {
+							gameObject.saveAddComponent<MeshRendererComponent>();
+						}
+						if (ImGui::MenuItem("Mesh Filter")) {
+							gameObject.saveAddComponent<MeshFilterComponent>();
+						}
+						ImGui::EndMenu();
 					}
-					if (ImGui::MenuItem("CircleRenderer")) {
-						gameObject.saveAddComponent<CircleRendererComponent>();
-					}
-					if (ImGui::MenuItem("Light")) {
-						gameObject.saveAddComponent<LightComponent>();
-					}
-					if (ImGui::MenuItem("SkyBox")) {
-						gameObject.saveAddComponent<SkyBoxComponent>();
-					}
-					if (ImGui::MenuItem("Mesh Renderer")) {
-						gameObject.saveAddComponent<MeshRendererComponent>();
-					}
-					if (ImGui::MenuItem("Mesh Filter")) {
-						gameObject.saveAddComponent<MeshFilterComponent>();
+					if (ImGui::BeginMenu("2D Rendering")) {
+						if (ImGui::MenuItem("SpriteRenderer")) {
+							gameObject.saveAddComponent<SpriteRendererComponent>();
+						}
+						if (ImGui::MenuItem("CircleRenderer")) {
+							gameObject.saveAddComponent<CircleRendererComponent>();
+						}
+						ImGui::EndMenu();
 					}
 					if (ImGui::BeginMenu("Physics")) {
 						if (ImGui::MenuItem("Box Collider")) {
@@ -179,7 +196,6 @@ namespace Stulu {
 	}
 	template <typename T>
 	void EditorInspectorPanel::drawComponent(GameObject gameObject, std::string name, bool removeable) {
-		ST_PROFILING_FUNCTION();
 		if (gameObject.hasComponent<T>()) {
 			T& comp = gameObject.getComponent<T>();
 			if (ImGui::TreeNodeEx((void*)typeid(T).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, name.c_str())) {

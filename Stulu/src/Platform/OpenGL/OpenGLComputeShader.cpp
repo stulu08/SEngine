@@ -7,6 +7,7 @@
 
 namespace Stulu {
 	OpenGLComputeShader::OpenGLComputeShader(const std::string& name, const std::string& src) {
+		ST_PROFILING_FUNCTION();
 		m_source = src;
 		m_name = name;
 
@@ -14,10 +15,12 @@ namespace Stulu {
 	}
 
 	OpenGLComputeShader::~OpenGLComputeShader() {
+		ST_PROFILING_FUNCTION();
 		glDeleteProgram(m_rendererID);
 	}
 
 	void OpenGLComputeShader::reload(const std::string& src) {
+		ST_PROFILING_FUNCTION();
 		glDeleteProgram(m_rendererID);
 
 		m_source = src;
@@ -25,12 +28,15 @@ namespace Stulu {
 	}
 
 	void OpenGLComputeShader::Dispatch(const glm::uvec3& size, uint32_t usage) {
+		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		glDispatchCompute(size.x, size.y, size.z);
-		glMemoryBarrier(usage);
+		if(usage != ComputeShader::Usage::None)
+			glMemoryBarrier(usage);
 	}
 
 	void OpenGLComputeShader::compile(const std::string& src) {
+		ST_PROFILING_FUNCTION();
 		GLint program = glCreateProgram();
 		GLuint shader = glCreateShader(GL_COMPUTE_SHADER);
 
@@ -73,62 +79,78 @@ namespace Stulu {
 		m_rendererID = program;
 	}
 	void OpenGLComputeShader::setTexture(const std::string& name, uint32_t binding, const Ref<Texture>& texture, uint32_t mipLevel, AccesMode mode) {
-		TextureSettings::Format form = (TextureSettings::Format)texture->getSettings().format;
-		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(form);
+		setTextureInternal(name, binding, texture->getNativeRendererObject(), mipLevel, mode, (TextureSettings::Format)texture->getSettings().format);
+	}
+	void OpenGLComputeShader::setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel, AccesMode mode, TextureSettings::Format format) {
+		ST_PROFILING_FUNCTION();
+
+		uint32_t textureID = *static_cast<uint32_t*>(texture);
+		int32_t internalFormat;
+
+		if (format == TextureSettings::Format::Auto)
+			glGetTextureLevelParameteriv(textureID, mipLevel, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+		
+		else
+			internalFormat = TextureFormatToGLenum(format).first;
 
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1i(loc, binding);
-		glBindImageTexture(binding, (int)*texture, mipLevel, GL_FALSE, 0, GL_READ_WRITE, format.first);
+		glBindImageTexture(binding, textureID, mipLevel, GL_FALSE, 0, (uint32_t)mode, (uint32_t)internalFormat);
 	}
 	void OpenGLComputeShader::setFloat(const std::string& name, float value) {
-
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1f(loc, value);
 	}
 
 	void OpenGLComputeShader::setInt(const std::string& name, int value) {
-
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1i(loc, value);
 	}
 
 	void OpenGLComputeShader::setVec(const std::string& name, const glm::vec4& value) {
-
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform4f(loc, value.x, value.y, value.z, value.w);
 	}
 
 	void OpenGLComputeShader::setMat(const std::string& name, const glm::mat4& value) {
-
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 	}
 
-	void OpenGLComputeShader::setFloatArray(const std::string& name, const float* floats) {
-
+	void OpenGLComputeShader::setFloatArray(const std::string& name, const float* floats, uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1fv(loc, count, floats);
 	}
 
-	void OpenGLComputeShader::setIntArray(const std::string& name, const int* ints) {
-
+	void OpenGLComputeShader::setIntArray(const std::string& name, const int* ints, uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform1iv(loc, count, ints);
 	}
 
-	void OpenGLComputeShader::setVecArray(const std::string& name, const glm::vec4* vecs) {
-
+	void OpenGLComputeShader::setVecArray(const std::string& name, const glm::vec4* vecs, uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniform4fv(loc, count, glm::value_ptr(*vecs));
 	}
 
-	void OpenGLComputeShader::setMatArray(const std::string& name, const glm::mat4* mats) {
-
-	}
-	const glm::ivec3 OpenGLComputeShader::getMaxWorkGroupCount() const {
-		glm::ivec3 count = {0,0,0};
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &count.x);
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &count.y);
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &count.z);
-		return count;
-	}
-	const glm::ivec3 OpenGLComputeShader::getMaxWorkGroupSizes() const {
-		glm::ivec3 size = { 0,0,0 };
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &size.x);
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &size.y);
-		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &size.z);
-		return size;
-	}
-	const uint32_t OpenGLComputeShader::getMaxWorkGroupInvocationCount() const {
-		int32_t invc = 0;
-		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &invc);
-		return (uint32_t)invc;
+	void OpenGLComputeShader::setMatArray(const std::string& name, const glm::mat4* mats, uint32_t count) {
+		ST_PROFILING_FUNCTION();
+		glUseProgram(m_rendererID);
+		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
+		glUniformMatrix4fv(loc, count, GL_FALSE, glm::value_ptr(*mats));
 	}
 }

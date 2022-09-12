@@ -78,6 +78,6 @@ namespace Stulu {
 		static std::string getIrradianceShaderSource();
 		static std::string getPrefilterShaderSorce();
 		static std::string getSkyBoxSource();
-		static std::string getBrdfShaderSource();
+		static Ref<ComputeShader>& getBrdfShader();
 	};
 }

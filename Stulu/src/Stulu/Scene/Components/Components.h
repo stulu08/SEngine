@@ -170,6 +170,16 @@ namespace Stulu {
 			}
 		}
 	};
+	class PostProcessingComponent : public Component {
+	public:
+		PostProcessingComponent() {
+			data = PostProcessingData();
+			data.bloomData.enabled = true;
+		}
+		PostProcessingComponent(const PostProcessingComponent&) = default;
+
+		PostProcessingData data;
+	};
 	class STULU_API MonoObjectInstance;
 	class ScriptingComponent : public Component {
 	public:
@@ -203,6 +213,7 @@ namespace Stulu {
 		BoxColliderComponent,
 		SphereColliderComponent,
 		CapsuleColliderComponent,
-		MeshColliderComponent
+		MeshColliderComponent,
+		PostProcessingComponent
 		>;
 }

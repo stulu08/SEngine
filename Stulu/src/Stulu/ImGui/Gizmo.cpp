@@ -167,6 +167,7 @@ namespace Stulu {
 		}
 	}
 	void Gizmo::Begin() {
+		ST_PROFILING_FUNCTION();
 		//check for resize
 		if (s_data.mWidth != s_data.drawBuffer->getTexture()->getWidth() || s_data.mHeight != s_data.drawBuffer->getTexture()->getHeight()) {
 			s_data.drawBuffer->resize((uint32_t)s_data.mWidth, (uint32_t)s_data.mHeight);
@@ -189,12 +190,14 @@ namespace Stulu {
 		Renderer2D::begin();
 	}
 	void Gizmo::End() {
+		ST_PROFILING_FUNCTION();
 		flushCubes();
 		flushSpheres();
 		Renderer2D::flush();
 		s_data.drawBuffer->unbind();
 	}
 	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
+		ST_PROFILING_FUNCTION();
 		RenderCommand::setDepthTesting(false);
 		camera->bind();
 		s_data.drawBuffer->getTexture()->bind(0);
@@ -203,13 +206,11 @@ namespace Stulu {
 		camera->unbind();
 	}
 	void Gizmo::setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView) {
-		ST_PROFILING_FUNCTION();
 		s_data.projMatrix = cameraProjection;
 		s_data.viewMatrix = cameraView;
 		s_data.cameraPosition = glm::inverse(cameraView)[3];
 	}
 	void Gizmo::setRect(const float x, const float y, const float width, const float height) {
-		ST_PROFILING_FUNCTION();
 		ImGuizmo::SetRect(x, y, width, height);
 		s_data.mX = x;
 		s_data.mY = y;
@@ -255,12 +256,10 @@ namespace Stulu {
 		return false;
 	}
 	void Gizmo::drawGrid(const glm::mat4& transform, float size) {
-		ST_PROFILING_FUNCTION();
 		ImGuizmo::DrawGrid(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix), glm::value_ptr(transform), size);
 	}
 
 	void Gizmo::drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		Renderer2D::drawLine(begin, end, color);
 	}
 
@@ -440,6 +439,7 @@ namespace Stulu {
 		s_data.sphereDataBufferPtr = s_data.sphereDataBufferBase;
 	}
 	void Gizmo::flushCubes() {
+		ST_PROFILING_FUNCTION();
 		if (s_data.cubeIndexCount > 0) {
 			uint32_t dataSize = uint32_t((uint8_t*)s_data.cubeVertexBufferPtr - (uint8_t*)s_data.cubeVertexBufferBase);
 			s_data.cubeVertexBuffer->setData(s_data.cubeVertexBufferBase, dataSize);
@@ -449,6 +449,7 @@ namespace Stulu {
 		}
 	}
 	void Gizmo::flushSpheres() {
+		ST_PROFILING_FUNCTION();
 		if (s_data.sphereInstanceCount > 0) {
 			
 			uint32_t dataSize = uint32_t((uint8_t*)s_data.sphereDataBufferPtr - (uint8_t*)s_data.sphereDataBufferBase);

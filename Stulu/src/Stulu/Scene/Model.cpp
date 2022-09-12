@@ -122,6 +122,7 @@ namespace Stulu {
     }
 
     bool Model::loadMaterial(const aiScene* scene, uint32_t material) {
+        ST_PROFILING_FUNCTION();
         if (scene->mNumMaterials < material)
             return false;
         aiMaterial* aMat = scene->mMaterials[material];

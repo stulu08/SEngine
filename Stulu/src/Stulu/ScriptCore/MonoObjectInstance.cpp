@@ -26,6 +26,7 @@ namespace Stulu {
 
 	MonoObjectInstance::MonoObjectInstance(const std::string& nameSpace, const std::string& className, ScriptAssembly* assembly)
 		:m_nameSpace(nameSpace),m_className(className), m_assembly(assembly),m_constructed(false) {
+		ST_PROFILING_FUNCTION();
 		m_classPtr = m_assembly->createClass(m_nameSpace, m_className);
 		if (m_classPtr) {
 			m_objectPtr = mono_object_new(m_assembly->getDomain(), m_classPtr);
@@ -37,6 +38,7 @@ namespace Stulu {
 	}
 
 	MonoObjectInstance::MonoObjectInstance(const MonoObjectInstance& other) {
+		ST_PROFILING_FUNCTION();
 		m_nameSpace = other.m_nameSpace;
 		m_className = other.m_className;
 		m_assembly = other.m_assembly;
@@ -64,6 +66,7 @@ namespace Stulu {
 	}
 
 	MonoObjectInstance::~MonoObjectInstance() {
+		ST_PROFILING_FUNCTION();
 		if (!m_assembly->getRootDomain())
 			return;
 		for (auto i : m_fields) {
@@ -85,6 +88,7 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::loadAll() {
+		ST_PROFILING_FUNCTION();
 		loadAllClassFunctions();
 		loadAllVirtualParentFunctions();
 		callDefaultConstructor();
@@ -93,6 +97,7 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::loadFunction(const std::string& fnName) {
+		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -102,6 +107,7 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::loadVirtualFunction(const std::string& fnName, MonoClass* functionClass) {
+		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -131,6 +137,7 @@ namespace Stulu {
 		CORE_ERROR("Could not create Monofunction from {0}", function.name);
 	}
 	MonoMethod* MonoObjectInstance::getVirtualFunction(const std::string& fnName, MonoClass* functionClass) {
+		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return nullptr;
@@ -154,6 +161,7 @@ namespace Stulu {
 		return nullptr;
 	}
 	void MonoObjectInstance::loadAllClassFunctions() {
+		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -177,6 +185,7 @@ namespace Stulu {
 		}
 	}
 	void MonoObjectInstance::loadAllVirtualParentFunctions() {
+		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -198,6 +207,7 @@ namespace Stulu {
 		
 	}
 	void MonoObjectInstance::loadAllClassFields() {
+		ST_PROFILING_FUNCTION();
 		void* iter = NULL;
 		MonoClassField* field;
 		
@@ -251,6 +261,7 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::reloadClassFieldValue(const std::string& field) {
+		ST_PROFILING_FUNCTION();
 		if (m_fields.find(field) == m_fields.end())
 			return;
 		auto& mem = m_fields.at(field);
@@ -281,6 +292,7 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::setClassField(const std::string& field) const {
+		ST_PROFILING_FUNCTION();
 		if (m_fields.find(field) == m_fields.end())
 			return;
 		auto& i = m_fields.at(field);
@@ -290,6 +302,7 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::setAllClassFields() const {
+		ST_PROFILING_FUNCTION();
 		if (m_objectPtr && m_classPtr) {
 			for (auto& i : m_fields) {
 				if (i.second.value != nullptr && i.second.type != MonoClassMember::Type::Other) {
@@ -330,6 +343,7 @@ namespace Stulu {
 		return nullptr;
 	}
 	void MonoObjectInstance::reload() {
+		ST_PROFILING_FUNCTION();
 		for (auto [name, field] : m_fields) {
 			field.atrributeList.clear();
 			field.m_fieldPtr = nullptr;
@@ -362,6 +376,7 @@ namespace Stulu {
 		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
 	}
 	bool MonoObjectInstance::fieldHasAttribute(MonoClassMember& field, MonoClass* attribute) {
+		ST_PROFILING_FUNCTION();
 		if (attribute) {
 			if (field.atrributeList.find(attribute) != field.atrributeList.end())
 				return field.atrributeList.at(attribute);

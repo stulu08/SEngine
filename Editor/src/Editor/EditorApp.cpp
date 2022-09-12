@@ -14,7 +14,7 @@ namespace Stulu {
 	Project EditorApp::s_project;
 	EditorApp::EditorApp() 
 		: Application(ApplicationInfo("Stulu Editor",Version(1,0,0), "Stulu", false, true, WindowProps("Stulu Editor", 1280, 720))) {
-
+		ST_PROFILING_FUNCTION();
 		if (getStartArgs().size() > 1) {
 			ST_INFO("Loading project: {0}", getStartArgs()[1]);
 			s_project = Project(getStartArgs()[1], true);
@@ -60,11 +60,13 @@ namespace Stulu {
 		getWindow().show();
 	}
 	EditorApp::~EditorApp() {
+		ST_PROFILING_FUNCTION();
 		s_project.assembly = nullptr;
 		getEditorLayer().savePanelConfig(); 
 		StyleEditor::saveAll();
 	}
 	void rebuildAssembly() {
+		ST_PROFILING_FUNCTION();
 #ifdef ST_PLATFORM_WINDOWS
 		static const std::string buildCmd = "tools\\msbuild.bat \"" + getEditorProject().path + "/Assembly.sln\"";
 
@@ -84,6 +86,7 @@ namespace Stulu {
 		getEditorProject().assembly->loadAllClasses(componentClass);
 	}
 	void buildAssembly(const std::string& m_assembly) {
+		ST_PROFILING_FUNCTION();
 #ifdef ST_PLATFORM_WINDOWS
 		static const std::string buildCmd = "tools\\msbuild.bat \"" + getEditorProject().path + "/Assembly.sln\"";
 

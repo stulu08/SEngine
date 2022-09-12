@@ -138,6 +138,7 @@ namespace Stulu {
 	class STULU_API ComputeShader {
 	public:
 		struct Usage {
+			static inline const uint32_t None = 0x00000000;// Wont wait for execution finish
 			static inline const uint32_t VertexAttribArray = 0x00000001;
 			static inline const uint32_t ElementArray = 0x00000002;
 			static inline const uint32_t Uniform = 0x00000004;
@@ -159,20 +160,19 @@ namespace Stulu {
 
 		virtual void reload(const std::string& src) = 0;
 		virtual void Dispatch(const glm::uvec3& numWorkGroups = { 1,1,1 }, uint32_t usage = Usage::Default) = 0;
+		virtual void Dispatch(const uint32_t numWorkGroupsX = 1, const uint32_t numWorkGroupsY = 1, const uint32_t numWorkGroupsZ = 1, uint32_t usage = Usage::Default) = 0;
 
 		virtual void setTexture(const std::string& name, uint32_t binding, const Ref<Texture>& texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite) = 0;
+		virtual void setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite, TextureSettings::Format format = TextureSettings::Format::Auto) = 0;
 		virtual void setFloat(const std::string& name, float value) = 0;
 		virtual void setInt(const std::string& name, int value) = 0;
 		virtual void setVec(const std::string& name, const glm::vec4& value) = 0;
 		virtual void setMat(const std::string& name, const glm::mat4& value) = 0;
-		virtual void setFloatArray(const std::string& name, const float* floats) = 0;
-		virtual void setIntArray(const std::string& name, const int* ints) = 0;
-		virtual void setVecArray(const std::string& name, const glm::vec4* vecs) = 0;
-		virtual void setMatArray(const std::string& name, const glm::mat4* mats) = 0;
+		virtual void setFloatArray(const std::string& name, const float* floats, uint32_t count) = 0;
+		virtual void setIntArray(const std::string& name, const int* ints, uint32_t count) = 0;
+		virtual void setVecArray(const std::string& name, const glm::vec4* vecs, uint32_t count) = 0;
+		virtual void setMatArray(const std::string& name, const glm::mat4* mats, uint32_t count) = 0;
 
-		virtual const glm::ivec3 getMaxWorkGroupCount() const = 0;
-		virtual const glm::ivec3 getMaxWorkGroupSizes() const = 0;
-		virtual const uint32_t getMaxWorkGroupInvocationCount() const = 0;
 		virtual const std::string& getName() const = 0;
 		virtual const std::string& getSource() const = 0;
 		virtual const void* getNativeRendererObject() const = 0;

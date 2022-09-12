@@ -4,6 +4,7 @@
 
 namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
+		ST_PROFILING_FUNCTION();
 		mono_set_dirs(monoAssemblyPath.c_str(), monoConfigPath.c_str());
 		m_monoDomain = mono_jit_init("StuluEngine");
 		if (!m_monoDomain) {
@@ -14,6 +15,7 @@ namespace Stulu {
 	}
 
 	AssemblyManager::~AssemblyManager() {
+		ST_PROFILING_FUNCTION();
 		m_scriptCoreAssembly->m_monoRootDomain = nullptr;
 		m_assembly->m_monoRootDomain = nullptr;
 		if (m_monoDomain) {
@@ -38,6 +40,7 @@ namespace Stulu {
 
 namespace Stulu {
 	void AssemblyManager::loadScriptCore(const std::string& assemblyPath, const std::string& coreAssemblyPath) {
+		ST_PROFILING_FUNCTION();
 		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_monoDomain, coreAssemblyPath);
 		m_assembly = createRef<ScriptAssembly>(m_monoDomain, assemblyPath.c_str());
 

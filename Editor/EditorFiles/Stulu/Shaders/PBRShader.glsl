@@ -50,7 +50,7 @@ void main (){
 
 	data.ao = max(ao, texture(aoMap, vertex.texCoords * textureTilling).r);
 	data.metallic = max(metallic, texture(metallicMap, vertex.texCoords * textureTilling).r);
-	data.roughness = max(roughness, texture(metallicMap, vertex.texCoords * textureTilling).g);
+	data.roughness = max(roughness, texture(roughnessMap, vertex.texCoords * textureTilling).g);
 
 	data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
 	//data.normal = vertex.normal;

@@ -14,6 +14,7 @@ namespace Stulu {
 		virtual ~VertexArray() = default;
 
 		virtual void addVertexBuffer(const Ref<VertexBuffer>& vBuffer) = 0;
+		virtual void clearVertexBuffers() = 0;
 		virtual void setIndexBuffer(const Ref<IndexBuffer>& iBuffer) = 0;
 
 		virtual const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const = 0;

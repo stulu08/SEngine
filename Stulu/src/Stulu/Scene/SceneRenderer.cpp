@@ -9,9 +9,8 @@
 
 namespace Stulu {
 	SceneRenderer::RuntimeData SceneRenderer::s_runtimeData;
-
 	SceneRenderer::LightData SceneRenderer::s_lightData;
-	SceneRenderer::PostProcessingData SceneRenderer::s_postProcessingData;
+	SceneRenderer::PostProcessingBufferData SceneRenderer::s_postProcessingData;
 	SceneRenderer::ShaderSceneData SceneRenderer::s_shaderSceneData;
 
 	void SceneRenderer::init() {
@@ -20,7 +19,7 @@ namespace Stulu {
 			s_runtimeData.lightBuffer = UniformBuffer::create(sizeof(LightData), 1);
 		
 		if (s_runtimeData.postProcessungBuffer == nullptr)
-			s_runtimeData.postProcessungBuffer = UniformBuffer::create(sizeof(PostProcessingData), 2);
+			s_runtimeData.postProcessungBuffer = UniformBuffer::create(sizeof(PostProcessingBufferData), 2);
 		
 		if (s_runtimeData.sceneDataBuffer == nullptr)
 			s_runtimeData.sceneDataBuffer = UniformBuffer::create(sizeof(ShaderSceneData), 3);
@@ -75,18 +74,15 @@ namespace Stulu {
 
 	void SceneRenderer::Begin() {
 		ST_PROFILING_FUNCTION();
-		ST_PROFILING_RENDERDATA_RESET();
-		ST_PROFILING_RENDERDATA_BEGIN();
 	}
-
 	void SceneRenderer::End() {
 		ST_PROFILING_FUNCTION();
-		ST_PROFILING_RENDERDATA_END();
 		s_runtimeData.drawList.clear();
 		s_runtimeData.transparentDrawList.clear();
 	}
 
 	void SceneRenderer::LoadLights(Scene* scene) {
+		ST_PROFILING_FUNCTION();
 		for (auto& goID : scene->getAllGameObjectsWith<LightComponent, TransformComponent>()) {
 			GameObject go(goID, scene);
 			AddLight(go.getComponent<TransformComponent>(), go.getComponent<LightComponent>());
@@ -94,9 +90,7 @@ namespace Stulu {
 		UploadLightBuffer();
 		s_lightData = LightData();
 	}
-
 	void SceneRenderer::AddLight(const TransformComponent& transform, const LightComponent& light) {
-		ST_PROFILING_FUNCTION();
 		if (s_lightData.lightCount < ST_MAXLIGHTS) {
 			s_lightData.lights[s_lightData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
 			s_lightData.lights[s_lightData.lightCount].positionAndType = glm::vec4(transform.worldPosition, light.lightType);
@@ -135,7 +129,6 @@ namespace Stulu {
 		return glm::inverse(local);
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, CameraComponent& mainCam) {
-		ST_PROFILING_FUNCTION();
 		CameraComponent camComp = mainCam.gameObject.getComponent<CameraComponent>();
 		camComp.cam = sceneCam.getCamera();
 		camComp.reflectionFrameBuffer = sceneCam.reflectionFrameBuffer;
@@ -145,10 +138,10 @@ namespace Stulu {
 		camComp.settings.fov = sceneCam.m_fov;
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		camComp.frustum = sceneCam.getFrustum();
+		camComp.postProcessing = &sceneCam.getPostProcessingData();
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, Scene* scene) {
-		ST_PROFILING_FUNCTION();
 		CameraComponent camComp = CameraComponent(CameraMode::Perspective, false);
 		camComp.gameObject = GameObject(entt::null, scene);
 		camComp.cam = sceneCam.getCamera();
@@ -159,6 +152,7 @@ namespace Stulu {
 		camComp.settings.fov = sceneCam.m_fov;
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		camComp.frustum = sceneCam.getFrustum();
+		camComp.postProcessing = &sceneCam.getPostProcessingData();
 		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
 	}
 	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp, bool bdrawSkyBox) {
@@ -173,22 +167,24 @@ namespace Stulu {
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
 		uint32_t camSkyBoxMapType = 0;
-		if ((entt::entity)cameraComp.gameObject != entt::null && cameraComp.settings.clearType == CameraComponent::ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
-			auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
-			camSkyBoxTexture = s.texture;
-			camSkyBoxMapType = (uint32_t)s.mapType;
+		if ((entt::entity)cameraComp.gameObject != entt::null) {
+			if (cameraComp.settings.clearType == CameraComponent::ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
+				auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
+				camSkyBoxTexture = s.texture;
+				camSkyBoxMapType = (uint32_t)s.mapType;
+			}
+			if (cameraComp.gameObject.hasComponent<PostProcessingComponent>()) {
+				cameraComp.postProcessing = &cameraComp.gameObject.getComponent<PostProcessingComponent>().data;
+			}
 		}
+		
 		//upload shader scene data
-		s_shaderSceneData.gamma = cameraComp.gameObject.getScene()->m_data.graphicsData.gamma;
-		s_shaderSceneData.toneMappingExposure = cameraComp.gameObject.getScene()->m_data.graphicsData.toneMappingExposure;
 		s_shaderSceneData.env_lod = cameraComp.gameObject.getScene()->m_data.graphicsData.env_lod;
 		s_shaderSceneData.enableGammaCorrection = 1;
 		s_shaderSceneData.skyboxMapType = camSkyBoxMapType;
 		s_shaderSceneData.useSkybox = camSkyBoxTexture != nullptr;
 		s_shaderSceneData.shaderFlags = cameraComp.gameObject.getScene()->m_data.shaderFlags;
-		s_runtimeData.bloomData.bloomTreshold = cameraComp.gameObject.getScene()->m_data.graphicsData.bloomTreshold;
-		s_runtimeData.bloomData.bloomIntensity = cameraComp.gameObject.getScene()->m_data.graphicsData.bloomIntensity;
-		s_runtimeData.sceneDataBuffer->setData(&s_shaderSceneData, sizeof(s_shaderSceneData));
+		s_runtimeData.sceneDataBuffer->setData(&s_shaderSceneData, sizeof(SceneRenderer::ShaderSceneData));
 
 		//transparent sorting
 		std::sort(s_runtimeData.transparentDrawList.begin(), s_runtimeData.transparentDrawList.end(), [&](auto& a, auto& b) {
@@ -234,7 +230,6 @@ namespace Stulu {
 		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, 1.0f));
 		RenderCommand::clear();
 	}
-
 	void SceneRenderer::Clear(CameraComponent& cam) {
 		RenderCommand::setDefault();
 		switch (cam.settings.clearType)
@@ -269,33 +264,40 @@ namespace Stulu {
 		for (auto& goID : cams) {
 			CameraComponent& cam = cams.get<CameraComponent>(goID);
 			if (!cam.settings.isRenderTarget) {
-				ApplyPostProcessing(sceneFbo, cam.getFrameBuffer()->getTexture());
+				if (cam.postProcessing)
+					ApplyPostProcessing(sceneFbo, cam.getFrameBuffer()->getTexture(), *cam.postProcessing);
+				else
+					ApplyPostProcessing(sceneFbo, cam.getFrameBuffer()->getTexture());
 			}
 		}
 	}
 
 	void SceneRenderer::ApplyPostProcessing(SceneCamera& sceneCam) {
-		ApplyPostProcessing(sceneCam.getCamera()->getFrameBuffer());
+		ApplyPostProcessing(sceneCam.getCamera()->getFrameBuffer(), sceneCam.getPostProcessingData());
 	}
-
 	void SceneRenderer::ApplyPostProcessing(CameraComponent& camera) {
-		ApplyPostProcessing(camera.getFrameBuffer());
+		if(camera.postProcessing)
+			ApplyPostProcessing(camera.getFrameBuffer(), *camera.postProcessing);
+		else
+			ApplyPostProcessing(camera.getFrameBuffer());
 	}
-
-	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer) {
-		ApplyPostProcessing(frameBuffer, frameBuffer->getTexture());
+	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data) {
+		ApplyPostProcessing(frameBuffer, frameBuffer->getTexture(), data);
 	}
-
-	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source) {
+	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data) {
+		ST_PROFILING_FUNCTION();
 		s_postProcessingData.time = Time::time;
 		s_postProcessingData.delta = Time::deltaTime;
+		s_postProcessingData.toneMappingExposure = data.exposure;
+		s_postProcessingData.gamma = data.gamma;
+		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(PostProcessingBufferData));
+
+
 		//bloom
-		{
-			
-		}
+		if(data.bloomData.enabled)
+			DoBloom(destination, source, data);
 
 		//gamma correction and tonemapping
-		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(s_postProcessingData));
 		{
 
 			source->bind(0);
@@ -306,7 +308,73 @@ namespace Stulu {
 			destination->unbind();
 		}
 	}
+	void SceneRenderer::DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& postProcData) {
+		ST_PROFILING_SCOPE("Bloom Pass");
+		static Ref<ComputeShader> filterShader;
+		if (!filterShader) {
+			filterShader = ComputeShader::create("BloomFilterShader", R"(
+#version 430 core
+layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 
+layout(rgba16f, binding = 0) uniform readonly image2D source;
+layout(rgba16f, binding = 1) uniform writeonly image2D destination;
+
+layout(location = 1) uniform float u_treshold;
+
+float when_gt(float x, float y) { return max(sign(x-y), float(0.0));}
+
+void main() {
+	ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
+	vec4 color = imageLoad(source, pixelCoord).rgba;
+	color.r *= when_gt(color.r, u_treshold);
+	color.g *= when_gt(color.g, u_treshold);
+	color.b *= when_gt(color.b, u_treshold);
+	imageStore(destination, pixelCoord, color);
+}
+)");
+		}
+		uint32_t width = source->getWidth();
+		uint32_t height = source->getHeight();
+		auto& data = postProcData.bloomData;
+
+
+		if (width == 1 || height == 1)
+			return;
+		
+		
+		static float bloomTreshold = 0.0f;
+		if (bloomTreshold != data.bloomTreshold) {
+			bloomTreshold = data.bloomTreshold;
+			filterShader->setFloat("u_treshold", data.bloomTreshold);
+		}
+		if (!data.downSample[0] || (data.downSample[0]->getWidth() != width || data.downSample[0]->getHeight() != height)) {
+			data.samples = 0;
+			TextureSettings settings;
+			settings.format = (int)TextureSettings::Format::RGBA16F;
+			for (uint32_t i = 0; i < 5; i++) {
+				uint32_t texWidth = (uint32_t)(width / glm::pow(2, i));
+				uint32_t texHeight = (uint32_t)(height / glm::pow(2, i));
+
+				if (texWidth <= 5 || texHeight <= 5)
+					break;
+
+				data.downSample[i].reset();
+				data.downSample[i] = Texture2D::create(texWidth, texHeight, settings);
+
+				data.upSample[i].reset();
+				data.upSample[i] = Texture2D::create(texWidth, texHeight, settings);
+
+				data.samples++;
+			}
+
+		}
+		filterShader->setTexture("source", 0, source, 0, AccesMode::ReadOnly);
+		filterShader->setTexture("destination", 1, data.downSample[0], 0, AccesMode::WriteOnly);
+
+		filterShader->Dispatch({ width, height, 1 }, ComputeShader::Usage::ShaderImageAcces);
+
+
+	}
 	void SceneRenderer::drawScene(const Ref<CubeMap>& reflectionMap) {
 		ST_PROFILING_FUNCTION();
 		UUID last = UUID();
@@ -330,7 +398,8 @@ namespace Stulu {
 				last = object.material->getUUID();
 			}
 			RenderCommand::setCullMode(object.cullmode);
-			Renderer::submit(object.vertexArray, nullptr, object.transform);
+			if(object.vertexArray)
+				Renderer::submit(object.vertexArray, nullptr, object.transform);
 		}
 
 		//transparent
@@ -346,7 +415,8 @@ namespace Stulu {
 				last = object.material->getUUID();
 			}
 			RenderCommand::setCullMode(object.cullmode);
-			Renderer::submit(object.vertexArray, object.material->getShader(), object.transform);
+			if (object.vertexArray)
+				Renderer::submit(object.vertexArray, object.material->getShader(), object.transform);
 		}
 	}
 	void SceneRenderer::drawSkyBox(const Ref<CubeMap>& skybox) {
@@ -360,7 +430,6 @@ namespace Stulu {
 		
 	}
 	void SceneRenderer::RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform) {
-		ST_PROFILING_FUNCTION();
 		if (!filter.mesh.hasMesh)
 			return;
 		Ref<Material> material;
@@ -375,12 +444,8 @@ namespace Stulu {
 			material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
 		else
 			s_runtimeData.drawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
-		
-		ST_PROFILING_RENDERDATA_ADDINDICES(filter.mesh.mesh->getIndicesCount());
-		ST_PROFILING_RENDERDATA_ADDVERTICES(filter.mesh.mesh->getVerticesCount());
 	}
 	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& mat, const glm::mat4& transform) {
-		ST_PROFILING_FUNCTION();
 		if (!vertexArray)
 			return;
 		Ref<Material> material;

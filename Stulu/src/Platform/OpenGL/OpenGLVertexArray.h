@@ -9,6 +9,7 @@ namespace Stulu {
 		virtual ~OpenGLVertexArray();
 
 		virtual void addVertexBuffer(const Ref<VertexBuffer>& vBuffer) override;
+		virtual void clearVertexBuffers() override;
 		virtual void setIndexBuffer(const Ref<IndexBuffer>& iBuffer) override;
 
 		virtual const std::vector<Ref<VertexBuffer>>& getVertexBuffers() const override{ return m_vertexBufffers; }

@@ -25,7 +25,7 @@ namespace Stulu {
 	}
 
 	void OpenGLContext::swapBuffers() {
-		
+		ST_PROFILING_FUNCTION();
 		glfwSwapBuffers(m_windowHandle);
 	}
 	void OpenGLContext::setVSync(bool enabled) {

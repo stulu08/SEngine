@@ -6,8 +6,6 @@ namespace Stulu {
 
 	RuntimeLayer::RuntimeLayer()
 		: Layer("RuntimeLayer") {
-		ST_PROFILING_FUNCTION();
-
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 		FrameBufferSpecs fspecs = FrameBufferSpecs();
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
@@ -65,7 +63,6 @@ namespace Stulu {
 	}
 
 	void RuntimeLayer::onAttach() {
-		ST_PROFILING_FUNCTION();
 		YAML::Node node = YAML::LoadFile("Stulu/app");
 		UUID sceneID = node["Start Scene"].as<uint64_t>();
 
@@ -73,7 +70,6 @@ namespace Stulu {
 	}
 
 	void RuntimeLayer::onUpdate(Timestep timestep) {
-		ST_PROFILING_FUNCTION();
 		Input::setEnabled(true);
 		StuluBindings::Input::s_enabled = true;
 		m_activeScene->onUpdateRuntime(timestep);
@@ -92,7 +88,6 @@ namespace Stulu {
 
 	}
 	void RuntimeLayer::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
 		m_activeScene->onEvent(e);
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(ST_BIND_EVENT_FN(RuntimeLayer::onApplicationQuit));
@@ -108,7 +103,6 @@ namespace Stulu {
 		return false;
 	}
 	void RuntimeLayer::OpenScene(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		if (path.empty()) {
 			newScene();
 			return;
@@ -132,7 +126,6 @@ namespace Stulu {
 
 	}
 	void RuntimeLayer::newScene() {
-		ST_PROFILING_FUNCTION();
 		if (m_activeScene)
 			m_activeScene->onRuntimeStop();
 		m_activeScene = createRef<Scene>();

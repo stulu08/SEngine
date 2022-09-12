@@ -10,7 +10,6 @@ namespace Stulu {
 		glCreateBuffers(1, &m_rendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferData(GL_ARRAY_BUFFER, size, nullptr, BufferDrawModeToGl(m_mode));
-
 	}
 	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size, float* vertices, BufferDrawMode mode) 
 		: m_size(size), m_mode(mode) {
@@ -37,11 +36,9 @@ namespace Stulu {
 		m_size = size;
 	}
 	void OpenGLVertexBuffer::bind() const {
-		ST_PROFILING_FUNCTION();
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 	}
 	void OpenGLVertexBuffer::unbind() const {
-		ST_PROFILING_FUNCTION();
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -53,18 +50,15 @@ namespace Stulu {
 		glCreateBuffers(1, &m_rendererID);
 		glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
 		glBufferData(GL_ARRAY_BUFFER, count * sizeof(uint32_t), indices, BufferDrawModeToGl(m_mode));
-
 	}
 	OpenGLIndexBuffer::~OpenGLIndexBuffer() {
 		ST_PROFILING_FUNCTION();
 		glDeleteBuffers(1, &m_rendererID);
 	}
 	void OpenGLIndexBuffer::bind() const {
-		ST_PROFILING_FUNCTION();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_rendererID);
 	}
 	void OpenGLIndexBuffer::unbind() const {
-		ST_PROFILING_FUNCTION();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	void OpenGLIndexBuffer::setData(const void* data, uint32_t size) {

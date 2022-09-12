@@ -51,6 +51,8 @@ namespace Stulu {
 
         void WriteProfile(const ProfileResult& result)
         {
+            if (!m_CurrentSession)
+                return;
             if (m_ProfileCount++ > 0)
                 m_OutputStream << ",";
 
@@ -104,7 +106,7 @@ namespace Stulu {
                 Stop();
         }
 
-        void Stop()
+        long long Stop()
         {
             auto endTimepoint = std::chrono::high_resolution_clock::now();
 
@@ -113,8 +115,10 @@ namespace Stulu {
 
             uint32_t threadID = (uint32_t)(std::hash<std::thread::id>{}(std::this_thread::get_id()));
             Instrumentor::Get().WriteProfile({ m_Name, start, end, threadID });
-
+            
             m_Stopped = true;
+
+            return end-start;
         }
     private:
         const char* m_Name;

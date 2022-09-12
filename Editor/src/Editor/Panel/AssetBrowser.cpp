@@ -8,10 +8,7 @@
 #include <ImGui/misc/cpp/imgui_stdlib.h>
 namespace Stulu {
 	AssetBrowserPanel::AssetBrowserPanel(const std::filesystem::path& path)
-		: m_path(path) {
-		ST_PROFILING_FUNCTION();
-
-	}
+		: m_path(path) { }
 	static std::unordered_map<std::string, UUID> pathCache;
 
 	static std::string createPopUpFileName = "";
@@ -326,7 +323,6 @@ namespace Stulu {
 		ImGui::End();
 	}
 	const Ref<Texture>& AssetBrowserPanel::getIcon(const std::filesystem::directory_entry& directory) {
-		ST_PROFILING_FUNCTION();
 		if (directory.is_directory()) {
 			return EditorResources::getFolderTexture();
 		}
@@ -411,7 +407,6 @@ namespace Stulu {
 		}
 	}
 	bool AssetBrowserPanel::containsDirSubDirs(std::filesystem::path path) {
-		ST_PROFILING_FUNCTION();
 		for (auto& directory : std::filesystem::directory_iterator(path)) {
 			if (directory.is_directory())
 				return true;

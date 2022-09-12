@@ -12,15 +12,7 @@
 
 namespace Stulu {
 	struct SceneGraphicsData {
-		float toneMappingExposure = 1.0f;
-		float gamma = 2.2f;
-
-		bool bloom = true;
-		float bloomIntensity = 1.0f;
-		float bloomTreshold = 1.1f;
-
 		float env_lod = 1.0f;
-
 		bool useReflectionMapReflections = false;
 	};
 	struct SceneData {

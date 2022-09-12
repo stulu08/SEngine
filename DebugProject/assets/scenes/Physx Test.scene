@@ -1,7 +1,5 @@
 Scene: Untitled
 Settings:
-  gamma: 2.16000009
-  toneMappingExposure: 1.00699997
   env_lod: 0
   useReflectionMapReflections: false
   enablePhsyics3D: true
@@ -31875,10 +31873,6 @@ GameObjects:
             - Name: mouse
               Type: 2
               Value: [0, 0, 0]
-        - Name: TestScript
-          Namespace: ""
-          Fields:
-            []
     CameraComponent:
       Camera Settings:
         clearType: 1
@@ -31897,6 +31891,12 @@ GameObjects:
     SkyBoxComponent:
       texture: 1253514222315557586
       mapType: 0
+    PostProcessingComponent:
+      exposure: 1
+      gamma: 2.20000005
+      bloomIntensity: 1
+      bloomTreshold: 1.10000002
+      bloomEnabled: true
   - GameObject: 13631729553899964676
     GameObjectBaseComponent:
       name: Cube_0_0_5
@@ -31985,8 +31985,11 @@ GameObjects:
       tag: default
     TransformComponent:
       position: [0, 0.5, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
+      rotation: [-0.300612032, -0.862766206, 0.192411572, -0.358112574]
+      scale: [0.999999523, 0.999999881, 0.999999046]
+    ScriptingComponent:
+      Scripts:
+        []
   - GameObject: 10183951376649289032
     GameObjectBaseComponent:
       name: Cube_0_0_3

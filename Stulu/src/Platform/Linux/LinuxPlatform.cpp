@@ -39,7 +39,6 @@ namespace Stulu {
 	}
 	//https://stackoverflow.com/a/64166/13917861
 	int ST_procParseLine(char* line) {
-		ST_PROFILING_FUNCTION();
 		// This assumes that a digit will be found and the line ends in " Kb".
 		int i = strlen(line);
 		const char* p = line;
@@ -49,7 +48,6 @@ namespace Stulu {
 		return i;
 	}
 	int ST_procmemgetValue(const char* name, size_t count) { //Note: this value is in KB!
-		ST_PROFILING_FUNCTION();
 		FILE* file = fopen("/proc/self/status", "r");
 		int result = -1;
 		char line[128];
@@ -91,6 +89,7 @@ namespace Stulu {
 		return succes;
 	}
 	const char* Platform::getCurrentWorkingDirectory() {
+		ST_PROFILING_FUNCTION();
 		char path[PATH_MAX];
 		getcwd(path, PATH_MAX);
 		return path;

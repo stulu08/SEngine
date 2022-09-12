@@ -95,6 +95,7 @@ namespace Stulu {
 	}
 
 	UUID AssetsManager::addDirectory(const std::string& path) {
+		ST_PROFILING_FUNCTION();
 		if (!FileExists(path + ".meta")) {
 			createMeta(UUID(), path, AssetType::Directory);
 		}
@@ -107,6 +108,7 @@ namespace Stulu {
 	}
 
 	MeshAsset& AssetsManager::createMeshAsset(const Ref<Mesh>& mesh, const std::string& name, UUID uuid) {
+		ST_PROFILING_FUNCTION();
 		MeshAsset asset;
 		asset.mesh = mesh;
 		asset.name = name;
@@ -118,6 +120,7 @@ namespace Stulu {
 	}
 
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
+		ST_PROFILING_FUNCTION();
 		switch (data.type)
 		{
 		case Stulu::AssetType::Texture2D:
@@ -144,6 +147,7 @@ namespace Stulu {
 	}
 
 	void AssetsManager::remove(const UUID& uuid, bool deleteFile, bool deleteMetaFile) {
+		ST_PROFILING_FUNCTION();
 		if (exists(uuid)) {
 			try {
 				std::string path = get(uuid).path;
@@ -168,44 +172,37 @@ namespace Stulu {
 	}
 
 	bool Stulu::AssetsManager::exists(const UUID& uuid) {
-		ST_PROFILING_FUNCTION();
 		if (uuid == UUID::null)
 			return false;
 		return assets.find(uuid) != assets.end();
 	}
 	bool AssetsManager::existsAndType(const UUID& uuid, const AssetType type) {
-		ST_PROFILING_FUNCTION();
 		if (uuid == UUID::null)
 			return false;
 		return (assets.find(uuid) != assets.end() && assets[uuid].type == type);
 	}
 
 	Asset& Stulu::AssetsManager::get(const UUID& uuid) {
-		ST_PROFILING_FUNCTION();
 		if(exists(uuid))
 			return assets[uuid];
 		CORE_ERROR("UUID not present in assets");
 		return NullAsset;
 	}
 	const AssetType AssetsManager::getAssetTypeByPath(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		YAML::Node data = YAML::LoadFile(path + ".meta");
 		return (AssetType)data["type"].as<int>();
 
 	}
 	const type_info& Stulu::AssetsManager::getType(const UUID& uuid) {
-		ST_PROFILING_FUNCTION();
 		if (exists(uuid))
 			return assets[uuid].data.type();
 		CORE_ERROR("UUID not present in assets");
 		return NullAsset.data.type();
 	}
 	const AssetType& AssetsManager::getAssetType(const UUID& uuid) {
-		ST_PROFILING_FUNCTION();
 		return assets[uuid].type;
 	}
 	const AssetType AssetsManager::assetTypeFromExtension(const std::string& extension) {
-		ST_PROFILING_FUNCTION();
 		if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga")
 			return AssetType::Texture2D;
 		if (extension == ".skybox" || extension == ".hdr")
@@ -363,6 +360,7 @@ namespace Stulu {
 		}
 	}
 	UUID AssetsManager::getModelFromMesh(UUID mesh) {
+		ST_PROFILING_FUNCTION();
 		if (mesh == UUID::null)
 			return UUID::null;
 
@@ -378,6 +376,7 @@ namespace Stulu {
 		return UUID::null;
 	}
 	UUID AssetsManager::getModelFromMaterial(UUID material) {
+		ST_PROFILING_FUNCTION();
 		if (material == UUID::null)
 			return UUID::null;
 

@@ -35,24 +35,22 @@ namespace Stulu {
 			if (ImGui::TreeNodeEx("Memory Usage", ImGuiTreeNodeFlags_DefaultOpen)) {
 				MemoryUsageInfo info = Platform::getMemoryUsage();
 
-				if (update) {
-					ST_PROFILING_SCOPE("Editor Memory FPS update");
-					float virt = static_cast<float>(info.virtualUsedByProcess) / 1048576;
-					m_virtualM.push_back(virt);
-					if (m_virtualM.size() > 99)
-						m_virtualM.erase(m_virtualM.begin(), m_virtualM.begin() + 1);
-					//m_vAvg = Math::avg(m_virtualM);
-					m_vAvg = m_virtualM[m_virtualM.size() - 1];
+				ST_PROFILING_SCOPE("Editor Memory FPS update");
+				float virt = static_cast<float>(info.virtualUsedByProcess) / 1048576;
+				m_virtualM.push_back(virt);
+				if (m_virtualM.size() > 99)
+					m_virtualM.erase(m_virtualM.begin(), m_virtualM.begin() + 1);
+				//m_vAvg = Math::avg(m_virtualM);
+				m_vAvg = m_virtualM[m_virtualM.size() - 1];
 
 
-					float phys = static_cast<float>(info.physicalUsedByProcess) / 1048576;
-					m_physical.push_back(phys);
-					if (m_physical.size() > 99)
-						m_physical.erase(m_physical.begin(), m_physical.begin() + 1);
-					//m_pAvg = Math::avg(m_physical);
-					m_pAvg = m_physical[m_physical.size() - 1];
+				float phys = static_cast<float>(info.physicalUsedByProcess) / 1048576;
+				m_physical.push_back(phys);
+				if (m_physical.size() > 99)
+					m_physical.erase(m_physical.begin(), m_physical.begin() + 1);
+				//m_pAvg = Math::avg(m_physical);
+				m_pAvg = m_physical[m_physical.size() - 1];
 
-				}
 				ImGui::PlotLines("Virtual ", m_virtualM.data(), (int)m_virtualM.size(), 0, (std::to_string(m_vAvg) + "mb").c_str(), m_vAvg - m_vAvg / 2.0f, m_vAvg + m_vAvg / 2.0f);
 				ImGui::PlotLines("Physical", m_physical.data(), (int)m_physical.size(), 0, (std::to_string(m_pAvg) + "mb").c_str(), m_pAvg - m_pAvg / 2.0f, m_pAvg + m_pAvg / 2.0f);
 				ImGui::TreePop();

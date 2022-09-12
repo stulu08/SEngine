@@ -8,6 +8,7 @@
 #include "Stulu/Core/Application.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <Stulu/Core/Resources.h>
 
 namespace Stulu {
 	struct QuadVertex {
@@ -139,12 +140,11 @@ namespace Stulu {
 			s_renderer2Ddata.lineShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/2DLine.glsl");
 		}
 		{//textures
-			s_renderer2Ddata.whiteTexture = Texture2D::create(1, 1);
-			uint32_t datawhite = 0xffffffff;
-			s_renderer2Ddata.whiteTexture->setData(&datawhite, sizeof(uint32_t));
+			s_renderer2Ddata.whiteTexture = std::dynamic_pointer_cast<Texture2D>(Resources::getWhiteTexture());
 			int samplers[s_renderer2Ddata.maxTextureSlots];
 			for (int i = 0; i < s_renderer2Ddata.maxTextureSlots; i++) {
 				samplers[i] = i;
+				s_renderer2Ddata.whiteTexture->bind(i);//so opengl doesnt warn me for havin an sampler array with empty sampler
 			}
 			s_renderer2Ddata.quadShader->bind();
 			s_renderer2Ddata.quadShader->setIntArray("u_textures", samplers, s_renderer2Ddata.maxTextureSlots);
@@ -152,7 +152,6 @@ namespace Stulu {
 		}
 	}
 	void Renderer2D::shutdown() {
-		ST_PROFILING_FUNCTION();
 	}
 	void Renderer2D::begin() {
 		ST_PROFILING_FUNCTION();
@@ -259,7 +258,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			flushQuads();
 			resetQuadBatch();
@@ -275,9 +273,6 @@ namespace Stulu {
 			s_renderer2Ddata.quadVertexBufferPtr++;
 		}
 		s_renderer2Ddata.quadIndexCount += 6;
-
-		ST_PROFILING_RENDERDATA_ADDINDICES(6);
-		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color) {
 		drawQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(size, 1.0f)), color);
@@ -290,7 +285,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, const Ref<Texture>& texture, const glm::vec2& tiling, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			flushQuads();
 			resetQuadBatch();
@@ -319,8 +313,6 @@ namespace Stulu {
 		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
-		ST_PROFILING_RENDERDATA_ADDINDICES(6);
-		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(size, 1.0f)),texture, texture->getSettings().tiling * tiling, color);
@@ -333,7 +325,6 @@ namespace Stulu {
 	}
 	
 	void Renderer2D::drawFromSpriteSheet(const glm::mat4& transform, const Ref<SubTexture2D>& sprite, const glm::vec2& tiling, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			flushQuads();
 			resetQuadBatch();
@@ -362,8 +353,6 @@ namespace Stulu {
 		}
 
 		s_renderer2Ddata.quadIndexCount += 6;
-		ST_PROFILING_RENDERDATA_ADDINDICES(6);
-		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawFromSpriteSheet(Math::createMat4(glm::vec3(pos,.0f), glm::vec3(.0f), glm::vec3(size, 1.0f)), sprite, tiling, color);
@@ -376,7 +365,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::drawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness, float fade) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.circleIndexCount >= s_renderer2Ddata.maxIndices) {
 			flushCircles();
 			resetCircleBatch();
@@ -392,8 +380,6 @@ namespace Stulu {
 			s_renderer2Ddata.circleVertexBufferPtr++;
 		}
 		s_renderer2Ddata.circleIndexCount += 6;
-		ST_PROFILING_RENDERDATA_ADDINDICES(6);
-		ST_PROFILING_RENDERDATA_ADDVERTICES(4);
 	}
 	void Renderer2D::drawCircle(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color, float thickness, float fade) {
 		drawCircle(Math::createMat4(pos, glm::vec3(size, 1.0f)), color, thickness, fade);
@@ -403,7 +389,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.lineVertexCount >= s_renderer2Ddata.maxVertices) {
 			flushLines();
 			resetLineBatch();
@@ -417,7 +402,6 @@ namespace Stulu {
 		s_renderer2Ddata.lineVertexBufferPtr++;
 
 		s_renderer2Ddata.lineVertexCount += 2;
-		ST_PROFILING_RENDERDATA_ADDVERTICES(2);
 	}
 	void Renderer2D::drawLineRect(const glm::mat4& transform, const glm::vec4& color) {
 		glm::vec3 lineVertices[4];

@@ -27,20 +27,21 @@ namespace Stulu {
 	};
 	class STULU_API Mesh {
 	public:
-		Mesh() = default;
+		Mesh();
 		Mesh(const Mesh&) = default;
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
-		Mesh(Vertex* vertices, size_t verticesCount, uint32_t* indices, size_t indicesCount);
-		Mesh(void* vertices, size_t verticesSize, uint32_t* indices, size_t indicesCount, BufferLayout layout = s_defaultLayout);
+		Mesh(Vertex* vertices, uint32_t verticesCount, uint32_t* indices, uint32_t indicesCount);
+		Mesh(void* vertices, uint32_t verticesSize, uint32_t* indices, uint32_t indicesCount, const BufferLayout& layout = s_defaultLayout);
 
 		const void recalculate();
 		const void calculateNormals();
 
-		void setVertices(std::vector<Vertex>& vertices) { m_vertices = vertices; }
-		void setIndices(std::vector<uint32_t>& indices) { m_indices = indices; }
+		void setVertices(const std::vector<Vertex>& vertices, const BufferLayout& layout = s_defaultLayout);
+		void setVertices(void* vertices, uint32_t verticesSize, const BufferLayout& layout = s_defaultLayout);
+		void setIndices(const std::vector<uint32_t>& indices);
+
 
 		SubMesh& getSubMesh(const size_t index) {
-			ST_PROFILING_FUNCTION();
 			if (index < m_subMeshCount)
 				return m_subMeshes[index];
 
@@ -48,44 +49,56 @@ namespace Stulu {
 			return m_subMeshes[-1];
 		}
 		void addSubMesh(const SubMesh mesh) {
-			ST_PROFILING_FUNCTION();
 			m_subMeshes.push_back(mesh);
 			m_subMeshCount++;
 		}
 
-		size_t getSubMeshCount() const { return m_subMeshCount; }
-		size_t getVerticesCount() const { return m_verticesCount; }
-		size_t getIndicesCount() const { return m_indicesCount; }
-		const std::vector<Vertex>& getVertices() const { return m_vertices; }
-		const std::vector<uint32_t>& getIndices() const { return m_indices; }
-		std::vector<Vertex>& getVertices() { return m_vertices; }
-		std::vector<uint32_t>& getIndices() { return m_indices; }
+		uint32_t getSubMeshCount() const { return m_subMeshCount; }
+		const Ref<BoundingBox>& getBoundingBox() const { return m_boundingBox; }
 
-		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
+
 		const Ref<Stulu::VertexArray>& getVertexArray() const { return m_vertexArray; }
 		const Ref<Stulu::VertexBuffer>& getVertexBuffer() const { return m_vertexArray->getVertexBuffers()[0]; }
+		uint32_t getVerticesCount() const { return m_verticesCount; }
+		const std::vector<Vertex>& getVertices() const { return m_vertices; }
+		const void* getVertexData() const { return m_vertexData; }
+		std::vector<Vertex>& getVertices() { return m_vertices; }
+		void* getVertexData() { return m_vertexData; }
+
 		const Ref<Stulu::IndexBuffer>& getIndexBuffer() const { return m_vertexArray->getIndexBuffer(); }
-		const Ref<BoundingBox>& getBoundingBox() const { return m_boundingBox; }
+		uint32_t getIndicesCount() const { return m_indicesCount; }
+		const std::vector<uint32_t>& getIndices() const { return m_indices; }
+		const void* getIndicesData() const { return m_indicesData; }
+		std::vector<uint32_t>& getIndices() { return m_indices; }
+		void* getIndicesData() { return m_indicesData; }
+
 
 		Vertex getFurthestVertexFromPos(const glm::vec3& pos, uint64_t scanCount = 0) const;
 		glm::vec3 getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t scanCount = 0) const;
 
+
+
+		static BufferLayout getDefaultLayout() { return s_defaultLayout; }
 		//for generating a convex mesh
 		static Mesh copyAndLimit(const Ref<Mesh>& mesh, uint64_t vertLimit = 0);
 
 		static Mesh combine(const Mesh& mesh);
 		static Mesh combine(const Ref<Mesh>& mesh);
 	private:
+		Ref<Stulu::BoundingBox> m_boundingBox = nullptr;
 		Ref<Stulu::VertexArray> m_vertexArray = nullptr;
+
 		std::vector<Vertex> m_vertices;
+		uint32_t m_verticesCount = 0;
+		void* m_vertexData = nullptr;
+		
 		std::vector<uint32_t> m_indices;
+		uint32_t m_indicesCount = 0;
+		uint32_t* m_indicesData = nullptr;
 
 		std::vector<SubMesh> m_subMeshes;
-		size_t m_subMeshCount = 0;
-		size_t m_verticesCount = 0;
-		size_t m_indicesCount = 0;
+		uint32_t m_subMeshCount = 0;
 
-		Ref<BoundingBox> m_boundingBox = nullptr;
 
 		static BufferLayout s_defaultLayout;
 

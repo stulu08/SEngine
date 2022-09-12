@@ -47,13 +47,15 @@ namespace Stulu {
 
 		static void ApplyPostProcessing(SceneCamera& camera);
 		static void ApplyPostProcessing(CameraComponent& camera);
-		static void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer);
-		static void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source);
+		static void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data = PostProcessingData());
+		static void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data = PostProcessingData());
 
 		//if useReflectionMap is false, a normal skybox will be used
 		static void drawScene(const Ref<CubeMap>& reflectionMap);
 		static void drawSkyBox(const Ref<CubeMap>& skybox);
 	private:
+		static void DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data);
+
 		struct RuntimeData {
 			Ref<UniformBuffer> lightBuffer = nullptr;
 			Ref<UniformBuffer> postProcessungBuffer = nullptr;
@@ -64,15 +66,6 @@ namespace Stulu {
 			} fbDrawData;
 			std::vector<RenderObject> drawList;
 			std::vector<RenderObject> transparentDrawList;
-
-			struct Bloom {
-				//https://www.youtube.com/watch?v=tI70-HIc5ro
-				Ref<ComputeShader> shader;
-				std::vector<Ref<Texture>> textures;
-				float bloomIntensity = 1.0f;
-				float bloomTreshold = 1.1f;
-				const uint32_t maxMip = 8;
-			} bloomData;
 		};
 		static RuntimeData s_runtimeData;
 
@@ -85,13 +78,15 @@ namespace Stulu {
 			} lights[ST_MAXLIGHTS];
 			uint32_t lightCount = 0;
 		};
-		struct PostProcessingData {
+		struct PostProcessingBufferData {
 			float time = 0.0f;
 			float delta = 0.0f;
-		};
-		struct ShaderSceneData {
 			float toneMappingExposure = 1.0f;
 			float gamma = 2.2f;
+		};
+		struct ShaderSceneData {
+			float test1 = 1.0f;
+			float test2 = 1.0f;
 			float env_lod = 4.0f;
 			uint32_t enableGammaCorrection = 1u;
 			glm::vec4 clearColor = glm::vec4(.0f);
@@ -100,7 +95,7 @@ namespace Stulu {
 			uint32_t shaderFlags = 0;
 		};
 		static LightData s_lightData;
-		static PostProcessingData s_postProcessingData;
+		static PostProcessingBufferData s_postProcessingData;
 		static ShaderSceneData s_shaderSceneData;
 
 		friend class EditorLayer;

@@ -29,7 +29,6 @@ namespace Stulu {
 		uploadBufferData(projection, view, position, rotation, z_near, z_far);
 	}
 	void Renderer::end() {
-		ST_PROFILING_FUNCTION();
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
 		ST_PROFILING_FUNCTION();
@@ -39,7 +38,6 @@ namespace Stulu {
 		RenderCommand::drawIndexed(vertexArray, count);
 	}
 	void Renderer::uploadBufferData(const glm::mat4& projection, const glm::mat4& transform, float z_near, float z_far) {
-		ST_PROFILING_FUNCTION();
 		glm::vec3 pos, rot, scale;
 		Math::decomposeTransformEuler(transform, pos, rot, scale);
 		uploadBufferData(projection, glm::inverse(transform), pos, rot, z_near, z_far);
@@ -56,6 +54,7 @@ namespace Stulu {
 		m_runtimeData.matricesDataUniformBuffer->setData(&m_runtimeData.matricesData, sizeof(Renderer::MatricesBufferData));
 	}
 	void Renderer::uploadBufferData(void* data, uint32_t size, uint32_t offset) {
+		ST_PROFILING_FUNCTION();
 		m_runtimeData.matricesDataUniformBuffer->setData(data, size, offset);
 	}
 }

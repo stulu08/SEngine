@@ -3,6 +3,18 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Component.h"
 namespace Stulu {
+	struct PostProcessingData {
+		float gamma = 2.2f;
+		float exposure = 1.0f;
+		struct Bloom {
+			Ref<Texture2D> downSample[5];
+			Ref<Texture2D> upSample[5];
+			uint32_t samples = 0;
+			float bloomIntensity = 1.0f;
+			float bloomTreshold = 1.1f;
+			bool enabled = false;
+		} bloomData;
+	};
 	class STULU_API Component;
 	class STULU_API CameraComponent : public Component {
 	public:
@@ -44,7 +56,7 @@ namespace Stulu {
 
 		Ref<CubeMap> reflectionMap = nullptr;
 		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
-
+		PostProcessingData* postProcessing = nullptr;
 		friend class Scene;
 		friend class SceneRenderer;
 	};

@@ -4,7 +4,6 @@
 
 namespace Stulu {
 	void EditorHierarchyPanel::setScene(const Ref<Scene>& scene) {
-		ST_PROFILING_FUNCTION();
 		m_selectedObject = GameObject::null;
 		m_scene = scene;
 	}
@@ -79,6 +78,7 @@ namespace Stulu {
 						GameObject g = m_scene->createGameObject("Perspective Camera");
 						g.addComponent<CameraComponent>(CameraMode::Perspective, true);
 						g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
+						g.saveAddComponent<PostProcessingComponent>();
 					}
 					ImGui::EndMenu();
 				}
@@ -88,7 +88,6 @@ namespace Stulu {
 		ImGui::End();
 	}
 	void EditorHierarchyPanel::drawObject(GameObject gameObject, int childIndex) {
-		ST_PROFILING_FUNCTION();
 		auto transform = gameObject.getComponent<TransformComponent>();
 		if (transform.parent && childIndex == 0)
 			return;
@@ -150,7 +149,6 @@ namespace Stulu {
 		}
 	}
 	void EditorHierarchyPanel::noScene() {
-		ST_PROFILING_FUNCTION();
 		ImGui::Text("No Scene loaded");
 		ImGui::End();
 	}

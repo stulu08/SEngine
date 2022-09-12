@@ -39,7 +39,6 @@ namespace Stulu {
 		CORE_ASSERT(vBuffer->getLayout().getElements().size(), "Vertexbuffer has no layout");
 		glBindVertexArray(m_rendererID);
 		vBuffer->bind();
-
 		const auto& layout = vBuffer->getLayout();
 		for (const auto& element : layout) {
 			glEnableVertexAttribArray(m_vertexbufferIndex);
@@ -54,8 +53,19 @@ namespace Stulu {
 		m_vertexBufffers.push_back(vBuffer);
 	}
 
+	void OpenGLVertexArray::clearVertexBuffers() {
+		ST_PROFILING_FUNCTION();
+		glBindVertexArray(m_rendererID);
+		for (auto& vb : m_vertexBufffers) {
+			vb->unbind();
+		}
+		m_vertexbufferIndex = 0;
+		m_vertexBufffers.clear();
+	}
+
 	void OpenGLVertexArray::setIndexBuffer(const Ref<IndexBuffer>& iBuffer) {
 		ST_PROFILING_FUNCTION();
+		glBindVertexArray(m_rendererID);
 		iBuffer->bind();
 		m_indexBuffer = iBuffer;
 	}
@@ -65,7 +75,6 @@ namespace Stulu {
 	}
 
 	void OpenGLVertexArray::unbind() const {
-		ST_PROFILING_FUNCTION();
 		glBindVertexArray(0);
 	}
 }

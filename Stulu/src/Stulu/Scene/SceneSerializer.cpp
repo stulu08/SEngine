@@ -220,6 +220,17 @@ namespace Stulu {
 			out << YAML::Key << "massCenterPos" << YAML::Value << component.massCenterPos;
 			out << YAML::EndMap;
 		}
+		if (gameObject.hasComponent<PostProcessingComponent>()) {
+			out << YAML::Key << "PostProcessingComponent";
+			out << YAML::BeginMap;
+			auto& component = gameObject.getComponent<PostProcessingComponent>();
+			out << YAML::Key << "exposure" << YAML::Value << component.data.exposure;
+			out << YAML::Key << "gamma" << YAML::Value << component.data.gamma;
+			out << YAML::Key << "bloomIntensity" << YAML::Value << component.data.bloomData.bloomIntensity;
+			out << YAML::Key << "bloomTreshold" << YAML::Value << component.data.bloomData.bloomTreshold;
+			out << YAML::Key << "bloomEnabled" << YAML::Value << component.data.bloomData.enabled;
+			out << YAML::EndMap;
+		}
 
 		out << YAML::EndMap;
 	}
@@ -231,16 +242,9 @@ namespace Stulu {
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
 
-		out << YAML::Key << "gamma" << YAML::Value << m_scene->m_data.graphicsData.gamma;
-		out << YAML::Key << "toneMappingExposure" << YAML::Value << m_scene->m_data.graphicsData.toneMappingExposure;
-
 		out << YAML::Key << "env_lod" << YAML::Value << m_scene->m_data.graphicsData.env_lod;
 
 		out << YAML::Key << "useReflectionMapReflections" << YAML::Value << m_scene->m_data.graphicsData.useReflectionMapReflections;
-
-		out << YAML::Key << "bloom" << YAML::Value << m_scene->m_data.graphicsData.bloom;
-		out << YAML::Key << "bloomIntensity" << YAML::Value << m_scene->m_data.graphicsData.bloomIntensity;
-		out << YAML::Key << "bloomTreshold" << YAML::Value << m_scene->m_data.graphicsData.bloomTreshold;
 
 		out << YAML::Key << "enablePhsyics3D" << YAML::Value << m_scene->m_data.enablePhsyics3D;
 		out << YAML::Key << "physicsData.gravity" << YAML::Value << m_scene->m_data.physicsData.gravity;
@@ -274,22 +278,10 @@ namespace Stulu {
 				if (settings["shaderFlags"])
 					m_scene->m_data.shaderFlags = settings["shaderFlags"].as<uint32_t>();
 
-				if (settings["gamma"])
-					m_scene->m_data.graphicsData.gamma = settings["gamma"].as<float>();
-				if (settings["toneMappingExposure"])
-					m_scene->m_data.graphicsData.toneMappingExposure = settings["toneMappingExposure"].as<float>();
-
 				if (settings["env_lod"])
 					m_scene->m_data.graphicsData.env_lod = settings["env_lod"].as<float>();
 				if (settings["useReflectionMapReflections"])
 					m_scene->m_data.graphicsData.useReflectionMapReflections = settings["useReflectionMapReflections"].as<bool>();
-
-				if (settings["bloom"])
-					m_scene->m_data.graphicsData.bloom = settings["bloom"].as<bool>();
-				if (settings["bloomIntensity"])
-					m_scene->m_data.graphicsData.bloomIntensity = settings["bloomIntensity"].as<float>();
-				if (settings["bloomTreshold"])
-					m_scene->m_data.graphicsData.bloomTreshold = settings["bloomTreshold"].as<float>();
 
 				if (settings["enablePhsyics3D"])
 					m_scene->m_data.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
@@ -407,6 +399,15 @@ namespace Stulu {
 						if (spriteRendererNode["texture"])
 							if(AssetsManager::exists(UUID(spriteRendererNode["texture"].as<uint64_t>())))
 								src.texture = std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(spriteRendererNode["texture"].as<uint64_t>())).data);
+					}
+					auto postprocessingNode = gameObject["PostProcessingComponent"];
+					if (postprocessingNode) {
+						auto& src = deserialized.addComponent<PostProcessingComponent>();
+						src.data.gamma = postprocessingNode["gamma"].as<float>();
+						src.data.exposure = postprocessingNode["exposure"].as<float>();
+						src.data.bloomData.bloomIntensity = postprocessingNode["bloomIntensity"].as<float>();
+						src.data.bloomData.bloomTreshold = postprocessingNode["bloomTreshold"].as<float>();
+						src.data.bloomData.enabled = postprocessingNode["bloomEnabled"].as<bool>();
 					}
 					auto circleRendererNode = gameObject["CircleRendererComponent"];
 					if (circleRendererNode) {

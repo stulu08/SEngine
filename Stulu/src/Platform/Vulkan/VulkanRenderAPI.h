@@ -27,7 +27,9 @@ namespace Stulu {
 		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0, const uint32_t instanceCount = 0) override;
 		virtual void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) override;
 
-
+		virtual const glm::ivec3 getMaxComputeWorkGroupCount() const override{}
+		virtual const glm::ivec3 getMaxComputeWorkGroupSizes() const override{}
+		virtual const uint32_t getMaxComputeWorkGroupInvocationCount() const override{}
 
 		inline static Device& getDevice() {
 			return *s_device;

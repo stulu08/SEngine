@@ -58,7 +58,6 @@ namespace Stulu {
 		glDeleteTextures(1, &m_rendererID);
 	}
 	void OpenGLTexture2D::bind(uint32_t slot) const {
-		ST_PROFILING_FUNCTION();
 		glBindTextureUnit(slot, m_rendererID);
 	}
 	void OpenGLTexture2D::setData(void* data, uint32_t size, uint32_t mipLevel) {
@@ -168,6 +167,10 @@ namespace Stulu {
 			internalFormat = GL_RGBA16F;
 			m_dataFormat = GL_RGBA;
 			break;
+		case TextureSettings::Format::RGBA32F:
+			internalFormat = GL_RGBA32F;
+			m_dataFormat = GL_RGBA;
+			break;
 		case TextureSettings::Format::Auto:
 			switch (channels) {
 			case 4:
@@ -196,6 +199,6 @@ namespace Stulu {
 		return { internalFormat,m_dataFormat };
 	}
 	bool isGLTextureFormatFloat(const TextureSettings::Format& format) {
-		return format == TextureSettings::Format::RGB16F || format == TextureSettings::Format::RGBA16F;
+		return format == TextureSettings::Format::RGB16F || format == TextureSettings::Format::RGBA16F || format == TextureSettings::Format::RGBA32F;
 	}
 }

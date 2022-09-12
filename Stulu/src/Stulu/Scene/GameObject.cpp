@@ -6,10 +6,8 @@ namespace Stulu {
 	GameObject GameObject::null = { entt::entity{ entt::null }, nullptr};
 	GameObject::GameObject(entt::entity entity, Scene* scene)
 		: m_entity(entity), m_scene(scene){
-		ST_PROFILING_FUNCTION();
 	}
 	UUID GameObject::getId() {
-		ST_PROFILING_FUNCTION();
 		return getComponent<GameObjectBaseComponent>().uuid;
 	}
 	GameObject GameObject::getById(const UUID& id, Scene* scene) {

@@ -25,6 +25,7 @@ namespace Stulu {
 			s_physics.startUp();
 	}
 	Scene::~Scene() {
+		ST_PROFILING_FUNCTION();
 		m_registry.clear();
 	}
 
@@ -108,7 +109,6 @@ namespace Stulu {
 			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 			for (auto gameObject : group) {
 				if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
-					ST_PROFILING_SCOPE("Rendering Mesh");
 					SceneRenderer::RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
 				}
 			}
@@ -157,7 +157,6 @@ namespace Stulu {
 			auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
 			for (auto gameObject : view)
 			{
-				ST_PROFILING_SCOPE("Rendering Sprite");
 				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
 				if (sprite.texture)
 					Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
@@ -167,7 +166,6 @@ namespace Stulu {
 			auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
 			for (auto gameObject : circleView)
 			{
-				ST_PROFILING_SCOPE("Rendering Sprite");
 				auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
 				Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
 			}
@@ -179,13 +177,12 @@ namespace Stulu {
 	}
 
 	void Scene::renderSceneEditor(SceneCamera& camera) {
+		ST_PROFILING_FUNCTION();
 		SceneRenderer::Begin();
-		ST_PROFILING_SCOPE("Scene Camera Rendering");
 		{
 			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 			for (auto gameObject : group) {
 				if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
-					ST_PROFILING_SCOPE("Rendering Mesh Editor");
 					SceneRenderer::RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
 				}
 			}
@@ -225,7 +222,6 @@ namespace Stulu {
 		auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
 		for (auto gameObject : view)
 		{
-			ST_PROFILING_SCOPE("Rendering Sprite");
 			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
 			if (sprite.texture)
 				Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
@@ -235,7 +231,6 @@ namespace Stulu {
 		auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
 		for (auto gameObject : circleView)
 		{
-			ST_PROFILING_SCOPE("Rendering Sprite");
 			auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
 			Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
 		}
@@ -247,7 +242,6 @@ namespace Stulu {
 			RenderCommand::setWireFrame(false);
 
 		SceneRenderer::End();
-
 		SceneRenderer::ApplyPostProcessing(camera);
 	}
 
@@ -409,7 +403,6 @@ namespace Stulu {
 		st_transform_updated.clear();
 	}
 	void Scene::updateTransform(TransformComponent& tc) {
-		ST_PROFILING_FUNCTION();
 		if (tc.parent) {
 			TransformComponent& ptc = tc.parent.getComponent<TransformComponent>();
 			if (st_transform_updated.find(tc.parent.m_entity) == st_transform_updated.end())
@@ -454,6 +447,7 @@ namespace Stulu {
 	}
 
 	void Scene::onEvent(Stulu::Event& e) {
+		ST_PROFILING_FUNCTION();
 		if (e.getEventType() == EventType::WindowClose) {
 			if (s_physics.started())
 				s_physics.shutDown();
@@ -731,4 +725,6 @@ namespace Stulu {
 	void STULU_API Scene::onComponentAdded<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) { }
 	template<>
 	void STULU_API Scene::onComponentAdded<ScriptingComponent>(GameObject gameObject, ScriptingComponent& component) { }
+	template<>
+	void STULU_API Scene::onComponentAdded<PostProcessingComponent>(GameObject gameObject, PostProcessingComponent& component) { }
 }

@@ -215,11 +215,9 @@ namespace Stulu {
 	}
 
 	void OpenGLShader::bind() const {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 	}
 	void OpenGLShader::unbind() const {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(0);
 	}
 	void OpenGLShader::setMat4(const std::string& name, const glm::mat4& mat){

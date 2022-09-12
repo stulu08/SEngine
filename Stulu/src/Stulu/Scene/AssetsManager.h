@@ -59,7 +59,6 @@ namespace Stulu {
 		const static AssetType& getAssetType(const UUID& uuid);
 		template<typename T>
 		static inline T* getAsPtr(const UUID& uuid) {
-			ST_PROFILING_FUNCTION();
 			if (exists(uuid))
 				return assets[uuid].data._Cast<T>();
 			else
@@ -68,7 +67,6 @@ namespace Stulu {
 		}
 		template<typename T>
 		static inline T& getAs(const UUID& uuid) {
-			ST_PROFILING_FUNCTION();
 			if (!exists(uuid)) {
 				CORE_ERROR("UUID not present in assets");
 
@@ -92,7 +90,6 @@ namespace Stulu {
 		static UUID getModelFromMaterial(UUID material);
 
 		static inline bool hasProperity(const std::string path, const std::string& properity) {
-			ST_PROFILING_FUNCTION();
 			if (FileExists(path + ".meta")) {
 				YAML::Node data = YAML::LoadFile(path + ".meta");
 				if (data["props"]) {
@@ -103,7 +100,6 @@ namespace Stulu {
 		}
 		template <typename T>
 		static inline T getProperity(const std::string path, const std::string& properity) {
-			ST_PROFILING_FUNCTION();
 			if (FileExists(path + ".meta")) {
 				YAML::Node data = YAML::LoadFile(path + ".meta");
 				if (data["props"]) {

@@ -12,6 +12,7 @@ namespace Stulu {
 
 	ScriptAssembly::ScriptAssembly(MonoDomain* rootDomain, const std::string& assembly) 
 		: m_monoRootDomain(rootDomain),m_assembly(assembly) {
+		ST_PROFILING_FUNCTION();
 		CORE_INFO("Loading Assembly: {0}", m_assembly);
 
 		m_monoScriptDomain = mono_domain_create_appdomain(constStringToCharPtr(m_assembly), NULL);
@@ -39,6 +40,7 @@ namespace Stulu {
 	}
 
 	ScriptAssembly::~ScriptAssembly() {
+		ST_PROFILING_FUNCTION();
 		if (!m_monoRootDomain)
 			return;
 		for (auto [id, object] : m_objects) {
@@ -49,6 +51,7 @@ namespace Stulu {
 	}
 
 	MonoClass* ScriptAssembly::createClass(const std::string& m_nameSpace, const std::string& m_className) const {
+		ST_PROFILING_FUNCTION();
 		MonoClass* classPtr = mono_class_from_name(m_monoImage, m_nameSpace.c_str(), m_className.c_str());
 		if (classPtr) {
 			return classPtr;
@@ -58,6 +61,7 @@ namespace Stulu {
 	}
 
 	MonoFunction ScriptAssembly::createFunction(const std::string& m_nameSpace, const std::string& m_className, const std::string& functionName) const {
+		ST_PROFILING_FUNCTION();
 		MonoFunction function;
 		function.name = functionName;
 
@@ -79,6 +83,7 @@ namespace Stulu {
 	}
 
 	MonoFunction ScriptAssembly::createFunction(MonoClass* classPtr, const std::string& functionName) {
+		ST_PROFILING_FUNCTION();
 		MonoFunction function;
 		function.classPtr = classPtr;
 
@@ -139,6 +144,7 @@ namespace Stulu {
 	}
 #endif
 	MonoObject* ScriptAssembly::invokeFunction(const MonoFunction& function, void* obj, void** args) const {
+		ST_PROFILING_FUNCTION();
 		if (!function.methodPtr)
 			return nullptr;
 		MonoObject* ex = nullptr;
@@ -159,6 +165,7 @@ namespace Stulu {
 		return re;
 	}
 	MonoObject* ScriptAssembly::invokeFunction(MonoMethod* function, void* obj, void** args) const {
+		ST_PROFILING_FUNCTION();
 		if (!function)
 			return nullptr;
 
@@ -181,6 +188,7 @@ namespace Stulu {
 	}
 
 	void ScriptAssembly::loadAllClasses(MonoClass* _parentClass) {
+		ST_PROFILING_FUNCTION();
 		const MonoTableInfo* table_info = mono_image_get_table_info(m_monoImage, MONO_TABLE_TYPEDEF);
 
 		std::string parent = mono_class_get_namespace(_parentClass) + std::string(".") + mono_class_get_name(_parentClass);
@@ -216,6 +224,7 @@ namespace Stulu {
 	}
 
 	void ScriptAssembly::reload(std::function<bool(const std::string&)>& recompileFinished, std::function<bool(const std::string&)>& recompile) {
+		ST_PROFILING_FUNCTION();
 		CORE_INFO("Reloading Assembly: {0}", m_assembly);
 
 		for (auto [id, object] : m_objects) {

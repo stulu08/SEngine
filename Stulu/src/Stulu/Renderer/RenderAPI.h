@@ -33,6 +33,9 @@ namespace Stulu {
 		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0, const uint32_t instanceCount = 0) = 0;
 		virtual void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) = 0;
 
+		virtual const glm::ivec3 getMaxComputeWorkGroupCount() const = 0;
+		virtual const glm::ivec3 getMaxComputeWorkGroupSizes() const = 0;
+		virtual const uint32_t getMaxComputeWorkGroupInvocationCount() const = 0;
 
 		inline static API getAPI() { return s_api; };
 	private:

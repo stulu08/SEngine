@@ -23,10 +23,12 @@ namespace Stulu {
 		float getAspectRatio() const { return m_aspectRatio; }
 		float getAspectRatioX() const { return m_aspectRatio; }
 		float getAspectRatioY() const { return 1.0f; }
+		glm::vec2 getAspectRatioXY() const { return { getAspectRatioX(),getAspectRatioY() }; }
 		float getNear() const { return m_zNear; }
 		float getFar() const { return m_zFar; }
 		float getFov() const { return m_fov; }
 
+		PostProcessingData& getPostProcessingData() { return postProcessingData; }
 		const TransformComponent& getTransform() const { return m_transform; }
 		TransformComponent& getTransform() { return m_transform; }
 		const Frustum& getFrustum() const { return m_frustum; }
@@ -42,6 +44,7 @@ namespace Stulu {
 		Ref<FrameBuffer> reflectionFrameBuffer = nullptr;
 		TransformComponent m_transform;
 		Frustum m_frustum;
+		PostProcessingData postProcessingData;
 
 		float m_cameraMoveSpeed = 1.0f;
 		float m_cameraSensitivity = .8f;

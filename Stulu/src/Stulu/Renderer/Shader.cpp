@@ -340,11 +340,13 @@ layout(std140, binding = 2) uniform postProcessing
 {
 	float time;
 	float delta;
+	float toneMappingExposure;
+	float gamma;
 };
 layout(std140, binding = 3) uniform shaderSceneData
 {
-	float toneMappingExposure;
-	float gamma;
+	float test1;
+	float test2;
 	float env_lod;
 	bool enableGammaCorrection;
 	vec4 clearColor;

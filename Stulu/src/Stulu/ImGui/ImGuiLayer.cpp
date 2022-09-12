@@ -23,7 +23,6 @@ namespace Stulu {
 		:Layer("ImGuiLayer"){}
 
 	ImGuiLayer::~ImGuiLayer(){
-		ST_PROFILING_FUNCTION();
 	}
 
 	void ImGuiLayer::onAttach() {
@@ -108,6 +107,7 @@ namespace Stulu {
 	}
 
 	void ImGuiLayer::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		if (m_blockEvents) {
 			ImGuiIO& io = ImGui::GetIO();
 			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;

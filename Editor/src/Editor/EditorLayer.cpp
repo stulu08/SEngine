@@ -59,6 +59,20 @@ namespace Stulu {
 	uint32_t terrainSize = 128;//in quads
 	PerlinSettings noiseSettings = { 8, 2.0f, 25.0f, glm::vec2((float)terrainSize) };
 	void generateDebugTerrain() {
+		GameObject go = Scene::activeScene()->findGameObjectByName("Terrain");
+		if (!go) {
+			go = Scene::activeScene()->createGameObject("Terrain");
+			go.addComponent<MeshFilterComponent>();
+		}
+		Ref<Mesh> mesh;
+		if (!go.getComponent<MeshFilterComponent>().mesh.hasMesh) {
+			mesh = createRef<Mesh>();
+			go.getComponent<MeshFilterComponent>().setMesh(mesh, "Terrain Mesh");
+		}
+		mesh = go.getComponent<MeshFilterComponent>().mesh.mesh;
+		go.getComponent<TransformComponent>().position = { -(terrainSize / 2.0f), .0f, -(terrainSize / 2.0f) };
+
+
 		noiseSettings.size = glm::vec2((float)terrainSize);
 		Math::setPerlinSeed(terrainSeed);
 		auto& getYLevel = [&](const glm::vec2& pos) -> float {
@@ -94,9 +108,6 @@ namespace Stulu {
 			}
 			return { 1.0f, 1.0f, 1.0f, 1.0f };
 		};
-
-		Ref<Mesh> mesh = createRef<Mesh>();
-
 
 		std::vector<Vertex> vertices((terrainSize + 1) * (terrainSize + 1));
 		std::vector<uint32_t> triangles(terrainSize * terrainSize * 6);
@@ -139,19 +150,11 @@ namespace Stulu {
 		mesh->setVertices(vertices);
 		mesh->setIndices(triangles);
 
-
 		mesh->calculateNormals();
 		mesh->recalculate();
-		GameObject go = Scene::activeScene()->findGameObjectByName("Terrain");
-		if (!go)
-			go = Scene::activeScene()->createGameObject("Terrain");
-
-		go.getComponent<TransformComponent>().position = { -(terrainSize / 2.0f), .0f, -(terrainSize / 2.0f) };
-		go.saveAddComponent<MeshFilterComponent>().setMesh(mesh, "Terrain Mesh");
 	}
 #pragma endregion
 #pragma region GUI
-	Ref<Texture2D> debugTexture;
 	void EditorLayer::onImguiRender(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
 		ImGui::DockSpaceOverViewport();
@@ -160,7 +163,24 @@ namespace Stulu {
 		SceneData& data = m_activeScene->m_data;
 		if (m_showDebugWindow) {
 			if (ImGui::Begin("Debug Window", &m_showDebugWindow)) {
-				static uint32_t mip = 0;
+				if (ImGui::TreeNodeEx("Bloom")) {
+					auto& data = m_sceneCamera.getPostProcessingData().bloomData;
+					{//downsample
+						static uint32_t sample = 0;
+						ComponentsRender::drawUIntSliderControl("U index", sample, 0, data.samples - 1);
+						auto& texture = data.downSample[sample];
+						if (texture)
+							ImGui::Image(texture, glm::vec2(200.0f) * m_sceneCamera.getAspectRatioXY(), { 0,1 }, { 1,0 }, glm::vec4(1.0f), glm::vec4(COLOR_GRAY_VEC4));
+					}
+					{//upsample
+						static uint32_t sample = 0;
+						ComponentsRender::drawUIntSliderControl("D index", sample, 0, data.samples - 1);
+						auto& texture = data.upSample[sample];
+						if (texture)
+							ImGui::Image(texture, glm::vec2(200.0f) * m_sceneCamera.getAspectRatioXY(), { 0,1 }, { 1,0 }, glm::vec4(1.0f), glm::vec4(COLOR_GRAY_VEC4));
+					}
+					ImGui::TreePop();
+				}
 				if (ImGui::TreeNodeEx("Display Only:")) {
 					ComponentsRender::drawBoolBitFlagControl("Wireframe", ST_ShaderViewFlags_DisplayVertices, data.shaderFlags);
 					ComponentsRender::drawBoolBitFlagControl("Depth", ST_ShaderViewFlags_DisplayDepth, data.shaderFlags);
@@ -170,6 +190,7 @@ namespace Stulu {
 					ComponentsRender::drawBoolBitFlagControl("Diffuse", ST_ShaderViewFlags_DisplayDiffuse, data.shaderFlags);
 					ComponentsRender::drawBoolBitFlagControl("Specular", ST_ShaderViewFlags_DisplaySpecular, data.shaderFlags);
 					ComponentsRender::drawBoolBitFlagControl("Roughness", ST_ShaderViewFlags_DisplayRoughness, data.shaderFlags);
+					ComponentsRender::drawBoolBitFlagControl("Metallic", ST_ShaderViewFlags_DisplayMetallic, data.shaderFlags);
 					ComponentsRender::drawBoolBitFlagControl("Ambient Occlusion", ST_ShaderViewFlags_DisplayAmbient, data.shaderFlags);
 					ComponentsRender::drawBoolBitFlagControl("Emission", ST_ShaderViewFlags_DisplayEmission, data.shaderFlags);
 					ImGui::TreePop();
@@ -195,12 +216,15 @@ namespace Stulu {
 		if (m_showSceneSettingsPanel) {
 			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
 				if (ImGui::TreeNodeEx("Graphics")) {
-					ComponentsRender::drawFloatSliderControl("Exposure", data.graphicsData.toneMappingExposure, .0f, 5.0f);
-					ComponentsRender::drawFloatSliderControl("Gamma", data.graphicsData.gamma, .0f, 5.0f);
-					if (ImGui::TreeNodeEx("Bloom")) {
-						ComponentsRender::drawBoolControl("Bloom", data.graphicsData.bloom);
-						ComponentsRender::drawFloatControl("Intensity", data.graphicsData.bloomIntensity, .001f);
-						ComponentsRender::drawFloatControl("Treshold", data.graphicsData.bloomTreshold, .1f);
+					if (ImGui::TreeNodeEx("Scene Camera Settings")) {
+						ComponentsRender::drawFloatSliderControl("Exposure", m_sceneCamera.getPostProcessingData().exposure, .0f, 5.0f);
+						ComponentsRender::drawFloatSliderControl("Gamma", m_sceneCamera.getPostProcessingData().gamma, .0f, 5.0f);
+						if (ImGui::TreeNodeEx("Bloom")) {
+							ComponentsRender::drawBoolControl("Bloom", m_sceneCamera.getPostProcessingData().bloomData.enabled);
+							ComponentsRender::drawFloatControl("Intensity", m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity, .001f);
+							ComponentsRender::drawFloatControl("Treshold", m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold, .1f);
+							ImGui::TreePop();
+						}
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNodeEx("These still need work")) {
@@ -271,7 +295,6 @@ namespace Stulu {
 		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
 	}
 	void EditorLayer::drawMenuBar() {
-		ST_PROFILING_FUNCTION();
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 
@@ -509,13 +532,11 @@ namespace Stulu {
 		m_runtimeScene = nullptr;
 	}
 	void EditorLayer::SaveScene() {
-		ST_PROFILING_FUNCTION();
 		std::string path = Platform::saveFile("Scene File (*.scene)\0 *.scene\0Stulu Scene File (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0", EditorApp::getProject().path.c_str());
 		if (!path.empty())
 			SaveScene(path);
 	}
 	void EditorLayer::OpenScene() {
-		ST_PROFILING_FUNCTION();
 		if (s_runtime) {
 			m_activeScene->onRuntimeStop();
 			s_runtime = false;
@@ -833,7 +854,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if(m_sceneViewport.focused && m_sceneViewport.hovered)
 			m_sceneCamera.onEvent(e);
-		if (e.getEventType() == EventType::WindowResize) {
+		else if (e.getEventType() == EventType::WindowResize) {
 			m_sceneCamera.onResize((float)static_cast<WindowResizeEvent&>(e).getWidth(), (float)static_cast<WindowResizeEvent&>(e).getHeight());
 		}
 		
@@ -845,7 +866,6 @@ namespace Stulu {
 		//dispacther.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onGameObjectPick));
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
-		ST_PROFILING_FUNCTION();
 		if (e.getRepeatCount() > 0)
 			return false;
 
@@ -979,108 +999,160 @@ namespace Stulu {
 #pragma region Config
 	void EditorLayer::loadPanelConfig() {
 		ST_PROFILING_FUNCTION();
-		std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
-		if (!FileExists(file)) {
-			savePanelConfig();
-			return;
-		}
-
-		std::unordered_map<std::string, std::string> values;
-		int count = 0;
-		std::fstream stream(file, std::ios::in);
-		std::string str;
-		while (getline(stream, str)) {
-			str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-			size_t seperator = str.find_first_of("=");
-			std::string name = str.substr(0, seperator);
-			std::string data = str.substr(seperator + 1, str.npos);
-			values[name] = data;
-			count++;
-		}
-		if (values.find("m_showStyleEditor") != values.end())
-			m_showStyleEditor = std::stoi(values["m_showStyleEditor"]);
-		if (values.find("m_showHierarchy") != values.end())
-			m_showHierarchy = std::stoi(values["m_showHierarchy"]);
-		if (values.find("m_showInspector") != values.end())
-			m_showInspector = std::stoi(values["m_showInspector"]);
-		if (values.find("m_showAssetBrowser") != values.end())
-			m_showAssetBrowser = std::stoi(values["m_showAssetBrowser"]);
-		if (values.find("m_showGameViewport") != values.end())
-			m_showGameViewport = std::stoi(values["m_showGameViewport"]);
-		if (values.find("m_showSceneViewport") != values.end())
-			m_showSceneViewport = std::stoi(values["m_showSceneViewport"]);
-		if (values.find("m_showProfiling") != values.end())
-			m_showProfiling = std::stoi(values["m_showProfiling"]);
-		if (values.find("m_showSceneSettingsPanel") != values.end())
-			m_showSceneSettingsPanel = std::stoi(values["m_showSceneSettingsPanel"]);
-
-		if (values.find("m_gameViewport.m_selectedSize") != values.end())
-			m_gameViewport.m_selectedSize = std::stoi(values["m_gameViewport.m_selectedSize"]);
-		if (values.find("m_gameViewport.m_customSizeX") != values.end())
-			m_gameViewport.sizes[5].x = std::stof(values["m_gameViewport.m_customSizeX"]);
-		if (values.find("m_gameViewport.m_customSizeY") != values.end())
-			m_gameViewport.sizes[5].y = std::stof(values["m_gameViewport.m_customSizeY"]);
-		if (values.find("m_gameViewport.zoom") != values.end())
-			m_gameViewport.zoom = std::stof(values["m_gameViewport.zoom"]);
-
-		if (values.find("setting.vsync") != values.end())
-			getEditorApp().getWindow().setVSync(std::stoi(values["setting.vsync"]));
-		if (values.find("setting.lastScene") != values.end()) {
-			if (FileExists(values["setting.lastScene"])) {
-				OpenScene(values["setting.lastScene"]);
+		{
+			std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
+			if (!FileExists(file)) {
+				savePanelConfig();
+				return;
 			}
-		}
-		if (values.find("build.name") != values.end())
-			m_buildData.name = values["build.name"];
-		if (values.find("build.width") != values.end())
-			m_buildData.width = stoi(values["build.width"]);
-		if (values.find("build.height") != values.end())
-			m_buildData.height = stoi(values["build.height"]);
-		if (values.find("build.major") != values.end())
-			m_buildData.version.major = stoi(values["build.major"]);
-		if (values.find("build.minor") != values.end())
-			m_buildData.version.minor = stoi(values["build.minor"]);
-		if (values.find("build.patch") != values.end())
-			m_buildData.version.patch = stoi(values["build.patch"]);
 
-			
-		
-		ST_TRACE("Loaded Editor panel config from {0}", file);
+			std::unordered_map<std::string, std::string> values;
+			int count = 0;
+			std::fstream stream(file, std::ios::in);
+			std::string str;
+			while (getline(stream, str)) {
+				str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+				size_t seperator = str.find_first_of("=");
+				std::string name = str.substr(0, seperator);
+				std::string data = str.substr(seperator + 1, str.npos);
+				values[name] = data;
+				count++;
+			}
+			if (values.find("m_showStyleEditor") != values.end())
+				m_showStyleEditor = std::stoi(values["m_showStyleEditor"]);
+			if (values.find("m_showHierarchy") != values.end())
+				m_showHierarchy = std::stoi(values["m_showHierarchy"]);
+			if (values.find("m_showInspector") != values.end())
+				m_showInspector = std::stoi(values["m_showInspector"]);
+			if (values.find("m_showAssetBrowser") != values.end())
+				m_showAssetBrowser = std::stoi(values["m_showAssetBrowser"]);
+			if (values.find("m_showGameViewport") != values.end())
+				m_showGameViewport = std::stoi(values["m_showGameViewport"]);
+			if (values.find("m_showSceneViewport") != values.end())
+				m_showSceneViewport = std::stoi(values["m_showSceneViewport"]);
+			if (values.find("m_showProfiling") != values.end())
+				m_showProfiling = std::stoi(values["m_showProfiling"]);
+			if (values.find("m_showSceneSettingsPanel") != values.end())
+				m_showSceneSettingsPanel = std::stoi(values["m_showSceneSettingsPanel"]);
+
+			if (values.find("m_gameViewport.m_selectedSize") != values.end())
+				m_gameViewport.m_selectedSize = std::stoi(values["m_gameViewport.m_selectedSize"]);
+			if (values.find("m_gameViewport.m_customSizeX") != values.end())
+				m_gameViewport.sizes[5].x = std::stof(values["m_gameViewport.m_customSizeX"]);
+			if (values.find("m_gameViewport.m_customSizeY") != values.end())
+				m_gameViewport.sizes[5].y = std::stof(values["m_gameViewport.m_customSizeY"]);
+			if (values.find("m_gameViewport.zoom") != values.end())
+				m_gameViewport.zoom = std::stof(values["m_gameViewport.zoom"]);
+
+			if (values.find("setting.vsync") != values.end())
+				getEditorApp().getWindow().setVSync(std::stoi(values["setting.vsync"]));
+			if (values.find("setting.lastScene") != values.end()) {
+				if (FileExists(values["setting.lastScene"])) {
+					OpenScene(values["setting.lastScene"]);
+				}
+			}
+			if (values.find("build.name") != values.end())
+				m_buildData.name = values["build.name"];
+			if (values.find("build.width") != values.end())
+				m_buildData.width = stoi(values["build.width"]);
+			if (values.find("build.height") != values.end())
+				m_buildData.height = stoi(values["build.height"]);
+			if (values.find("build.major") != values.end())
+				m_buildData.version.major = stoi(values["build.major"]);
+			if (values.find("build.minor") != values.end())
+				m_buildData.version.minor = stoi(values["build.minor"]);
+			if (values.find("build.patch") != values.end())
+				m_buildData.version.patch = stoi(values["build.patch"]);
+
+
+
+			ST_TRACE("Loaded Editor panel config from {0}", file);
+		}
+		{
+			std::string file = getEditorProject().configPath + "/editor-camera-config.ini";
+			if (!FileExists(file)) {
+				savePanelConfig();
+				return;
+			}
+
+			std::unordered_map<std::string, std::string> values;
+			int count = 0;
+			std::fstream stream(file, std::ios::in);
+			std::string str;
+			while (getline(stream, str)) {
+				str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+				size_t seperator = str.find_first_of("=");
+				std::string name = str.substr(0, seperator);
+				std::string data = str.substr(seperator + 1, str.npos);
+				values[name] = data;
+				count++;
+			}
+			if (values.find("postProcessingData.exposure") != values.end())
+				m_sceneCamera.getPostProcessingData().exposure = std::stof(values["postProcessingData.exposure"]);
+			if (values.find("postProcessingData.gamma") != values.end())
+				m_sceneCamera.getPostProcessingData().gamma = std::stof(values["postProcessingData.gamma"]);
+			if (values.find("postProcessingData.bloomIntensity") != values.end())
+				m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity = std::stof(values["postProcessingData.bloomIntensity"]);
+			if (values.find("postProcessingData.bloomTreshold") != values.end())
+				m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold = std::stof(values["postProcessingData.bloomTreshold"]);
+			if (values.find("postProcessingData.bloomEnabled") != values.end())
+				m_sceneCamera.getPostProcessingData().bloomData.enabled = std::stof(values["postProcessingData.bloomEnabled"]);
+
+
+			ST_TRACE("Loaded Editor Camera config from {0}", file);
+		}
 		return;
 	}
 	void EditorLayer::savePanelConfig() {
 		ST_PROFILING_FUNCTION();
-		std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
-		std::remove(file.c_str());
-		std::fstream stream(file, std::ios::out);
+		{
+			std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
+			std::remove(file.c_str());
+			std::fstream stream(file, std::ios::out);
 
-		stream << "m_showStyleEditor=" << (int)m_showStyleEditor << "\n";
-		stream << "m_showHierarchy=" << (int)m_showHierarchy << "\n";
-		stream << "m_showInspector=" << (int)m_showInspector << "\n";
-		stream << "m_showAssetBrowser=" << (int)m_showAssetBrowser << "\n";
-		stream << "m_showGameViewport=" << (int)m_showGameViewport << "\n";
-		stream << "m_showSceneViewport=" << (int)m_showSceneViewport << "\n";
-		stream << "m_showProfiling=" << (int)m_showProfiling << "\n";
-		stream << "m_showSceneSettingsPanel=" << (int)m_showSceneSettingsPanel << "\n";
+			stream << "m_showStyleEditor=" << (int)m_showStyleEditor << "\n";
+			stream << "m_showHierarchy=" << (int)m_showHierarchy << "\n";
+			stream << "m_showInspector=" << (int)m_showInspector << "\n";
+			stream << "m_showAssetBrowser=" << (int)m_showAssetBrowser << "\n";
+			stream << "m_showGameViewport=" << (int)m_showGameViewport << "\n";
+			stream << "m_showSceneViewport=" << (int)m_showSceneViewport << "\n";
+			stream << "m_showProfiling=" << (int)m_showProfiling << "\n";
+			stream << "m_showSceneSettingsPanel=" << (int)m_showSceneSettingsPanel << "\n";
 
-		stream << "m_gameViewport.m_selectedSize=" << (int)m_gameViewport.m_selectedSize << "\n";
-		stream << "m_gameViewport.m_customSizeX=" << (float)m_gameViewport.sizes[5].x << "\n";
-		stream << "m_gameViewport.m_customSizeY=" << (float)m_gameViewport.sizes[5].y << "\n";
-		stream << "m_gameViewport.zoom=" << (float)m_gameViewport.zoom << "\n";
+			stream << "m_gameViewport.m_selectedSize=" << (int)m_gameViewport.m_selectedSize << "\n";
+			stream << "m_gameViewport.m_customSizeX=" << (float)m_gameViewport.sizes[5].x << "\n";
+			stream << "m_gameViewport.m_customSizeY=" << (float)m_gameViewport.sizes[5].y << "\n";
+			stream << "m_gameViewport.zoom=" << (float)m_gameViewport.zoom << "\n";
 
-		stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
-		stream << "setting.lastScene=" << m_currentScenePath << "\n";
+			stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
+			stream << "setting.lastScene=" << m_currentScenePath << "\n";
 
-		stream << "build.name=" << m_buildData.name << "\n";
-		stream << "build.width=" << m_buildData.width << "\n";
-		stream << "build.height=" << m_buildData.height << "\n";
-		stream << "build.major=" << m_buildData.version.major << "\n";
-		stream << "build.minor=" << m_buildData.version.minor << "\n";
-		stream << "build.patch=" << m_buildData.version.patch << "\n";
+			stream << "build.name=" << m_buildData.name << "\n";
+			stream << "build.width=" << m_buildData.width << "\n";
+			stream << "build.height=" << m_buildData.height << "\n";
+			stream << "build.major=" << m_buildData.version.major << "\n";
+			stream << "build.minor=" << m_buildData.version.minor << "\n";
+			stream << "build.patch=" << m_buildData.version.patch << "\n";
 
 
-		stream.close();
-		ST_TRACE("Saved Editor Panel config to {0}", file);
+			stream.close();
+			ST_TRACE("Saved Editor Camera config to {0}", file);
+		}
+		{
+			std::string file = getEditorProject().configPath + "/editor-camera-config.ini";
+			std::remove(file.c_str());
+			std::fstream stream(file, std::ios::out);
+
+			stream << "postProcessingData.exposure=" << m_sceneCamera.getPostProcessingData().exposure << "\n";
+			stream << "postProcessingData.gamma=" << m_sceneCamera.getPostProcessingData().gamma << "\n";
+			stream << "postProcessingData.bloomIntensity=" << m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity << "\n";
+			stream << "postProcessingData.bloomTreshold=" << m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold << "\n";
+			stream << "postProcessingData.bloomEnabled=" << m_sceneCamera.getPostProcessingData().bloomData.enabled << "\n";
+
+			stream.close();
+			ST_TRACE("Saved Editor Camera config to {0}", file);
+		}
+		
 	}
 #pragma endregion
 

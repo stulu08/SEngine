@@ -4,7 +4,7 @@
 namespace Stulu {
 	struct TextureSettings {
 		enum class Format {
-			RGBA, RGB, RG, A, SRGB, SRGBA, RGBA16F, RGB16F, Auto
+			RGBA, RGB, RG, A, SRGB, SRGBA, RGBA16F, RGBA32F, RGB16F, Auto
 		};
 		int format = (int)Format::Auto;
 		enum class Wrap {

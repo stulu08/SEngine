@@ -5,7 +5,6 @@
 
 namespace Stulu {
     static void NodeFont(ImFont* font) {
-        ST_PROFILING_FUNCTION();
         using namespace ImGui;
         bool opened = TreeNode(font, "Font: \"%s\"\n%.2f px, %d glyphs, %d file(s)",
             font->ConfigData ? font->ConfigData[0].Name : "", font->FontSize, font->Glyphs.Size, font->ConfigDataCount);
@@ -431,14 +430,12 @@ namespace Stulu {
         ImGui::End();
     }
     bool StyleEditor::drawStyleSelector() {
-        ST_PROFILING_FUNCTION();
         if (ImGui::Combo("Colors##Selector", &styleIndex, "Ocean Dark\0Dark\0Amoled Dark\0Personal\0ImGui Classic\0ImGui Dark\0ImGui Light\0")) {
             setStyleByInt(styleIndex);
         }
         return false;
 	}
     void StyleEditor::drawFontSelector() {
-        ST_PROFILING_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();
         ImFont* font_current = ImGui::GetFont();
         if (ImGui::BeginCombo("Fonts##Selector", font_current->GetDebugName()))
@@ -467,7 +464,6 @@ namespace Stulu {
         return os << vec4.x << "," << vec4.y << "," << vec4.z << "," << vec4.w;
     }
     ImVec4 ImVec4fromString(std::string str){
-        ST_PROFILING_FUNCTION();
         ImVec4 vec4 = ImVec4(1,1,1,1);
         
         std::stringstream string_stream(str);
@@ -535,7 +531,6 @@ namespace Stulu {
     }
 
     void StyleEditor::setStyleByInt(int style) {
-        ST_PROFILING_FUNCTION();
         styleIndex = style;
         switch (style)
         {
@@ -550,7 +545,6 @@ namespace Stulu {
         }
     }
     void StyleEditor::setFontByInt(int style) {
-        ST_PROFILING_FUNCTION();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         fontIndex = style;
         io.FontDefault = io.Fonts->Fonts[style];

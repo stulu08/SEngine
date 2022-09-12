@@ -6,6 +6,7 @@ namespace Stulu::Profiling {
 	public:
 		static inline void begin() {
 			enabled = true;
+			reset();
 		}
 		static inline void end() {
 			enabled = false;
