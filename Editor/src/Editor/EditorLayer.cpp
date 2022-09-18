@@ -9,7 +9,6 @@
 
 
 namespace Stulu {
-	Ref<Texture2D> textTexture;
 	void copyAllFilesFromDir(const std::string& from, const std::string& to);
 
 	EditorLayer::EditorLayer()
@@ -612,16 +611,6 @@ namespace Stulu {
 						Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getTransparentShader(), tc.transform);
 					}
 				}
-				m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
-					entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
-					) {
-						if (transform.parent == selected) {
-							GameObject object = GameObject{ go , m_activeScene.get() };
-							if (meshFilter.mesh.hasMesh) {
-								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getTransparentShader(), tc.transform);
-							}
-						}
-					});
 				RenderCommand::setStencil(StencilMode::DisableWriting);
 			}
 			//draw only where stencil not buffer equals 
@@ -640,19 +629,6 @@ namespace Stulu {
 
 					}
 				}
-
-				//each child ouline
-				m_activeScene->m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>().each([=](
-					entt::entity go, MeshFilterComponent& meshFilter, TransformComponent& transform, MeshRendererComponent& meshRenderer
-					) {
-						if (transform.parent == selected) {
-							GameObject object = GameObject{ go , m_activeScene.get() };
-							if (meshFilter.mesh.hasMesh) {
-								Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), EditorResources::getOutlineShader(), Math::createMat4(transform.worldPosition, transform.worldRotation, getScaleAdd(transform)));
-							}
-						}
-					});
-
 				RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
 			}
 			Renderer::end();
