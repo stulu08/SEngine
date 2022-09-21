@@ -545,9 +545,9 @@ vec4 ST_PBR(inout PBRData data)
 	kD *= 1.0 - data.metallic;
 	const float MAX_REFLECTION_LOD = 4.0f;
   
-	vec3 prefilteredColor = vec3(clearColor);
+	vec3 prefilteredColor = vec3(0.0);
 	vec3 irradiance = vec3(clearColor);
-	vec2 brdf = vec2(.75*data.roughness);
+	vec2 brdf = vec2(0.0);
 
 	if(useSkybox) {
 		vec3 SB_N = getSkyBoxCoords(N, skyBoxRotation);
