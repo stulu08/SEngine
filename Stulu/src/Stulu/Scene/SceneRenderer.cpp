@@ -8,45 +8,22 @@
 #include "Stulu/Core/Time.h"
 
 namespace Stulu {
-	SceneRenderer::RuntimeData SceneRenderer::s_runtimeData;
-	SceneRenderer::LightData SceneRenderer::s_lightData;
-	SceneRenderer::PostProcessingBufferData SceneRenderer::s_postProcessingData;
-	SceneRenderer::ShaderSceneData SceneRenderer::s_shaderSceneData;
+	SceneRenderer::RuntimeData SceneRenderer::s_data;
 
 	void SceneRenderer::init() {
 		ST_PROFILING_FUNCTION();
-		if (s_runtimeData.lightBuffer == nullptr)
-			s_runtimeData.lightBuffer = UniformBuffer::create(sizeof(LightData), 1);
-		
-		if (s_runtimeData.postProcessungBuffer == nullptr)
-			s_runtimeData.postProcessungBuffer = UniformBuffer::create(sizeof(PostProcessingBufferData), 2);
-		
-		if (s_runtimeData.sceneDataBuffer == nullptr)
-			s_runtimeData.sceneDataBuffer = UniformBuffer::create(sizeof(ShaderSceneData), 3);
-
-		if (Material::s_materialBuffer == nullptr)
-			Material::s_materialBuffer = UniformBuffer::create(sizeof(uint32_t) * 4000, 4);//max = 16KB = 4B * 4000
-
-		
-		if (!s_runtimeData.fbDrawData.m_quadShader) {
-			s_runtimeData.fbDrawData.m_quadShader = Shader::create("quadFullScreenPP", R"(
+		if (!s_data.quadPostProcShader) {
+			s_data.quadPostProcShader = Shader::create("quadFullScreenPP", R"(
 		#version 460
 		layout (location = 0) in vec3 a_pos;
 		layout (location = 1) in vec2 a_texCoords;
 		out vec2 v_tex;
-		layout(std140, binding = 0) uniform matrices
+		layout(std140, binding = 1) uniform model
 		{
-			mat4 viewProjection;
-			mat4 viewMatrix;
-			mat4 projMatrix;
-			vec4 cameraPosition;
-			vec4 cameraRotation;
-			vec4 cameraNearFar;
-			mat4 transform;
+			float z;
 		};
 		void main()
 		{
-			float z = transform[3].z;
 			v_tex=a_texCoords;
 			vec3 pos = a_pos;
 			pos.z = z;
@@ -54,10 +31,9 @@ namespace Stulu {
 		}
 		)", R"(
 		#version 460
-		##add ST_functions
 		in vec2 v_tex;
-		##add ST_functions
-		##add ST_bindings
+		##include "Stulu/Functions"
+		##include "Stulu/Bindings"
 		layout (binding = 0) uniform sampler2D texSampler;
 		out vec4 a_color;
 		void main()
@@ -66,7 +42,7 @@ namespace Stulu {
 			if(color.a == 0.0f)
 				discard;
 			
-			a_color = enableGammaCorrection ? gammaCorrect(color, gamma, toneMappingExposure) : color;
+			a_color = gammaCorrect(color, gamma, toneMappingExposure);
 		}
 		)");
 		}
@@ -77,8 +53,8 @@ namespace Stulu {
 	}
 	void SceneRenderer::End() {
 		ST_PROFILING_FUNCTION();
-		s_runtimeData.drawList.clear();
-		s_runtimeData.transparentDrawList.clear();
+		s_data.drawList.clear();
+		s_data.transparentDrawList.clear();
 	}
 
 	void SceneRenderer::LoadLights(Scene* scene) {
@@ -88,20 +64,21 @@ namespace Stulu {
 			AddLight(go.getComponent<TransformComponent>(), go.getComponent<LightComponent>());
 		}
 		UploadLightBuffer();
-		s_lightData = LightData();
+
+		s_data.lightBufferData = LightBufferData();
 	}
 	void SceneRenderer::AddLight(const TransformComponent& transform, const LightComponent& light) {
-		if (s_lightData.lightCount < ST_MAXLIGHTS) {
-			s_lightData.lights[s_lightData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
-			s_lightData.lights[s_lightData.lightCount].positionAndType = glm::vec4(transform.worldPosition, light.lightType);
-			s_lightData.lights[s_lightData.lightCount].rotation = glm::vec4(transform.forward, 1.0f);
-			s_lightData.lights[s_lightData.lightCount].spotLightData = glm::vec4(glm::cos(glm::radians(light.spotLight_cutOff)), glm::cos(glm::radians(light.spotLight_outerCutOff)), 1.0f, light.areaRadius);
-			s_lightData.lightCount++;
+		if (s_data.lightBufferData.lightCount < ST_MAXLIGHTS) {
+			s_data.lightBufferData.lights[s_data.lightBufferData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
+			s_data.lightBufferData.lights[s_data.lightBufferData.lightCount].positionAndType = glm::vec4(transform.worldPosition, light.lightType);
+			s_data.lightBufferData.lights[s_data.lightBufferData.lightCount].rotation = glm::vec4(transform.forward, 1.0f);
+			s_data.lightBufferData.lights[s_data.lightBufferData.lightCount].spotLightData = glm::vec4(glm::cos(glm::radians(light.spotLight_cutOff)), glm::cos(glm::radians(light.spotLight_outerCutOff)), 1.0f, light.areaRadius);
+			s_data.lightBufferData.lightCount++;
 		}
 	}
 	void SceneRenderer::UploadLightBuffer() {
 		ST_PROFILING_FUNCTION();
-		s_runtimeData.lightBuffer->setData(&s_lightData, sizeof(LightData));
+		Renderer::getBuffer(BufferBinding::Light)->setData(&s_data.lightBufferData, sizeof(LightBufferData));
 	}
 
 	glm::mat4 calcView(uint32_t face, TransformComponent& transform) {
@@ -139,7 +116,7 @@ namespace Stulu {
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		camComp.frustum = sceneCam.getFrustum();
 		camComp.postProcessing = &sceneCam.getPostProcessingData();
-		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
+		DrawSceneToCamera(sceneCam.m_transform, camComp);
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, Scene* scene) {
 		CameraComponent camComp = CameraComponent(CameraMode::Perspective, false);
@@ -153,9 +130,9 @@ namespace Stulu {
 		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
 		camComp.frustum = sceneCam.getFrustum();
 		camComp.postProcessing = &sceneCam.getPostProcessingData();
-		DrawSceneToCamera(sceneCam.m_transform, camComp, false);
+		DrawSceneToCamera(sceneCam.m_transform, camComp);
 	}
-	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp, bool bdrawSkyBox) {
+	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp) {
 		ST_PROFILING_FUNCTION();
 		const Ref<Camera>& cam = cameraComp.getNativeCamera();
 		const glm::mat4& view = glm::inverse(transform.transform);
@@ -167,11 +144,13 @@ namespace Stulu {
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
 		uint32_t camSkyBoxMapType = 0;
+		glm::mat4 skyboxRotation = glm::mat4(1.0f);
 		if ((entt::entity)cameraComp.gameObject != entt::null) {
 			if (cameraComp.settings.clearType == CameraComponent::ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
 				auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
 				camSkyBoxTexture = s.texture;
 				camSkyBoxMapType = (uint32_t)s.mapType;
+				skyboxRotation = Math::createMat4(glm::vec3(.0f), glm::quat(glm::radians(s.rotation)), glm::vec3(1.0f));
 			}
 			if (cameraComp.gameObject.hasComponent<PostProcessingComponent>()) {
 				cameraComp.postProcessing = &cameraComp.gameObject.getComponent<PostProcessingComponent>().data;
@@ -179,21 +158,20 @@ namespace Stulu {
 		}
 		
 		//upload shader scene data
-		s_shaderSceneData.env_lod = cameraComp.gameObject.getScene()->m_data.graphicsData.env_lod;
-		s_shaderSceneData.enableGammaCorrection = 1;
-		s_shaderSceneData.skyboxMapType = camSkyBoxMapType;
-		s_shaderSceneData.useSkybox = camSkyBoxTexture != nullptr;
-		s_shaderSceneData.shaderFlags = cameraComp.gameObject.getScene()->m_data.shaderFlags;
-		s_runtimeData.sceneDataBuffer->setData(&s_shaderSceneData, sizeof(SceneRenderer::ShaderSceneData));
+		s_data.sceneBufferData.env_lod = cameraComp.gameObject.getScene()->m_data.graphicsData.env_lod;
+		s_data.sceneBufferData.skyboxMapType = camSkyBoxMapType;
+		s_data.sceneBufferData.useSkybox = camSkyBoxTexture != nullptr;
+		s_data.sceneBufferData.shaderFlags = cameraComp.gameObject.getScene()->m_data.shaderFlags;
+		s_data.sceneBufferData.skyBoxRotation = skyboxRotation;
+		Renderer::getBuffer(BufferBinding::Scene)->setData(&s_data.sceneBufferData, sizeof(SceneBufferData));
 
 		//transparent sorting
-		std::sort(s_runtimeData.transparentDrawList.begin(), s_runtimeData.transparentDrawList.end(), [&](auto& a, auto& b) {
+		std::sort(s_data.transparentDrawList.begin(), s_data.transparentDrawList.end(), [&](auto& a, auto& b) {
 			return glm::distance(transform.worldPosition, glm::vec3(a.transform[3])) > glm::distance(transform.worldPosition, glm::vec3(b.transform[3]));//sort the vector backwards
 			});
 
-		VFC::setCamera(cameraComp.getFrustum());
 		
-
+		bool renderedReflection = false;
 		//reflection map pass
 		//https://www.adriancourreges.com/blog/2015/11/02/gta-v-graphics-study/
 		if (useReflectionMap && reflectionFrameBuffer && reflectionMap) {
@@ -202,7 +180,8 @@ namespace Stulu {
 			uint32_t& reflectionRenderIndex = mapIndexMap[cam.get()];
 			reflectionFrameBuffer->bind();
 			reflectionFrameBuffer->attachCubeMapFace(reflectionMap, reflectionRenderIndex);
-			Renderer::uploadBufferData(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f), calcView(reflectionRenderIndex, transform), transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
+			VFC::setEnabled(false);
+			Renderer::uploadCameraBufferData(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f), calcView(reflectionRenderIndex, transform), transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 			RenderCommand::clear();
 			drawSkyBox(camSkyBoxTexture);
 			drawScene(nullptr);
@@ -211,22 +190,28 @@ namespace Stulu {
 				reflectionRenderIndex = 0;
 			else
 				reflectionRenderIndex++;
-			
+
+			renderedReflection = true;
+			VFC::setEnabled(true);
+
 		}else
 			reflectionMap = nullptr;
+		VFC::setCamera(cameraComp.getFrustum());
 		//default render pass
 		cam->bindFrameBuffer();
-		Renderer::uploadBufferData(proj, view, transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
-		if (bdrawSkyBox)
-			drawSkyBox(camSkyBoxTexture);
-		else if (camSkyBoxTexture)
-			camSkyBoxTexture->bind();
+		Renderer::uploadCameraBufferData(proj, view, transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
+		drawSkyBox(camSkyBoxTexture);
+		if (renderedReflection) {
+			//rotation already applied
+			s_data.sceneBufferData.skyBoxRotation = glm::mat4(1.0f);
+			Renderer::getBuffer(BufferBinding::Scene)->setData(&s_data.sceneBufferData, sizeof(SceneBufferData));
+		}
 		drawScene(reflectionMap);
 		cam->unbindFrameBuffer();
 	}
 
 	void SceneRenderer::Clear() {
-		s_shaderSceneData.clearColor = glm::vec4(.0f, .0f, .0f, 1.0f);
+		s_data.sceneBufferData.clearColor = glm::vec4(.0f, .0f, .0f, 1.0f);
 		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, 1.0f));
 		RenderCommand::clear();
 	}
@@ -236,11 +221,11 @@ namespace Stulu {
 		{
 		case CameraComponent::ClearType::Color:
 			RenderCommand::setClearColor(cam.settings.clearColor);
-			s_shaderSceneData.clearColor = cam.settings.clearColor;
+			s_data.sceneBufferData.clearColor = cam.settings.clearColor;
 			break;
 		case CameraComponent::ClearType::Skybox:
 			RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, 1.0f));
-			s_shaderSceneData.clearColor = glm::vec4(.0f, .0f, .0f, 1.0f);
+			s_data.sceneBufferData.clearColor = glm::vec4(.0f, .0f, .0f, 1.0f);
 			break;
 		}
 		RenderCommand::clear();
@@ -286,11 +271,11 @@ namespace Stulu {
 	}
 	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data) {
 		ST_PROFILING_FUNCTION();
-		s_postProcessingData.time = Time::time;
-		s_postProcessingData.delta = Time::deltaTime;
-		s_postProcessingData.toneMappingExposure = data.exposure;
-		s_postProcessingData.gamma = data.gamma;
-		s_runtimeData.postProcessungBuffer->setData(&s_postProcessingData, sizeof(PostProcessingBufferData));
+		s_data.postProcessingBufferData.time = Time::time;
+		s_data.postProcessingBufferData.delta = Time::deltaTime;
+		s_data.postProcessingBufferData.toneMappingExposure = data.exposure;
+		s_data.postProcessingBufferData.gamma = data.gamma;
+		Renderer::getBuffer(BufferBinding::PostProcessing)->setData(&s_data.postProcessingBufferData, sizeof(PostProcessingBufferData));
 
 
 		//bloom
@@ -301,13 +286,15 @@ namespace Stulu {
 		{
 
 			source->bind(0);
-			s_runtimeData.fbDrawData.m_quadShader->bind();
-
+			s_data.quadPostProcShader->bind();
 			destination->bind();
-			Renderer::submit(Resources::getFullscreenVA(), nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1)));
+			float z = -1.0f;
+			Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
+			RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
 			destination->unbind();
 		}
 	}
+
 	void SceneRenderer::DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& postProcData) {
 		ST_PROFILING_SCOPE("Bloom Pass");
 		static Ref<ComputeShader> filterShader;
@@ -375,6 +362,7 @@ void main() {
 
 
 	}
+
 	void SceneRenderer::drawScene(const Ref<CubeMap>& reflectionMap) {
 		ST_PROFILING_FUNCTION();
 		UUID last = UUID();
@@ -385,7 +373,7 @@ void main() {
 		}
 
 		//opaque
-		for (const RenderObject& object : s_runtimeData.drawList) {
+		for (const RenderObject& object : s_data.drawList) {
 			if (object.boundingBox && object.transformComp) {
 				if (!VFC::isInView(object.boundingBox, *object.transformComp)) {
 					continue;
@@ -398,12 +386,13 @@ void main() {
 				last = object.material->getUUID();
 			}
 			RenderCommand::setCullMode(object.cullmode);
-			if(object.vertexArray)
-				Renderer::submit(object.vertexArray, nullptr, object.transform);
+			if (object.vertexArray) {
+				Renderer::submit(object.vertexArray, nullptr, object.transform, object.normalMatrix);
+			}
 		}
 
 		//transparent
-		for (const auto& object : s_runtimeData.transparentDrawList) {
+		for (const auto& object : s_data.transparentDrawList) {
 			if (object.boundingBox && object.transformComp) {
 				if (!VFC::isInView(object.boundingBox, *object.transformComp)) {
 					continue;
@@ -415,20 +404,25 @@ void main() {
 				last = object.material->getUUID();
 			}
 			RenderCommand::setCullMode(object.cullmode);
-			if (object.vertexArray)
-				Renderer::submit(object.vertexArray, object.material->getShader(), object.transform);
+			if (object.vertexArray) {
+				Renderer::submit(object.vertexArray, nullptr, object.transform, object.normalMatrix);
+			}
 		}
 	}
 	void SceneRenderer::drawSkyBox(const Ref<CubeMap>& skybox) {
 		ST_PROFILING_FUNCTION();  
-		if (skybox && !(s_shaderSceneData.shaderFlags & ST_ShaderViewFlags_DisplayDepth)) {
+		if (skybox && !(s_data.sceneBufferData.shaderFlags & ST_ShaderViewFlags_DisplayDepth)) {
+			RenderCommand::setWireFrame(false);
 			auto& shader = Resources::getSkyBoxShader();
 			shader->bind();
 			skybox->bind();
 			skybox->draw();
+			if (s_data.sceneBufferData.shaderFlags & ST_ShaderViewFlags_DisplayVertices)
+				RenderCommand::setWireFrame(true);
 		}
 		
 	}
+
 	void SceneRenderer::RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform) {
 		if (!filter.mesh.hasMesh)
 			return;
@@ -439,11 +433,16 @@ void main() {
 		else {
 			material = Resources::getDefaultMaterial();
 		}
+
+
+		glm::mat4 normalMatrix = glm::transpose(glm::inverse(Math::createMat4(transform.worldPosition, transform.worldRotation, { 1,1,1 })));
+
 		if (material->isTransparent())
-			s_runtimeData.transparentDrawList.push_back(RenderObject{
-			material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
+			s_data.transparentDrawList.push_back(RenderObject{
+			material,filter.mesh.mesh->getVertexArray(),transform.transform, normalMatrix, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
 		else
-			s_runtimeData.drawList.push_back(RenderObject{ material,filter.mesh.mesh->getVertexArray(),transform.transform, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
+			s_data.drawList.push_back(RenderObject{ 
+			material,filter.mesh.mesh->getVertexArray(),transform.transform, normalMatrix, mesh.cullmode, filter.mesh.mesh->getBoundingBox(), &transform });
 	}
 	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& mat, const glm::mat4& transform) {
 		if (!vertexArray)
@@ -456,17 +455,12 @@ void main() {
 			material = Resources::getDefaultMaterial();
 		}
 
-
 		if (material->isTransparent())
-			s_runtimeData.transparentDrawList.push_back(RenderObject{
-			material,vertexArray,transform,CullMode::Back });
+			s_data.transparentDrawList.push_back(RenderObject{material,vertexArray,transform, glm::transpose(glm::inverse(transform)),CullMode::Back });
 		else
-			s_runtimeData.drawList.push_back(RenderObject{ material,vertexArray,transform, CullMode::Back });
-
-
-		s_runtimeData.drawList.push_back(RenderObject{ material,vertexArray,transform });
+			s_data.drawList.push_back(RenderObject{ material,vertexArray,transform, glm::transpose(glm::inverse(transform)), CullMode::Back });
 	}
 	void SceneRenderer::RegisterObject(const RenderObject& object) {
-		s_runtimeData.drawList.push_back(object);
+		s_data.drawList.push_back(object);
 	}
 }

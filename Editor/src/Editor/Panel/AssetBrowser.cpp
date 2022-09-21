@@ -250,23 +250,33 @@ namespace Stulu {
 					if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_SpanFullWidth)) {
 						auto& matVec = std::any_cast<Model&>(selected.data).getMaterials();
 						for (auto& [index, mat] : matVec) {
+							//if (mat->getName().c_str()) {
+							//	std::string name = "Material: " + mat->getName();
+							//	ImGui::Text(name.c_str());
+							//	ImGui::PushID(name.c_str());
+							//}
+							//else {
+							//	std::string name = "Material: " + std::to_string(index);
+							//
+							//	ImGui::TextWrapped(name.c_str());
+							//	ImGui::PushID(name.c_str());
+							//}
+							//if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+							//	ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str(), &mat->getUUID(), sizeof(UUID));
+							//	ImGui::EndDragDropSource();
+							//}
+							//ImGui::PopID();
+							std::string name;
 							if (mat->getName().c_str()) {
-								std::string name = "Material: " + mat->getName();
-
-								ImGui::Text(name.c_str());
-								ImGui::PushID(name.c_str());
+								name = "Material: " + mat->getName();
 							}
 							else {
-								std::string name = "Material: " + std::to_string(index);
-
-								ImGui::TextWrapped(name.c_str());
-								ImGui::PushID(name.c_str());
+								name = "Material: " + std::to_string(index);
 							}
-							if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-								ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str(), &mat->getUUID(), sizeof(UUID));
-								ImGui::EndDragDropSource();
+							if (ImGui::TreeNodeEx(name.c_str())) {
+								ComponentsRender::drawMaterialEdit("Material", mat->getUUID(), false);
+								ImGui::TreePop();
 							}
-							ImGui::PopID();
 						}
 						ImGui::TreePop();
 					}
@@ -278,7 +288,7 @@ namespace Stulu {
 					int type = (int)selected.type - 1;
 					Ref<Texture2D>& texture = std::dynamic_pointer_cast<Texture2D>(std::any_cast<Ref<Texture>&>(selected.data));
 					ComponentsRender::drawVector2Control("Tilling", texture->getSettings().tiling);
-					ComponentsRender::drawComboControl("Format", texture->getSettings().format, "RGBA\0RGB\0RG\0A\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0Auto");
+					ComponentsRender::drawComboControl("Format", texture->getSettings().format, "RGBA\0RGB\0RG\0R\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0RGBA32F\0Auto");
 					ComponentsRender::drawComboControl("Wrap Mode", texture->getSettings().wrap, "Clamp\0Repeat");
 					if (ImGui::Button("Update")) {
 						texture->update();
@@ -323,14 +333,20 @@ namespace Stulu {
 		ImGui::End();
 	}
 	const Ref<Texture>& AssetBrowserPanel::getIcon(const std::filesystem::directory_entry& directory) {
+		std::string path = directory.path().string();
+		if (pathCache.find(path) == pathCache.end() || !AssetsManager::exists(pathCache[path])) {
+			UUID result = AssetsManager::getFromPath(path);
+			if (result == UUID::null) {
+				AssetsManager::loadAllFiles(m_path.string());
+				return getIcon(directory);
+			}
+			pathCache[path] = result;
+		}
 		if (directory.is_directory()) {
 			return EditorResources::getFolderTexture();
 		}
-		std::string path = directory.path().string();
-
-		if (pathCache.find(path) == pathCache.end() || !AssetsManager::exists(pathCache[path])) {
-			pathCache[path] = AssetsManager::getFromPath(path);
-		}
+		
+		
 		Asset& asset = AssetsManager::get(pathCache[path]);
 		switch (asset.type)
 		{

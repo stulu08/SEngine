@@ -7,7 +7,7 @@ namespace Stulu {
 	OpenGLFramebuffer::OpenGLFramebuffer(const FrameBufferSpecs& frameBufferdata)
 		: m_specs(frameBufferdata) {
 		ST_PROFILING_FUNCTION();
-		m_texture = std::make_shared<OpenGLFrameBufferTexture>(m_specs.width, m_specs.height);
+		m_texture = std::make_shared<OpenGLFrameBufferTexture>(m_specs.width, m_specs.height, frameBufferdata.samples);
 		invalidate();
 	}
 	OpenGLFramebuffer::~OpenGLFramebuffer() {
@@ -32,7 +32,7 @@ namespace Stulu {
 
 		m_texture->invalidate(m_specs.textureFormat);
 
-		glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, m_specs.samples);
+		//glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, m_specs.samples);
 
 		CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete");
 
@@ -53,10 +53,11 @@ namespace Stulu {
 		return m_specs;
 	}
 	/////////////////////////////////////////////////////////////////////////////
-	OpenGLFrameBufferTexture::OpenGLFrameBufferTexture(uint32_t width, uint32_t height) {
+	OpenGLFrameBufferTexture::OpenGLFrameBufferTexture(uint32_t width, uint32_t height, uint32_t samples) {
 		ST_PROFILING_FUNCTION();
 		m_width = width;
 		m_height = height;
+		m_samples = samples;
 		m_settings.wrap = (int)TextureSettings::Wrap::Clamp;
 		m_settings.tiling = glm::vec2(1.0f);
 		m_settings.format = (int)TextureSettings::Format::RGBA16F;
@@ -77,24 +78,42 @@ namespace Stulu {
 		GLenum internalFormat = f.first;
 		GLenum dataFormat = f.second;
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_colorAttachment);
-		glBindTexture(GL_TEXTURE_2D, m_colorAttachment);
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_width, m_height, 0, dataFormat, isGLTextureFormatFloat(format) ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorAttachment, 0);
+		bool multisampled = m_samples > 1;
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_depthAttachment);
-		glBindTexture(GL_TEXTURE_2D, m_depthAttachment);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, m_width, m_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+		GLenum target = multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glCreateTextures(target, 1, &m_colorAttachment);
+		glBindTexture(target, m_colorAttachment);
+		if (multisampled) {
+			glTexImage2DMultisample(target, m_samples, internalFormat, m_width, m_height, GL_FALSE);
+		}
+		else {
+			glTexImage2D(target, 0, internalFormat, m_width, m_height, 0, dataFormat, isGLTextureFormatFloat(format) ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}
+		
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, m_colorAttachment, 0);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_depthAttachment, 0);
+
+
+		glCreateTextures(target, 1, &m_depthAttachment);
+		glBindTexture(target, m_depthAttachment);
+		if (multisampled) {
+			glTexImage2DMultisample(target, m_samples, GL_DEPTH24_STENCIL8, m_width, m_height, GL_FALSE);
+		}
+		else {
+			glTexStorage2D(target, 1, GL_DEPTH24_STENCIL8, m_width, m_height);
+			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, target, m_depthAttachment, 0);
 	}
 	void OpenGLFrameBufferTexture::resize(uint32_t width, uint32_t height) {
 		ST_PROFILING_FUNCTION();

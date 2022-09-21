@@ -11,7 +11,6 @@
 #include <Stulu/Scene/AssetsManager.h>
 #include <Stulu/Core/Resources.h>
 namespace Stulu {
-
     void Stulu::Model::load(const std::string& path) {
         ST_PROFILING_FUNCTION();
 
@@ -31,7 +30,7 @@ namespace Stulu {
                 //aiProcess_CalcTangentSpace |
                 aiProcess_GenSmoothNormals |
                 aiProcess_ImproveCacheLocality |
-                aiProcess_OptimizeMeshes 
+                aiProcess_OptimizeMeshes
                 //aiProcess_OptimizeGraph
                 //aiProcess_SplitLargeMeshes 
             );
@@ -128,16 +127,60 @@ namespace Stulu {
         aiMaterial* aMat = scene->mMaterials[material];
         
         aiString aName;
-        aiColor3D albedoColor;
-        float opacity;
+        aiColor3D albedoColor = aiColor3D(1.0f, 1.0f, 1.0f);
+        aiColor3D emissionValue = aiColor3D(0.0, 0.0f, 0.0f);
+        float opacity = 1.0f, matallicValue = .0f, roughnessValue =.5f;
         aMat->Get(AI_MATKEY_COLOR_DIFFUSE, albedoColor);
         aMat->Get(AI_MATKEY_NAME, aName);
         aMat->Get(AI_MATKEY_OPACITY, opacity);
-
+        aMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissionValue);
         std::string name(aName.C_Str());
         if (name.empty())
             name = "Material " + std::to_string(material);
 
+        auto& getTexture = [&](aiTextureType type) -> UUID {
+            aiString path;
+            aMat->GetTexture(type, 0, &path);
+            if (!std::string(path.C_Str()).empty()) {
+                UUID temp = AssetsManager::getFromPath(directory + "/" + std::string(path.C_Str()));
+                if (AssetsManager::existsAndType(temp, AssetType::Texture2D))
+                    return temp;
+            }
+            return UUID::null;
+        };
+
+
+        UUID albedo = getTexture(aiTextureType_DIFFUSE);
+        UUID metallic = getTexture(aiTextureType_AMBIENT);
+        UUID roughness = getTexture(aiTextureType_SHININESS);
+        UUID ambient = getTexture(aiTextureType_LIGHTMAP);
+        UUID normal = getTexture(aiTextureType_HEIGHT);
+        UUID emission = getTexture(aiTextureType_EMISSIVE);
+
+        //get Transpareny Mode
+        TransparencyMode tMode = TransparencyMode::Opaque;
+        if (opacity < .99f) {
+            tMode = TransparencyMode::Transparent;
+        }
+        else {
+            if (albedo && AssetsManager::exists(albedo)) {
+                Ref<Texture> texture = std::any_cast<Ref<Texture>>(AssetsManager::get(albedo).data);
+                if (texture) {
+                    TextureSettings::Format format = (TextureSettings::Format)texture->getSettings().format;
+                    if (format == TextureSettings::Format::RGBA || format == TextureSettings::Format::SRGBA ||
+                        format == TextureSettings::Format::RGBA16F || format == TextureSettings::Format::RGBA32F) {
+                        tMode = TransparencyMode::Transparent;
+                    }
+                }
+            }
+        }
+
+
+        Ref<Material> mat = Resources::createMaterial(name, UUID(),
+            glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity), matallicValue, roughnessValue, .2f, glm::vec4(emissionValue.r, emissionValue.g, emissionValue.b, 1.0),
+            albedo, metallic, roughness, ambient, emission, normal, { 1, 1 }, tMode
+            );
+        /*
         aiString albedoPath;
         aMat->GetTexture(aiTextureType_DIFFUSE, 0, &albedoPath);
 
@@ -152,7 +195,7 @@ namespace Stulu {
 
         aiString ambientPath;
         aMat->GetTexture(aiTextureType_LIGHTMAP, 0, &ambientPath);
-        
+
         MaterialDataType albedo = { ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(), 1,UUID::null},"albedoMap",4 };
         if (!std::string(albedoPath.C_Str()).empty()) {
             UUID albedoUUId = AssetsManager::getFromPath(directory + "/" + std::string(albedoPath.C_Str()));
@@ -190,8 +233,8 @@ namespace Stulu {
         Ref<Material> mat = createRef<Material>(AssetsManager::get(UUID(9)),
             (std::vector<MaterialDataType>{
             MaterialDataType{ ShaderDataType::Float4,glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity),"albedo",0 },
-                MaterialDataType{ ShaderDataType::Float,.2f,"metallic",1 },
-                MaterialDataType{ ShaderDataType::Float,.2f,"roughness",2 },
+                MaterialDataType{ ShaderDataType::Float,matallicValue,"metallic",1 },
+                MaterialDataType{ ShaderDataType::Float,roughnessValue,"roughness",2 },
                 MaterialDataType{ ShaderDataType::Float,.1f,"ao",3 },
                 albedo,
                 metallic,
@@ -203,7 +246,7 @@ namespace Stulu {
                 MaterialDataType{ ShaderDataType::Float,.0f,"alphaCutOff",11 },
                 MaterialDataType{ ShaderDataType::Int,1,"useGLTFMetallicRoughnessMap",12 },
         }), name);
-
+        */
         materials[material] = mat;
         return true;
     }

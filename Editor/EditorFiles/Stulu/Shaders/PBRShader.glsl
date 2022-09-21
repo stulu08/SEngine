@@ -5,8 +5,9 @@
 ##properity Range(0.0,1.0)	|ao
 
 #version 460
-##add ST_default
-layout(std140, binding = 4) uniform material {
+##include "Stulu/Default"
+
+layout(std140, binding = 5) uniform material {
 	uint transparencyMode;
 	float alphaCutOff;
 	vec4  albedo;
@@ -42,7 +43,8 @@ void main (){
 	
 	a_albedo *= srgbToLin(texture(albedoMap, vertex.texCoords * textureTilling).rgba);
 	data.albedo = a_albedo.rgb;
-	data.alpha = filterAlpha(a_albedo.a, transparencyMode, alphaCutOff);
+	//data.alpha = filterAlpha(a_albedo.a, transparencyMode, alphaCutOff);
+	data.alpha = a_albedo.a;
 	if(data.alpha == 0.0)
 		discard;
 
@@ -50,15 +52,14 @@ void main (){
 
 	data.ao = max(ao, texture(aoMap, vertex.texCoords * textureTilling).r);
 	data.metallic = max(metallic, texture(metallicMap, vertex.texCoords * textureTilling).r);
-	data.roughness = max(roughness, texture(roughnessMap, vertex.texCoords * textureTilling).g);
+	data.roughness = max(roughness, texture(roughnessMap, vertex.texCoords * textureTilling).r);
 
 	data.normal = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
-	//data.normal = vertex.normal;
 	data.worldPos = vertex.worldPos;
 	data.texCoords = vertex.texCoords * textureTilling;
 
 	
-	FragColor = ST_pbr_calculation(data);
+	FragColor = ST_PBR(data);
 }
 
 //may need this
@@ -100,7 +101,7 @@ struct Light{
 	vec4 spotLightData;
 };
 
-layout(std140, binding = 0) uniform matrices
+layout(std140, binding = 0) uniform cameraData
 {
 	mat4 viewProjection;
 	mat4 viewMatrix;
@@ -108,28 +109,52 @@ layout(std140, binding = 0) uniform matrices
 	vec4 cameraPosition;
 	vec4 cameraRotation;
 	vec4 cameraNearFar;
-	mat4 transform;
 };
-layout(std140, binding = 1) uniform lightData
+//			depends on renderer
+// --------------------------------------------
+// following is used by the default renderer:
+//layout(std140, binding = 1) uniform modelData
+//{
+//		mat4 normalMatrix;
+//		mat4 transform;
+//};
+// --------------------------------------------
+// following is used by post processing:
+//layout(std140, binding = 1) uniform modelData
+//{
+//		//float z;
+//};
+// --------------------------------------------
+// following is used by post gizmo instancing
+//struct InstanceData{
+//	mat4 transforms;
+//	vec4 instanceColors;
+//};
+//layout(std140, binding = 1) uniform modelDatayout(std140, binding = 1) uniform modelData
+//{
+//		InstanceData instanceData[180];
+//};
+// --------------------------------------------
+layout(std140, binding = 2) uniform lightData
 {
     Light lights[st_maxLights];
     uint lightCount;
 };
-layout(std140, binding = 2) uniform postProcessing
+layout(std140, binding = 3) uniform postProcessing
 {
 	float time;
 	float delta;
-};
-layout(std140, binding = 3) uniform shaderSceneData
-{
 	float toneMappingExposure;
 	float gamma;
-	float env_lod;
-	bool enableGammaCorrection;
+};
+layout(std140, binding = 4) uniform shaderSceneData
+{
+	mat4 skyBoxRotation;
 	vec4 clearColor;
 	bool useSkybox;
 	uint skyboxMapType;
 	uint viewFlags;
+	float env_lod;
 };
 layout (binding = 0) uniform samplerCube environmentMap;
 layout (binding = 1) uniform samplerCube irradianceMap;

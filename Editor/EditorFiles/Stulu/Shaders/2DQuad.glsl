@@ -6,16 +6,14 @@ layout(location = 2) in vec4 a_color;
 layout(location = 3) in float a_textureIndex;
 layout(location = 4) in vec2 a_textureTiling;
 
-layout(std140, binding = 0) uniform matrices
+##include "Stulu/Bindings"
+
+layout(std140, binding = 1) uniform modelData
 {
-	mat4 viewProjection;
-	mat4 viewMatrix;
-	mat4 projMatrix;
-	vec4 cameraPosition;
-	vec4 cameraRotation;
-	vec4 cameraNearFar;
+	mat4 normalMatrix;
 	mat4 transform;
 };
+
 struct VertData{
 	vec2 texCoord;
 	vec4 color;

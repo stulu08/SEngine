@@ -7,9 +7,9 @@ public class SpectatorCamera : Component {
 	[ShowInEditor]
 	public float accelerationMultiplier = 2.0f;
 	[ShowInEditor]
-	public float mouseSensitivityVertical = 1.0f;
+	public float mouseSensitivityVertical = 0.8f;
 	[ShowInEditor]
-	public float mouseSensitivityHorizontal = .8f;
+	public float mouseSensitivityHorizontal = 1.0f;
 
 
 	KeyCode front = KeyCode.W;
@@ -36,11 +36,11 @@ public class SpectatorCamera : Component {
 
 		transform.position += move * moveSpeed * (Input.getKey(accelerate) ? accelerationMultiplier : 1.0f) * Time.deltaTime;
 
-		mouse.y += Input.getMouseDelta().x * (mouseSensitivityVertical * Time.deltaTime);
-		mouse.z -= Input.getMouseDelta().y * (mouseSensitivityHorizontal * Time.deltaTime);
+		mouse.y += Input.getMouseDelta().x * (mouseSensitivityHorizontal * Time.deltaTime);
+		mouse.z -= Input.getMouseDelta().y * (mouseSensitivityVertical * Time.deltaTime);
 		transform.setRotation(new Quaternion(mouse));
 
-		if (Input.getKeyDown(KeyCode.Escape)) {
+		if (Input.getMouseButtonDown(MouseButton.Left)) {
 			Input.setCursorMode(CursorMode.Disabled);
 		}
 	}

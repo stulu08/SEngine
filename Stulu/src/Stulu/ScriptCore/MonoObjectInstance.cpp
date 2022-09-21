@@ -351,7 +351,8 @@ namespace Stulu {
 		}
 		std::unordered_map<std::string, MonoClassMember> fieldsChache = m_fields;
 		m_fields.clear();
-		if (m_gCHandle) {
+		m_fieldOrder.clear();
+			if (m_gCHandle) {
 			mono_gchandle_free(m_gCHandle);
 			m_gCHandle = 0;
 		}
@@ -362,7 +363,6 @@ namespace Stulu {
 		if (m_classPtr) {
 			m_objectPtr = mono_object_new(m_assembly->getDomain(), m_classPtr);
 			m_gCHandle = mono_gchandle_new(m_objectPtr, false);
-
 			loadAll();
 			for (auto [name, field] : fieldsChache) {
 				if (m_fields.find(name) == m_fields.end())

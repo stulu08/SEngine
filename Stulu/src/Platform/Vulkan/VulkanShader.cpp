@@ -102,22 +102,15 @@ namespace Stulu {
 
 		return result;
 	}
-	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::preProcess(const std::string& _src) {
+	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::preProcess(const std::string& src) {
 		ST_PROFILING_FUNCTION();
 		std::unordered_map<VkShaderStageFlagBits, std::string> shaderSources;
-		std::string shaderSrc = _src;
-		{//##add
-			//everyone can only be added once 
-			for (auto& p : s_preProcessorAdds) {
-				std::string token = "##add " + p.first;
-				size_t pos = shaderSrc.find(token);
-				if (pos != std::string::npos) {
-					shaderSrc.replace(pos, token.length(), p.second);
-				}
-			}
-		}
+		m_source = src;
+		m_sourcePreProcessed = src;
+		Shader::procesInlucdes(m_sourcePreProcessed);
+
 		{//##properity
-			std::istringstream stream{ shaderSrc };
+			std::istringstream stream{ m_sourcePreProcessed };
 			std::string line;
 			const std::string token = "##properity";
 			while (std::getline(stream, line)) {
@@ -149,23 +142,23 @@ namespace Stulu {
 		{//##type
 			const char* typeToken = "##type";
 			size_t typeTokenLength = strlen(typeToken);
-			size_t pos = shaderSrc.find(typeToken, 0);
+			size_t pos = m_sourcePreProcessed.find(typeToken, 0);
 			while (pos != std::string::npos)
 			{
-				size_t eol = shaderSrc.find_first_of("\r\n", pos);
+				size_t eol = m_sourcePreProcessed.find_first_of("\r\n", pos);
 				CORE_ASSERT(eol != std::string::npos, "Syntax error");
 				size_t begin = pos + typeTokenLength + 1;
-				std::string type = shaderSrc.substr(begin, eol - begin);
+				std::string type = m_sourcePreProcessed.substr(begin, eol - begin);
 				CORE_ASSERT(shaderTypeFromString(type), "Invalid shader type specified");
 
-				size_t nextLinePos = shaderSrc.find_first_not_of("\r\n", eol);
+				size_t nextLinePos = m_sourcePreProcessed.find_first_not_of("\r\n", eol);
 				CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
-				pos = shaderSrc.find(typeToken, nextLinePos);
-				shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? shaderSrc.substr(nextLinePos) : shaderSrc.substr(nextLinePos, pos - nextLinePos);
+				pos = m_sourcePreProcessed.find(typeToken, nextLinePos);
+				shaderSources[shaderTypeFromString(type)] = (pos == std::string::npos) ? 
+					m_sourcePreProcessed.substr(nextLinePos) : 
+					m_sourcePreProcessed.substr(nextLinePos, pos - nextLinePos);
 			}
 		}
-		m_source = _src;
-		m_sourcePreProcessed = shaderSrc;
 		return shaderSources;
 	}
 	std::unordered_map<VkShaderStageFlagBits, std::string> VulkanShader::compileToSpirv(const std::unordered_map<VkShaderStageFlagBits, std::string>& shaderSrcs, std::string shaderPath) {

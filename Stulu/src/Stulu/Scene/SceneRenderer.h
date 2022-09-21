@@ -9,15 +9,15 @@ namespace Stulu {
 			Ref<Material> material;
 			Ref<VertexArray> vertexArray;
 			glm::mat4 transform;
+			glm::mat4 normalMatrix;
 			CullMode cullmode = CullMode::Back;
 			Ref<BoundingBox> boundingBox = nullptr;
 			TransformComponent* transformComp = nullptr;
 
 			inline RenderObject& operator=(RenderObject& b) {
-				material = b.material;
-				vertexArray = b.vertexArray;
-				transform = b.transform;
-				cullmode = b.cullmode;
+				material = b.material;//material
+				vertexArray = b.vertexArray;//mesh
+				transform = b.transform;//transform
 				return *this;
 			}
 		};
@@ -33,7 +33,7 @@ namespace Stulu {
 
 		static void DrawSceneToCamera(SceneCamera& sceneCam, CameraComponent& mainCam);
 		static void DrawSceneToCamera(SceneCamera& sceneCam, Scene* scene);
-		static void DrawSceneToCamera(TransformComponent& transform, CameraComponent& cam, bool drawSkyBox = true);
+		static void DrawSceneToCamera(TransformComponent& transform, CameraComponent& cam);
 
 		static void Clear();
 		static void Clear(CameraComponent& cam);
@@ -57,46 +57,16 @@ namespace Stulu {
 		static void DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data);
 
 		struct RuntimeData {
-			Ref<UniformBuffer> lightBuffer = nullptr;
-			Ref<UniformBuffer> postProcessungBuffer = nullptr;
-			Ref<UniformBuffer> sceneDataBuffer = nullptr;
-
-			struct FBDrawData{
-				Ref<Shader> m_quadShader;
-			} fbDrawData;
+			Ref<Shader> quadPostProcShader;
 			std::vector<RenderObject> drawList;
 			std::vector<RenderObject> transparentDrawList;
-		};
-		static RuntimeData s_runtimeData;
 
-		struct LightData {
-			struct Light {
-				glm::vec4 colorAndStrength = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-				glm::vec4 positionAndType = glm::vec4(1.0f, 5.0f, 10.0f, 0.0f);
-				glm::vec4 rotation = glm::vec4(90.0f, .0f, .0f, 1.0f);
-				glm::vec4 spotLightData = glm::vec4(1.0f);
-			} lights[ST_MAXLIGHTS];
-			uint32_t lightCount = 0;
+			LightBufferData lightBufferData;
+			SceneBufferData sceneBufferData;
+			PostProcessingBufferData postProcessingBufferData;
+
 		};
-		struct PostProcessingBufferData {
-			float time = 0.0f;
-			float delta = 0.0f;
-			float toneMappingExposure = 1.0f;
-			float gamma = 2.2f;
-		};
-		struct ShaderSceneData {
-			float test1 = 1.0f;
-			float test2 = 1.0f;
-			float env_lod = 4.0f;
-			uint32_t enableGammaCorrection = 1u;
-			glm::vec4 clearColor = glm::vec4(.0f);
-			uint32_t useSkybox = 0;
-			uint32_t skyboxMapType = 0;
-			uint32_t shaderFlags = 0;
-		};
-		static LightData s_lightData;
-		static PostProcessingBufferData s_postProcessingData;
-		static ShaderSceneData s_shaderSceneData;
+		static RuntimeData s_data;
 
 		friend class EditorLayer;
 	};

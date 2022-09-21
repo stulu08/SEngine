@@ -139,7 +139,7 @@ GameObjects:
 	}
 	Ref<Shader>& EditorResources::getOutlineShader() {
 		static Ref<Shader> s_outlineShader = Shader::create("Editor Outline", R"(
-		##add ST_vertex
+		##include "Stulu/Vertex"
 		##type fragment
 		#version 460 core
 		out vec4 FragColor;
@@ -151,7 +151,7 @@ GameObjects:
 	}
 	Ref<Shader>& EditorResources::getGreenColorShader() {
 		static Ref<Shader> s_shader = Shader::create("Green Color Shader", R"(
-		##add ST_vertex
+		##include "Stulu/Vertex"
 		##type fragment
 		#version 460 core
 		out vec4 FragColor;
@@ -163,7 +163,7 @@ GameObjects:
 	}
 	Ref<Shader>& EditorResources::getTransparentShader() {
 		static Ref<Shader> s_shader = Shader::create("Green Color Shader", R"(
-		##add ST_vertex
+		##include "Stulu/Vertex"
 		##type fragment
 		#version 460 core
 		out vec4 FragColor;

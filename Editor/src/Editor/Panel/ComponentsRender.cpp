@@ -118,6 +118,7 @@ namespace Stulu {
 			else
 				component.texture = nullptr;
 		}
+		drawVector3Control("Rotation", component.rotation);
 		drawComboControl("Map Type", (int&)component.mapType, "Environment Map\0Irradiance Map\0Prefilter Map");
 
 	}
@@ -814,18 +815,15 @@ namespace Stulu {
 		change |= ImGui::DragFloat((header + " Intensity").c_str(), &color[3]);
 		return change;
 	}
-	Ref<Texture>& ComponentsRender::getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t resultWidth, uint32_t resultHeight) {
-		static std::unordered_map<std::string, Ref<Texture>> storage;
-		std::string ident = std::to_string((uint64_t)texture->getNativeRendererObject()) + "_" + std::to_string(mipLevel) + "_" + std::to_string(resultWidth) + "_" + std::to_string(resultHeight);
-		if (storage.find(ident) == storage.end()) {
-			FrameBufferSpecs specs;
-			specs.width = resultWidth;
-			specs.height = resultHeight;
-			specs.textureFormat = (TextureSettings::Format)texture->getSettings().format;
-			Ref<FrameBuffer> buffer = FrameBuffer::create(specs);
+	Ref<Texture> ComponentsRender::getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t resultWidth, uint32_t resultHeight) {
+		FrameBufferSpecs specs;
+		specs.width = resultWidth;
+		specs.height = resultHeight;
+		specs.textureFormat = (TextureSettings::Format)texture->getSettings().format;
+		Ref<FrameBuffer> buffer = FrameBuffer::create(specs);
 
-			static Ref<Shader> m_quadShader;
-			if (!m_quadShader) {//shader
+		static Ref<Shader> m_quadShader;
+		if (!m_quadShader) {//shader
 					m_quadShader = Shader::create("ComponentsRender::getTextureMip", R"(
 		#version 460
 		layout (location = 0) in vec3 a_pos;
@@ -840,6 +838,10 @@ namespace Stulu {
 			vec4 cameraPosition;
 			vec4 cameraRotation;
 			vec4 cameraNearFar;
+		};
+		layout(std140, binding = 1) uniform model
+		{
+			mat4 normal;
 			mat4 transform;
 		};
 		void main() {
@@ -865,18 +867,16 @@ namespace Stulu {
 		)");
 			}
 
-			RenderCommand::setDepthTesting(false);
-			buffer->bind();
-			texture->bind(0);
-			m_quadShader->bind();
-			glm::mat4 data = glm::mat4(1.0f);
-			data[0][0] = mipLevel;
-			Renderer::submit(Resources::getFullscreenVA(), nullptr, data);
-			buffer->unbind();
+		RenderCommand::setDepthTesting(false);
+		buffer->bind();
+		texture->bind(0);
+		m_quadShader->bind();
+		glm::mat4 data = glm::mat4(1.0f);
+		data[0][0] = mipLevel;
+		Renderer::submit(Resources::getFullscreenVA(), nullptr, data);
+		buffer->unbind();
 
-			storage[ident] = buffer->getTexture();
-		}
-		return storage[ident];
+		return std::dynamic_pointer_cast<Texture>(buffer->getTexture());
 	}
 	void ComponentsRender::drawHelpMarker(const char* desc) {
 		
@@ -910,7 +910,6 @@ namespace Stulu {
 			if (cubeMap) {
 				ImGui::Text("SkyBox");
 				texture = Previewing::get().get(uuid);
-				//texture = reinterpret_cast<void*>((uint64_t)Previewing::get().get(uuid)->getRendererID());
 			}
 			else
 				texture = std::any_cast<Ref<Texture>>(AssetsManager::get(uuid).data);
@@ -993,8 +992,10 @@ namespace Stulu {
 		if (exists && !changed) {
 			Asset& asset = AssetsManager::get(uuid);
 			Ref<Material>& mat = std::any_cast<Ref<Material>>(asset.data);
-			if (mat->isReadonly)
-				return false;
+			if (mat->isReadonly) {
+				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+			}
 
 			std::vector<MaterialDataType>& materialData = mat->getData();
 			for (auto& dataType : materialData) {
@@ -1117,12 +1118,15 @@ namespace Stulu {
 			changed |= drawComboControl("Transparency Mode", (int&)mat->getTransparencyMode(), { "Opaque","Cutout","Transparent" });
 			if(mat->getTransparencyMode() == TransparencyMode::Cutout)
 				changed |= drawFloatControl("Alpha Cutout", mat->getAlphaCutOff());
-
-			if (changed) {
+			if (mat->isReadonly) {
+				ImGui::PopItemFlag();
+				ImGui::PopStyleVar();
+			}else if (changed) {
 				mat->update(materialData);
 				mat->toDataStringFile(asset.path);
 				Previewing::get().add(asset);
 			}
+			
 		}
 		return changed;
 	}

@@ -9,16 +9,11 @@ struct InstanceData{
 	mat4 transforms;
 	vec4 instanceColors;
 };
+##include "Stulu/Bindings"
 
-layout(std140, binding = 0) uniform matrices
+layout(std140, binding = 1) uniform modelData
 {
-	mat4 viewProjection;
-	mat4 viewMatrix;
-	mat4 projMatrix;
-	vec4 cameraPosition;
-	vec4 cameraRotation;
-	vec4 cameraNearFar;
-	InstanceData instanceData[100];
+	InstanceData instanceData[180];
 };
 
 struct VertexOutput

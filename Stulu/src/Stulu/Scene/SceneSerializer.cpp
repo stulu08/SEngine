@@ -154,6 +154,7 @@ namespace Stulu {
 			auto& meshren = gameObject.getComponent<SkyBoxComponent>();
 			if(meshren.texture)
 				out << YAML::Key << "texture" << YAML::Value << (uint64_t)meshren.texture->uuid;
+			out << YAML::Key << "rotation" << YAML::Value << meshren.rotation;
 			out << YAML::Key << "mapType" << YAML::Value << (int32_t)meshren.mapType;
 			out << YAML::EndMap;
 		}
@@ -456,6 +457,8 @@ namespace Stulu {
 					if (skyBoxComponentNode) {
 						auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
 						skyBox.texture = std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data));
+						if(skyBoxComponentNode["rotation"])
+							skyBox.rotation = skyBoxComponentNode["rotation"].as<glm::vec3>();
 						skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();
 					}
 

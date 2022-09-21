@@ -76,6 +76,7 @@ namespace Stulu{
 		CORE_ASSERT(false, "Unknown error in Shader creation")
 			return nullptr;
 	}
+
 	void ShaderLibary::add(const std::string& name, const Ref<Shader>& shader) {
 		CORE_ASSERT(!exists(name), "{0} Shader already exists: {1}", name);
 		m_shaders[name] = shader;
@@ -103,16 +104,80 @@ namespace Stulu{
 		CORE_ASSERT(exists(name), std::string("Shader not found: ") + name);
 		return m_shaders[name];
 	}
-	//I realy hate this
-	const std::vector<std::pair<std::string, std::string>> Shader::s_preProcessorAdds{
-			{"ST_default",R"(
-##add ST_vertex
+
+	ShaderProperity::Type ShaderProperity::typeFromString(const std::string& str) {
+		if (str == "Color" || str == "color") {
+			return Type::Color;
+		}
+		if (str == "Range" || str == "range") {
+			return Type::Range;
+		}
+		if (str == "Enum" || str == "enum" || str == "Combo" || str == "combo") {
+			return Type::Enum;
+		}
+		if (str == "Marker" || str == "marker" || str == "Help" || str == "help") {
+			return Type::Marker;
+		}
+		CORE_WARN("Uknown Shader Properity type: {0}", str);
+		return Type::None;
+	}
+	ShaderProperityRange::ShaderProperityRange(const std::string& values) {
+		std::stringstream stream(values);
+		std::string segment;
+		std::vector<std::string> segments;
+		while (std::getline(stream, segment, ','))
+		{
+			segments.push_back(segment);
+		}
+		if (segments.size() != 2) {
+			CORE_ERROR("Wrong arguments for ShaderProperity Range");
+			return;
+		}
+		m_min = std::stof(segments[0]);
+		m_max = std::stof(segments[1]);
+	}
+	ShaderProperityEnum::ShaderProperityEnum(const std::string& values) {
+		std::stringstream stream(values);
+		std::string segment;
+		while (std::getline(stream, segment, ',')) {
+			m_names.push_back(segment);
+		}
+	}
+	ShaderProperityMarker::ShaderProperityMarker(const std::string& text){
+		m_text = text;
+		size_t index = 0;
+		while (true) {
+			index = m_text.find("\\n", index);
+			if (index == std::string::npos) break;
+
+			m_text.replace(index, 2, "\n");
+
+			index += 2;
+		}
+	}
+	ShaderProperityColor::ShaderProperityColor(const std::string& values) 
+		:m_hdr(false) {
+		std::stringstream stream(values);
+		std::string arg;
+		while (std::getline(stream, arg, ',')) {
+			if (arg._Starts_with("hdr") || arg._Starts_with("HDR")) {
+				if (arg.find("true"))
+					m_hdr = true;
+			}
+		}
+	}
+
+	void Shader::procesInlucdes(std::string& source) {
+		//I realy hate this
+		static std::vector<std::pair<std::string, std::string>> s_preProcessorAdds{
+			{"Stulu/Default",R"(
+##include "Stulu/Vertex"
 ##type fragment
 #version 460 core
 out vec4 FragColor;
-##add ST_functions
-##add ST_bindings
-##add ST_pbr_calculation
+##include "Stulu/Functions"
+##include "Stulu/Bindings"
+##include "Stulu/PBR"
 struct vertInput
 {
 	vec3 worldPos;
@@ -121,8 +186,8 @@ struct vertInput
 	vec4 color;
 };
 layout (location = 0) in vertInput vertex;
-)"},//ST_default
-			{"ST_vertex",R"(
+)"},// Stulu/Default
+			{"Stulu/Vertex",R"(
 ##type vertex
 #version 460 core
 layout (location = 0) in vec3 a_pos;
@@ -130,14 +195,11 @@ layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_texCoords;
 layout (location = 3) in vec4 a_color;
 
-layout(std140, binding = 0) uniform matrices
+##include "Stulu/Bindings"
+
+layout(std140, binding = 1) uniform modelData
 {
-	mat4 viewProjection;
-	mat4 viewMatrix;
-	mat4 projMatrix;
-	vec4 cameraPosition;
-	vec4 cameraRotation;
-	vec4 cameraNearFar;
+	mat4 normalMatrix;
 	mat4 transform;
 };
 struct vertOutput
@@ -151,14 +213,17 @@ layout (location = 0) out vertOutput _output;
 
 void main()
 {
-    _output.worldPos = vec3(transform * vec4(a_pos, 1.0));
-    _output.normal = vec3(transform * vec4(a_normal, 0.0));
+	vec4 world = transform * vec4(a_pos, 1.0);
+
+    _output.worldPos = world.xyz;
+    _output.normal = (normalMatrix * vec4(a_normal, 0.0)).xyz;
     _output.texCoords = a_texCoords;
 	_output.color = a_color;
-    gl_Position =  viewProjection * transform * vec4(a_pos, 1.0);
+
+    gl_Position = viewProjection * world;
 }
-)"},//ST_vertex
-			{"ST_functions", R"(
+)"},// Stulu/Vertex
+			{"Stulu/Functions", R"(
 #define st_impl_for_all_types(func) \
 func(vec4);		\
 func(vec3);		\
@@ -232,7 +297,7 @@ vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map)
 {
 	vec3 textureValue = texture(map, tex).xyz;
 	if(textureValue == vec3(0))
-		return normalize(normal);
+		return normal;
     vec3 tangentNormal = textureValue * 2.0 - 1.0;
 	
     vec3 Q1  = dFdx(world);
@@ -276,6 +341,9 @@ float filterAlpha(float alpha, uint mode, float cutOut = 1.0f) {
 	}
 
 }
+vec3 getSkyBoxCoords(vec3 view, mat4 _skyBoxRotation) {
+	return normalize(_skyBoxRotation * vec4(view, 0.0)).xyz;
+}
 float linearizeDepth(float depth, float near, float far) {
 	float z = depth * 2.0 - 1.0; // back to NDC 
     return ((2.0 * near * far) / (far + near - z * (far - near)));
@@ -309,8 +377,15 @@ st_impl_for_all_types(st_and_impl)
 st_impl_for_all_types(st_or_impl)
 st_impl_for_all_types(st_not_impl)
 
-)"},//ST_functions
-			{"ST_bindings",
+float FisFlagEnabled(uint flags, uint flag) {
+	return when_eq(flags & flag, flag);
+}
+float FisFlagDisabled(uint flags, uint flag) {
+	return when_neq(flags & flag, flag);
+}
+
+)"},// Stulu/Functions
+			{"Stulu/Bindings",
 
 std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
 R"(
@@ -321,7 +396,7 @@ struct Light{
 	vec4 spotLightData;
 };
 
-layout(std140, binding = 0) uniform matrices
+layout(std140, binding = 0) uniform cameraData
 {
 	mat4 viewProjection;
 	mat4 viewMatrix;
@@ -329,37 +404,59 @@ layout(std140, binding = 0) uniform matrices
 	vec4 cameraPosition;
 	vec4 cameraRotation;
 	vec4 cameraNearFar;
-	mat4 transform;
 };
-layout(std140, binding = 1) uniform lightData
+//			depends on renderer
+// --------------------------------------------
+// following is used by the default renderer:
+//layout(std140, binding = 1) uniform modelData
+//{
+//		mat4 normalMatrix;
+//		mat4 transform;
+//};
+// --------------------------------------------
+// following is used by post processing:
+//layout(std140, binding = 1) uniform modelData
+//{
+//		//float z;
+//};
+// --------------------------------------------
+// following is used by post gizmo instancing
+//struct InstanceData{
+//	mat4 transforms;
+//	vec4 instanceColors;
+//};
+//layout(std140, binding = 1) uniform modelDatayout(std140, binding = 1) uniform modelData
+//{
+//		InstanceData instanceData[180];
+//};
+// --------------------------------------------
+layout(std140, binding = 2) uniform lightData
 {
     Light lights[st_maxLights];
     uint lightCount;
 };
-layout(std140, binding = 2) uniform postProcessing
+layout(std140, binding = 3) uniform postProcessing
 {
 	float time;
 	float delta;
 	float toneMappingExposure;
 	float gamma;
 };
-layout(std140, binding = 3) uniform shaderSceneData
+layout(std140, binding = 4) uniform shaderSceneData
 {
-	float test1;
-	float test2;
-	float env_lod;
-	bool enableGammaCorrection;
+	mat4 skyBoxRotation;
 	vec4 clearColor;
 	bool useSkybox;
 	uint skyboxMapType;
 	uint viewFlags;
+	float env_lod;
 };
 layout (binding = 0) uniform samplerCube environmentMap;
 layout (binding = 1) uniform samplerCube irradianceMap;
 layout (binding = 2) uniform samplerCube prefilterMap;
 layout (binding = 3) uniform sampler2D BRDFLUTMap;
-)"},//ST_bindings
-			{"ST_pbr_calculation",R"(
+)"},// Stulu/Bindings
+			{"Stulu/PBR",R"(
 struct PBRData {
 	vec3  albedo;
 	vec3  emission;
@@ -372,13 +469,13 @@ struct PBRData {
 	vec3 normal;
 	vec2 texCoords;
 };
-vec4 ST_pbr_calculation(inout PBRData data)
+vec4 ST_PBR(inout PBRData data)
 {
 	if(data.alpha <= 0.001){
 		return vec4(.0f);
 	}
 	
-	vec3 N = data.normal;
+	vec3 N = normalize(data.normal);
 	vec3 V = normalize(cameraPosition.xyz - data.worldPos);
 	vec3 R = reflect(-V, N);
 	vec3 F0 = vec3(0.04); 
@@ -448,17 +545,25 @@ vec4 ST_pbr_calculation(inout PBRData data)
 	kD *= 1.0 - data.metallic;
 	const float MAX_REFLECTION_LOD = 4.0f;
   
-	vec3 irradiance = vec3(clearColor);
-	if(useSkybox)
-		irradiance = texture(irradianceMap, N).rgb;
-
 	vec3 prefilteredColor = vec3(clearColor);
-	if(useSkybox)
-		prefilteredColor = textureLod(prefilterMap, R, data.roughness * MAX_REFLECTION_LOD).rgb;
-
+	vec3 irradiance = vec3(clearColor);
 	vec2 brdf = vec2(.75*data.roughness);
-	if(useSkybox)
-		brdf  = texture(BRDFLUTMap, vec2(max(dot(N, V), 0.0), data.roughness)).rg;
+
+	if(useSkybox) {
+		vec3 SB_N = getSkyBoxCoords(N, skyBoxRotation);
+		vec3 SB_R = getSkyBoxCoords(R, skyBoxRotation);
+		vec3 SB_V = getSkyBoxCoords(V, skyBoxRotation);
+		
+		irradiance = texture(irradianceMap, SB_N).rgb;
+		//irradiance = texture(irradianceMap, N).rgb;
+
+		prefilteredColor = textureLod(prefilterMap, SB_R, data.roughness * MAX_REFLECTION_LOD).rgb;
+		//prefilteredColor = textureLod(prefilterMap, R, data.roughness * MAX_REFLECTION_LOD).rgb;
+
+		brdf  = texture(BRDFLUTMap, vec2(max(dot(SB_N, SB_V), 0.0), data.roughness)).rg;
+		//brdf  = texture(BRDFLUTMap, vec2(max(dot(N, V), 0.0), data.roughness)).rg;
+	}
+
    
 	vec3 diffuse  = irradiance * data.albedo;
 	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
@@ -469,7 +574,7 @@ vec4 ST_pbr_calculation(inout PBRData data)
 	//filter flags
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
 		color = vec3(Lo);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
+	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
 		color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y)/cameraNearFar.y);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
 		color = vec3(diffuse);
@@ -492,91 +597,17 @@ vec4 ST_pbr_calculation(inout PBRData data)
 
 	return vec4(color, data.alpha);
 }
-)"},//ST_pbr_calculation
-			{ "ST_CubemapVertex",R"(
-		##type vertex
-		#version 460 core
-		layout (location = 0) in vec3 a_pos;
-		layout (location = 1) in vec3 a_normal;
-		layout (location = 2) in vec2 a_texcoord;
-		layout (location = 3) in vec4 a_color;
-
-		out vec3 WorldPos;
-
-		uniform mat4 projection;
-		uniform mat4 view;
-
-		void main()
-		{
-			WorldPos = a_pos;  
-			gl_Position =  projection * view * vec4(WorldPos, 1.0);
-		}
-)" },//ST_CubemapVertex
-	};
-
-	ShaderProperity::Type ShaderProperity::typeFromString(const std::string& str) {
-		if (str == "Color" || str == "color") {
-			return Type::Color;
-		}
-		if (str == "Range" || str == "range") {
-			return Type::Range;
-		}
-		if (str == "Enum" || str == "enum" || str == "Combo" || str == "combo") {
-			return Type::Enum;
-		}
-		if (str == "Marker" || str == "marker" || str == "Help" || str == "help") {
-			return Type::Marker;
-		}
-		CORE_WARN("Uknown Shader Properity type: {0}", str);
-		return Type::None;
-	}
-
-	ShaderProperityRange::ShaderProperityRange(const std::string& values) {
-		std::stringstream stream(values);
-		std::string segment;
-		std::vector<std::string> segments;
-		while (std::getline(stream, segment, ','))
-		{
-			segments.push_back(segment);
-		}
-		if (segments.size() != 2) {
-			CORE_ERROR("Wrong arguments for ShaderProperity Range");
-			return;
-		}
-		m_min = std::stof(segments[0]);
-		m_max = std::stof(segments[1]);
-	}
-
-
-	ShaderProperityEnum::ShaderProperityEnum(const std::string& values) {
-		std::stringstream stream(values);
-		std::string segment;
-		while (std::getline(stream, segment, ',')) {
-			m_names.push_back(segment);
-		}
-	}
-	ShaderProperityMarker::ShaderProperityMarker(const std::string& text){
-		m_text = text;
-		size_t index = 0;
-		while (true) {
-			index = m_text.find("\\n", index);
-			if (index == std::string::npos) break;
-
-			m_text.replace(index, 2, "\n");
-
-			index += 2;
-		}
-	}
-
-	ShaderProperityColor::ShaderProperityColor(const std::string& values) 
-		:m_hdr(false) {
-		std::stringstream stream(values);
-		std::string arg;
-		while (std::getline(stream, arg, ',')) {
-			if (arg._Starts_with("hdr") || arg._Starts_with("HDR")) {
-				if (arg.find("true"))
-					m_hdr = true;
+)"},// Stulu/PBR
+		};
+		back:
+		for (auto& p : s_preProcessorAdds) {
+			std::string token = "##include \"" + p.first + "\"";
+			size_t pos = source.find(token);
+			if (pos != std::string::npos) {
+				source.replace(pos, token.length(), p.second);
+				goto back;
 			}
 		}
 	}
+
 }

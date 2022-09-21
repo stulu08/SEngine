@@ -6,14 +6,11 @@ layout(location = 2) in vec4 a_color;
 layout(location = 3) in float a_thickness;
 layout(location = 4) in float a_fade;
 
-layout(std140, binding = 0) uniform matrices
+##include "Stulu/Bindings"
+
+layout(std140, binding = 1) uniform modelData
 {
-	mat4 viewProjection;
-	mat4 viewMatrix;
-	mat4 projMatrix;
-	vec4 cameraPosition;
-	vec4 cameraRotation;
-	vec4 cameraNearFar;
+	mat4 normalMatrix;
 	mat4 transform;
 };
 

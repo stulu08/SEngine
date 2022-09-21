@@ -48,7 +48,7 @@ namespace Stulu {
 			RenderCommand::setClearColor({ 0,0,0,1 });
 			RenderCommand::clear();
 
-			Renderer::uploadBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
+			Renderer::uploadCameraBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
 			Renderer2D::begin();
 			Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .0f, .0f), glm::vec3(1.0f)), texture);
 			Renderer2D::flush();

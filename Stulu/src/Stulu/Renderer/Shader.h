@@ -67,6 +67,7 @@ namespace Stulu {
 		virtual Ref<ShaderProperity>& getProperity(std::string properityName) = 0;
 		virtual bool hasProperity(std::string properityName) = 0;
 
+		static void procesInlucdes(std::string& source);
 	protected:
 		const static std::vector<std::pair<std::string, std::string>> s_preProcessorAdds;
 	};

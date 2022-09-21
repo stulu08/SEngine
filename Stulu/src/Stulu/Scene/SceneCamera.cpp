@@ -7,15 +7,15 @@
 #include "Stulu/Renderer/RenderCommand.h"
 
 namespace Stulu {
-	SceneCamera::SceneCamera(float aspectRatio, float fov, float zNear, float zFar)
+	SceneCamera::SceneCamera(float aspectRatio, float fov, float zNear, float zFar, uint32_t samples)
 		:m_aspectRatio(aspectRatio), m_fov(fov), m_zNear(zNear), m_zFar(zFar) {
 
 		ST_PROFILING_FUNCTION();
-		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar);
+		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar, FrameBufferSpecs(1, 1, samples));
 		if (reflectionMap == nullptr)
 			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings{ TextureSettings::Format::RGB16F });
 		if (reflectionFrameBuffer == nullptr)
-			reflectionFrameBuffer = FrameBuffer::create(FrameBufferSpecs{ ST_REFLECTION_MAP_SIZE,ST_REFLECTION_MAP_SIZE,1,false,TextureSettings::Format::RGBA16F });
+			reflectionFrameBuffer = FrameBuffer::create(FrameBufferSpecs{ ST_REFLECTION_MAP_SIZE,ST_REFLECTION_MAP_SIZE,1,false,TextureSettings::Format::R });
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();

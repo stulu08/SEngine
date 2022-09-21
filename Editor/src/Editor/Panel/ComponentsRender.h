@@ -52,7 +52,7 @@ namespace Stulu {
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 		static bool drawHDRColorEdit(const std::string& header, glm::vec4& color);
 
-		static Ref<Texture>& getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t textureWidth, uint32_t textureHeight);
+		static Ref<Texture> getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t textureWidth, uint32_t textureHeight);
 
 		static void drawHelpMarker(const char* desc);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap = false);

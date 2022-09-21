@@ -5,7 +5,8 @@
 namespace Stulu {
 	class STULU_API PerspectiveCamera : public Camera{
 	public:
-		PerspectiveCamera(float fov, float aspect, float z_near, float z_far);
+		PerspectiveCamera(float fov, float aspect, float z_near, float z_far, const FrameBufferSpecs& specs = FrameBufferSpecs());
+		virtual ~PerspectiveCamera();
 		const virtual void setProjection(float fov, float aspect, float z_near, float z_far) override;
 		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
 

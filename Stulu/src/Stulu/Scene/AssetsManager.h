@@ -46,6 +46,8 @@ namespace Stulu {
 		static bool exists(const UUID& uuid);
 		static bool existsAndType(const UUID& uuid, const AssetType type);
 
+		static inline std::vector<UUID>& getAllByType(AssetType type) { return assetsTypeList[type]; }
+
 		static Asset& get(const UUID& uuid);
 		static inline bool saveGet(const UUID& uuid, Asset& outAsset) {
 			if (exists(uuid)) {
@@ -162,6 +164,7 @@ namespace Stulu {
 	private:
 		//uuid ,<data, path>
 		static std::unordered_map<UUID, Asset> assets;
+		static std::unordered_map<AssetType, std::vector<UUID>> assetsTypeList;
 
 		static void createMeshesFromModel(const Asset uuid);
 		static void _createMeshesFromModel(const Asset uuid, Model& model);

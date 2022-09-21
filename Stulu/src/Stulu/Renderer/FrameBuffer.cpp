@@ -21,11 +21,11 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in FrameBuffer creation")
 			return nullptr;
 	}
-	Ref<FrameBufferTexture> FrameBufferTexture::create(uint32_t width, uint32_t height) {
+	Ref<FrameBufferTexture> FrameBufferTexture::create(uint32_t width, uint32_t height, uint32_t samples) {
 		switch (Renderer::getRendererAPI())
 		{
 		case RenderAPI::API::OpenGL:
-			return std::make_shared<OpenGLFrameBufferTexture>(width, height);
+			return std::make_shared<OpenGLFrameBufferTexture>(width, height, samples);
 		case RenderAPI::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;

@@ -5,7 +5,9 @@
 namespace Stulu {
 	class STULU_API OrthographicCamera : public Camera {
 	public:
-		OrthographicCamera(float left, float right, float bottom, float top, float zNear, float zFar);
+		OrthographicCamera(float left, float right, float bottom, float top, float zNear, float zFar, const FrameBufferSpecs& specs = FrameBufferSpecs());
+		virtual ~OrthographicCamera();
+
 		const virtual void setProjection(float left, float right, float bottom, float top, float zNear, float zFar) override;
 		const glm::mat4& getProjectionMatrix() const override { return m_projcetionMatrix; }
 

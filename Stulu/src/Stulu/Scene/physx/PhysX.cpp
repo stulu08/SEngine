@@ -316,14 +316,14 @@ namespace Stulu {
         Ref<Mesh>& theMesh = createRef<Mesh>(Mesh::combine(*mesh.get()));
 
         physx::PxTriangleMeshDesc meshDesc;
-        meshDesc.points.count = (uint32_t)theMesh->m_vertices.size();
-        meshDesc.points.stride = sizeof(Vertex);
+        meshDesc.points.count = theMesh->getVerticesCount();
+        meshDesc.points.stride = theMesh->getVertexBuffer()->getStride();
         meshDesc.points.data = theMesh->m_vertices.data();
 
-        meshDesc.triangles.count = (uint32_t)theMesh->m_indices.size()/3;
-        meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+        meshDesc.triangles.count = theMesh->getIndicesCount() / 3;
+        meshDesc.triangles.stride = 3 * theMesh->getIndexBuffer()->getStride();
         meshDesc.triangles.data = theMesh->m_indices.data();
-        
+
 
         physx::PxDefaultMemoryOutputStream writeBuffer;
         physx::PxTriangleMeshCookingResult::Enum result;
@@ -340,13 +340,13 @@ namespace Stulu {
     physx::PxConvexMesh* PhysX::createConvexMesh(Ref<Mesh>& mesh) {
         Ref<Mesh>& theMesh = createRef<Mesh>(Mesh::combine(*mesh.get()));
         physx::PxConvexMeshDesc convexDesc;
-        convexDesc.points.count = (uint32_t)theMesh->m_vertices.size();;
-        convexDesc.points.stride = sizeof(Vertex);
+        convexDesc.points.count = theMesh->getVerticesCount();
+        convexDesc.points.stride = theMesh->getVertexBuffer()->getStride();
         convexDesc.points.data = theMesh->m_vertices.data();
         convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eDISABLE_MESH_VALIDATION | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
 
-        convexDesc.indices.count = (uint32_t)theMesh->m_indices.size();
-        convexDesc.indices.stride = sizeof(uint32_t);
+        convexDesc.indices.count = theMesh->getIndicesCount();
+        convexDesc.indices.stride = theMesh->getIndexBuffer()->getStride();
         convexDesc.indices.data = theMesh->m_indices.data();
 
         physx::PxDefaultMemoryOutputStream buf;

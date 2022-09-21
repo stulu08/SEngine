@@ -7,6 +7,7 @@
 
 namespace Stulu {
 	std::unordered_map<UUID, Asset> AssetsManager::assets;
+	std::unordered_map<AssetType, std::vector<UUID>> AssetsManager::assetsTypeList;
 
 	bool FileExists(const std::string& name) {
 		ST_PROFILING_FUNCTION();
@@ -23,15 +24,30 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (std::filesystem::is_directory(path))
 			return addDirectory(path);
+		UUID uuid;
+		AssetType type;
 		if (!FileExists(path + ".meta")) {
 			if (path.find_last_of('.') == path.npos)
 				return UUID::null;
-			createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
+			uuid = UUID();
+			type = assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos));
+			createMeta(uuid, path, type);
 		}
-		YAML::Node data = YAML::LoadFile(path + ".meta");
-		UUID uuid(data["uuid"].as<uint64_t>());
+		else {
+			try {
+				YAML::Node data = YAML::LoadFile(path + ".meta");
+				uuid = UUID(data["uuid"].as<uint64_t>());
+				type = (AssetType)data["type"].as<int>();
+			}
+			catch (YAML::Exception ex) {
+				std::filesystem::remove(path + ".meta");
+				return add(path);
+			}
+			
+		}
+
 		if (!exists(uuid))
-			add(uuid,path, (AssetType)data["type"].as<int>());
+			add(uuid, path, type);
 
 		return uuid;
 	}
@@ -96,14 +112,27 @@ namespace Stulu {
 
 	UUID AssetsManager::addDirectory(const std::string& path) {
 		ST_PROFILING_FUNCTION();
+		UUID uuid;
 		if (!FileExists(path + ".meta")) {
-			createMeta(UUID(), path, AssetType::Directory);
+			if (path.find_last_of('.') == path.npos)
+				return UUID::null;
+			uuid = UUID();
+			createMeta(uuid, path, AssetType::Directory);
 		}
-		YAML::Node data = YAML::LoadFile(path + ".meta");
-		UUID uuid(data["uuid"].as<uint64_t>());
+		else {
+			try {
+				YAML::Node data = YAML::LoadFile(path + ".meta");
+				uuid = UUID(data["uuid"].as<uint64_t>());
+			}
+			catch (YAML::Exception ex) {
+				std::filesystem::remove(path + ".meta");
+				return add(path);
+			}
 
+		}
 		if (!exists(uuid))
-			assets[uuid] = Asset{ AssetType::Directory ,path,path,uuid};
+			update(uuid, Asset{ AssetType::Directory ,path,path,uuid });
+
 		return uuid;
 	}
 
@@ -140,15 +169,23 @@ namespace Stulu {
 			break;
 		}
 		//update meta
-		if (FileExists(data.path)) {
+		if (data.type != AssetType::Directory && FileExists(data.path)) {
 			createMeta(uuid, data.path, data.type);
 		}
+
+		assetsTypeList[data.type].push_back(uuid);
 		assets[uuid] = data;
 	}
 
 	void AssetsManager::remove(const UUID& uuid, bool deleteFile, bool deleteMetaFile) {
 		ST_PROFILING_FUNCTION();
 		if (exists(uuid)) {
+			Asset& asset = assets[uuid];
+			if (asset.type == AssetType::Directory) {
+				for (auto& file : std::filesystem::directory_iterator(asset.path)) {
+					AssetsManager::remove(getFromPath(file.path().string()), true, true);
+				}
+			}
 			try {
 				std::string path = get(uuid).path;
 
@@ -161,13 +198,14 @@ namespace Stulu {
 			catch (std::exception ex) {
 				CORE_ERROR("Couldn't delete Files/Directory with UUID: {0}\n	:{1}", uuid, ex.what())
 			}
-			Asset& asset = assets[uuid];
-
 			if (asset.type == AssetType::Material) {
 				std::any_cast<Ref<Material>>(asset.data).reset();
 			}
+			std::vector<UUID>& typeList = assetsTypeList[asset.type];
+			typeList.erase(std::find(typeList.begin(), typeList.end(), uuid));
 			asset.data.reset();
 			assets.erase(uuid);
+			
 		}
 	}
 
@@ -213,9 +251,9 @@ namespace Stulu {
 			return AssetType::Model;
 		else if (extension == ".mat")
 			return AssetType::Material;
-		else if (extension == ".glsl" || extension == ".vert" || extension == ".frag" || extension == ".sshader")
+		else if (extension == ".glsl" || extension == ".vert" || extension == ".frag" || extension == ".shader")
 			return AssetType::Shader;
-		else if (extension == ".scene" || extension == ".stulu")
+		else if (extension == ".scene" || extension == ".ssc")
 			return AssetType::Scene;
 		else if (extension == ".cs")
 			return AssetType::Script;
@@ -227,25 +265,29 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (path.empty() || !std::filesystem::exists(path))
 			return false;
+
+		if (FileExists(path + ".meta")) {
+			YAML::Node data = YAML::LoadFile(path + ".meta");
+			return UUID(data["uuid"].as<uint64_t>());
+		}
+		
 		for (auto& i : assets) {
 			if (path == i.second.path)
 				return i.first;
 		}
-		if (std::filesystem::is_directory(path))
-			return addDirectory(path);
-		return add(path);
+		return UUID::null;
 	}
 	UUID AssetsManager::getFromPath(const std::string& path, AssetType type) {
 		ST_PROFILING_FUNCTION();
 		if (path.empty() || !std::filesystem::exists(path))
 			return false;
-		for (auto& i : assets) {
-			if(path == i.second.path && i.second.type == type)
-				return i.first;
+		for (UUID id : assetsTypeList[type]) {
+			Asset& i = get(id);
+			if (path == i.path && i.type == type)
+				return id;
 		}
-		if (std::filesystem::is_directory(path))
-			return addDirectory(path);
-		return add(path);
+
+		return UUID::null;
 	}
 
 	void AssetsManager::loadAllFiles(const std::string& directory, bool loadNewFiles) {

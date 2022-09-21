@@ -113,8 +113,6 @@ namespace Stulu {
 		TransparencyMode m_transparenceMode = TransparencyMode::Opaque;
 		float m_alphaCutOff = .0f;
 
-		static inline Ref<UniformBuffer> s_materialBuffer = nullptr;
-
 		friend class AssetsManager;
 		friend class SceneRenderer;
 	};

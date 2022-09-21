@@ -111,7 +111,7 @@ namespace Stulu {
 	class SkyBoxComponent : public Component {
 	public:
 		Ref<SkyBox> texture = nullptr;
-
+		glm::vec3 rotation = { 0,0,0 };
 		enum class MapType {
 			EnvironmentMap =0, IrradianceMap=1, PrefilterMap=2
 		}mapType = MapType::EnvironmentMap;

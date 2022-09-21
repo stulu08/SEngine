@@ -9,7 +9,7 @@
 namespace Stulu {
 	class STULU_API SceneCamera {
 	public:
-		SceneCamera(float aspectRatio, float fov, float zNear, float zFar);
+		SceneCamera(float aspectRatio, float fov, float zNear, float zFar, uint32_t samples);
 
 		void onUpdate(Timestep timestep);
 		void updateMove(Timestep timestep);

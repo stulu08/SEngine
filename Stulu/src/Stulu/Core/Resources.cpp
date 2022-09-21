@@ -13,7 +13,7 @@ namespace Stulu {
 		getLoadingTexture();
 
 		getSkyBoxShader();
-		AssetsManager::loadAllFiles(assetPath + "/SkyBox", false);
+		AssetsManager::update(UUID(11), { AssetType::SkyBox,static_cast<Ref<Texture>>(SkyBox::create(assetPath + "/SkyBox/Default.hdr", 1024)),"",UUID(11)});
 		getDefaultSkyBox();
 
 		getDefaultMaterial();
@@ -207,7 +207,7 @@ namespace Stulu {
 		layout (location = 0) in vec3 a_pos;
 		layout (location = 1) in vec2 a_texCoords;
 		out vec2 v_tex;
-		layout(std140, binding = 0) uniform matrices
+		layout(std140, binding = 0) uniform cameraData
 		{
 			mat4 viewProjection;
 			mat4 viewMatrix;
@@ -215,11 +215,13 @@ namespace Stulu {
 			vec4 cameraPosition;
 			vec4 cameraRotation;
 			vec4 cameraNearFar;
-			mat4 transform;
+		};
+		layout(std140, binding = 1) uniform model
+		{
+			float z;
 		};
 		void main()
 		{
-			float z = transform[3].z;
 			v_tex=a_texCoords;
 			vec3 pos = a_pos;
 			pos.z = z;
@@ -227,7 +229,7 @@ namespace Stulu {
 		}
 		)", R"(
 		#version 460
-		##add ST_functions
+		##include "Stulu/Functions"
 		in vec2 v_tex;
 		layout (binding = 0) uniform sampler2D texSampler;
 		out vec4 a_color;
@@ -245,47 +247,34 @@ namespace Stulu {
 	}
 
 	Ref<Material> Resources::getDefaultMaterial() {
-		if (!AssetsManager::exists(UUID(12))) {
-			AssetsManager::update(UUID(12), { AssetType::Material,createRef<Material>(AssetsManager::get(UUID(9)),
-				(std::vector<MaterialDataType>{
-					MaterialDataType{ShaderDataType::Float4,glm::vec4(.9f,.9f,.9f,1.0f),"albedo",0},
-					MaterialDataType{ShaderDataType::Float,.0f,"metallic",1},
-					MaterialDataType{ShaderDataType::Float,.5f,"roughness",2},
-					MaterialDataType{ShaderDataType::Float,.1f,"ao",3},
-					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f,1.0f,1.0f,.0f),"emission",4},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(),1,UUID::null},"albedoMap",5},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,UUID::null},"metallicMap",6},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,UUID::null},"roughnessMap",7},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,UUID::null},"normalMap",8},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,UUID::null},"aoMap",9},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getWhiteTexture(),1,UUID::null},"emissionMap",10},
-					MaterialDataType{ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",11},
-
-				})),"",UUID(12) });
-		}
-		return std::any_cast<Ref<Material>&>(AssetsManager::get(UUID(12)).data);
+		return createMaterial("Default Material", UUID(12));
 	}
 	Ref<Material> Resources::getReflectiveMaterial() {
-		if (!AssetsManager::exists(UUID(13))) {
-			AssetsManager::update(UUID(13), { AssetType::Material,createRef<Material>(AssetsManager::get(UUID(9)),
-				(std::vector<MaterialDataType>{
-					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f),"albedo",0},
-					MaterialDataType{ShaderDataType::Float,1.0f,"metallic",1},
-					MaterialDataType{ShaderDataType::Float,.0f,"roughness",2},
-					MaterialDataType{ShaderDataType::Float,1.0f,"ao",3},
-					MaterialDataType{ShaderDataType::Float4,glm::vec4(1.0f,1.0f,1.0f,.0f),"emission",4},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(),1,UUID::null},"albedoMap",5},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,UUID::null},"metallicMap",6},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,UUID::null},"roughnessMap",7},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,UUID::null},"normalMap",8},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,UUID::null},"aoMap",9},
-					MaterialDataType{ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getWhiteTexture(),1,UUID::null},"emissionMap",10},
-					MaterialDataType{ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",11},
+		return createMaterial("Reflective Material", UUID(13), glm::vec4(1.0f), 1.0f, 0.0f, 1.0f);
+	}
 
-				})),"",UUID(13) });
-		}
+	Ref<Material> Resources::createMaterial(const std::string& name, const UUID& uuid, const glm::vec4& albedo, const float& metallic, const float& roughness, const float& ao, const glm::vec4& emission, const UUID& albedoMap, const UUID& metallicMap, const UUID& roughnessMap, const UUID& aoMap, const UUID& emissionMap, const UUID& normalMap, const glm::vec2& textureTilling, TransparencyMode transparencyMode, float alphaCutOff) {
+		Ref<Material> material = createRef<Material>(AssetsManager::get(UUID(9)),
+			(std::vector<MaterialDataType>{
+			MaterialDataType{ ShaderDataType::Float4,albedo,"albedo",0 },
+				MaterialDataType{ ShaderDataType::Float,metallic,"metallic",1 },
+				MaterialDataType{ ShaderDataType::Float,roughness,"roughness",2 },
+				MaterialDataType{ ShaderDataType::Float,ao,"ao",3 },
+				MaterialDataType{ ShaderDataType::Float4,emission,"emission",4 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(),1,albedoMap},"albedoMap",5 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,metallicMap},"metallicMap",6 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,roughnessMap},"roughnessMap",7 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,normalMap},"normalMap",8 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,aoMap},"aoMap",9 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getWhiteTexture(),1,emissionMap},"emissionMap",10 },
+				MaterialDataType{ ShaderDataType::Float2,textureTilling,"textureTilling",11 },
 
-		return std::any_cast<Ref<Material>&>(AssetsManager::get(UUID(13)).data);
+		}), name);
+		material->getAlphaCutOff() = alphaCutOff;
+		material->getTransparencyMode() = transparencyMode;
+		AssetsManager::update(uuid, { AssetType::Material,material,"",uuid });
+
+		return std::any_cast<Ref<Material>&>(AssetsManager::get(uuid).data);
 	}
 
 	Ref<Shader> Resources::getSkyBoxShader() {
@@ -299,16 +288,8 @@ namespace Stulu {
 		layout (location = 3) in vec4 a_color;
 				
 
-		layout(std140, binding = 0) uniform matrices
-		{
-			mat4 viewProjection;
-			mat4 viewMatrix;
-			mat4 projMatrix;
-			vec4 cameraPosition;
-			vec4 cameraRotation;
-			vec4 cameraNearFar;
-			mat4 transform;
-		};
+		##include "Stulu/Bindings"
+
 		struct vertOutput
 		{
 			vec3 texCoords;
@@ -317,10 +298,12 @@ namespace Stulu {
 
 		void main()
 		{
+
 			_output.texCoords = a_pos;
+
 			mat4 view = mat4(mat3(viewMatrix));
-			vec4 pos = projMatrix * view* transform * vec4(a_pos, 1.0);
-			gl_Position =  pos.xyww;
+			vec4 pos = projMatrix * view * vec4(a_pos, 1.0);
+			gl_Position = pos.xyww;
 		}
 
 
@@ -328,8 +311,8 @@ namespace Stulu {
 		#version 460 core
 		out vec4 FragColor;
 
-		##add ST_functions
-		##add ST_bindings
+		##include "Stulu/Functions"
+		##include "Stulu/Bindings"
 
 		struct vertInput
 		{
@@ -338,20 +321,21 @@ namespace Stulu {
 		layout (location = 0) in vertInput vertex;
 
 		void main() {
+			vec3 view = getSkyBoxCoords(vertex.texCoords, skyBoxRotation);
 			vec4 color = vec4(.0f);
 			if(useSkybox){
 				vec3 mapColor = clearColor.xyz;
 				if(skyboxMapType == 0){
 					//acces mip maps if needed
 					if(env_lod == 0)
-						mapColor = texture(environmentMap, vertex.texCoords).rgb;
+						mapColor = texture(environmentMap, view).rgb;
 					else {
-						mapColor = textureLod(environmentMap, vertex.texCoords, env_lod).rgb;
+						mapColor = textureLod(environmentMap, view, env_lod).rgb;
 					}
 				}else if(skyboxMapType == 1){
-					mapColor = texture(irradianceMap, vertex.texCoords).rgb;
+					mapColor = texture(irradianceMap, view).rgb;
 				}else if(skyboxMapType == 2){
-					mapColor = texture(prefilterMap, vertex.texCoords).rgb;
+					mapColor = texture(prefilterMap, view).rgb;
 				}
 				color = vec4(mapColor, 1.0f);
 			}

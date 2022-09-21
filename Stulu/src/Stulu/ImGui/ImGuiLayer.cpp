@@ -12,7 +12,7 @@
 	#include <GLFW/glfw3.h>
 #endif
 #ifdef OPENGL
-	#include "backends/imgui_impl_opengl3.h"
+	#include "backends/imgui_impl_opengl4.h"
 #endif
 
 
@@ -51,7 +51,7 @@ namespace Stulu {
 #ifdef USING_GLFW
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 	#ifdef OPENGL
-			ImGui_ImplOpenGL3_Init("#version 460");
+			ImGui_ImplOpenGL4_Init("#version 460");
 	#endif
 #endif
 
@@ -62,7 +62,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 #ifdef USING_GLFW
 	#ifdef OPENGL
-			ImGui_ImplOpenGL3_Shutdown();
+			ImGui_ImplOpenGL4_Shutdown();
 	#endif
 		ImGui_ImplGlfw_Shutdown();
 #endif
@@ -73,7 +73,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 #ifdef USING_GLFW
 	#ifdef OPENGL
-			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplOpenGL4_NewFrame();
 	#endif
 		ImGui_ImplGlfw_NewFrame();
 #endif
@@ -91,7 +91,7 @@ namespace Stulu {
 		ImGui::Render();
 #ifdef USING_GLFW
 	#ifdef OPENGL
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			ImGui_ImplOpenGL4_RenderDrawData(ImGui::GetDrawData());
 	#endif
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

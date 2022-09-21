@@ -3,13 +3,11 @@
 layout(location = 0) in vec3 a_pos;
 layout(location = 1) in vec4 a_color;
 
-layout(std140, binding = 0) uniform matrices
+##include "Stulu/Bindings"
+
+layout(std140, binding = 1) uniform modelData
 {
-	mat4 viewProjection;
-	mat4 viewMatrix;
-	mat4 projMatrix;
-	vec4 cameraPosition;
-	vec4 cameraRotation;
+	mat4 normalMatrix;
 	mat4 transform;
 };
 

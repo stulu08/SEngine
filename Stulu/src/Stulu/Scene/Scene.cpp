@@ -134,7 +134,7 @@ namespace Stulu {
 				cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, 
 					cameraComp.settings.zFar, 0, transformComp);
 			}
-			Renderer::uploadBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform), 
+			Renderer::uploadCameraBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform), 
 				transformComp.worldPosition, transformComp.eulerAnglesDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 			
 			//clear 
@@ -143,7 +143,7 @@ namespace Stulu {
 			cameraComp.getNativeCamera()->unbindFrameBuffer();
 
 			//draw 3D
-			SceneRenderer::DrawSceneToCamera(transformComp, cameraComp, true);
+			SceneRenderer::DrawSceneToCamera(transformComp, cameraComp);
 			//draw 2D stuff
 			cameraComp.getNativeCamera()->bindFrameBuffer();
 			Renderer2D::begin();
@@ -189,18 +189,12 @@ namespace Stulu {
 		}
 		GameObject mc = getMainCamera();
 
-		Renderer::uploadBufferData(camera.getCamera()->getProjectionMatrix(), glm::inverse(camera.getTransform().transform),
+		Renderer::uploadCameraBufferData(camera.getCamera()->getProjectionMatrix(), glm::inverse(camera.getTransform().transform),
 			camera.getTransform().worldPosition, camera.getTransform().eulerAnglesDegrees, camera.getNear(), camera.getFar());
 		//clear 
 		camera.getCamera()->bindFrameBuffer();
-		if (mc) {
+		if (mc)
 			SceneRenderer::Clear(mc.getComponent<CameraComponent>());
-			//draw sky
-			SkyBoxComponent sbC;
-			if (mc.saveGetComponent<SkyBoxComponent>(sbC)) {
-				SceneRenderer::drawSkyBox(sbC.texture);
-			}
-		}
 		else
 			SceneRenderer::Clear();
 

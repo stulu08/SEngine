@@ -18,7 +18,6 @@ namespace Stulu {
 
 			//viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getColorAttachmentRendereID());
 			startPos = ImGui::GetCursorPos() + ImGui::GetWindowPos();
-
 			ImGui::Image(cam.getCamera()->getFrameBuffer()->getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 
 			if (ImGui::BeginDragDropTarget()) {

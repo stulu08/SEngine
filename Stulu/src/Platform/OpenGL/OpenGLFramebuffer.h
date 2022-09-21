@@ -4,7 +4,7 @@
 namespace Stulu {
 	class STULU_API OpenGLFrameBufferTexture : public FrameBufferTexture {
 	public:
-		OpenGLFrameBufferTexture(uint32_t width, uint32_t height);
+		OpenGLFrameBufferTexture(uint32_t width, uint32_t height, uint32_t samples = 0);
 		virtual ~OpenGLFrameBufferTexture();
 
 		virtual void invalidate(TextureSettings::Format& format) override;
@@ -26,6 +26,7 @@ namespace Stulu {
 		uint32_t m_height;
 		uint32_t m_colorAttachment = 0;
 		uint32_t m_depthAttachment = 0;
+		uint32_t m_samples = 0;
 		TextureSettings m_settings;
 	};
 

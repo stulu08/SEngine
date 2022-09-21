@@ -12,7 +12,7 @@ namespace Stulu {
 	void copyAllFilesFromDir(const std::string& from, const std::string& to);
 
 	EditorLayer::EditorLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f) {
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1) {
 		ST_PROFILING_FUNCTION();
 
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
@@ -209,6 +209,89 @@ namespace Stulu {
 						generateDebugTerrain();
 					ImGui::TreePop();
 				}
+				if (ImGui::TreeNodeEx("Actions")) {
+					static bool konvex = false;
+					ImGui::Checkbox("Konvex", &konvex);
+					if (ImGui::Button("Add Mesh Collider to child")) {
+						GameObject gameObject = m_editorHierarchy.getCurrentObject();
+						if (gameObject) {
+
+							std::function<void(GameObject)> fn = [&](GameObject parent) {
+								for (auto& goId : parent.getScene()->getAllGameObjectsWith<TransformComponent, MeshFilterComponent, MeshRendererComponent>()) {
+									GameObject go = GameObject(goId, parent.getScene());
+									if (go.getComponent<TransformComponent>().parent == parent) {
+										go.saveAddComponent<MeshColliderComponent>().mesh = go.getComponent<MeshFilterComponent>().mesh;
+										go.saveAddComponent<MeshColliderComponent>().convex = konvex;
+										fn(go);
+									}
+								}
+							};
+
+							fn(gameObject);
+						}
+					}
+					if (ImGui::Button("Add Box Collider to child")) {
+						GameObject gameObject = m_editorHierarchy.getCurrentObject();
+						if (gameObject) {
+
+							std::function<void(GameObject)> fn = [&](GameObject parent) {
+								for (auto& goId : parent.getScene()->getAllGameObjectsWith<TransformComponent, MeshFilterComponent, MeshRendererComponent>()) {
+									GameObject go = GameObject(goId, parent.getScene());
+									if (go.getComponent<TransformComponent>().parent == parent) {
+										go.saveRemoveComponent<MeshColliderComponent>();
+										Ref<BoundingBox> bb = go.getComponent<MeshFilterComponent>().mesh.mesh->getBoundingBox();
+										auto& tc = go.getComponent<TransformComponent>();
+										if (bb && bb->getType() == BoundingBoxType::AABB) {
+											Ref<BoundingBoxAABB> aabb = std::dynamic_pointer_cast<BoundingBoxAABB>(bb);
+											go.saveAddComponent<BoxColliderComponent>().offset = aabb->getCenter() * tc.worldScale;
+											go.saveAddComponent<BoxColliderComponent>().size = aabb->getExtents();
+										}
+										else {
+											go.saveAddComponent<BoxColliderComponent>();
+										}
+										
+										fn(go);
+									}
+								}
+							};
+
+							fn(gameObject);
+						}
+					}
+					if (ImGui::Button("Generate 10x10 Cube Layer")) {
+						GameObject result = m_activeScene->createGameObject("Result");
+						for (int i = 0; i < 10; i++) {
+							for (int j = 0; j < 10; j++) {
+								GameObject obj = m_activeScene->createGameObject(std::to_string(i) + "_" + std::to_string(j));
+								result.getComponent<TransformComponent>().addChild(obj);
+								obj.saveAddComponent<TransformComponent>().position = { i,.0f,j };
+								obj.saveAddComponent<MeshFilterComponent>(Resources::getCubeMeshAsset());
+								obj.saveAddComponent<MeshColliderComponent>().mesh = Resources::getCubeMeshAsset();
+								obj.saveAddComponent<MeshColliderComponent>().convex = konvex;
+								obj.saveAddComponent<RigidbodyComponent>();
+							}
+						}
+					}
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNodeEx("Shaders")) {
+					for (UUID& id : AssetsManager::getAllByType(AssetType::Shader)) {
+						if (id == UUID::null)
+							continue;
+						Asset& asset = AssetsManager::get(id);
+						Ref<Shader>& shader = AssetsManager::getAs<Ref<Shader>>(id);
+						if (ImGui::TreeNodeEx(shader->getName().c_str())) {
+							if (ImGui::TreeNodeEx("Source")) {
+								static bool preProcessed = false;
+								ImGui::Checkbox("Pre Processed", &preProcessed);
+								ImGui::TextUnformatted(shader->getSource(preProcessed).c_str());
+								ImGui::TreePop();
+							}
+							ImGui::TreePop();
+						}
+					}
+					ImGui::TreePop();
+				}
 			}
 			ImGui::End();
 		}
@@ -362,6 +445,11 @@ namespace Stulu {
 				if (ImGui::MenuItem("Scene Settings", (const char*)0, m_showSceneSettingsPanel)) {
 					m_showSceneSettingsPanel = !m_showSceneSettingsPanel;
 				}
+#ifndef ST_DIST
+				if (ImGui::MenuItem("Debug Window", (const char*)0, m_showDebugWindow)) {
+					m_showDebugWindow = !m_showDebugWindow;
+				}
+#endif // !ST_DIST
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("About")) {
@@ -600,7 +688,7 @@ namespace Stulu {
 		if (selected) {
 			auto& tc = selected.getComponent<TransformComponent>();
 			m_sceneCamera.getCamera()->getFrameBuffer()->bind();
-			Renderer::begin(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().transform), glm::vec3(.0f), glm::vec3(.0f));
+			Renderer::uploadCameraBufferData(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().transform), glm::vec3(.0f), glm::vec3(.0f));
 			RenderCommand::setDepthTesting(false);
 			//draw object to stencil buffer with 0x1
 			{
@@ -631,7 +719,6 @@ namespace Stulu {
 				}
 				RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
 			}
-			Renderer::end();
 			m_sceneCamera.getCamera()->getFrameBuffer()->unbind();
 		}
 	}
@@ -1010,7 +1097,10 @@ namespace Stulu {
 				m_showProfiling = std::stoi(values["m_showProfiling"]);
 			if (values.find("m_showSceneSettingsPanel") != values.end())
 				m_showSceneSettingsPanel = std::stoi(values["m_showSceneSettingsPanel"]);
-
+#ifndef ST_DIST
+			if (values.find("m_showDebugWindow") != values.end())
+				m_showDebugWindow = std::stoi(values["m_showDebugWindow"]);
+#endif
 			if (values.find("m_gameViewport.m_selectedSize") != values.end())
 				m_gameViewport.m_selectedSize = std::stoi(values["m_gameViewport.m_selectedSize"]);
 			if (values.find("m_gameViewport.m_customSizeX") != values.end())
@@ -1094,6 +1184,7 @@ namespace Stulu {
 			stream << "m_showSceneViewport=" << (int)m_showSceneViewport << "\n";
 			stream << "m_showProfiling=" << (int)m_showProfiling << "\n";
 			stream << "m_showSceneSettingsPanel=" << (int)m_showSceneSettingsPanel << "\n";
+			stream << "m_showDebugWindow=" << (int)m_showDebugWindow << "\n";
 
 			stream << "m_gameViewport.m_selectedSize=" << (int)m_gameViewport.m_selectedSize << "\n";
 			stream << "m_gameViewport.m_customSizeX=" << (float)m_gameViewport.sizes[5].x << "\n";

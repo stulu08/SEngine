@@ -98,6 +98,13 @@ namespace Stulu {
 
 		TextureSettings::Format form = (TextureSettings::Format)m_settings.format;
 		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(form, channels);
+		if (!CorrectFormat(form, channels)) {
+			CORE_ERROR("Texture format not correct in texture {0}", m_path);
+			CORE_WARN("Correcting format to a format that has {0} channels", channels);
+			form = TextureSettings::Format::Auto;
+			format = TextureFormatToGLenum(form, channels);
+		}
+		m_settings.format = (int)form;
 		GLenum internalFormat = format.first;
 		m_dataFormat = format.second;
 		GLenum wrap = 0;
@@ -111,6 +118,8 @@ namespace Stulu {
 			break;
 		}
 		
+		
+
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
 		glBindTexture(GL_TEXTURE_2D, m_rendererID);
 		glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
@@ -127,6 +136,8 @@ namespace Stulu {
 
 		if (m_hasMips)
 			glGenerateMipmap(GL_TEXTURE_2D);
+
+
 	}
 	bool OpenGLTexture2D::operator==(const Texture& other) const {
 		return m_rendererID == *static_cast<uint32_t*>(other.getNativeRendererObject());
@@ -135,13 +146,13 @@ namespace Stulu {
 		GLenum internalFormat, m_dataFormat;
 		switch (format)
 		{
-		case TextureSettings::Format::A:
-			internalFormat = GL_ALPHA8;
-			m_dataFormat = GL_ALPHA;
+		case TextureSettings::Format::R:
+			internalFormat = GL_R8;
+			m_dataFormat = GL_RED;
 			break;
 		case TextureSettings::Format::RG:
-			internalFormat = GL_RG;
-			m_dataFormat = GL_RG8;
+			internalFormat = GL_RG8;
+			m_dataFormat = GL_RG;
 			break;
 		case TextureSettings::Format::RGB:
 			internalFormat = GL_RGB8;
@@ -174,29 +185,55 @@ namespace Stulu {
 		case TextureSettings::Format::Auto:
 			switch (channels) {
 			case 4:
-				internalFormat = GL_RGBA8;
-				m_dataFormat = GL_RGBA;
 				format = TextureSettings::Format::RGBA;
 				break;
 			case 3:
-				internalFormat = GL_RGB8;
-				m_dataFormat = GL_RGB;
 				format = TextureSettings::Format::RGB;
 				break;
 			case 2:
-				internalFormat = GL_RG8;
-				m_dataFormat = GL_RG;
 				format = TextureSettings::Format::RG;
 				break;
 			case 1:
-				internalFormat = GL_ALPHA8;
-				m_dataFormat = GL_ALPHA;
-				format = TextureSettings::Format::A;
+				format = TextureSettings::Format::R;
 				break;
 			}
+			return TextureFormatToGLenum(format);
 			break;
 		}
 		return { internalFormat,m_dataFormat };
+	}
+	bool CorrectFormat(TextureSettings::Format format, int channels) {
+		switch (format)
+		{
+		case TextureSettings::Format::R:
+			return channels == 1;
+			break;
+		case TextureSettings::Format::RG:
+			return channels == 2;
+			break;
+		case TextureSettings::Format::RGB:
+			return channels == 3;
+			break;
+		case TextureSettings::Format::RGBA:
+			return channels == 4;
+			break;
+		case TextureSettings::Format::SRGB:
+			return channels == 3;
+			break;
+		case TextureSettings::Format::SRGBA:
+			return channels == 4;
+			break;
+		case TextureSettings::Format::RGB16F:
+			return channels == 3;
+			break;
+		case TextureSettings::Format::RGBA16F:
+			return channels == 4;
+			break;
+		case TextureSettings::Format::RGBA32F:
+			return channels == 4;
+			break;
+		}
+		return true;
 	}
 	bool isGLTextureFormatFloat(const TextureSettings::Format& format) {
 		return format == TextureSettings::Format::RGB16F || format == TextureSettings::Format::RGBA16F || format == TextureSettings::Format::RGBA32F;

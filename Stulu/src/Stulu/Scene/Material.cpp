@@ -3,6 +3,7 @@
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/YAML.h"
 #include <Stulu/Core/Resources.h>
+#include <Stulu/Renderer/Renderer.h>
 
 
 namespace Stulu {
@@ -83,21 +84,21 @@ namespace Stulu {
 		return cs.str();
 	}
 	void Material::uploadData() {
-		if (s_materialBuffer == nullptr || uploadDataStart == nullptr){
+		Ref<UniformBuffer>& materialBuffer = Renderer::getBuffer(BufferBinding::Material);
+		if (materialBuffer == nullptr || uploadDataStart == nullptr) {
 			CORE_ERROR("Cant upload material data from Material {0}, buffer is null", m_name);
 			return;
 		}
 		
-		s_materialBuffer->setData(uploadDataStart, (uint32_t)uploadSize, 0);
+		materialBuffer->setData(uploadDataStart, (uint32_t)uploadSize, 0);
 		//upload textures
 		for (int i = 0; i < m_dataTypes.size(); i++) {
 			MaterialDataType& dataType = m_dataTypes[i];
 			if (dataType.type == ShaderDataType::Sampler) {
 				auto& texture = std::any_cast<Stulu::MaterialTexture&>(dataType.data);
+				texture.defaultTexture->bind(texture.binding);
 				if (texture.texture != nullptr)
 					texture.texture->bind(texture.binding);
-				else
-					texture.defaultTexture->bind(texture.binding);
 			}
 		}
 		return;

@@ -183,7 +183,7 @@ namespace Stulu {
 		s_data.drawBuffer->bind();
 		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
 		RenderCommand::clear();
-		Renderer::uploadBufferData(s_data.projMatrix, s_data.viewMatrix, glm::vec3(), glm::vec3());
+		Renderer::uploadCameraBufferData(s_data.projMatrix, s_data.viewMatrix, glm::vec3(), glm::vec3());
 
 		resetCubes();
 		resetSpheres();
@@ -202,7 +202,9 @@ namespace Stulu {
 		camera->bind();
 		s_data.drawBuffer->getTexture()->bind(0);
 		Resources::getFullscreenShader()->bind();
-		Renderer::submit(Resources::getFullscreenVA(), nullptr, glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -1)));
+		float z = -1.0f;
+		Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
+		RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
 		camera->unbind();
 	}
 	void Gizmo::setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView) {
@@ -454,7 +456,7 @@ namespace Stulu {
 			
 			uint32_t dataSize = uint32_t((uint8_t*)s_data.sphereDataBufferPtr - (uint8_t*)s_data.sphereDataBufferBase);
 			//uint32_t dataSize = s_data.sphereInstanceCount * (uint32_t)sizeof(SphereInstanceData);
-			Renderer::uploadBufferData(s_data.sphereDataBufferBase, dataSize, sizeof(Renderer::MatricesBufferData) - sizeof(glm::mat4));
+			Renderer::uploadBufferData(BufferBinding::Model, s_data.sphereDataBufferBase, dataSize);
 
 			s_data.sphereShader->bind();
 			RenderCommand::drawIndexed(s_data.sphereVertexArray, 0, s_data.sphereInstanceCount);

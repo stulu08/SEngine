@@ -4,11 +4,13 @@
 #include "Stulu/Renderer/FrameBuffer.h"
 
 namespace Stulu {
-	PerspectiveCamera::PerspectiveCamera(float fov, float aspect, float z_near, float z_far)
+	PerspectiveCamera::PerspectiveCamera(float fov, float aspect, float z_near, float z_far, const FrameBufferSpecs& specs)
 		:m_projcetionMatrix(glm::perspective(glm::radians(fov), aspect, z_near, z_far)) {
 		ST_PROFILING_FUNCTION();
-		m_frameBuffer = FrameBuffer::create(FrameBufferSpecs());
+		m_frameBuffer = FrameBuffer::create(specs);
 	}
+
+	PerspectiveCamera::~PerspectiveCamera() { }
 
 	const void PerspectiveCamera::setProjection(float fov, float aspect, float z_near, float z_far) {
 		m_projcetionMatrix = glm::perspective(glm::radians(fov), aspect, z_near, z_far);
