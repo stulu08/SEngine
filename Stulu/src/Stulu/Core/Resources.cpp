@@ -7,6 +7,7 @@ namespace Stulu {
 	void Resources::load() {
 		std::string assetPath = Application::getEngineAssetDir();
 		AssetsManager::update(UUID(9), { AssetType::Shader,Shader::create(assetPath + "/Shaders/PBRShader.glsl"),"",UUID(9) });
+		AssetsManager::update(UUID(10), { AssetType::Shader,Shader::create(assetPath + "/Shaders/TerrainShader.glsl"),"",UUID(10) });
 
 		getWhiteTexture();
 		getBlackTexture();
@@ -43,7 +44,7 @@ namespace Stulu {
 			tex = Texture2D::create(1, 1);
 			static uint32_t datawhite = 0xffffffff;
 			tex->setData(&datawhite, sizeof(uint32_t));
-			AssetsManager::update(UUID(302), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(301), });
+			AssetsManager::update(UUID(302), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(302), });
 		}
 		return std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(302)).data);
 	}
@@ -70,6 +71,10 @@ namespace Stulu {
 		return std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(11)).data));
 	}
 
+	Asset& Resources::getDefaultSkyBoxAsset() {
+		return AssetsManager::get(UUID(11));
+	}
+
 	Ref<Mesh> Resources::getCubeMesh() {
 		return getCubeMeshAsset().mesh;
 	}
@@ -88,20 +93,20 @@ namespace Stulu {
 		if(!m) {
 			static std::vector<Vertex> vertices{
 				//top
-				{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+				{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+				{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
 				//bottom														 		 
 				{glm::vec3(-0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
 				{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
 				{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
 				{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
 				//right															 		 
-				{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+				{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+				{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
 				//left															 		 
 				{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
 				{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
@@ -113,10 +118,10 @@ namespace Stulu {
 				{glm::vec3(0.5f, -0.5f,  0.5f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
 				{glm::vec3(0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
 				//back															 		 
-				{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec3(-0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+				{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+				{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+				{glm::vec3(0.5f,  0.5f, -0.5f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
 			};
 			static std::vector<uint32_t> indices{
 				//top
@@ -148,10 +153,10 @@ namespace Stulu {
 		static Ref<Mesh> m;
 		if (!m) {
 			static std::vector<Vertex> vertices{
-			{glm::vec3(-0.5f,  0.0f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-			{glm::vec3(-0.5f,  0.0f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.0f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-			{glm::vec3(0.5f,  0.0f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+			{glm::vec3(-0.5f,  0.0f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+			{glm::vec3(-0.5f,  0.0f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+			{glm::vec3(0.5f,  0.0f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+			{glm::vec3(0.5f,  0.0f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
 			};
 			static std::vector<uint32_t> indices{
 				2,1,0,
@@ -247,31 +252,37 @@ namespace Stulu {
 	}
 
 	Ref<Material> Resources::getDefaultMaterial() {
-		return createMaterial("Default Material", UUID(12));
+		static Ref<Material> material;
+		if (!material) {
+			material = createMaterial("Default Material", UUID(12));
+		}
+		return material;
 	}
 	Ref<Material> Resources::getReflectiveMaterial() {
-		return createMaterial("Reflective Material", UUID(13), glm::vec4(1.0f), 1.0f, 0.0f, 1.0f);
+		static Ref<Material> material;
+		if (!material) {
+			material = createMaterial("Reflective Material", UUID(13), glm::vec4(1.0f), 1.0f, 0.0f, 1.0f);
+		}
+		return material;
 	}
 
 	Ref<Material> Resources::createMaterial(const std::string& name, const UUID& uuid, const glm::vec4& albedo, const float& metallic, const float& roughness, const float& ao, const glm::vec4& emission, const UUID& albedoMap, const UUID& metallicMap, const UUID& roughnessMap, const UUID& aoMap, const UUID& emissionMap, const UUID& normalMap, const glm::vec2& textureTilling, TransparencyMode transparencyMode, float alphaCutOff) {
 		Ref<Material> material = createRef<Material>(AssetsManager::get(UUID(9)),
 			(std::vector<MaterialDataType>{
-			MaterialDataType{ ShaderDataType::Float4,albedo,"albedo",0 },
+				MaterialDataType{ ShaderDataType::Float4,albedo,"albedo",0 },
 				MaterialDataType{ ShaderDataType::Float,metallic,"metallic",1 },
 				MaterialDataType{ ShaderDataType::Float,roughness,"roughness",2 },
 				MaterialDataType{ ShaderDataType::Float,ao,"ao",3 },
 				MaterialDataType{ ShaderDataType::Float4,emission,"emission",4 },
-				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(),1,albedoMap},"albedoMap",5 },
-				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,metallicMap},"metallicMap",6 },
-				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,roughnessMap},"roughnessMap",7 },
-				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,normalMap},"normalMap",8 },
-				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,aoMap},"aoMap",9 },
-				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{9,nullptr,Resources::getWhiteTexture(),1,emissionMap},"emissionMap",10 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{0,nullptr,Resources::getWhiteTexture(),1,albedoMap},"albedoMap",5 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{1,nullptr,Resources::getBlackTexture(),1,metallicMap},"metallicMap",6 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{2,nullptr,Resources::getBlackTexture(),1,roughnessMap},"roughnessMap",7 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{3,nullptr,Resources::getBlackTexture(),1,normalMap},"normalMap",8 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getBlackTexture(),1,aoMap},"aoMap",9 },
+				MaterialDataType{ ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,emissionMap},"emissionMap",10 },
 				MaterialDataType{ ShaderDataType::Float2,textureTilling,"textureTilling",11 },
 
-		}), name);
-		material->getAlphaCutOff() = alphaCutOff;
-		material->getTransparencyMode() = transparencyMode;
+		}), name, transparencyMode, alphaCutOff);
 		AssetsManager::update(uuid, { AssetType::Material,material,"",uuid });
 
 		return std::any_cast<Ref<Material>&>(AssetsManager::get(uuid).data);

@@ -198,10 +198,10 @@ namespace Hub
         {
             public string path;
             public string name;
-            public Project(string path, string name)
+            public Project(string path)
             {
                 this.path = path;
-                this.name = name;
+                this.name = File.ReadAllLines(path)[0].Replace("name: ","");
             }
         }
         List<Project> projects = new List<Project>();
@@ -213,7 +213,7 @@ namespace Hub
             foreach(string s in Rawprojects)
             {
                 string ss = s.Replace("\\", "/");
-                Project p = new Project(ss, ss.Split('/')[ss.Split('/').Length - 1]);
+                Project p = new Project(ss);
                 if (!isProjectValid(p))
                     continue;
                 ListBoxItem item = new ListBoxItem();
@@ -229,7 +229,7 @@ namespace Hub
             if (file == null)
                 return;
             string ss = file.Replace("\\", "/");
-            Project p = new Project(ss, ss.Split('/')[ss.Split('/').Length - 1]);
+            Project p = new Project(ss);
             if (!isProjectValid(p))
             {
                 MessageBox.Show("Not a valid Project", "Project invalid", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -291,6 +291,7 @@ namespace Hub
         #region events
         private void AddProjectButton_Click(object sender, RoutedEventArgs e)
         {
+            
             if (!CommonFileDialog.IsPlatformSupported)
             {
                 using (var fbd = new System.Windows.Forms.FolderBrowserDialog())
@@ -316,6 +317,7 @@ namespace Hub
                     }
                 }
             }
+            
         }
         private void CreateProjectButton_Click(object sender, RoutedEventArgs e)
         {
@@ -497,16 +499,14 @@ namespace Hub
         bool isEngineValid(Engine e)
         {
             bool valid = false;
+            valid |= File.Exists(e.path + "/Stulu Editor.exe");
             valid |= File.Exists(e.path + "/Editor.exe");
-            valid |= File.Exists(e.path + "/discord-rpc.dll");
-            valid |= Directory.Exists(e.path + "/Stulu");
             return valid;
         }
         bool isProjectValid(Project e)
         {
             bool valid = false;
-            valid |= Directory.Exists(e.path + "/assets");
-            valid |= Directory.Exists(e.path + "/config");
+            valid |= File.Exists(e.path);
             return valid;
         }
     }

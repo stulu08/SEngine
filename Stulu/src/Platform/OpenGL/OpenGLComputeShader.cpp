@@ -79,15 +79,13 @@ namespace Stulu {
 		m_rendererID = program;
 	}
 	void OpenGLComputeShader::setTexture(const std::string& name, uint32_t binding, const Ref<Texture>& texture, uint32_t mipLevel, AccesMode mode) {
-		setTextureInternal(name, binding, texture->getNativeRendererObject(), mipLevel, mode, (TextureSettings::Format)texture->getSettings().format);
+		setTextureInternal(name, binding, texture->getNativeRendererObject(), mipLevel, mode, texture->getSettings().format);
 	}
-	void OpenGLComputeShader::setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel, AccesMode mode, TextureSettings::Format format) {
-		ST_PROFILING_FUNCTION();
-
+	void OpenGLComputeShader::setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel, AccesMode mode, TextureFormat format) {
 		uint32_t textureID = *static_cast<uint32_t*>(texture);
 		int32_t internalFormat;
 
-		if (format == TextureSettings::Format::Auto)
+		if (format == TextureFormat::Auto)
 			glGetTextureLevelParameteriv(textureID, mipLevel, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
 		
 		else
@@ -99,56 +97,48 @@ namespace Stulu {
 		glBindImageTexture(binding, textureID, mipLevel, GL_FALSE, 0, (uint32_t)mode, (uint32_t)internalFormat);
 	}
 	void OpenGLComputeShader::setFloat(const std::string& name, float value) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1f(loc, value);
 	}
 
 	void OpenGLComputeShader::setInt(const std::string& name, int value) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1i(loc, value);
 	}
 
 	void OpenGLComputeShader::setVec(const std::string& name, const glm::vec4& value) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform4f(loc, value.x, value.y, value.z, value.w);
 	}
 
 	void OpenGLComputeShader::setMat(const std::string& name, const glm::mat4& value) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
 	}
 
 	void OpenGLComputeShader::setFloatArray(const std::string& name, const float* floats, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1fv(loc, count, floats);
 	}
 
 	void OpenGLComputeShader::setIntArray(const std::string& name, const int* ints, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1iv(loc, count, ints);
 	}
 
 	void OpenGLComputeShader::setVecArray(const std::string& name, const glm::vec4* vecs, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform4fv(loc, count, glm::value_ptr(*vecs));
 	}
 
 	void OpenGLComputeShader::setMatArray(const std::string& name, const glm::mat4* mats, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniformMatrix4fv(loc, count, GL_FALSE, glm::value_ptr(*mats));

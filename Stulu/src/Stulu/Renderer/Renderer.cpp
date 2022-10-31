@@ -34,12 +34,10 @@ namespace Stulu {
 #endif
 	}
 	void Renderer::onWindowResize(WindowResizeEvent& e) {
-		ST_PROFILING_FUNCTION();
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
 
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		if (shader)
 			shader->bind();
 
@@ -51,7 +49,6 @@ namespace Stulu {
 		RenderCommand::drawIndexed(vertexArray, count);
 	}
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 		if (shader)
 			shader->bind();
 
@@ -84,7 +81,6 @@ namespace Stulu {
 	}
 	
 	void Renderer::uploadBufferData(BufferBinding binding, const void* data, uint32_t size, uint32_t offset) {
-		ST_PROFILING_FUNCTION();
 		getBuffer(binding)->setData(data, size, offset);
 	}
 	Ref<UniformBuffer>& Renderer::getBuffer(BufferBinding buffer) {

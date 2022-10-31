@@ -1,6 +1,32 @@
 #include "st_pch.h"
 #include "AssemblyManager.h"
 #include "Stulu/Core/Application.h"
+#include "Stulu/Scene/YAML.h"
+
+
+#define StuluTypeRegister(_Type, DefinedType, TypeName) \
+{ \
+	Stulu::MonoClassMemberTypeFnInfo info; \
+	info.type = MonoObjectInstance::MonoClassMember::Type::DefinedType; \
+	info.getSize = []() -> size_t { \
+		return sizeof(_Type); \
+	}; \
+	info.assignFieldValue = [](MonoClassField* src, MonoObject* object) -> void* { \
+		return Stulu::assignFieldValue<_Type>(src, object); \
+	}; \
+	info.updateFieldValue = [](Stulu::MonoObjectInstance::MonoClassMember& src, MonoObject* object) -> void* { \
+		return Stulu::updateFieldValue<_Type>(src.value, src.m_fieldPtr, object); \
+	}; \
+	info.serialize = [](YAML::Emitter& out, Stulu::MonoObjectInstance::MonoClassMember& field) { \
+		out << YAML::Key << "Value" << *((_Type*)field.value); \
+	}; \
+	info.deserialize = [](std::unordered_map<std::string, Stulu::MonoObjectInstance::MonoClassMember>& fieldList, std::string name, YAML::detail::iterator_value& field) { \
+		*((_Type*)fieldList[name].value) = field["Value"].as<_Type>(); \
+	}; \
+	/*defined in EditorBindings*/ \
+	info.uiFunc = [](Stulu::Ref<Stulu::MonoObjectInstance>& script, Stulu::MonoObjectInstance::MonoClassMember& field, const std::string& name) { }; \
+	Stulu::MonoClassMemberTypeFnInfo::infos[TypeName] = info; \
+}
 
 namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
@@ -11,6 +37,15 @@ namespace Stulu {
 			CORE_ERROR("Mono Domain creation failed");
 			return;
 		}
+
+		StuluTypeRegister(glm::vec4, Vector4_t, "Stulu.Vector4");
+		StuluTypeRegister(glm::vec3, Vector3_t, "Stulu.Vector4");
+		StuluTypeRegister(glm::vec2, Vector2_t, "Stulu.Vector4");
+		StuluTypeRegister(float, float_t, "System.Single");
+		StuluTypeRegister(uint32_t, uint_t, "System.UInt32");
+		StuluTypeRegister(int32_t, int_t, "System.Int32");
+		StuluTypeRegister(bool, bool_t, "System.Boolean");
+
 		loadScriptCore(assemblyPath, coreAssemblyPath);
 	}
 
@@ -82,6 +117,10 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.InternalCalls::gameObject_getTag(uint)", StuluBindings::GameObject::getTag);
 		mono_add_internal_call("Stulu.InternalCalls::gameObject_setName(uint,string)", StuluBindings::GameObject::setName);
 		mono_add_internal_call("Stulu.InternalCalls::gameObject_setTag(uint,string)", StuluBindings::GameObject::setTag);
+		add_call("gameObject_createSphere(string,string,Stulu.Vector3)", GameObject::createSphere);
+		add_call("gameObject_createCube(string,string,Stulu.Vector3)", GameObject::createCube);
+		add_call("gameObject_createCapsule(string,string,Stulu.Vector3)", GameObject::createCapsule);
+		add_call("gameObject_createPlane(string,string,Stulu.Vector3)", GameObject::createPlane);
 
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_setPos(uint,Stulu.Vector3&)", StuluBindings::Transform::setPos);
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_getPos(uint,Stulu.Vector3&)", StuluBindings::Transform::getPos);

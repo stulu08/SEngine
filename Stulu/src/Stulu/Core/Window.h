@@ -29,6 +29,7 @@ namespace Stulu{
 		virtual void onUpdate() = 0;
 		virtual void hide() = 0;
 		virtual void show() = 0;
+		virtual void setAttribute(const WindowAttribute) = 0;
 		virtual void setAttribute(const WindowAttribute, int32_t value) = 0;
 		virtual int getAttribute(const WindowAttribute) = 0;
 
@@ -46,6 +47,7 @@ namespace Stulu{
 
 		virtual void* getNativeWindow() const = 0;
 		virtual Scope<GraphicsContext>& getContext() = 0;
+		static Scope<Window> create(void* handle);
 		static Scope<Window> create(WindowProps& props = WindowProps());
 	};
 }

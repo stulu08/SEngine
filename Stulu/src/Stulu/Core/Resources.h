@@ -14,6 +14,7 @@ namespace Stulu {
 		static Ref<Texture> getLogoTexture();
 
 		static Ref<SkyBox> getDefaultSkyBox();
+		static Asset& getDefaultSkyBoxAsset();
 
 		static Ref<Mesh> getCubeMesh();
 		static Ref<Mesh> getPlaneMesh();

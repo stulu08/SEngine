@@ -129,11 +129,16 @@ namespace Stulu {
         aiString aName;
         aiColor3D albedoColor = aiColor3D(1.0f, 1.0f, 1.0f);
         aiColor3D emissionValue = aiColor3D(0.0, 0.0f, 0.0f);
-        float opacity = 1.0f, matallicValue = .0f, roughnessValue =.5f;
+        float opacity = 1.0f, matallicValue = .0f, roughnessValue =.5f, emiisionStrength = 1.0f;
+        aiColor3D roughnessVec3 = aiColor3D(roughnessValue);
+        aiColor3D metallicVec3 = aiColor3D(matallicValue);
         aMat->Get(AI_MATKEY_COLOR_DIFFUSE, albedoColor);
         aMat->Get(AI_MATKEY_NAME, aName);
         aMat->Get(AI_MATKEY_OPACITY, opacity);
+        aMat->Get(AI_MATKEY_SHININESS_STRENGTH, emiisionStrength);
         aMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissionValue);
+        aMat->Get(AI_MATKEY_COLOR_REFLECTIVE, roughnessVec3);
+        aMat->Get(AI_MATKEY_COLOR_SPECULAR, metallicVec3);
         std::string name(aName.C_Str());
         if (name.empty())
             name = "Material " + std::to_string(material);
@@ -166,18 +171,81 @@ namespace Stulu {
             if (albedo && AssetsManager::exists(albedo)) {
                 Ref<Texture> texture = std::any_cast<Ref<Texture>>(AssetsManager::get(albedo).data);
                 if (texture) {
-                    TextureSettings::Format format = (TextureSettings::Format)texture->getSettings().format;
-                    if (format == TextureSettings::Format::RGBA || format == TextureSettings::Format::SRGBA ||
-                        format == TextureSettings::Format::RGBA16F || format == TextureSettings::Format::RGBA32F) {
-                        tMode = TransparencyMode::Transparent;
+                    TextureFormat format = texture->getSettings().format;
+                    static Ref<Texture2D> resultTexture = Texture2D::create(1, 1, TextureSettings(TextureFormat::RGBA));
+                    static Ref<ComputeShader> shader;
+                    if (!shader) {
+                        shader = ComputeShader::create("CheckTransparentShader", R"(
+#version 430 core
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout(rgba8, binding = 0) uniform writeonly image2D result;
+
+layout(rgba8,   binding = 1) uniform readonly image2D source1;
+layout(rgba16f, binding = 2) uniform readonly image2D source2;
+layout(rgba32f, binding = 3) uniform readonly image2D source3;
+
+layout(location = 1) uniform int textureType;
+
+void main() {
+	ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
+
+	vec4 color = vec4(1.0);
+    if(textureType == 1) {
+        color = imageLoad(source1, pixelCoord).rgba;
+    }
+    else if(textureType == 2) {
+        color = imageLoad(source2, pixelCoord).rgba;
+    }
+    else if(textureType == 3) {
+        color = imageLoad(source2, pixelCoord).rgba;
+    }
+
+    if(color.a < 0.99)
+	    imageStore(result, ivec2(0, 0), vec4(1.0));
+}
+)");
+                    }
+                    uint32_t data = 0x00000000;
+                    if (format == TextureFormat::RGBA) {
+                        resultTexture->setData(&data, sizeof(uint32_t));
+                        shader->setInt("textureType", 1);
+                        shader->setTexture("source1", 1, texture, 0, AccesMode::ReadOnly);
+                        shader->setTexture("result", 0, resultTexture, 0, AccesMode::WriteOnly);
+                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeShader::Usage::ShaderImageAcces);
+
+                        resultTexture->getData(&data, sizeof(uint32_t));
+                        if (data == 0xffffffff)
+                            tMode = TransparencyMode::Cutout;
+                    }
+                    else if (format == TextureFormat::RGBA16F) {
+                        resultTexture->setData(&data, sizeof(uint32_t));
+                        shader->setInt("textureType", 2);
+                        shader->setTexture("source2", 2, texture, 0, AccesMode::ReadOnly);
+                        shader->setTexture("result", 0, resultTexture, 0, AccesMode::WriteOnly);
+                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeShader::Usage::ShaderImageAcces);
+
+                        resultTexture->getData(&data, sizeof(uint32_t));
+                        if (data == 0xffffffff)
+                            tMode = TransparencyMode::Cutout;
+                    }
+                    else if (format == TextureFormat::RGBA32F) {
+                        resultTexture->setData(&data, sizeof(uint32_t));
+                        shader->setInt("textureType", 3);
+                        shader->setTexture("source3", 3, texture, 0, AccesMode::ReadOnly);
+                        shader->setTexture("result", 0, resultTexture, 0, AccesMode::WriteOnly);
+                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeShader::Usage::ShaderImageAcces);
+
+                        resultTexture->getData(&data, sizeof(uint32_t));
+                        if (data == 0xffffffff)
+                            tMode = TransparencyMode::Cutout;
                     }
                 }
             }
         }
 
-
         Ref<Material> mat = Resources::createMaterial(name, UUID(),
-            glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity), matallicValue, roughnessValue, .2f, glm::vec4(emissionValue.r, emissionValue.g, emissionValue.b, 1.0),
+            glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity), matallicValue, roughnessValue, .2f, glm::vec4(emissionValue.r, emissionValue.g, emissionValue.b, emiisionStrength),
             albedo, metallic, roughness, ambient, emission, normal, { 1, 1 }, tMode
             );
         /*

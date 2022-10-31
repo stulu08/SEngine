@@ -2,7 +2,12 @@
 
 #ifdef OPENGL
 	#define IMGUI_IMPL_OPENGL_LOADER_GLAD
-	#include "backends/imgui_impl_opengl4.cpp"
+	#if IMGUI_OPENGL_3
+		#include "backends/imgui_impl_opengl3.cpp"
+	#endif
+	#if IMGUI_OPENGL_4
+		#include "backends/imgui_impl_opengl4.cpp"
+	#endif
 #endif
 
 #ifdef USING_GLFW

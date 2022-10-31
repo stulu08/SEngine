@@ -10,8 +10,9 @@ namespace Stulu {
 	void SceneViewportPanel::draw(SceneCamera& cam, bool* open) {
 		ST_PROFILING_FUNCTION();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
+		drawn = false;
 		if (ImGui::Begin("Scene", open)) {
-
+			drawn = true;
 			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 			width = (uint32_t)viewportSize.x;
 			height = (uint32_t)viewportSize.y;

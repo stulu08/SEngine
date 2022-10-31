@@ -36,7 +36,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
+		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -62,7 +62,6 @@ namespace Stulu {
 
 	void OpenGLRenderAPI::setDefault() {
 		ST_PROFILING_FUNCTION();
-
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glEnable(GL_DEPTH_TEST);

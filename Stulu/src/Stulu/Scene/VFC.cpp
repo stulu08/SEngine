@@ -17,15 +17,22 @@ namespace Stulu {
         CORE_ERROR("Could not create BoundingBox!");
         return nullptr;
     }
-    bool VFC::isInView(const Ref<BoundingBox>& boundingBox, const TransformComponent& transform) {
+    bool VFC::isInView(const Ref<BoundingBox>& boundingBox) {
         if (!s_isEnabled)
             return true;
-
-        return boundingBox->isOnFrustum(s_frustum, transform);
-        
+        return boundingBox->isOnFrustum(s_frustum);
+    }
+    bool VFC::isInView(const BoundingBox* boundingBox) {
+        if (!s_isEnabled)
+            return true;
+        return boundingBox->isOnFrustum(s_frustum);
     }
     Frustum VFC::setCamera(float aspect, float zNear, float zFar, float DegfovY, TransformComponent& tc) {
         s_frustum = createFrustum(aspect, zNear, zFar, DegfovY, tc);
+        return s_frustum;
+    }
+    Frustum VFC::setCamera(float aspect, float zNear, float zFar, float DegfovY, const glm::vec3& pos, const glm::quat& rotation) {
+        s_frustum = createFrustum(aspect, zNear, zFar, DegfovY, pos, rotation);
         return s_frustum;
     }
     Frustum VFC::createFrustum(float aspect, float zNear, float zFar, float DegfovY, TransformComponent& tc) {
@@ -37,12 +44,56 @@ namespace Stulu {
         const float halfHSide = halfVSide * aspect;
         const glm::vec3 frontMultFar = zFar * tc.forward;
 
-        frustum.nearFace = { tc.worldPosition + zNear * tc.forward, tc.forward };
-        frustum.farFace = { tc.worldPosition + frontMultFar, -tc.forward };
-        frustum.rightFace = { tc.worldPosition, glm::cross(tc.up, frontMultFar + tc.right * halfHSide) };
-        frustum.leftFace = { tc.worldPosition, glm::cross(frontMultFar - tc.right * halfHSide, tc.up) };
-        frustum.topFace = { tc.worldPosition, glm::cross(tc.right, frontMultFar - tc.up * halfVSide) };
-        frustum.bottomFace = { tc.worldPosition, glm::cross(frontMultFar + tc.up * halfVSide, tc.right) };
+        frustum.nearFace = Plane(tc.worldPosition + zNear * tc.forward, tc.forward);
+        frustum.farFace = Plane(tc.worldPosition + frontMultFar, -tc.forward);
+        frustum.rightFace = Plane(tc.worldPosition, glm::cross(tc.up, frontMultFar + tc.right * halfHSide));
+        frustum.leftFace = Plane(tc.worldPosition, glm::cross(frontMultFar - tc.right * halfHSide, tc.up));
+        frustum.topFace = Plane(tc.worldPosition, glm::cross(tc.right, frontMultFar - tc.up * halfVSide));
+        frustum.bottomFace = Plane(tc.worldPosition, glm::cross(frontMultFar + tc.up * halfVSide, tc.right));
+        return frustum;
+    }
+    Frustum VFC::createFrustum(float aspect, float zNear, float zFar, float DegfovY, const glm::vec3& worldPosition, const glm::quat& rotation) {
+        Frustum frustum;
+
+        glm::vec3 forward, up, right;
+        forward = glm::rotate(rotation, TRANSFORM_FOREWARD_DIRECTION);
+        up = glm::rotate(rotation, TRANSFORM_UP_DIRECTION);
+        right = glm::rotate(rotation, TRANSFORM_RIGHT_DIRECTION);
+
+        float fovY = glm::radians(DegfovY);
+
+        const float halfVSide = zFar * tanf(fovY * .5f);
+        const float halfHSide = halfVSide * aspect;
+        const glm::vec3 frontMultFar = zFar * forward;
+
+        frustum.nearFace = Plane(worldPosition + zNear * forward, forward);
+        frustum.farFace = Plane(worldPosition + frontMultFar, -forward);
+        frustum.rightFace = Plane(worldPosition, glm::cross(up, frontMultFar + right * halfHSide));
+        frustum.leftFace = Plane(worldPosition, glm::cross(frontMultFar - right * halfHSide, up));
+        frustum.topFace = Plane(worldPosition, glm::cross(right, frontMultFar - up * halfVSide));
+        frustum.bottomFace = Plane(worldPosition, glm::cross(frontMultFar + up * halfVSide, right));
+        return frustum;
+    }
+    Frustum VFC::createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, TransformComponent& transform) {
+        return createFrustum_ortho(left, right, bottom, top, zNear, zFar, transform.worldPosition, transform.worldRotation);
+    }
+    Frustum VFC::createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, const glm::vec3& worldPosition, const glm::quat& rotation) {
+        struct TC {
+            glm::vec3 forward, up, right, worldPosition;
+        }tc;
+        tc.forward = glm::rotate(rotation, TRANSFORM_FOREWARD_DIRECTION);
+        tc.up = glm::rotate(rotation, TRANSFORM_UP_DIRECTION);
+        tc.right = glm::rotate(rotation, TRANSFORM_RIGHT_DIRECTION);
+        tc.worldPosition = worldPosition;
+
+        Frustum frustum;
+
+        frustum.nearFace = Plane(tc.worldPosition + zNear * tc.forward, tc.forward);
+        frustum.farFace = Plane(tc.worldPosition + zFar  * tc.forward, -tc.forward);
+        frustum.rightFace = Plane(tc.worldPosition + tc.right * right, -tc.right);
+        frustum.leftFace = Plane(tc.worldPosition + tc.right * left, tc.right);
+        frustum.topFace = Plane(tc.worldPosition + tc.up * top, -tc.up);
+        frustum.bottomFace = Plane(tc.worldPosition + tc.up * bottom, tc.up);
         return frustum;
     }
     BoundingBoxAABB::BoundingBoxAABB(const Mesh* mesh) {
@@ -78,10 +129,15 @@ namespace Stulu {
         m_extents = { max.x - m_center.x, max.y - m_center.y, max.z - m_center.z };
         m_aabb = { min, max };
     }
-    bool BoundingBoxAABB::isOnFrustum(const Frustum& camFrustum, const TransformComponent& transform) const {
-        //Get global scale thanks to our transform
-        const glm::vec3 globalCenter{ transform.transform * glm::vec4(m_center, 1.f) };
-
+    bool BoundingBoxAABB::isOnFrustum(const Frustum& camFrustum) const {
+        return (isOnOrForwardPlan(camFrustum.leftFace) &&
+            isOnOrForwardPlan(camFrustum.rightFace) &&
+            isOnOrForwardPlan(camFrustum.topFace) &&
+            isOnOrForwardPlan(camFrustum.bottomFace) &&
+            isOnOrForwardPlan(camFrustum.nearFace) &&
+            isOnOrForwardPlan(camFrustum.farFace));
+    }
+    void BoundingBoxAABB::applyTransform(const TransformComponent& transform) {
         // Scaled orientation
         const glm::vec3 right = transform.right * m_extents.x * transform.worldScale.x;
         const glm::vec3 up = transform.up * m_extents.y * transform.worldScale.y;
@@ -99,20 +155,14 @@ namespace Stulu {
             std::abs(glm::dot(glm::vec3{ 0.f, 0.f, 1.f }, up)) +
             std::abs(glm::dot(glm::vec3{ 0.f, 0.f, 1.f }, forward));
 
-        const BoundingBoxAABB globalAABB(globalCenter, { newIi, newIj, newIk });
-
-        return (globalAABB.isOnOrForwardPlan(camFrustum.leftFace) &&
-            globalAABB.isOnOrForwardPlan(camFrustum.rightFace) &&
-            globalAABB.isOnOrForwardPlan(camFrustum.topFace) &&
-            globalAABB.isOnOrForwardPlan(camFrustum.bottomFace) &&
-            globalAABB.isOnOrForwardPlan(camFrustum.nearFace) &&
-            globalAABB.isOnOrForwardPlan(camFrustum.farFace));
+        m_transformedExtents = glm::vec3{ newIi, newIj, newIk };
+        //Get global scale thanks to our transform
+        m_transformedCenter = transform.transform * glm::vec4(m_center, 1.f);
     }
     bool BoundingBoxAABB::isOnOrForwardPlan(const Plane& plan) const {
         // Compute the projection interval radius of b onto L(t) = b.c + t * p.n
-        const float r = m_extents.x * std::abs(plan.normal.x) + m_extents.y * std::abs(plan.normal.y) +
-            m_extents.z * std::abs(plan.normal.z);
-
-        return -r <= plan.getSignedDistanceToPlan(m_center);
+        const float r = m_transformedExtents.x * std::abs(plan.normal.x) + m_transformedExtents.y * std::abs(plan.normal.y) +
+            m_transformedExtents.z * std::abs(plan.normal.z);
+        return -r <= plan.getSignedDistanceToPlan(m_transformedCenter);
     }
 }

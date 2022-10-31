@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Renderer/UniformBuffer.h"
+#include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Shader.h"
@@ -34,9 +34,9 @@ namespace Stulu {
 		GameObject createGameObject(const std::string& name = "GameObject", UUID uuid = UUID());
 		void destroyGameObject(GameObject gameObject);
 
-		void onUpdateEditor(Timestep ts, SceneCamera& camera);
+		void onUpdateEditor(Timestep ts, SceneCamera& camera, bool render = true);
 		void onRuntimeStart();
-		void onUpdateRuntime(Timestep ts);
+		void onUpdateRuntime(Timestep ts, bool render = true);
 		void onRuntimeStop();
 
 		void onViewportResize(uint32_t width, uint32_t height);
@@ -47,6 +47,7 @@ namespace Stulu {
 		GameObject addMeshAssetToScene(MeshAsset& mesh);
 
 		GameObject getMainCamera();
+		GameObject getMainLight();
 		SceneData& getData() { return m_data; }
 
 		bool initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& instance);
@@ -56,6 +57,7 @@ namespace Stulu {
 		static inline Scene* activeScene() { return s_activeScene; }
 		static inline PhysX& getPhysics() { return s_physics; }
 
+		void runtime_updatesetups();
 		void updateTransform(TransformComponent& tc);
 		void updateAllTransforms();
 		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
@@ -72,6 +74,14 @@ namespace Stulu {
 		}
 
 		static Ref<Scene> copy(Ref<Scene> scene);
+
+		//sets the scene up, renderes for every cam, closes for renderering
+		void renderScene(bool callEvents = true);
+		void setupSceneForRendering(bool callEvents = true);
+		//needs setup and closing
+		void renderSceneForCamera(GameObject gameObject, bool callEvents = true);
+		void closeSceneForRendering();
+
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 		SceneData m_data;
@@ -80,7 +90,6 @@ namespace Stulu {
 
 		void setupPhysics();
 		void updatePhysics();
-		void renderScene();
 		void renderSceneEditor(SceneCamera& camera);
 
 		void updateAssemblyScripts(const std::string& function, bool forceConstructNew = false);

@@ -48,6 +48,7 @@ builddir = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architectu
 vulkanSDK = os.getenv("VULKAN_SDK")
 monoDir = os.getenv("MONO_PATH")
 physx = "%{wks.location}/Stulu/vendor/physx"
+physxDir = "%{wks.location}/Stulu/vendor/PhysX_new"
 
 IncludeDir = {}
 IncludeDir["spdlog"] = "%{wks.location}/Stulu/vendor/spdlog/include"
@@ -95,3 +96,4 @@ include "Runtime"
 group "Scripting"
 include "Scripting"
 group ""
+include "Stulu/vendor/PhysX_new"

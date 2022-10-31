@@ -3,14 +3,19 @@ using System.Collections;
 
 public class SpectatorCamera : Component {
 	[ShowInEditor]
-	public float moveSpeed = 8.0f;
+	public float MoveSpeed = 8.0f;
 	[ShowInEditor]
-	public float accelerationMultiplier = 2.0f;
+	public float Acceleration = 2.0f;
 	[ShowInEditor]
-	public float mouseSensitivityVertical = 0.8f;
+	public float MouseVertical = 0.8f;
 	[ShowInEditor]
-	public float mouseSensitivityHorizontal = 1.0f;
-
+	public float MouseHorizontal = 1.0f;
+	[ShowInEditor]
+	public float BulletForce = 50.0f;
+	[ShowInEditor]
+	public float FireRate = 20.0f;
+	[ShowInEditor]
+	public bool AutoFire = false;
 
 	KeyCode front = KeyCode.W;
 	KeyCode back = KeyCode.S;
@@ -18,11 +23,11 @@ public class SpectatorCamera : Component {
 	KeyCode left = KeyCode.A;
 	KeyCode up = KeyCode.E;
 	KeyCode down = KeyCode.Q;
-
 	KeyCode accelerate = KeyCode.LeftShift;
-
 	Vector3 mouse;
 
+	int projectileCount = 0;
+	float nextTimeToFire = 0;
 
 	public override void onStart() {
 		mouse = transform.eulerAngles;
@@ -33,15 +38,24 @@ public class SpectatorCamera : Component {
 		Vector3 inputHorizonatl = Input.getAxis(right, left) * transform.right;
 
 		Vector3 move = inputDiagonal + inputVertical + inputHorizonatl;
+		transform.position += move * MoveSpeed * (Input.getKey(accelerate) ? Acceleration : 1.0f) * Time.deltaTime;
 
-		transform.position += move * moveSpeed * (Input.getKey(accelerate) ? accelerationMultiplier : 1.0f) * Time.deltaTime;
-
-		mouse.y += Input.getMouseDelta().x * (mouseSensitivityHorizontal * Time.deltaTime);
-		mouse.z -= Input.getMouseDelta().y * (mouseSensitivityVertical * Time.deltaTime);
+		mouse.y += Input.getMouseDelta().x * (MouseHorizontal * Time.deltaTime);
+		mouse.z -= Input.getMouseDelta().y * (MouseVertical * Time.deltaTime);
 		transform.setRotation(new Quaternion(mouse));
 
 		if (Input.getMouseButtonDown(MouseButton.Left)) {
 			Input.setCursorMode(CursorMode.Disabled);
+		}
+		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) { 
+			if(nextTimeToFire < Time.time) {
+				GameObject projectile = GameObject.CreateSphere("Projectile_" + projectileCount, transform.position);
+				RigidbodyComponent rb = projectile.addComponent<RigidbodyComponent>();
+				rb.kinematic = false;
+				rb.addForce(transform.forward * 50, ForceMode.Impulse);
+				projectileCount++;
+				nextTimeToFire = Time.time + (1.0f / FireRate);
+			}
 		}
 	}
 }

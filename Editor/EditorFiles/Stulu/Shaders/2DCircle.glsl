@@ -51,10 +51,10 @@ void main() {
     float circle = smoothstep(0.0, Input.fade, distance);
     circle *= smoothstep(Input.thickness + Input.fade, Input.thickness, distance);
 
-	if (circle == 0.0 || Input.color == 0.0)
-		discard;
-
     // Set output color
     a_color = Input.color;
 	a_color.a *= circle;
+
+	if (circle == 0.0 || Input.color == 0.0)
+		discard;
 }

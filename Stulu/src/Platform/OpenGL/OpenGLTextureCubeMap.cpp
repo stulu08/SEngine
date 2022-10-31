@@ -270,9 +270,10 @@ namespace Stulu {
     */
     void OpenGLSkyBox::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
         ST_PROFILING_FUNCTION();
-        m_settings.wrap = (int)TextureSettings::Wrap::Clamp;
+        m_settings.wrap = TextureWrap::ClampToEdge;
         m_settings.tiling = glm::vec2(1.0f);
-        m_settings.format = (int)TextureSettings::Format::RGB16F;
+        m_settings.format = TextureFormat::RGB16F;
+        m_settings.filtering = TextureFiltering::Linear;
         // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
         // --------------------------------------------------------------------------------
         glGenTextures(1, &m_irradianceMap);
@@ -388,7 +389,6 @@ namespace Stulu {
     }
 
     void OpenGLSkyBox::draw() const {
-        ST_PROFILING_FUNCTION();
         glDepthFunc(GL_LEQUAL);
         glCullFace(GL_BACK);
         renderCube();
@@ -405,32 +405,25 @@ namespace Stulu {
         glGenTextures(1, &m_map);
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
 
-        TextureSettings::Format format = (TextureSettings::Format)settings.format;
-        auto[internalformat, dataformat] = TextureFormatToGLenum(format, 4);
+        m_settings.forceGenMips = true;
+
+        auto [internalformat, dataformat] = TextureFormatToGLenum(m_settings.format, 4);
 
         for (uint32_t i = 0; i < 6; i++)
         {
-            if(isGLTextureFormatFloat(format))
+            if(isGLTextureFormatFloat(m_settings.format))
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_FLOAT, nullptr);
             else
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, m_resolution, m_resolution, 0, dataformat, GL_UNSIGNED_BYTE, nullptr);
         }
-        GLenum wrap = 0;
-        switch (settings.wrap)
-        {
-        case (int)TextureSettings::Wrap::Clamp:
-            wrap = GL_CLAMP;
-            break;
-        case (int)TextureSettings::Wrap::Repeat:
-            wrap = GL_REPEAT;
-            break;
-        }
+        GLenum wrap = TextureWrapToGLenum(m_settings.wrap);
+
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrap);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrap);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrap);
 
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenum(m_settings.filtering, true, 0));
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenum(m_settings.filtering, true, 1));
 
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
@@ -445,7 +438,6 @@ namespace Stulu {
     }
 
     void OpenGLCubeMap::draw() const {
-        ST_PROFILING_FUNCTION();
         glDepthFunc(GL_LEQUAL);
         glCullFace(GL_BACK);
         renderCube();
@@ -1024,7 +1016,6 @@ void main() {
     }
 
     void renderCube() {
-        ST_PROFILING_FUNCTION();
         static Ref<VertexArray> s_cubeVAO = nullptr;
         if (!s_cubeVAO) {
             std::vector<Vertex> vertices{
@@ -1100,9 +1091,7 @@ void main() {
         glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
     }
-    void OpenGLSkyBox::renderQuad()
-    {
-        ST_PROFILING_FUNCTION();
+    void OpenGLSkyBox::renderQuad() {
         if (s_quadVAO == 0)
         {
             float quadVertices[] = {

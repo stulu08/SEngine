@@ -14,7 +14,6 @@ namespace Stulu {
 
 			if(ImGui::TreeNodeEx("Frametime", ImGuiTreeNodeFlags_DefaultOpen)){
 				if (update) {
-					ST_PROFILING_SCOPE("Editor Profiling FPS update");
 					m_fps.push_back(1.0f / timestep);
 					if (m_fps.size() > 99)
 						m_fps.erase(m_fps.begin(), m_fps.begin() + 1);
@@ -35,7 +34,6 @@ namespace Stulu {
 			if (ImGui::TreeNodeEx("Memory Usage", ImGuiTreeNodeFlags_DefaultOpen)) {
 				MemoryUsageInfo info = Platform::getMemoryUsage();
 
-				ST_PROFILING_SCOPE("Editor Memory FPS update");
 				float virt = static_cast<float>(info.virtualUsedByProcess) / 1048576;
 				m_virtualM.push_back(virt);
 				if (m_virtualM.size() > 99)

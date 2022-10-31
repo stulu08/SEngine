@@ -16,6 +16,7 @@ namespace Stulu {
 		uint32_t height = 1;
 		bool focused = false;
 		bool hovered = false;
+		bool drawn = false;
 	private:
 		void drawErrorImage();
 		int m_selectedSize = 1;

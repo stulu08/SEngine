@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Scene/GameObject.h"
 #include <Stulu/Scene/Components/Components.h>
+#include <Stulu/Core/Resources.h>
 #define StuluGameObject_RegisterComponent(Name, Type) \
 {\
 	using namespace Stulu; \
@@ -72,6 +73,62 @@ namespace StuluBindings {
 		}
 		static inline MonoString* getTag(uint32_t go) {
 			return mono_string_new(getCoreDomain(), Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::GameObjectBaseComponent>().tag.c_str());
+		}
+		static inline uint32_t createSphere(MonoString* monoName, MonoString* monoTag, Vector3 position) {
+			std::string name = mono_string_to_utf8(monoName);
+			std::string tag = mono_string_to_utf8(monoTag);
+			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(name);
+
+			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
+			base.tag = tag;
+			auto& tc = go.getComponent<Stulu::TransformComponent>();
+			tc.position = position.toNative_s();
+			base.gameObject = go;
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getSphereMeshAsset();
+			go.addComponent<Stulu::SphereColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
+			return go;
+		}
+		static inline uint32_t createCube(MonoString* monoName, MonoString* monoTag, Vector3 position) {
+			std::string name = mono_string_to_utf8(monoName);
+			std::string tag = mono_string_to_utf8(monoTag);
+			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(name);
+
+			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
+			base.tag = tag;
+			auto& tc = go.getComponent<Stulu::TransformComponent>();
+			tc.position = position.toNative_s();
+			base.gameObject = go;
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCubeMeshAsset();
+			go.addComponent<Stulu::BoxColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
+			return go;
+		}
+		static inline uint32_t createCapsule(MonoString* monoName, MonoString* monoTag, Vector3 position) {
+			std::string name = mono_string_to_utf8(monoName);
+			std::string tag = mono_string_to_utf8(monoTag);
+			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(name);
+
+			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
+			base.tag = tag;
+			auto& tc = go.getComponent<Stulu::TransformComponent>();
+			tc.position = position.toNative_s();
+			base.gameObject = go;
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCapsuleMeshAsset();
+			go.addComponent<Stulu::CapsuleColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
+			return go;
+		}
+		static inline uint32_t createPlane(MonoString* monoName, MonoString* monoTag, Vector3 position) {
+			std::string name = mono_string_to_utf8(monoName);
+			std::string tag = mono_string_to_utf8(monoTag);
+			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(name);
+
+			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
+			base.tag = tag;
+			auto& tc = go.getComponent<Stulu::TransformComponent>();
+			tc.position = position.toNative_s();
+			base.gameObject = go;
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
+			go.addComponent<Stulu::MeshColliderComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
+			return go;
 		}
 	};
 }

@@ -29,6 +29,8 @@ namespace Stulu {
 		float getFov() const { return m_fov; }
 
 		PostProcessingData& getPostProcessingData() { return postProcessingData; }
+		bool getPostProcessingUsingMain() { return m_postProcessingUsingMain; }
+		void setPostProcessingUsingMain(bool v) { m_postProcessingUsingMain = v; }
 		const TransformComponent& getTransform() const { return m_transform; }
 		TransformComponent& getTransform() { return m_transform; }
 		const Frustum& getFrustum() const { return m_frustum; }
@@ -45,6 +47,7 @@ namespace Stulu {
 		TransformComponent m_transform;
 		Frustum m_frustum;
 		PostProcessingData postProcessingData;
+		bool m_postProcessingUsingMain = true;
 
 		float m_cameraMoveSpeed = 1.0f;
 		float m_cameraSensitivity = .8f;

@@ -59,20 +59,22 @@ namespace Stulu {
 				destroyGameObject({ go, this });
 			});
 		m_registry.destroy(gameObject);
+		gameObject.m_entity = entt::null;
+		gameObject.m_scene = nullptr;
 		gameObject = GameObject::null;
 	}
 
-	void Scene::onUpdateEditor(Timestep ts, SceneCamera& camera) {
+	void Scene::onUpdateEditor(Timestep ts, SceneCamera& camera, bool render) {
 		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		updateAllTransforms();
 		SceneRenderer::LoadLights(this);
-		if (camera.getCamera()) {
+		if (camera.getCamera() && render) {
 			renderSceneEditor(camera);
 		}
 	}
 	static bool firstRuntimeUpdate = false;
-	void Scene::onUpdateRuntime(Timestep ts) {
+	void Scene::onUpdateRuntime(Timestep ts, bool render) {
 		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		Time::time += ts;
@@ -88,21 +90,36 @@ namespace Stulu {
 			updateAssemblyScripts("onStart()");
 		updateAssemblyScripts("onUpdate()");
 		//calculations
-		if(m_data.enablePhsyics3D)
+		if (m_data.enablePhsyics3D)
 			updatePhysics();
 		else
-			SceneRenderer::LoadLights(this);//otherwise we do it in m_physics.getScene()->fetchResults()
-		updateAllTransforms();
-
+			runtime_updatesetups();
 		//rendering
-		{
+		if(render) {
 			renderScene();
 		}
 		firstRuntimeUpdate = false;
 	}
+	void Scene::runtime_updatesetups() {
+		s_activeScene = this;
+		updateAllTransforms();
+		SceneRenderer::LoadLights(this);
+		setupSceneForRendering(true);
 
-	void Scene::renderScene() {
+	}
+	void Scene::renderScene(bool callEvents) {
+		s_activeScene = this;
+		//setupSceneForRendering(callEvents); //we do it while waiting for physx
+		auto& view = m_registry.view<CameraComponent>();
+		for (auto goID : view) {
+			renderSceneForCamera(GameObject(goID, this), callEvents);
+		}
+		closeSceneForRendering();
+	}
+
+	void Scene::setupSceneForRendering(bool callEvents) {
 		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
 		SceneRenderer::Begin();
 		//register all objects
 		{
@@ -113,71 +130,76 @@ namespace Stulu {
 				}
 			}
 		}
-		{
+		if(callEvents) {
 			m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
 				if (behaviour.instance)
 					behaviour.instance->onRender(Time::frameTime);
 				});
 			updateAssemblyScripts("onRender()");
 		}
+	}
 
-		auto& view = m_registry.view<CameraComponent>();
-		for (auto goID : view) {
-			GameObject go = GameObject(goID, this);
-			CameraComponent& cameraComp = go.getComponent<CameraComponent>();
-			TransformComponent& transformComp = go.getComponent<TransformComponent>();
-			if (cameraComp.mode == CameraMode::Perspective) {
-				cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, 
-					cameraComp.settings.zFar, cameraComp.settings.fov, transformComp);
-			}
-			else if (cameraComp.mode == CameraMode::Orthographic) {
-				cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear, 
-					cameraComp.settings.zFar, 0, transformComp);
-			}
-			Renderer::uploadCameraBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform), 
-				transformComp.worldPosition, transformComp.eulerAnglesDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
-			
-			//clear 
-			cameraComp.getNativeCamera()->bindFrameBuffer();
-			SceneRenderer::Clear(cameraComp);
-			cameraComp.getNativeCamera()->unbindFrameBuffer();
-
-			//draw 3D
-			SceneRenderer::DrawSceneToCamera(transformComp, cameraComp);
-			//draw 2D stuff
-			cameraComp.getNativeCamera()->bindFrameBuffer();
-			Renderer2D::begin();
-			{
-				m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-					if (behaviour.instance)
-						behaviour.instance->onRender2D(Time::frameTime);
-					});
-				updateAssemblyScripts("onRender2D()");
-			}
-			auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
-			for (auto gameObject : view)
-			{
-				auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-				if (sprite.texture)
-					Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
-				else
-					Renderer2D::drawQuad(transform, sprite.color);
-			}
-			auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
-			for (auto gameObject : circleView)
-			{
-				auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
-				Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
-			}
-			Renderer2D::flush();
-			cameraComp.getNativeCamera()->unbindFrameBuffer();
-
+	void Scene::renderSceneForCamera(GameObject go, bool callEvents) {
+		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
+		CameraComponent& cameraComp = go.getComponent<CameraComponent>();
+		TransformComponent& transformComp = go.getComponent<TransformComponent>();
+		if (cameraComp.mode == CameraMode::Perspective) {
+			cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear,
+				cameraComp.settings.zFar, cameraComp.settings.fov, transformComp);
 		}
+		else if (cameraComp.mode == CameraMode::Orthographic) {
+			cameraComp.frustum = VFC::createFrustum_ortho(-cameraComp.settings.aspectRatio * cameraComp.settings.zoom, 
+				cameraComp.settings.aspectRatio * cameraComp.settings.zoom, -cameraComp.settings.zoom, cameraComp.settings.zoom, 
+				cameraComp.settings.zNear, cameraComp.settings.zFar, transformComp);
+		}
+		Renderer::uploadCameraBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform),
+			transformComp.worldPosition, transformComp.eulerAnglesDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
+
+		//clear 
+		cameraComp.getNativeCamera()->bindFrameBuffer();
+		SceneRenderer::Clear(cameraComp);
+		cameraComp.getNativeCamera()->unbindFrameBuffer();
+
+		//draw 3D
+		SceneRenderer::DrawSceneToCamera(transformComp, cameraComp);
+		//draw 2D stuff
+		cameraComp.getNativeCamera()->bindFrameBuffer();
+		Renderer2D::begin();
+		if (callEvents) {
+			m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
+				if (behaviour.instance)
+					behaviour.instance->onRender2D(Time::frameTime);
+				});
+			updateAssemblyScripts("onRender2D()");
+		}
+		auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
+		for (auto gameObject : view)
+		{
+			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
+			if (sprite.texture)
+				Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
+			else
+				Renderer2D::drawQuad(transform, sprite.color);
+		}
+		auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
+		for (auto gameObject : circleView)
+		{
+			auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
+			Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
+		}
+		Renderer2D::flush();
+		cameraComp.getNativeCamera()->unbindFrameBuffer();
+	}
+	void Scene::closeSceneForRendering() {
+		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
 		SceneRenderer::End();
 	}
 
 	void Scene::renderSceneEditor(SceneCamera& camera) {
 		ST_PROFILING_FUNCTION();
+		s_activeScene = this;
 		SceneRenderer::Begin();
 		{
 			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
@@ -264,7 +286,6 @@ namespace Stulu {
 		updateAssemblyScripts("", true);
 
 		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
-			//cam.getFrameBuffer()->getSpecs().textureFormat = (m_data.framebuffer16bit ? TextureSettings::Format::RGBA16F : TextureSettings::Format::RGBA);
 			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
 			});
 
@@ -319,15 +340,22 @@ namespace Stulu {
 		}
 	}
 	void Scene::updatePhysics() {
-		ST_PROFILING_FUNCTION();
 		if (Time::deltaTime == 0.0f || firstRuntimeUpdate) {
 			return;
 		}
-		s_physics.getScene()->simulate(Time::deltaTime);
-		//we do as much as possible here
-		while (!s_physics.getScene()->fetchResults()) {
-			SceneRenderer::LoadLights(this);
+		{
+			ST_PROFILING_SCOPE("Waiting for PhysX");
+			bool alreadyRun = false;
+			s_physics.getScene()->simulate(Time::deltaTime);
+			//we do as much as possible here
+			while (!s_physics.getScene()->fetchResults()) {
+				if (!alreadyRun) {
+					runtime_updatesetups();
+					alreadyRun = true;
+				}
+			}
 		}
+		ST_PROFILING_FUNCTION();
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
@@ -441,7 +469,6 @@ namespace Stulu {
 	}
 
 	void Scene::onEvent(Stulu::Event& e) {
-		ST_PROFILING_FUNCTION();
 		if (e.getEventType() == EventType::WindowClose) {
 			if (s_physics.started())
 				s_physics.shutDown();
@@ -543,7 +570,6 @@ namespace Stulu {
 		return go;
 	}
 	GameObject Scene::getMainCamera() {
-		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
 		for (auto gameObject : view) {
 			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
@@ -552,6 +578,24 @@ namespace Stulu {
 			}
 		}
 		return GameObject::null;
+	}
+
+	GameObject Scene::getMainLight() {
+		auto view = m_registry.view<GameObjectBaseComponent, LightComponent>();
+		GameObject otherResult = GameObject::null;
+		for (auto gameObject : view) {
+			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
+				if (view.get<LightComponent>(gameObject).lightType == LightComponent::Directional) {
+					if (base.tag == "MainLight") {
+						return GameObject{ gameObject,this };
+					}
+					else {
+						otherResult = GameObject{ gameObject,this };
+					}
+
+				}
+		}
+		return otherResult;
 	}
 
 	template<typename... Component>

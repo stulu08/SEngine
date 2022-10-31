@@ -127,8 +127,8 @@ namespace YAML {
 	struct convert<Stulu::TextureSettings> {
 		inline static Node encode(const Stulu::TextureSettings& rhs) {
 			Node node;
-			node.push_back(rhs.format);
-			node.push_back(rhs.wrap);
+			node.push_back((uint32_t)rhs.format);
+			node.push_back((uint32_t)rhs.wrap);
 			node.push_back(rhs.tiling);
 			node.SetStyle(EmitterStyle::Flow);
 			return node;
@@ -137,8 +137,8 @@ namespace YAML {
 		inline static bool decode(const Node& node, Stulu::TextureSettings& rhs) {
 			if (!node.IsSequence() || node.size() != 3)
 				return false;
-			rhs.format = node[0].as<int>();
-			rhs.wrap = node[1].as<int>();
+			rhs.format = (Stulu::TextureFormat)node[0].as<uint32_t>();
+			rhs.wrap = (Stulu::TextureWrap)node[1].as<uint32_t>();
 			rhs.tiling = node[2].as<glm::vec2>();
 			return true;
 		}
@@ -278,7 +278,7 @@ namespace Stulu {
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::TextureSettings& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq;
-		out << v.format << v.wrap << v.tiling;
+		out << (uint32_t)v.format << (uint32_t)v.wrap << v.tiling;
 		out << YAML::EndSeq;
 		return out;
 	}

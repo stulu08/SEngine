@@ -15,10 +15,17 @@ namespace Stulu {
 		}
 			
 		if (genMap) {
-			if (reflectionMap == nullptr)
-				reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings{ TextureSettings::Format::RGB16F });
-			if (reflectionFrameBuffer == nullptr)
-				reflectionFrameBuffer = FrameBuffer::create(FrameBufferSpecs{ ST_REFLECTION_MAP_SIZE,ST_REFLECTION_MAP_SIZE,1,false, TextureSettings::Format::R });
+			if (reflectionMap == nullptr) {
+
+				reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings(TextureFormat::RGB16F));
+			}
+			if (reflectionFrameBuffer == nullptr) {
+				FrameBufferSpecs specs;
+				specs.width = ST_REFLECTION_MAP_SIZE;
+				specs.height = ST_REFLECTION_MAP_SIZE;
+				specs.colorTexture.format = TextureFormat::None;
+				reflectionFrameBuffer = FrameBuffer::create(specs);
+			}
 		}
 
 	}

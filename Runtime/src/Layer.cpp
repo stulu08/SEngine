@@ -7,11 +7,10 @@ namespace Stulu {
 	RuntimeLayer::RuntimeLayer()
 		: Layer("RuntimeLayer") {
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
-		FrameBufferSpecs fspecs = FrameBufferSpecs();
+		FrameBufferSpecs fspecs;
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
-
-		fspecs.textureFormat = TextureSettings::Format::RGBA16F;
+		fspecs.colorTexture = TextureFormat::RGBA16F;
 		m_fbDrawData.m_sceneFBo = FrameBuffer::create(fspecs);
 		{
 			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;

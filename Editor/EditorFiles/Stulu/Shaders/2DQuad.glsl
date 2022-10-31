@@ -44,7 +44,6 @@ struct VertData{
 layout (location = 0) in VertData Input;
 layout (location = 3) in flat float textureIndex;
 
-
 layout (binding = 0) uniform sampler2D u_textures[32];
 
 void main() {
@@ -84,7 +83,7 @@ void main() {
 		case 30: color = texture(u_textures[30], Input.texCoord * Input.textureTiling) * Input.color; break;
 		case 31: color = texture(u_textures[31], Input.texCoord * Input.textureTiling) * Input.color; break;
 	}
+	a_color = color;
 	if(color.a == 0.0)
 		discard;
-	a_color = color;
 }

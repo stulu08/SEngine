@@ -1,33 +1,42 @@
 #pragma once
 #include "Stulu/Renderer/FrameBuffer.h"
+#include "OpenGLTexture.h"
 
 namespace Stulu {
 	class STULU_API OpenGLFrameBufferTexture : public FrameBufferTexture {
 	public:
-		OpenGLFrameBufferTexture(uint32_t width, uint32_t height, uint32_t samples = 0);
+		OpenGLFrameBufferTexture(FrameBufferSpecs& specs)  
+			: m_specs(specs) {}
 		virtual ~OpenGLFrameBufferTexture();
 
-		virtual void invalidate(TextureSettings::Format& format) override;
-		virtual void resize(uint32_t width, uint32_t height) override;
+		virtual void invalidate() override;
+		virtual void resize(FrameBufferSpecs& specs) override;
 
 		virtual void* getColorAttachmentRendereObject() const override { return (void*)&m_colorAttachment; };
+		virtual Ref<Texture2D> getColorAttachment() const override { return m_colorTexture; };
 		virtual void* getDepthAttachmentRendereObject() const override { return (void*)&m_depthAttachment; };
+		virtual Ref<Texture2D> getDepthAttachment() const override { return m_depthTexture; };
 		virtual void* getNativeRendererObject() const override { return (void*)&m_colorAttachment; };
-		virtual uint32_t getWidth() const override { return m_width; }
-		virtual uint32_t getHeight() const override { return m_height; }
-		virtual TextureSettings& getSettings() override { return m_settings; }
+		virtual uint32_t getWidth() const override { return m_specs.width; }
+		virtual uint32_t getHeight() const override { return  m_specs.height; }
+		virtual TextureSettings& getSettings() override { return m_specs.colorTexture; }
+		virtual TextureSettings& getDepthSettings() override { return m_specs.depthTexture; }
+		virtual TextureSettings& getColorSettings() override { return m_specs.colorTexture; }
+		virtual FrameBufferSpecs& getSpecs()  override { return m_specs; };
+
 
 		virtual void bind(uint32_t slot = 0) const override;
 		virtual void bindDepthAttachment(uint32_t slot = 0) const override;
 		virtual bool operator == (const Texture& other) const override { return m_colorAttachment == *static_cast<uint32_t*>(other.getNativeRendererObject()); };
 		virtual operator int() override { return m_colorAttachment; }
 	private:
-		uint32_t m_width;
-		uint32_t m_height;
+		void updateTextures();
+
 		uint32_t m_colorAttachment = 0;
 		uint32_t m_depthAttachment = 0;
-		uint32_t m_samples = 0;
-		TextureSettings m_settings;
+		FrameBufferSpecs m_specs;
+
+		Ref<OpenGLTexture2D> m_depthTexture = nullptr, m_colorTexture = nullptr;
 	};
 
 	class OpenGLFramebuffer : public FrameBuffer{
@@ -42,7 +51,7 @@ namespace Stulu {
 
 		virtual void attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face) override;
 
-		virtual FrameBufferSpecs& getSpecs() override;
+		virtual FrameBufferSpecs& getSpecs() override { return m_specs; };
 		virtual Ref<FrameBufferTexture>& getTexture() override { return m_texture; }
 
 

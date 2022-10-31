@@ -144,7 +144,6 @@ namespace Stulu {
 	}
 #endif
 	MonoObject* ScriptAssembly::invokeFunction(const MonoFunction& function, void* obj, void** args) const {
-		ST_PROFILING_FUNCTION();
 		if (!function.methodPtr)
 			return nullptr;
 		MonoObject* ex = nullptr;
@@ -165,7 +164,6 @@ namespace Stulu {
 		return re;
 	}
 	MonoObject* ScriptAssembly::invokeFunction(MonoMethod* function, void* obj, void** args) const {
-		ST_PROFILING_FUNCTION();
 		if (!function)
 			return nullptr;
 

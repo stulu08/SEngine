@@ -15,7 +15,8 @@ namespace Stulu {
 
 			m_scene->m_registry.each([&](auto goID) {
 				GameObject gameObject{ goID, m_scene.get() };
-				drawObject(gameObject);
+				if(gameObject.isValid())
+					drawObject(gameObject);
 				});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -78,6 +79,8 @@ namespace Stulu {
 						GameObject g = m_scene->createGameObject("Perspective Camera");
 						g.addComponent<CameraComponent>(CameraMode::Perspective, true);
 						g.getComponent<GameObjectBaseComponent>().tag = "MainCam";
+						g.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Skybox;
+						g.saveAddComponent<SkyBoxComponent>().texture = Resources::getDefaultSkyBox();
 						g.saveAddComponent<PostProcessingComponent>();
 					}
 					ImGui::EndMenu();
@@ -112,14 +115,19 @@ namespace Stulu {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Material)).c_str())) {
 				UUID id = *(const UUID*)payload->Data;
 				if (AssetsManager::existsAndType(id, AssetType::Material)) {
-					m_scene->m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
-						if (transform.parent == gameObject) {
-							GameObject child(go, m_scene.get());
-							if (child.hasComponent<MeshRendererComponent>()) {
-								child.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(id).data);
+
+					std::function<void(GameObject)> applyMaterialToChilds = [&](GameObject parent) {
+						m_scene->m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
+							if (transform.parent == parent) {
+								GameObject child(go, m_scene.get());
+								if (child.hasComponent<MeshRendererComponent>()) {
+									child.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(id).data);
+								}
+								applyMaterialToChilds(child);
 							}
-						}
-					});
+							});
+					};
+
 					if (gameObject.hasComponent<MeshRendererComponent>())
 						gameObject.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(id).data);
 				}

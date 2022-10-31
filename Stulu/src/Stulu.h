@@ -50,7 +50,6 @@
 #include "Stulu/Renderer/RenderCommand.h"
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Renderer/Texture.h"
-#include "Stulu/Renderer/UniformBuffer.h"
 #include "Stulu/Renderer/VertexArray.h"
 
 ////////////////////Scene////////////////////

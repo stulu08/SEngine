@@ -112,17 +112,15 @@ namespace Stulu {
 			if (!m_minimized) {
 				ST_PROFILING_RENDERDATA_BEGIN();
 				for (Layer* layer : m_layerStack) {
-					ST_PROFILING_SCOPE("onUpdate - layerstack");
 					layer->onUpdate(delta);
 				}
 				if (m_appInfo.EnableImgui) {
+					ST_PROFILING_SCOPE("ImGui - Update");
 					m_imguiLayer->Begin();
 					for (Layer* layer : m_layerStack) {
-						ST_PROFILING_SCOPE("onImguiRender - layerstack");
 						layer->onImguiRender(delta);
 					}
 					for (Layer* layer : m_layerStack) {
-						ST_PROFILING_SCOPE("onRenderGizmo - layerstack");
 						layer->onRenderGizmo();
 					}
 					m_imguiLayer->End();

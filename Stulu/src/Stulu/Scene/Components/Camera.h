@@ -3,14 +3,15 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Component.h"
 namespace Stulu {
+#define BLOOM_MAX_SAMPLES 10u
 	struct PostProcessingData {
 		float gamma = 2.2f;
 		float exposure = 1.0f;
 		struct Bloom {
-			Ref<Texture2D> downSample[5];
-			Ref<Texture2D> upSample[5];
+			Ref<Texture2D> downSample[BLOOM_MAX_SAMPLES];
+			Ref<Texture2D> upSample[BLOOM_MAX_SAMPLES];
 			uint32_t samples = 0;
-			float bloomIntensity = 1.0f;
+			float bloomIntensity = .5f;
 			float bloomTreshold = 1.1f;
 			bool enabled = false;
 		} bloomData;
@@ -59,5 +60,6 @@ namespace Stulu {
 		PostProcessingData* postProcessing = nullptr;
 		friend class Scene;
 		friend class SceneRenderer;
+		friend class EditorLayer;
 	};
 }

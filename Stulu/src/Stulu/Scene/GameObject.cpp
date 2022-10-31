@@ -7,7 +7,15 @@ namespace Stulu {
 	GameObject::GameObject(entt::entity entity, Scene* scene)
 		: m_entity(entity), m_scene(scene){
 	}
-	UUID GameObject::getId() {
+	bool GameObject::isValid() const {
+		if (m_entity == entt::null || m_scene == nullptr)
+			return false;
+		if (hasComponent<GameObjectBaseComponent>() && hasComponent<TransformComponent>())
+			if(getId() != UUID::null)
+				return true;
+		return false;
+	}
+	UUID GameObject::getId() const {
 		return getComponent<GameObjectBaseComponent>().uuid;
 	}
 	GameObject GameObject::getById(const UUID& id, Scene* scene) {

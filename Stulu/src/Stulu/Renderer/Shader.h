@@ -2,6 +2,10 @@
 #include "Stulu/Renderer/Texture.h"
 
 namespace Stulu {
+#define ST_USER_TEXTURE_START 5
+#define ST_USER_TEXTURE_END 15
+#define ST_USER_TEXTURE_COUNT (ST_USER_TEXTURE_END - ST_USER_TEXTURE_START)
+
 #define ST_MAXLIGHTS 50
 #define ST_ShaderViewFlags_DisplayLighting ((uint32_t)ShaderViewFlags::DisplayLighting)
 #define ST_ShaderViewFlags_DisplayDiffuse ((uint32_t)ShaderViewFlags::DisplayDiffuse)
@@ -164,7 +168,7 @@ namespace Stulu {
 		virtual void Dispatch(const uint32_t numWorkGroupsX = 1, const uint32_t numWorkGroupsY = 1, const uint32_t numWorkGroupsZ = 1, uint32_t usage = Usage::Default) = 0;
 
 		virtual void setTexture(const std::string& name, uint32_t binding, const Ref<Texture>& texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite) = 0;
-		virtual void setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite, TextureSettings::Format format = TextureSettings::Format::Auto) = 0;
+		virtual void setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite, TextureFormat format = TextureFormat::Auto) = 0;
 		virtual void setFloat(const std::string& name, float value) = 0;
 		virtual void setInt(const std::string& name, int value) = 0;
 		virtual void setVec(const std::string& name, const glm::vec4& value) = 0;

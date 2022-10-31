@@ -2,19 +2,29 @@
 #include "Stulu/Core/UUID.h"
 
 namespace Stulu {
+	enum class TextureFormat : uint32_t {
+		RGBA, RGB, RG, R, SRGB, SRGBA, RGBA16F, RGB16F, RGBA32F, RG32F, Auto, None,
+		Depth16, Depth24, Depth32, Depth32F, Depth24_Stencil8, Depth32F_Stencil8, Stencil8
+	};
+	enum class TextureWrap : uint32_t {
+		ClampToEdge, Repeat, ClampToBorder
+	};
+	enum class TextureFiltering : uint32_t {
+		Linear, Nearest
+	};
 	struct TextureSettings {
-		enum class Format {
-			RGBA, RGB, RG, R, SRGB, SRGBA, RGBA16F, RGB16F, RGBA32F, Auto
-		};
-		int format = (int)Format::Auto;
-		enum class Wrap {
-			Clamp, Repeat,
-		};
-		int wrap = (int)Wrap::Repeat;
+		TextureFormat format = TextureFormat::Auto;
+		TextureWrap wrap = TextureWrap::Repeat;
 		glm::vec2 tiling = { 1.0f,1.0f };
 		uint32_t levels = 1;
-		TextureSettings(Format format = Format::Auto, Wrap wrap = Wrap::Repeat, const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1)
-			:format((int)format), wrap((int)wrap), tiling(tiling), levels(levels) {}
+		glm::vec4 border = glm::vec4(1.0f);
+		TextureFiltering filtering = TextureFiltering::Linear;
+		bool forceGenMips = false;
+
+		TextureSettings(TextureFormat format = TextureFormat::Auto, TextureWrap wrap = TextureWrap::Repeat, 
+			const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1, glm::vec4 border = glm::vec4(1.0f),
+			TextureFiltering filtering = TextureFiltering::Linear)
+			:format(format), wrap(wrap), tiling(tiling), levels(levels), border(border), filtering(filtering) {}
 	};
 	class STULU_API Texture
 	{
@@ -38,9 +48,13 @@ namespace Stulu {
 	public:
 		static Ref<Texture2D> create(const std::string& path, const TextureSettings& settings = TextureSettings());
 		static Ref<Texture2D> create(uint32_t width, uint32_t height, const TextureSettings& settings = TextureSettings());
-		virtual void setData(void* data, uint32_t size, uint32_t mipLevel = 0) = 0;
+		virtual void setData(const void* data, uint32_t size, uint32_t mipLevel = 0) = 0;
 		virtual void setPixel(uint32_t hexData, uint32_t posX, uint32_t posY, uint32_t mipLevel = 0) = 0;
+		virtual void getData(void* data, uint32_t size, uint32_t mipLevel = 0) const = 0;
+		virtual uint32_t getPixel(uint32_t posX, uint32_t posY, uint32_t mipLevel = 0) const = 0;
 		virtual void update() = 0;
+		//only TextureFiltering,TextureWrap and border color
+		virtual void updateParameters() = 0;
 
 		virtual uint32_t getMipWidth(uint32_t level) const = 0;
 		virtual uint32_t getMipHeight(uint32_t level) const = 0;

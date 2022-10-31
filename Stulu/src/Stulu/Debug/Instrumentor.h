@@ -127,10 +127,10 @@ namespace Stulu {
     };
 }
 #if ST_PROFILING
-    #define ST_PROFILING_BEGIN(name, path)  ::Stulu::Instrumentor::Get().BeginSession(name, path)
-    #define ST_PROFILING_END()              ::Stulu::Instrumentor::Get().EndSession()
-    #define ST_PROFILING_SCOPE(name)        ::Stulu::InstrumentationTimer ST_CONCAT(timer,__LINE__)(name)
-    #define ST_PROFILING_FUNCTION()         ST_PROFILING_SCOPE(__FUNCSIG__)
+    #define ST_PROFILING_BEGIN(name, path)          ::Stulu::Instrumentor::Get().BeginSession(name, path)
+    #define ST_PROFILING_END()                      ::Stulu::Instrumentor::Get().EndSession()
+    #define ST_PROFILING_SCOPE(name)                ::Stulu::InstrumentationTimer ST_CONCAT(timer,__LINE__)(name)
+    #define ST_PROFILING_FUNCTION()                  ST_PROFILING_SCOPE(__FUNCSIG__)
 #else
     #define ST_PROFILING_BEGIN(name, path)
     #define ST_PROFILING_END()

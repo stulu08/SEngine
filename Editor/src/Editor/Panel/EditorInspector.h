@@ -9,5 +9,6 @@ namespace Stulu {
 	private:
 		template <typename T>
 		void drawComponent(GameObject gameObject, std::string name, bool removeable = true);
+		void drawScriptingComponent(GameObject gameObject);
 	};
 }

@@ -5,17 +5,9 @@
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Events/ApplicationEvent.h"
-#include "Stulu/Renderer/UniformBuffer.h"
+#include "Stulu/Renderer/Buffer.h"
 
 namespace Stulu{
-	enum class BufferBinding : uint32_t {
-		Camera = 0,
-		Model = 1,
-		Light = 2,
-		PostProcessing = 3,
-		Scene = 4,
-		Material = 5,
-	};
 	struct CameraBufferData {
 		glm::mat4 viewProjectionMatrix;
 		glm::mat4 viewMatrix;
@@ -38,6 +30,7 @@ namespace Stulu{
 		float delta = 0.0f;
 		float toneMappingExposure = 1.0f;
 		float gamma = 2.2f;
+		float bloomStrength = 1.0f;
 	};
 	struct SceneBufferData {
 		glm::mat4 skyBoxRotation = glm::mat4(1.0f);
@@ -46,6 +39,9 @@ namespace Stulu{
 		uint32_t skyboxMapType = 0;
 		uint32_t shaderFlags = 0;
 		float env_lod = 4.0f;
+		glm::mat4 lightSpaceMatrix = glm::mat4(1.0f);
+		glm::vec3 shadowCasterPos = glm::vec3(0.0);
+		int32_t shadowCaster = -1;
 	};
 	class STULU_API Renderer {
 	public:

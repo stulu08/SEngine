@@ -17,7 +17,7 @@ namespace Stulu {
 		}
 
 		virtual void setTexture(const std::string& name, uint32_t binding, const Ref<Texture>& texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite) override;
-		virtual void setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite, TextureSettings::Format format = TextureSettings::Format::Auto) override;
+		virtual void setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite, TextureFormat format = TextureFormat::Auto) override;
 		virtual void setFloat(const std::string& name, float value) override;
 		virtual void setInt(const std::string& name, int value) override;
 		virtual void setVec(const std::string& name, const glm::vec4& value) override;

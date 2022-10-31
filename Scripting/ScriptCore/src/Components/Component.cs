@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Stulu {
-	//scripting components
+	///scripting components
 	[System.Serializable]
 	public abstract class Component : GameObjectAttached {
 		/// <summary>

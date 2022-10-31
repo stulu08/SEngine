@@ -48,6 +48,7 @@ namespace Stulu {
 		SceneCamera m_sceneCamera;
 		std::string m_currentScenePath;
 		GizmoTransformEditMode m_gizmoEditType = GizmoTransformEditMode::None;
+		PostProcessingData cameraPPData;
 
 		SceneViewportPanel m_sceneViewport;
 		GameViewportPanel m_gameViewport;

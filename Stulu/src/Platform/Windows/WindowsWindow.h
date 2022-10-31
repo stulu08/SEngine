@@ -7,6 +7,7 @@ struct GLFWwindow;
 namespace Stulu {
 	class STULU_API WindowsWindow : public Window {
 	public:
+		WindowsWindow(void* glfwWindowPtr);
 		WindowsWindow(WindowProps& props);
 		virtual ~WindowsWindow();
 
@@ -14,11 +15,12 @@ namespace Stulu {
 		void hide() override;
 		void show() override;
 
+		void setAttribute(const WindowAttribute attribute) override;
 		void setAttribute(const WindowAttribute attribute, int32_t value) override;
 		int getAttribute(const WindowAttribute attribute) override;
 
-		inline uint32_t getWidth() const override { return m_runtimeData->width; }
-		inline uint32_t getHeight() const override { return m_runtimeData->height; }
+		uint32_t getWidth() const override;
+		uint32_t getHeight() const override;
 
 		glm::vec2 getWindowPos() const override;
 
@@ -35,7 +37,7 @@ namespace Stulu {
 		virtual void init(WindowProps& props);
 		virtual void shutDown();
 
-
+		bool m_selfInitilized;
 		GLFWwindow* m_window;
 		Scope<GraphicsContext> m_graphicsContext;
 

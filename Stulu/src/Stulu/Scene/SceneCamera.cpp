@@ -12,10 +12,17 @@ namespace Stulu {
 
 		ST_PROFILING_FUNCTION();
 		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar, FrameBufferSpecs(1, 1, samples));
-		if (reflectionMap == nullptr)
-			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings{ TextureSettings::Format::RGB16F });
-		if (reflectionFrameBuffer == nullptr)
-			reflectionFrameBuffer = FrameBuffer::create(FrameBufferSpecs{ ST_REFLECTION_MAP_SIZE,ST_REFLECTION_MAP_SIZE,1,false,TextureSettings::Format::R });
+
+		if (reflectionMap == nullptr) {
+			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings(TextureFormat::RGB16F));
+		}
+		if (reflectionFrameBuffer == nullptr) {
+			FrameBufferSpecs specs;
+			specs.width = ST_REFLECTION_MAP_SIZE;
+			specs.height = ST_REFLECTION_MAP_SIZE;
+			specs.colorTexture.format = TextureFormat::None;
+			reflectionFrameBuffer = FrameBuffer::create(specs);
+		}
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
@@ -43,7 +50,6 @@ namespace Stulu {
 		}
 	}
 	void SceneCamera::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.dispatch<MouseScrollEvent>(ST_BIND_EVENT_FN(SceneCamera::onMouseScrolledEvent));
 	}
@@ -54,6 +60,7 @@ namespace Stulu {
 		m_cam->getFrameBuffer()->resize((uint32_t)width, (uint32_t)height);
 	}
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
+		ST_PROFILING_FUNCTION();
 		m_transform.position += m_transform.forward * e.getYOff();
 		return false;
 	}

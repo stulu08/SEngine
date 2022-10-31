@@ -82,8 +82,7 @@ namespace Stulu {
 		VulkanRenderAPI::setDevice(&device);
 	}
 	void WindowsVulkanContext::swapBuffers() {
-		ST_PROFILING_FUNCTION();
-		
+		glfwSwapBuffers(m_windowHandle);
 	}
 
 	void WindowsVulkanContext::setVSync(bool enabled) {
@@ -482,6 +481,7 @@ namespace Stulu {
 		return true;
 	}
 	void WindowsVulkanContext::getPhysicalDeviceProps() {
+		ST_PROFILING_FUNCTION();
 		vkGetPhysicalDeviceProperties(device.physicalDevice, &device.physicalDeviceProps);
 		const char* vendor;
 		switch (device.physicalDeviceProps.vendorID)

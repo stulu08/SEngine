@@ -11,7 +11,10 @@
 	#include "backends/imgui_impl_glfw.h"
 	#include <GLFW/glfw3.h>
 #endif
-#ifdef OPENGL
+#if IMGUI_OPENGL_3
+	#include "backends/imgui_impl_opengl3.h"
+#endif
+#if IMGUI_OPENGL_4
 	#include "backends/imgui_impl_opengl4.h"
 #endif
 
@@ -50,8 +53,11 @@ namespace Stulu {
 
 #ifdef USING_GLFW
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
-	#ifdef OPENGL
-			ImGui_ImplOpenGL4_Init("#version 460");
+	#if IMGUI_OPENGL_3
+		ImGui_ImplOpenGL3_Init("#version 460");
+	#endif
+	#if IMGUI_OPENGL_4
+		ImGui_ImplOpenGL4_Init("#version 460");
 	#endif
 #endif
 
@@ -61,9 +67,12 @@ namespace Stulu {
 	void ImGuiLayer::onDetach() {
 		ST_PROFILING_FUNCTION();
 #ifdef USING_GLFW
-	#ifdef OPENGL
-			ImGui_ImplOpenGL4_Shutdown();
-	#endif
+#if IMGUI_OPENGL_3
+		ImGui_ImplOpenGL3_Shutdown();
+#endif
+#if IMGUI_OPENGL_4
+		ImGui_ImplOpenGL4_Shutdown();
+#endif
 		ImGui_ImplGlfw_Shutdown();
 #endif
 		ImGui::DestroyContext();
@@ -72,9 +81,12 @@ namespace Stulu {
 	void ImGuiLayer::Begin() {
 		ST_PROFILING_FUNCTION();
 #ifdef USING_GLFW
-	#ifdef OPENGL
-			ImGui_ImplOpenGL4_NewFrame();
-	#endif
+#if IMGUI_OPENGL_3
+		ImGui_ImplOpenGL3_NewFrame();
+#endif
+#if IMGUI_OPENGL_4
+		ImGui_ImplOpenGL4_NewFrame();
+#endif
 		ImGui_ImplGlfw_NewFrame();
 #endif
 
@@ -90,9 +102,12 @@ namespace Stulu {
 		// Rendering
 		ImGui::Render();
 #ifdef USING_GLFW
-	#ifdef OPENGL
+#if IMGUI_OPENGL_3
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+#if IMGUI_OPENGL_4
 			ImGui_ImplOpenGL4_RenderDrawData(ImGui::GetDrawData());
-	#endif
+#endif
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
@@ -107,7 +122,6 @@ namespace Stulu {
 	}
 
 	void ImGuiLayer::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
 		if (m_blockEvents) {
 			ImGuiIO& io = ImGui::GetIO();
 			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;

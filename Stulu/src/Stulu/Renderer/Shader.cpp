@@ -168,16 +168,19 @@ namespace Stulu{
 	}
 
 	void Shader::procesInlucdes(std::string& source) {
-		//I realy hate this
-		static std::vector<std::pair<std::string, std::string>> s_preProcessorAdds{
+		std::vector<std::pair<std::string, std::string>> s_preProcessorAdds{
 			{"Stulu/Default",R"(
 ##include "Stulu/Vertex"
+
 ##type fragment
 #version 460 core
 out vec4 FragColor;
+#define ST_USING_DEFAULT_OUT 1
+
 ##include "Stulu/Functions"
 ##include "Stulu/Bindings"
 ##include "Stulu/PBR"
+
 struct vertInput
 {
 	vec3 worldPos;
@@ -190,10 +193,7 @@ layout (location = 0) in vertInput vertex;
 			{"Stulu/Vertex",R"(
 ##type vertex
 #version 460 core
-layout (location = 0) in vec3 a_pos;
-layout (location = 1) in vec3 a_normal;
-layout (location = 2) in vec2 a_texCoords;
-layout (location = 3) in vec4 a_color;
+##include "Stulu/MeshLayout"
 
 ##include "Stulu/Bindings"
 
@@ -223,7 +223,28 @@ void main()
     gl_Position = viewProjection * world;
 }
 )"},// Stulu/Vertex
-			{"Stulu/Functions", R"(
+			{"Stulu/MeshLayout",R"(
+layout (location = 0) in vec3 a_pos;
+layout (location = 1) in vec3 a_normal;
+layout (location = 2) in vec2 a_texCoords;
+layout (location = 3) in vec4 a_color;
+)"},// Stulu/MeshLayout
+			{"Stulu/Functions", 
+			std::string("#define ST_USER_TEXTURE_0  ") + std::to_string(ST_USER_TEXTURE_START +  0) + "\n" +
+			std::string("#define ST_USER_TEXTURE_1  ") + std::to_string(ST_USER_TEXTURE_START +  1) + "\n" +
+			std::string("#define ST_USER_TEXTURE_2  ") + std::to_string(ST_USER_TEXTURE_START +  2) + "\n" +
+			std::string("#define ST_USER_TEXTURE_3  ") + std::to_string(ST_USER_TEXTURE_START +  3) + "\n" +
+			std::string("#define ST_USER_TEXTURE_4  ") + std::to_string(ST_USER_TEXTURE_START +  4) + "\n" +
+			std::string("#define ST_USER_TEXTURE_5  ") + std::to_string(ST_USER_TEXTURE_START +  5) + "\n" +
+			std::string("#define ST_USER_TEXTURE_6  ") + std::to_string(ST_USER_TEXTURE_START +  6) + "\n" +
+			std::string("#define ST_USER_TEXTURE_7  ") + std::to_string(ST_USER_TEXTURE_START +  7) + "\n" +
+			std::string("#define ST_USER_TEXTURE_8  ") + std::to_string(ST_USER_TEXTURE_START +  8) + "\n" +
+			std::string("#define ST_USER_TEXTURE_9  ") + std::to_string(ST_USER_TEXTURE_START +  9) + "\n" +
+			std::string("#define ST_USER_TEXTURE_10 ") + std::to_string(ST_USER_TEXTURE_START + 10) + "\n" +
+			std::string("#define ST_USER_TEXTURE_COUNT ") + std::to_string(ST_USER_TEXTURE_COUNT) + "\n" +
+			std::string("#define ST_USER_TEXTURE_START ") + std::to_string(ST_USER_TEXTURE_START) + "\n" +
+			std::string("#define ST_USER_TEXTURE_END ") + std::to_string(ST_USER_TEXTURE_END) + "\n" +
+R"(
 #define st_impl_for_all_types(func) \
 func(vec4);		\
 func(vec3);		\
@@ -232,6 +253,7 @@ func(float);	\
 func(int);		\
 func(uint);		\
 func(double);
+
 
 const uint ShaderViewFlag_DisplayLighting	= 0x00000001u;
 const uint ShaderViewFlag_DisplayDiffuse	= 0x00000002u;
@@ -322,6 +344,41 @@ vec3 gammaCorrect(vec3 color, float _gamma, float exposure) {
 	color = pow(color.rgb, vec3(1.0/_gamma)); //gamma correct
 	return color;
 }
+float ComputeShadow(const vec4 fragPosLightSpace, sampler2D map, const vec3 normal, const vec3 lightDir) {
+	// perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(map, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+    // calculate bias (based on depth map resolution and slope)
+	//float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.002);
+	float bias = 0.002;
+
+    // check whether current frag pos is in shadow
+    //float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(map, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(map, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if(projCoords.z > 1.0)
+        shadow = 0.0;
+        
+    return 1.0 - shadow;
+}
 float filterAlpha(float alpha, uint mode, float cutOut = 1.0f) {
 	//CutOut
 	if(mode == 1) {
@@ -383,7 +440,12 @@ float FisFlagEnabled(uint flags, uint flag) {
 float FisFlagDisabled(uint flags, uint flag) {
 	return when_neq(flags & flag, flag);
 }
-
+#ifdef ST_USING_DEFAULT_OUT
+	//Use default out buffer, use this if you use "Stulu/Default" or "out vec4 FragColor", this will later become more important with diffrent shading techniques
+	void writeColorToDefaultOutBuffer(vec4 _color) {
+		FragColor = _color;
+	}
+#endif
 )"},// Stulu/Functions
 			{"Stulu/Bindings",
 
@@ -441,6 +503,7 @@ layout(std140, binding = 3) uniform postProcessing
 	float delta;
 	float toneMappingExposure;
 	float gamma;
+	float bloomStrength;
 };
 layout(std140, binding = 4) uniform shaderSceneData
 {
@@ -450,11 +513,15 @@ layout(std140, binding = 4) uniform shaderSceneData
 	uint skyboxMapType;
 	uint viewFlags;
 	float env_lod;
+	mat4 lightSpaceMatrix;
+	vec3 shadowCasterPos;
+	int shadowCaster;
 };
 layout (binding = 0) uniform samplerCube environmentMap;
 layout (binding = 1) uniform samplerCube irradianceMap;
 layout (binding = 2) uniform samplerCube prefilterMap;
 layout (binding = 3) uniform sampler2D BRDFLUTMap;
+layout (binding = 4) uniform sampler2D shadowMap;
 )"},// Stulu/Bindings
 			{"Stulu/PBR",R"(
 struct PBRData {
@@ -469,12 +536,21 @@ struct PBRData {
 	vec3 normal;
 	vec2 texCoords;
 };
-vec4 ST_PBR(inout PBRData data)
-{
-	if(data.alpha <= 0.001){
-		return vec4(.0f);
+struct PBRResult { 
+	vec3 diffuse;
+	vec3 specular;
+	vec3 ambient;
+	vec3 lightOut;
+	vec3 normal;
+	vec3 color;
+	float alpha;
+};
+#ifdef ST_USING_DEFAULT_OUT
+	void writeColorToDefaultOutBuffer(PBRResult _color) {
+		FragColor = vec4(_color.color, _color.alpha);
 	}
-	
+#endif
+PBRResult ST_PBR(inout PBRData data) {
 	vec3 N = normalize(data.normal);
 	vec3 V = normalize(cameraPosition.xyz - data.worldPos);
 	vec3 R = reflect(-V, N);
@@ -531,10 +607,15 @@ vec4 ST_PBR(inout PBRData data)
 			vec3 numerator    = NDF * G * F;
 			float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
 			vec3 specular     = numerator / max(denominator, 0.001);  
-			
+
+			float shadow = 1.0;
+			if(shadowCaster == i) {
+				shadow = ComputeShadow(lightSpaceMatrix * vec4(data.worldPos, 1.0), shadowMap, N, L);
+			}
+
 			// add to outgoing radiance Lo
 			float NdotL = max(dot(N, L), 0.0);                
-			Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w;
+			Lo += (kD * data.albedo / PI + specular) * radiance * NdotL * lights[i].colorAndStrength.w * shadow;
 		}
 		//emission
 		Lo += data.emission;
@@ -563,39 +644,38 @@ vec4 ST_PBR(inout PBRData data)
 		brdf  = texture(BRDFLUTMap, vec2(max(dot(SB_N, SB_V), 0.0), data.roughness)).rg;
 		//brdf  = texture(BRDFLUTMap, vec2(max(dot(N, V), 0.0), data.roughness)).rg;
 	}
-
-   
-	vec3 diffuse  = irradiance * data.albedo;
-	vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-	vec3 ambient = ((kD * diffuse * data.alpha) + specular)*data.ao;
-		
-	vec3 color = ambient + Lo;
-	
-	//filter flags
+	PBRResult res;
+	res.lightOut = Lo;
+	res.diffuse  = irradiance * data.albedo;
+	res.specular = prefilteredColor * (F * brdf.x + brdf.y);
+	res.ambient = ((kD * res.diffuse * data.alpha) + res.specular)*data.ao;
+	res.normal = data.normal;
+	res.color = (res.ambient + res.lightOut);	
+	res.alpha = data.alpha;
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
-		color = vec3(Lo);
+		res.color = vec3(res.lightOut);
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
-		color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y)/cameraNearFar.y);
+		res.color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y)/cameraNearFar.y);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
-		color = vec3(diffuse);
+		res.color = vec3(res.diffuse);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
-		color = vec3(specular);
+		res.color = vec3(res.specular);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayNormal))
-		color = vec3(data.normal) * 0.5 + 0.5;
+		res.color = vec3(data.normal) * 0.5 + 0.5;
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayRoughness))
-		color = vec3(data.roughness);
+		res.color = vec3(data.roughness);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayMetallic))
-		color = vec3(data.metallic);
+		res.color = vec3(data.metallic);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
-		color = vec3(data.ao);
+		res.color = vec3(data.ao);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
-		color = vec3(data.texCoords, 0);
+		res.color = vec3(data.texCoords, 0);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
-		color = vec3(data.albedo);
+		res.color = vec3(data.albedo);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayEmission))
-		color = vec3(data.emission);
+		res.color = vec3(data.emission);
 
-	return vec4(color, data.alpha);
+	return res;
 }
 )"},// Stulu/PBR
 		};

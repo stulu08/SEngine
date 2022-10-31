@@ -71,8 +71,12 @@ namespace Stulu {
 
 	void Gizmo::init() {
 		ST_PROFILING_FUNCTION();
+		FrameBufferSpecs specs;
+		specs.width = Application::getWidth();
+		specs.height = Application::getHeight();
+		specs.colorTexture = TextureFormat::RGBA;
+		s_data.drawBuffer = FrameBuffer::create(specs);
 
-		s_data.drawBuffer = FrameBuffer::create(FrameBufferSpecs{ Application::getWidth(), Application::getHeight(),1,false,TextureSettings::Format::RGBA });
 		{//cubes
 			Ref<IndexBuffer> indexBuffer;
 			uint32_t* cubeIndices = new uint32_t[s_data.maxIndices];
@@ -197,7 +201,6 @@ namespace Stulu {
 		s_data.drawBuffer->unbind();
 	}
 	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
-		ST_PROFILING_FUNCTION();
 		RenderCommand::setDepthTesting(false);
 		camera->bind();
 		s_data.drawBuffer->getTexture()->bind(0);
@@ -227,7 +230,6 @@ namespace Stulu {
 	}
 
 	bool Gizmo::TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType, const glm::vec3& snap) {
-		ST_PROFILING_FUNCTION();
 		if (gizmoEditType == GizmoTransformEditMode::None)
 			return false;
 		glm::mat4 transform = tc.transform;

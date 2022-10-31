@@ -2,7 +2,7 @@
 #include <Stulu/Renderer/Buffer.h>
 #include <Stulu/Renderer/Shader.h>
 #include <Stulu/Renderer/Texture.h>
-#include <Stulu/Renderer/UniformBuffer.h>
+#include <Stulu/Renderer/Buffer.h>
 #include "Stulu/Core/UUID.h"
 #include <any>
 
@@ -72,14 +72,14 @@ namespace Stulu {
 		uint32_t order;
 		bool operator == (const MaterialDataType& other) const;
 	};
-	enum class TransparencyMode {
+	enum class TransparencyMode : uint32_t {
 		Opaque, Cutout, Transparent
 	};
 	class STULU_API Material {
 	public:
 		static Ref<Material> create(const std::string& path, UUID uuid);
 
-		Material(Asset& shader, const std::vector<MaterialDataType>& data, std::string name = "new Material");
+		Material(Asset& shader, const std::vector<MaterialDataType>& data, const std::string& name = "new Material", TransparencyMode tMode = TransparencyMode::Opaque, float alphaCuttOff = .5f);
 		~Material() {
 			if(uploadDataStart)
 				free(uploadDataStart);
@@ -89,6 +89,9 @@ namespace Stulu {
 		std::string toDataString(bool addHelpComments = false);
 
 		void uploadData();
+		void update() {
+			update(m_dataTypes);
+		}
 		void update(const std::vector<MaterialDataType>& data);
 
 		UUID& getUUID() { return m_uuid; }
@@ -110,8 +113,8 @@ namespace Stulu {
 		void* uploadDataStart = nullptr;
 		std::vector<MaterialDataType> m_dataTypes;
 		
-		TransparencyMode m_transparenceMode = TransparencyMode::Opaque;
-		float m_alphaCutOff = .0f;
+		TransparencyMode m_transparenceMode;
+		float m_alphaCutOff;
 
 		friend class AssetsManager;
 		friend class SceneRenderer;

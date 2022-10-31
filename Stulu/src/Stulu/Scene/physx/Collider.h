@@ -1,5 +1,8 @@
 #pragma once
 #include "Stulu/Scene/physx/RigidbodyComponent.h"
+namespace StuluBindings {
+	class GameObject;
+}
 
 namespace Stulu {
 
@@ -24,6 +27,7 @@ namespace Stulu {
 		glm::vec3 size = glm::vec3(.5f);
 	private:
 		virtual void create(GameObject object, PhysX& physics) override;
+		friend class StuluBindings::GameObject;
 		friend class Scene;
 		friend class RigidbodyComponent;
 	};
@@ -36,6 +40,7 @@ namespace Stulu {
 		float radius = .5f;
 	private:
 		virtual void create(GameObject object, PhysX& physics) override;
+		friend class StuluBindings::GameObject;
 		friend class Scene;
 		friend class RigidbodyComponent;
 	};
@@ -51,6 +56,7 @@ namespace Stulu {
 		bool horizontal = false;
 	private:
 		virtual void create(GameObject object, PhysX& physics) override;
+		friend class StuluBindings::GameObject;
 		friend class Scene;
 		friend class RigidbodyComponent;
 	};
@@ -64,6 +70,7 @@ namespace Stulu {
 		bool convex = false;
 	private:
 		virtual void create(GameObject object, PhysX& physics) override;
+		friend class StuluBindings::GameObject;
 		friend class RigidbodyComponent;
 		friend class Scene;
 	};

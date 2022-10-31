@@ -10,7 +10,6 @@ namespace Stulu {
 	std::unordered_map<AssetType, std::vector<UUID>> AssetsManager::assetsTypeList;
 
 	bool FileExists(const std::string& name) {
-		ST_PROFILING_FUNCTION();
 		if (FILE* file = fopen(name.c_str(), "r")) {
 			fclose(file);
 			return true;
@@ -21,7 +20,6 @@ namespace Stulu {
 	}
 
 	UUID AssetsManager::add(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		if (std::filesystem::is_directory(path))
 			return addDirectory(path);
 		UUID uuid;
@@ -52,7 +50,6 @@ namespace Stulu {
 		return uuid;
 	}
 	void AssetsManager::add(const UUID& uuid, const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		if(!exists(uuid))
 			add(uuid, path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 	}
@@ -66,7 +63,6 @@ namespace Stulu {
 		case Stulu::AssetType::Unknown:
 			update(uuid, { type,path,path,uuid });
 			break;
-			//could have used scope for types in the assetsmanager but i like the word ref more
 		case Stulu::AssetType::Texture2D:
 			update(uuid, { type,static_cast<Ref<Texture>>(Texture2D::create(path,getProperity<TextureSettings>(path,"format"))),path,uuid});
 			break;
@@ -98,7 +94,6 @@ namespace Stulu {
 	}
 
 	void AssetsManager::addOrReload(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		if (!FileExists(path + ".meta")) {
 			createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 		}
@@ -111,11 +106,8 @@ namespace Stulu {
 	}
 
 	UUID AssetsManager::addDirectory(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		UUID uuid;
 		if (!FileExists(path + ".meta")) {
-			if (path.find_last_of('.') == path.npos)
-				return UUID::null;
 			uuid = UUID();
 			createMeta(uuid, path, AssetType::Directory);
 		}
@@ -126,7 +118,7 @@ namespace Stulu {
 			}
 			catch (YAML::Exception ex) {
 				std::filesystem::remove(path + ".meta");
-				return add(path);
+				return addDirectory(path);
 			}
 
 		}
@@ -137,7 +129,6 @@ namespace Stulu {
 	}
 
 	MeshAsset& AssetsManager::createMeshAsset(const Ref<Mesh>& mesh, const std::string& name, UUID uuid) {
-		ST_PROFILING_FUNCTION();
 		MeshAsset asset;
 		asset.mesh = mesh;
 		asset.name = name;
@@ -150,11 +141,20 @@ namespace Stulu {
 
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
 		ST_PROFILING_FUNCTION();
+		if ((uuid == 301|| uuid == 302) && assets.find(uuid) != assets.end()) {
+			CORE_ASSERT(false, "White or Black Texture is being overwritten");
+		}
+
 		switch (data.type)
 		{
-		case Stulu::AssetType::Texture2D:
-			std::any_cast<Ref<Texture>>(data.data)->uuid = uuid;
-			break;
+		case Stulu::AssetType::Texture2D: 
+			{
+				Ref<Texture> texture = std::any_cast<Ref<Texture>>(data.data);
+				texture->uuid = uuid;
+				if(FileExists(data.path + ".meta"))
+					AssetsManager::setProperity<TextureSettings>(data.path, std::pair<std::string, TextureSettings> {"format", texture->getSettings()});
+				break;
+			}
 		case Stulu::AssetType::RenderTexture:
 			std::any_cast<Ref<Texture>>(data.data)->uuid = uuid;
 			break;

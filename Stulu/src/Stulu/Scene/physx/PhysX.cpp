@@ -163,6 +163,7 @@ namespace Stulu {
 #endif
     }
     void PhysX::shutDown() {
+        ST_PROFILING_FUNCTION();
         if (m_scene)
             releasePhysics();
         if (m_cudaContextManager) {

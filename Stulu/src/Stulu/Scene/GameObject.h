@@ -10,7 +10,7 @@ namespace Stulu {
 		GameObject(const GameObject& other) = default;
 
 		template<typename T>
-		bool hasComponent() {
+		bool hasComponent() const {
 			return m_scene->m_registry.has<T>(m_entity);
 		}
 		template<typename T, typename... Args>
@@ -41,12 +41,12 @@ namespace Stulu {
 			return component;
 		}
 		template<typename T>
-		T& getComponent() {
+		T& getComponent() const {
 			CORE_ASSERT(hasComponent<T>(), "GameObject does not have component");
 			return m_scene->m_registry.get<T>(m_entity);
 		}
 		template<typename T>
-		bool saveGetComponent(T& t) {
+		bool saveGetComponent(T& t) const {
 			if (m_scene->m_registry.has<T>(m_entity)) {
 				t = m_scene->m_registry.get<T>(m_entity);
 				return true;
@@ -72,10 +72,11 @@ namespace Stulu {
 			m_scene->m_registry.remove<T>(m_entity);
 			return true;
 		}
+		bool isValid() const;
 
-		Scene* getScene() { return m_scene; }
+		Scene* getScene() const { return m_scene; }
 
-		UUID getId();
+		UUID getId() const;
 		static GameObject getById(const UUID& id, Scene* scene);
 
 		operator bool() const { 

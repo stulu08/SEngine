@@ -2,30 +2,39 @@
 #include "Stulu/Renderer/Texture.h"
 
 namespace Stulu {
+	
 	struct FrameBufferSpecs {
 		uint32_t width = 1, height = 1;
 		uint32_t samples = 1;
 		bool swapChainTarget = false;
-		TextureSettings::Format textureFormat = TextureSettings::Format::RGBA16F;
-		FrameBufferSpecs() = default;
-		FrameBufferSpecs(uint32_t width, uint32_t height = 1, uint32_t samples = 1, bool swapChainTarget = false, TextureSettings::Format textureFormat = TextureSettings::Format::RGBA16F)
-			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget), textureFormat(textureFormat) { }
-		FrameBufferSpecs(uint32_t width, uint32_t height, uint32_t samples, bool swapChainTarget, int textureFormat)
-			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget), textureFormat((TextureSettings::Format)textureFormat) { }
+
+		TextureSettings colorTexture = TextureSettings(TextureFormat::RGBA16F, TextureWrap::ClampToEdge);
+		TextureSettings depthTexture = TextureSettings(TextureFormat::Depth24_Stencil8, TextureWrap::ClampToEdge);
+
+		FrameBufferSpecs(uint32_t width = 1, uint32_t height = 1, uint32_t samples = 1, bool swapChainTarget = false,
+			TextureSettings colorTexture = TextureSettings(TextureFormat::RGBA16F, TextureWrap::ClampToEdge),
+			TextureSettings depthTexture = TextureSettings(TextureFormat::Depth24_Stencil8, TextureWrap::ClampToEdge))
+			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget), colorTexture(colorTexture), depthTexture(depthTexture)
+		{}
 	};
 	class STULU_API FrameBufferTexture : public Texture{
 	public:
-		static Ref<FrameBufferTexture> create(uint32_t width, uint32_t height, uint32_t samples = 0);
+		static Ref<FrameBufferTexture> create(FrameBufferSpecs& specs);
 
-		virtual void invalidate(TextureSettings::Format& format) = 0;
-		virtual void resize(uint32_t width, uint32_t height) = 0;
+		virtual void invalidate() = 0;
+		virtual void resize(FrameBufferSpecs& specs) = 0;
 		
 
 		virtual void* getColorAttachmentRendereObject() const = 0;
+		virtual Ref<Texture2D> getColorAttachment() const = 0;
 		virtual void* getDepthAttachmentRendereObject() const = 0;
+		virtual Ref<Texture2D> getDepthAttachment() const = 0;
+		virtual TextureSettings& getDepthSettings() = 0;
+		virtual TextureSettings& getColorSettings() = 0;
 
 		virtual void bindDepthAttachment(uint32_t slot) const = 0;
 
+		virtual FrameBufferSpecs& getSpecs() = 0;
 	};
 	class STULU_API FrameBuffer {
 	public:

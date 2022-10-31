@@ -24,11 +24,25 @@ namespace Stulu {
 		public GameObject(String name, Vector3 position, Quaternion rotation, Vector3 scale) => Create(name, "default", position, rotation, scale);
 		public GameObject(String name, Vector3 position, Vector3 rotation, Vector3 scale) => Create(name, "default", position, rotation, scale);
 
-		public GameObject Create(String name, String tag, Vector3 postion, Quaternion rotation, Vector3 Scale) {
+		public static GameObject Create(String name, String tag, Vector3 postion, Vector3 rotation, Vector3 Scale) => Create(name, tag, postion, new Quaternion(rotation,1.0f), Scale);
+		public static GameObject Create(String name, String tag, Vector3 postion, Quaternion rotation, Vector3 Scale) {
 			return new GameObject(InternalCalls.gameObject_create(name, tag, postion, rotation, Scale));
 		}
-		public GameObject Create(String name, String tag, Vector3 postion, Vector3 rotation, Vector3 Scale) {
-			return Create(Name, tag, postion, new Quaternion(rotation,1.0f), Scale);
+		public static GameObject CreateSphere(String name, Vector3 postion) => CreateSphere(name, "default", postion);
+		public static GameObject CreateSphere(String name, String tag, Vector3 postion) {
+			return new GameObject(InternalCalls.gameObject_createSphere(name, tag, postion));
+		}
+		public static GameObject CreateCube(String name, Vector3 postion) => CreateCube(name, "default", postion);
+		public static GameObject CreateCube(String name, String tag, Vector3 postion) {
+			return new GameObject(InternalCalls.gameObject_createCube(name, tag, postion));
+		}
+		public static GameObject CreateCapsule(String name, Vector3 postion) => CreateCapsule(name, "default", postion);
+		public static GameObject CreateCapsule(String name, String tag, Vector3 postion) {
+			return new GameObject(InternalCalls.gameObject_createCapsule(name, tag, postion));
+		}
+		public static GameObject CreatePlane(String name, Vector3 postion) => CreatePlane(name, "default", postion);
+		public static GameObject CreatePlane(String name, String tag, Vector3 postion) {
+			return new GameObject(InternalCalls.gameObject_createPlane(name, tag, postion));
 		}
 
 		public String Name { get => InternalCalls.gameObject_getName(id); set => InternalCalls.gameObject_setName(id, value); }

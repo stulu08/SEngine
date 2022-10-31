@@ -166,8 +166,8 @@ namespace Stulu {
 
 		if (textures.find(resolution) == textures.end()) {
 			TextureSettings settings;
-			settings.format = (uint32_t)TextureSettings::Format::RG;
-			settings.wrap = (uint32_t)TextureSettings::Wrap::Clamp;
+			settings.format = TextureFormat::RG;
+			settings.wrap = TextureWrap::ClampToEdge;
 			Ref<Texture> texture = nullptr;
 			switch (Renderer::getRendererAPI())
 			{

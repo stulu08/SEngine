@@ -49,7 +49,7 @@ namespace Stulu {
 		inline const ApplicationInfo& getApplicationInfo() const { return m_appInfo; }
 		
 		static inline uint32_t getWidth() { return s_instance->m_window->getWidth(); }
-		static inline uint32_t getHeight() { return s_instance->m_window->getWidth(); }
+		static inline uint32_t getHeight() { return s_instance->m_window->getHeight(); }
 		static inline float getAspectRatio() { return (float)getWidth() / (float)getHeight(); }
 		
 		static inline std::vector<std::string>& getStartArgs() { return s_startArgs; }

@@ -58,6 +58,7 @@ namespace Stulu {
 	}
 
 	void VulkanShader::createFile(const std::string& path, const std::string& content) {
+		ST_PROFILING_FUNCTION();
 		std::fstream stream(path,std::ios::out);
 		if (stream.is_open()) {
 			stream << content;
@@ -181,6 +182,7 @@ namespace Stulu {
 		return shaderSources;
 	}
 	VkShaderModule VulkanShader::createShaderModule(const std::string& code) {
+		ST_PROFILING_FUNCTION();
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = code.size();
@@ -229,11 +231,9 @@ namespace Stulu {
 	}
 
 	void VulkanShader::bind() const {
-		ST_PROFILING_FUNCTION();
 		
 	}
 	void VulkanShader::unbind() const {
-		ST_PROFILING_FUNCTION();
 	}
 	void VulkanShader::setMat4(const std::string& name, const glm::mat4& mat) {
 		uploadMat4Uniform(name, mat);
@@ -257,35 +257,27 @@ namespace Stulu {
 		uploadIntArrayUniform(name, values, count);
 	}
 	void VulkanShader::uploadMat4Uniform(const std::string& name, const glm::mat4& matrix) {
-		ST_PROFILING_FUNCTION();
 		
 	}
 	void VulkanShader::uploadMat3Uniform(const std::string& name, const glm::mat3& matrix) {
-		ST_PROFILING_FUNCTION();
 
 	}
 	void VulkanShader::uploadFloat4Uniform(const std::string& name, const glm::vec4& float4) {
-		ST_PROFILING_FUNCTION();
 
 	}
 	void VulkanShader::uploadFloat3Uniform(const std::string& name, const glm::vec3& float3) {
-		ST_PROFILING_FUNCTION();
 
 	}
 	void VulkanShader::uploadFloat2Uniform(const std::string& name, const glm::vec2& float2) {
-		ST_PROFILING_FUNCTION();
 
 	}
 	void VulkanShader::uploadIntUniform(const std::string& name, const int32_t _int) {
-		ST_PROFILING_FUNCTION();
 
 	}
 	void VulkanShader::uploadIntArrayUniform(const std::string& name, const int* values, uint32_t count) {
-		ST_PROFILING_FUNCTION();
 
 	}
 	void VulkanShader::uploadFloatUniform(const std::string& name, const float _float) {
-		ST_PROFILING_FUNCTION();
 
 	}
 }

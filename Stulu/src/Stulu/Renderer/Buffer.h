@@ -2,6 +2,16 @@
 #include "Stulu/Core/Log.h"
 #include "Stulu/Math/Math.h"
 namespace Stulu{
+	enum class BufferBinding : uint32_t {
+		Camera = 0,
+		Model = 1,
+		Light = 2,
+		PostProcessing = 3,
+		Scene = 4,
+		Material = 5,
+		Last = Material,
+		Next = Material + 1
+	};
 	enum class ShaderDataType { none = 0,
 		Float, Float2, Float3, Float4,
 		Int, Int2, Int3, Int4,
@@ -108,7 +118,7 @@ namespace Stulu{
 	public:
 		virtual ~GraphicsBuffer() = default;
 
-		virtual void setData(const void* data, uint32_t size) = 0;
+		virtual void setData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
 
 		virtual BufferDrawMode getBufferDrawMode() const = 0;
 		virtual uint32_t getCount() const = 0;
@@ -133,6 +143,27 @@ namespace Stulu{
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
 
-		static Ref<IndexBuffer> create(uint32_t count, uint32_t* indices, BufferDrawMode mode = BufferDrawMode::Static);
+		static Ref<IndexBuffer> create(uint32_t count, uint32_t* indices, BufferDrawMode mode = BufferDrawMode::Dynamic);
+	};
+	class STULU_API UniformBuffer : public GraphicsBuffer {
+	public:
+		virtual ~UniformBuffer() = default;
+		virtual void bind(uint32_t binding) const = 0;
+		virtual void setData(const void* data) = 0;
+		virtual void setData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
+
+		static Ref<UniformBuffer> create(uint32_t size, uint32_t binding);
+	};
+	class STULU_API ShaderStorageBuffer : public GraphicsBuffer {
+	public:
+		virtual ~ShaderStorageBuffer() = default;
+		virtual void bind(uint32_t binding = (uint32_t)BufferBinding::Next) const = 0;
+		virtual void setData(const void* data) = 0;
+		virtual void setData(const void* data, uint32_t size, uint32_t offset = 0) = 0;
+
+		virtual void getData(void* data, uint32_t size, uint32_t offset = 0) const = 0;
+		virtual void getData(void* data) const = 0;
+
+		static Ref<ShaderStorageBuffer> create(uint32_t size, uint32_t binding = (uint32_t)BufferBinding::Next, BufferDrawMode mode = BufferDrawMode::Dynamic);
 	};
 }

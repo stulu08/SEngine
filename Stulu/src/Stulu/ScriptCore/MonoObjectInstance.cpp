@@ -5,25 +5,6 @@
 #include <Stulu.h>
 
 namespace Stulu {
-	template<typename T>
-	T* assignFieldValue(MonoClassField* src, MonoObject* object) {
-		T value;
-		mono_field_get_value(object, src, &value);
-
-		//T* dst = (T*)malloc(sizeof(T));
-		T* dst = new T();
-		*dst = value;
-		return dst;
-	}
-	template<typename T>
-	T* updateFieldValue(void* dest, MonoClassField* src, MonoObject* object) {
-		T value;
-		mono_field_get_value(object, src, &value);
-		T* dst = (T*)dest;
-		*dst = value;
-		return dst;
-	}
-
 	MonoObjectInstance::MonoObjectInstance(const std::string& nameSpace, const std::string& className, ScriptAssembly* assembly)
 		:m_nameSpace(nameSpace),m_className(className), m_assembly(assembly),m_constructed(false) {
 		ST_PROFILING_FUNCTION();
@@ -36,7 +17,6 @@ namespace Stulu {
 		}
 		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
 	}
-
 	MonoObjectInstance::MonoObjectInstance(const MonoObjectInstance& other) {
 		ST_PROFILING_FUNCTION();
 		m_nameSpace = other.m_nameSpace;
@@ -64,7 +44,6 @@ namespace Stulu {
 			}
 		}
 	}
-
 	MonoObjectInstance::~MonoObjectInstance() {
 		ST_PROFILING_FUNCTION();
 		if (!m_assembly->getRootDomain())
@@ -86,7 +65,6 @@ namespace Stulu {
 	void MonoObjectInstance::addFunction(const std::string& fnName, const MonoFunction& mfn) {
 		m_functions[fnName] = mfn;
 	}
-
 	void MonoObjectInstance::loadAll() {
 		ST_PROFILING_FUNCTION();
 		loadAllClassFunctions();
@@ -105,7 +83,6 @@ namespace Stulu {
 		m_functions[fnName] = m_assembly->createFunction(m_classPtr, fnName);
 		m_functions[fnName].name = m_nameSpace + "." + m_className + ":" + fnName;
 	}
-
 	void MonoObjectInstance::loadVirtualFunction(const std::string& fnName, MonoClass* functionClass) {
 		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
@@ -224,7 +201,7 @@ namespace Stulu {
 			mem.m_typePtr = mono_field_get_type(field);
 			mem.name = name;
 			mem.typeName = mono_type_get_name_full(mem.m_typePtr,MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_REFLECTION);
-
+			/*
 			if (mem.typeName.empty())
 				mem.type = MonoClassMember::Type::Other;
 			else if (mem.typeName == "Stulu.Vector4") {
@@ -251,7 +228,21 @@ namespace Stulu {
 				mem.type = MonoClassMember::Type::uint_t;
 				mem.value = assignFieldValue<uint32_t>(field, m_objectPtr);
 			}
+			else if (mem.typeName == "System.Boolean") {
+				mem.type = MonoClassMember::Type::bool_t;
+				mem.value = assignFieldValue<bool>(field, m_objectPtr);
+			}
 			else {
+				mem.type = MonoClassMember::Type::Other;
+				mem.value = nullptr;
+			}
+			*/
+			if (MonoClassMemberTypeFnInfo::infos.find(mem.typeName) != MonoClassMemberTypeFnInfo::infos.end()) {
+				mem.type = MonoClassMemberTypeFnInfo::infos[mem.typeName].type;
+				mem.value = MonoClassMemberTypeFnInfo::infos[mem.typeName].assignFieldValue(field, m_objectPtr);
+			}
+			else {
+				//other
 				mem.type = MonoClassMember::Type::Other;
 				mem.value = nullptr;
 			}
@@ -259,13 +250,12 @@ namespace Stulu {
 			m_fieldOrder.push_back(name);
 		}
 	}
-
 	void MonoObjectInstance::reloadClassFieldValue(const std::string& field) {
 		ST_PROFILING_FUNCTION();
 		if (m_fields.find(field) == m_fields.end())
 			return;
 		auto& mem = m_fields.at(field);
-
+		/*
 		switch (mem.type) {
 		case MonoClassMember::Type::Vector4_t:
 			mem.value = updateFieldValue<glm::vec4>(mem.value, mem.m_fieldPtr, m_objectPtr);
@@ -285,9 +275,20 @@ namespace Stulu {
 		case MonoClassMember::Type::uint_t:
 			mem.value = updateFieldValue<uint32_t>(mem.value, mem.m_fieldPtr, m_objectPtr);
 			break;
+		case MonoClassMember::Type::bool_t:
+			mem.value = updateFieldValue<bool>(mem.value, mem.m_fieldPtr, m_objectPtr);
+			break;
 		case MonoClassMember::Type::Other:
 			mem.value = nullptr;
 			break;
+		}
+		*/
+		if (MonoClassMemberTypeFnInfo::infos.find(mem.typeName) != MonoClassMemberTypeFnInfo::infos.end()) {
+			mem.value = MonoClassMemberTypeFnInfo::infos[mem.typeName].updateFieldValue(mem, m_objectPtr);
+		}
+		else {
+			//other
+			mem.value = nullptr;
 		}
 	}
 
@@ -300,7 +301,6 @@ namespace Stulu {
 			mono_field_set_value(m_objectPtr, i.m_fieldPtr, i.value);
 		}
 	}
-
 	void MonoObjectInstance::setAllClassFields() const {
 		ST_PROFILING_FUNCTION();
 		if (m_objectPtr && m_classPtr) {
@@ -318,12 +318,10 @@ namespace Stulu {
 			m_constructed = true;
 		}
 	}
-
 	void MonoObjectInstance::callConstructor(const std::string& params, void** args) const {
 		call((std::string(".ctor") + params), args, false);
 		m_constructed = true;
 	}
-
 	MonoObject* MonoObjectInstance::call(const std::string& func, void** args, bool isStatic) const {
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
@@ -342,6 +340,7 @@ namespace Stulu {
 		CORE_ERROR("Function not found: {0}", name);
 		return nullptr;
 	}
+
 	void MonoObjectInstance::reload() {
 		ST_PROFILING_FUNCTION();
 		for (auto [name, field] : m_fields) {
@@ -376,7 +375,6 @@ namespace Stulu {
 		CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
 	}
 	bool MonoObjectInstance::fieldHasAttribute(MonoClassMember& field, MonoClass* attribute) {
-		ST_PROFILING_FUNCTION();
 		if (attribute) {
 			if (field.atrributeList.find(attribute) != field.atrributeList.end())
 				return field.atrributeList.at(attribute);
@@ -408,4 +406,33 @@ namespace Stulu {
 
 		return false;
 	}
+	size_t MonoObjectInstance::MonoClassMember::GetTypeSize(Type type) {
+		/*
+		switch (type)
+		{
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::Vector4_t:
+			return sizeof(glm::vec4);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::Vector3_t:
+			return sizeof(glm::vec3);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::Vector2_t:
+			return sizeof(glm::vec2);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::float_t:
+			return sizeof(float);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::int_t:
+			return sizeof(int32_t);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::uint_t:
+			return sizeof(uint32_t);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::bool_t:
+			return sizeof(bool);
+		case Stulu::MonoObjectInstance::MonoClassMember::Type::Other:
+			return 0;
+		}
+		*/
+		for (auto& [name, fn] : MonoClassMemberTypeFnInfo::infos) {
+			if (type == fn.type)
+				return fn.getSize();
+		}
+		return 0;
+	}
+
 }

@@ -17,12 +17,10 @@ namespace Stulu {
 
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 
-		FrameBufferSpecs fspecs = FrameBufferSpecs();
-		fspecs.width = Stulu::Application::get().getWindow().getWidth();
-		fspecs.height = Stulu::Application::get().getWindow().getHeight();
-		m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs() = fspecs;
-
-		fspecs.textureFormat = TextureSettings::Format::RGBA16F;
+		FrameBufferSpecs fspecs;
+		fspecs.width = Stulu::Application::get().getWidth();
+		fspecs.height = Stulu::Application::get().getHeight();
+		fspecs.colorTexture.format = TextureFormat::RGBA16F;
 		m_sceneFrameBuffer = FrameBuffer::create(fspecs);
 
 		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
@@ -163,21 +161,37 @@ namespace Stulu {
 		if (m_showDebugWindow) {
 			if (ImGui::Begin("Debug Window", &m_showDebugWindow)) {
 				if (ImGui::TreeNodeEx("Bloom")) {
+
+					ComponentsRender::drawFloatControl("SampleScale", SceneRenderer::s_sampleScale);
+
 					auto& data = m_sceneCamera.getPostProcessingData().bloomData;
 					{//downsample
 						static uint32_t sample = 0;
-						ComponentsRender::drawUIntSliderControl("U index", sample, 0, data.samples - 1);
+						static uint32_t width = 0, height = 0;
+						ComponentsRender::drawUIntSliderControl(std::string("D index(") + std::to_string(width) + "x" + std::to_string(height) + ")", sample, 0, data.samples - 1);
 						auto& texture = data.downSample[sample];
-						if (texture)
+						if (texture) {
+							width = texture->getWidth();
+							height = texture->getHeight();
 							ImGui::Image(texture, glm::vec2(200.0f) * m_sceneCamera.getAspectRatioXY(), { 0,1 }, { 1,0 }, glm::vec4(1.0f), glm::vec4(COLOR_GRAY_VEC4));
+						}
 					}
 					{//upsample
 						static uint32_t sample = 0;
-						ComponentsRender::drawUIntSliderControl("D index", sample, 0, data.samples - 1);
+						static uint32_t width = 0, height = 0;
+						ComponentsRender::drawUIntSliderControl(std::string("U index(") + std::to_string(width) + "x" + std::to_string(height) + ")", sample, 0, data.samples - 1);
 						auto& texture = data.upSample[sample];
-						if (texture)
+						if (texture) {
+							width = texture->getWidth();
+							height = texture->getHeight();
 							ImGui::Image(texture, glm::vec2(200.0f) * m_sceneCamera.getAspectRatioXY(), { 0,1 }, { 1,0 }, glm::vec4(1.0f), glm::vec4(COLOR_GRAY_VEC4));
+						}
 					}
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNodeEx("Shadows")) {
+					Ref<Texture> tex = SceneRenderer::s_data.shadowMap->getTexture()->getDepthAttachment();
+					ImGui::Image(tex, glm::vec2(256.0f), {0,1}, {1, 0});
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Display Only:")) {
@@ -197,7 +211,7 @@ namespace Stulu {
 				if (ImGui::TreeNodeEx("Terrain")) {
 					ComponentsRender::drawUIntControl("Seed", terrainSeed); ImGui::SameLine();
 					if (ImGui::Button("New")) {
-						terrainSeed = Random::getInt(0, INT32_MAX);
+terrainSeed = Random::getInt(0, INT32_MAX);
 					}
 					ComponentsRender::drawUIntControl("Size", terrainSize);
 					ComponentsRender::drawFloatControl("Frequency", noiseSettings.frequency);
@@ -249,7 +263,7 @@ namespace Stulu {
 										else {
 											go.saveAddComponent<BoxColliderComponent>();
 										}
-										
+
 										fn(go);
 									}
 								}
@@ -295,48 +309,58 @@ namespace Stulu {
 			}
 			ImGui::End();
 		}
-		if (m_showSceneSettingsPanel) {
-			if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
-				if (ImGui::TreeNodeEx("Graphics")) {
-					if (ImGui::TreeNodeEx("Scene Camera Settings")) {
-						ComponentsRender::drawFloatSliderControl("Exposure", m_sceneCamera.getPostProcessingData().exposure, .0f, 5.0f);
-						ComponentsRender::drawFloatSliderControl("Gamma", m_sceneCamera.getPostProcessingData().gamma, .0f, 5.0f);
-						if (ImGui::TreeNodeEx("Bloom")) {
-							ComponentsRender::drawBoolControl("Bloom", m_sceneCamera.getPostProcessingData().bloomData.enabled);
-							ComponentsRender::drawFloatControl("Intensity", m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity, .001f);
-							ComponentsRender::drawFloatControl("Treshold", m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold, .1f);
+
+		//scenesettings
+		{
+			static bool useMainCam = true;
+			if (m_showSceneSettingsPanel) {
+				if (ImGui::Begin("Scene Settings", &m_showSceneSettingsPanel)) {
+					if (ImGui::TreeNodeEx("Graphics")) {
+						if (ImGui::TreeNodeEx("Scene Camera Settings")) {
+							ComponentsRender::drawBoolControl("Use main camera settings", useMainCam);
+							if (useMainCam) {
+								ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+								ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+							}
+							ComponentsRender::drawFloatSliderControl("Exposure", m_sceneCamera.getPostProcessingData().exposure, .0f, 5.0f);
+							ComponentsRender::drawFloatSliderControl("Gamma", m_sceneCamera.getPostProcessingData().gamma, .0f, 5.0f);
+							if (ImGui::TreeNodeEx("Bloom")) {
+								ComponentsRender::drawBoolControl("Bloom", m_sceneCamera.getPostProcessingData().bloomData.enabled);
+								ComponentsRender::drawFloatControl("Intensity", m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity, .001f);
+								ComponentsRender::drawFloatControl("Treshold", m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold, .1f);
+								ImGui::TreePop();
+							}
+							if (useMainCam) {
+								ImGui::PopItemFlag();
+								ImGui::PopStyleVar();
+							}
 							ImGui::TreePop();
 						}
+						if (ImGui::TreeNodeEx("These still need work")) {
+							ComponentsRender::drawFloatSliderControl("Env Lod", data.graphicsData.env_lod, 0.0f, 4.0f);
+							ComponentsRender::drawBoolControl("Enviroment mapping", data.graphicsData.useReflectionMapReflections); ImGui::SameLine();
+							ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene, is still in dev and u should not use it");
+							ImGui::TreePop();
+						}
+
 						ImGui::TreePop();
 					}
-					if (ImGui::TreeNodeEx("These still need work")) {
-						ComponentsRender::drawFloatSliderControl("Env Lod", data.graphicsData.env_lod, 0.0f, 4.0f);
-						ComponentsRender::drawBoolControl("Enviroment mapping", data.graphicsData.useReflectionMapReflections); ImGui::SameLine();
-						ComponentsRender::drawHelpMarker("Reflections using a dynamicly generated CubeMap of the scene, is still in dev and u should not use it");
+					if (ImGui::TreeNodeEx("Physics")) {
+						ComponentsRender::drawBoolControl("3D Physics", data.enablePhsyics3D);
+						ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
+						ComponentsRender::drawFloatControl("Speed", data.physicsData.speed);
+						ComponentsRender::drawFloatControl("Length", data.physicsData.length);
+						ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads, 0, 16);
 						ImGui::TreePop();
 					}
-					
-					ImGui::TreePop();
 				}
-				if (ImGui::TreeNodeEx("Physics")) {
-					ComponentsRender::drawBoolControl("3D Physics", data.enablePhsyics3D);
-					ComponentsRender::drawVector3Control("Gravity", data.physicsData.gravity);
-					ComponentsRender::drawFloatControl("Speed", data.physicsData.speed);
-					ComponentsRender::drawFloatControl("Length", data.physicsData.length);
-					ComponentsRender::drawIntSliderControl("Worker Threads", (int&)data.physicsData.workerThreads, 0, 16);
-					ImGui::TreePop();
-				}
+				ImGui::End();
 			}
-			ImGui::End();
+			m_sceneCamera.setPostProcessingUsingMain(useMainCam);
 		}
 
 		if (m_showGameViewport) {
-			if (s_runtime) {
-				m_gameViewport.draw(m_sceneFrameBuffer, &m_showGameViewport);
-			}
-			else {
-				m_gameViewport.draw(nullptr, &m_showGameViewport);
-			}
+			m_gameViewport.draw(m_sceneFrameBuffer, &m_showGameViewport);
 			if (m_gameViewport.width > 0 && m_gameViewport.height > 0 && (m_activeScene->m_viewportWidth != m_gameViewport.width || m_activeScene->m_viewportHeight != m_gameViewport.height)) {
 				m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
 				m_sceneFrameBuffer->resize(m_gameViewport.width, m_gameViewport.height);
@@ -585,11 +609,32 @@ namespace Stulu {
 		}
 
 		if (s_runtime) {
-			m_activeScene->onUpdateRuntime(timestep);
-			SceneRenderer::GenSceneTexture(m_sceneFrameBuffer, m_runtimeScene);
+			m_activeScene->onUpdateRuntime(timestep, m_gameViewport.drawn);
+			if(m_gameViewport.drawn)
+				SceneRenderer::GenSceneTexture(m_sceneFrameBuffer, m_runtimeScene);
+		}
+		else if (m_gameViewport.drawn) {
+			GameObject mainCamObj = m_activeScene->getMainCamera();
+			if (m_activeScene->getMainCamera() && mainCamObj.hasComponent<CameraComponent>()) {
+				CameraComponent& cam = mainCamObj.getComponent<CameraComponent>();
+				m_activeScene->setupSceneForRendering(false);
+				m_activeScene->renderSceneForCamera(mainCamObj, false);
+				m_activeScene->closeSceneForRendering();
+				m_sceneFrameBuffer->bind();
+				RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
+				RenderCommand::clear();
+				m_sceneFrameBuffer->unbind();
+				if (!cam.settings.isRenderTarget) {
+					if (cam.postProcessing)
+						SceneRenderer::ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getTexture(), *cam.postProcessing);
+					else
+						SceneRenderer::ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getTexture());
+				}
+			}
+			
 		}
 
-		m_activeScene->onUpdateEditor(timestep, m_sceneCamera);
+		m_activeScene->onUpdateEditor(timestep, m_sceneCamera, m_sceneViewport.drawn);
 
 		drawObjectOutlines();
 	}
@@ -914,7 +959,6 @@ namespace Stulu {
 		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 	}
 	void EditorLayer::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
 		if(m_sceneViewport.focused && m_sceneViewport.hovered)
 			m_sceneCamera.onEvent(e);
 		else if (e.getEventType() == EventType::WindowResize) {
@@ -929,6 +973,7 @@ namespace Stulu {
 		//dispacther.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onGameObjectPick));
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
+		ST_PROFILING_FUNCTION();
 		if (e.getRepeatCount() > 0)
 			return false;
 
@@ -997,65 +1042,13 @@ namespace Stulu {
 		return false;
 	}
 	bool EditorLayer::onApplicationQuit(WindowCloseEvent& e) {
+		ST_PROFILING_FUNCTION();
 		DiscordRPC::shutdown();
 		if (s_runtime)
 			m_activeScene->onRuntimeStop();
 		return false;
 	}
 	bool EditorLayer::onGameObjectPick(MouseButtonDownEvent& e) {
-		glm::vec2 screen, screenSize;
-		{
-			glm::vec2 globalMouse = Input::getMousePos();
-			glm::vec2 start = { m_sceneViewport.startPos.x,m_sceneViewport.startPos.y };
-
-			screenSize = { (float)m_sceneViewport.width, (float)m_sceneViewport.height };
-			screen = globalMouse - start;
-
-			if (!(e.getButton() == MOUSE_BUTTON_LEFT && m_sceneViewport.hovered)) {
-				return false;
-			}
-		}
-		glm::mat4 viewProjectionInverse = glm::inverse(m_sceneCamera.getCamera()->getProjectionMatrix() * glm::inverse(m_sceneCamera.getTransform().transform));
-		float normScreenX = 2.0f * screen.x / screenSize.x - 1.0f;
-		float normScreenY = 2.0f * screen.y / screenSize.y - 1.0f;
-		glm::vec3 pos;
-		{
-			glm::vec4 ndc = glm::vec4(normScreenX, normScreenY, -1.0f, 1.0f);
-			glm::vec4 worldPos = viewProjectionInverse * ndc;
-			worldPos.w = 1.0f / worldPos.w;
-			pos.x = worldPos.x * worldPos.w;
-			pos.y = worldPos.y * worldPos.w;
-			pos.z = worldPos.z * worldPos.w;
-		}
-		pos += normScreenX * m_sceneCamera.getTransform().right * m_sceneCamera.getAspectRatioX() * 2.0f;
-		pos += -normScreenY * m_sceneCamera.getTransform().up * m_sceneCamera.getAspectRatioY() * 2.0f;
-
-		VFC::setCamera(m_sceneCamera.getAspectRatio(),
-			m_sceneCamera.getNear(), m_sceneCamera.getFar(),
-			m_sceneCamera.getFov(), m_sceneCamera.getTransform());
-
-		std::vector<GameObject> objects;
-		for (auto& obID : m_activeScene->getAllGameObjectsWith<TransformComponent, MeshFilterComponent, MeshRendererComponent>()) {
-			auto& meshFilter = m_activeScene->m_registry.get<MeshFilterComponent>(obID);
-			if (!meshFilter.mesh.mesh || !meshFilter.mesh.mesh->getBoundingBox())
-				continue;
-
-			Ref<BoundingBox> bb = meshFilter.mesh.mesh->getBoundingBox();
-			if (VFC::isInView(bb, m_activeScene->m_registry.get<TransformComponent>(obID))) {
-				objects.push_back(GameObject(obID, m_activeScene.get()));
-			}
-		}
-		for (float zAdd = m_sceneCamera.getNear(); zAdd < m_sceneCamera.getFar(); zAdd += 1.0f) {
-			pos += m_sceneCamera.getTransform().forward;
-
-			for (auto& gameObject : objects) {
-				if (gameObject.getComponent<MeshFilterComponent>().mesh.mesh->getBoundingBox()->isRayIntersecting(pos, m_sceneCamera.getTransform().forward)) {
-					m_editorHierarchy.setSelectedGameObject(gameObject);
-					return true;
-				}
-			}
-			
-		}
 		return false;
 	}
 #pragma endregion
@@ -1163,7 +1156,7 @@ namespace Stulu {
 				m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold = std::stof(values["postProcessingData.bloomTreshold"]);
 			if (values.find("postProcessingData.bloomEnabled") != values.end())
 				m_sceneCamera.getPostProcessingData().bloomData.enabled = std::stof(values["postProcessingData.bloomEnabled"]);
-
+			m_sceneCamera.getPostProcessingData() = m_sceneCamera.getPostProcessingData();
 
 			ST_TRACE("Loaded Editor Camera config from {0}", file);
 		}

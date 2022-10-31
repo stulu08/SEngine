@@ -13,10 +13,8 @@ public class Projectile : Component {
 		rigidbodyComponent = gameObject.getComponent<RigidbodyComponent>();
 	}
 	public override void onUpdate() {
-
 		if (Input.getKeyDown(KeyCode.R)) {
 			rigidbodyComponent.addForce(force*direction, ForceMode.Impulse);
 		}
-
 	}
 }

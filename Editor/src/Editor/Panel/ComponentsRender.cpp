@@ -714,7 +714,7 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
-	bool ComponentsRender::drawComboControl(const std::string& header, int& current_item, const char* items_separated_by_zeros, int height_in_items) {
+	bool ComponentsRender::drawComboControl(const std::string& header, int32_t& current_item, const char* items_separated_by_zeros, int height_in_items) {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
@@ -733,7 +733,7 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
-	bool ComponentsRender::drawComboControl(const std::string& header, int& current_item, const std::vector<std::string>& items) {
+	bool ComponentsRender::drawComboControl(const std::string& header, int32_t& current_item, const std::vector<std::string>& items) {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
@@ -819,7 +819,8 @@ namespace Stulu {
 		FrameBufferSpecs specs;
 		specs.width = resultWidth;
 		specs.height = resultHeight;
-		specs.textureFormat = (TextureSettings::Format)texture->getSettings().format;
+		specs.colorTexture.format = texture->getSettings().format;
+		specs.depthTexture.format = TextureFormat::None;
 		Ref<FrameBuffer> buffer = FrameBuffer::create(specs);
 
 		static Ref<Shader> m_quadShader;
@@ -1199,18 +1200,15 @@ namespace Stulu {
 		SceneRenderer::init();
 	}
 	Ref<Texture>& Previewing::get(const UUID& id) {
-		
 		if (!exists(id)) {
 			add(AssetsManager::get(id));
 		}
 		return items[id];
 	}
 	bool Previewing::exists(const UUID& id) {
-		
 		return items.find(id) != items.end();
 	}
 	void Previewing::setUpScene(Asset& asset) {
-		ST_PROFILING_FUNCTION();
 		scene = createRef<Scene>();
 		scene->onViewportResize(200, 200);
 
@@ -1264,12 +1262,13 @@ namespace Stulu {
 					if (furthestZ < temp.z)
 						furthestZ = temp.z;
 				}
-				
 			}
+			const float zoom = 1.5f;
 			auto& transform = camera.getComponent<TransformComponent>();
-			transform.position = glm::vec3(furthestX, furthestY, furthestZ);
-			transform.rotation = Math::lookAt(transform.position, glm::vec3(.0f));
-
+			camera.getComponent<CameraComponent>().settings.zFar = std::max({ glm::abs(furthestX), glm::abs(furthestY), glm::abs(furthestZ) }) * 2.0f * zoom;
+			camera.getComponent<CameraComponent>().updateProjection();
+			transform.position = glm::abs(glm::vec3(furthestX, furthestY, furthestZ)) * zoom;
+			transform.rotation = Math::lookAt({ 0,0,0 }, transform.position);
 		}
 	}
 }

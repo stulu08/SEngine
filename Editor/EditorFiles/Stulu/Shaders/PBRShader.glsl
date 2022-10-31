@@ -17,12 +17,13 @@ layout(std140, binding = 5) uniform material {
 	vec4 emission;
 	vec2 textureTilling;
 };
-layout(binding = 4) uniform sampler2D albedoMap;
-layout(binding = 5) uniform sampler2D metallicMap;
-layout(binding = 6) uniform sampler2D roughnessMap;
-layout(binding = 7) uniform sampler2D normalMap;
-layout(binding = 8) uniform sampler2D aoMap;
-layout(binding = 9) uniform sampler2D emissionMap;
+
+layout(binding = ST_USER_TEXTURE_0) uniform sampler2D albedoMap;
+layout(binding = ST_USER_TEXTURE_1) uniform sampler2D metallicMap;
+layout(binding = ST_USER_TEXTURE_2) uniform sampler2D roughnessMap;
+layout(binding = ST_USER_TEXTURE_3) uniform sampler2D normalMap;
+layout(binding = ST_USER_TEXTURE_4) uniform sampler2D aoMap;
+layout(binding = ST_USER_TEXTURE_5) uniform sampler2D emissionMap;
 /*
 struct PBRData {
 	vec3  albedo;
@@ -36,6 +37,15 @@ struct PBRData {
 	vec3 normal;
 	vec2 texCoords;
 };
+struct PBRResult { 
+	vec3 diffuse;
+	vec3 specular;
+	vec3 ambient;
+	vec3 lightOut;
+	vec3 normal;
+	vec3 color;
+	float alpha;
+};
 */
 void main (){
 	PBRData data;
@@ -43,11 +53,8 @@ void main (){
 	
 	a_albedo *= srgbToLin(texture(albedoMap, vertex.texCoords * textureTilling).rgba);
 	data.albedo = a_albedo.rgb;
-	//data.alpha = filterAlpha(a_albedo.a, transparencyMode, alphaCutOff);
-	data.alpha = a_albedo.a;
-	if(data.alpha == 0.0)
-		discard;
-
+	data.alpha = filterAlpha(a_albedo.a, transparencyMode, alphaCutOff);
+	
 	data.emission = (emission.rgb * texture(emissionMap, vertex.texCoords * textureTilling).rgb) * emission.a;
 
 	data.ao = max(ao, texture(aoMap, vertex.texCoords * textureTilling).r);
@@ -58,12 +65,28 @@ void main (){
 	data.worldPos = vertex.worldPos;
 	data.texCoords = vertex.texCoords * textureTilling;
 
-	
-	FragColor = ST_PBR(data);
-}
+	PBRResult result = ST_PBR(data);
+	writeColorToDefaultOutBuffer(result);
 
+	if(data.alpha == 0.0) {
+		discard;
+	}
+
+}
 //may need this
 /*
+#define ST_USER_TEXTURE_0 5
+#define ST_USER_TEXTURE_1 6
+#define ST_USER_TEXTURE_2 7
+#define ST_USER_TEXTURE_3 8
+#define ST_USER_TEXTURE_4 9
+#define ST_USER_TEXTURE_5 10
+#define ST_USER_TEXTURE_6 11
+#define ST_USER_TEXTURE_7 12
+#define ST_USER_TEXTURE_8 13
+#define ST_USER_TEXTURE_9 14
+#define ST_USER_TEXTURE_10 15
+
 const uint ShaderViewFlag_DisplayLighting	= 0x00000001u;
 const uint ShaderViewFlag_DisplayDiffuse	= 0x00000002u;
 const uint ShaderViewFlag_DisplaySpecular	= 0x00000004u;
@@ -92,8 +115,28 @@ float filterAlpha(float alpha, uint mode, float cutOut = 1.0f);
 float linearizeDepth(float depth, float near, float far);
 vec3 srgbToLin(vec3 color);
 vec4 srgbToLin(vec4 color);
+#ifdef ST_USING_DEFAULT_OUT
+	//Use default out buffer, use this if you use "Stulu/Default" or "out vec4 FragColor", this will later becoma more important with diffrent shading techniques
+	void writeColorToDefaultOutBuffer(vec4 _color);
+	void writeColorToDefaultOutBuffer(PBRResult _color);
+#endif
 
-const int st_maxLights = 25;
+#define ST_USER_TEXTURE_0  ST_USER_TEXTURE_START +  0
+#define ST_USER_TEXTURE_1  ST_USER_TEXTURE_START +  1
+#define ST_USER_TEXTURE_2  ST_USER_TEXTURE_START +  2
+#define ST_USER_TEXTURE_3  ST_USER_TEXTURE_START +  3
+#define ST_USER_TEXTURE_4  ST_USER_TEXTURE_START +  4
+#define ST_USER_TEXTURE_5  ST_USER_TEXTURE_START +  5
+#define ST_USER_TEXTURE_6  ST_USER_TEXTURE_START +  6
+#define ST_USER_TEXTURE_7  ST_USER_TEXTURE_START +  7
+#define ST_USER_TEXTURE_8  ST_USER_TEXTURE_START +  8
+#define ST_USER_TEXTURE_9  ST_USER_TEXTURE_START +  9
+#define ST_USER_TEXTURE_10 ST_USER_TEXTURE_START + 10
+#define ST_USER_TEXTURE_START 
+#define ST_USER_TEXTURE_END   
+#define ST_USER_TEXTURE_COUNT ST_USER_TEXTURE_END - ST_USER_TEXTURE_START
+
+const int st_maxLights = 50;
 struct Light{
 	vec4 colorAndStrength;
 	vec4 positionAndType;   
@@ -160,6 +203,7 @@ layout (binding = 0) uniform samplerCube environmentMap;
 layout (binding = 1) uniform samplerCube irradianceMap;
 layout (binding = 2) uniform samplerCube prefilterMap;
 layout (binding = 3) uniform sampler2D BRDFLUTMap;
+layout (binding = 4) uniform sampler2D shadowMap;
 
 struct vertInput
 {

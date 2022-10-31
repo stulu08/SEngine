@@ -73,7 +73,14 @@ namespace Stulu {
 		internal extern static String gameObject_getTag(uint entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void gameObject_setTag(uint entityId, String tag);
-
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static uint gameObject_createSphere(String name, String tag, Vector3 postion);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static uint gameObject_createCube(String name, String tag, Vector3 postion);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static uint gameObject_createCapsule(String name, String tag, Vector3 postion);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static uint gameObject_createPlane(String name, String tag, Vector3 postion);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void transformComp_setPos(uint entityId, ref Vector3 pos);

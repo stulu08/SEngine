@@ -50,6 +50,9 @@ namespace Stulu {
 					out << YAML::BeginMap;
 					out << YAML::Key << "Name" << name;
 					out << YAML::Key << "Type" << (int32_t)field.type;
+					if(MonoClassMemberTypeFnInfo::infos.find(field.typeName) != MonoClassMemberTypeFnInfo::infos.end())
+						MonoClassMemberTypeFnInfo::infos.at(field.typeName).serialize(out, field);
+					/*
 					switch (field.type) {
 					case MonoObjectInstance::MonoClassMember::Type::Vector4_t:
 						out << YAML::Key << "Value" << *((glm::vec4*)field.value);
@@ -69,7 +72,11 @@ namespace Stulu {
 					case MonoObjectInstance::MonoClassMember::Type::uint_t:
 						out << YAML::Key << "Value" << *((uint32_t*)field.value);
 						break;
+					case MonoObjectInstance::MonoClassMember::Type::bool_t:
+						out << YAML::Key << "Value" << *((bool*)field.value);
+						break;
 					}
+					*/
 					out << YAML::EndMap;
 				}
 				out << YAML::EndSeq;
@@ -256,7 +263,7 @@ namespace Stulu {
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
 		m_scene->m_registry.each([&](entt::entity id) {
 				GameObject go = { id, m_scene.get() };
-				if (go == GameObject::null)
+				if (!go.isValid())
 					return;
 				
 				SerializerGameObject(out, go);
@@ -331,12 +338,24 @@ namespace Stulu {
 							if (exists) {
 								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
 								object->loadAll();
-								for (auto field : inst["Fields"]) {
+								for (YAML::detail::iterator_value field : inst["Fields"]) {
 									std::string name = field["Name"].as<std::string>();
 									auto& fieldList = object->getFields();
 									if (fieldList.find(name) != fieldList.end()) {
 										auto type = (MonoObjectInstance::MonoClassMember::Type)field["Type"].as<int32_t>();
+
 										if (fieldList[name].type == type) {
+											bool assigned = false;
+											for (auto& [typeName, fn] : MonoClassMemberTypeFnInfo::infos) {
+												if (type == fn.type) {
+													fn.deserialize(fieldList, name, field);
+													assigned = true;
+													break;
+												}
+											}
+											if(!assigned)
+												fieldList[name].value = nullptr;
+										/*
 											if (type == MonoObjectInstance::MonoClassMember::Type::float_t) {
 												*((float*)fieldList[name].value) = field["Value"].as<float>();
 											}
@@ -355,9 +374,14 @@ namespace Stulu {
 											else if (type == MonoObjectInstance::MonoClassMember::Type::Vector4_t) {
 												*((glm::vec4*)fieldList[name].value) = field["Value"].as<glm::vec4>();
 											}
+											else if (type == MonoObjectInstance::MonoClassMember::Type::bool_t) {
+												*((bool*)fieldList[name].value) = field["Value"].as<bool>();
+											}
 											else if (type == MonoObjectInstance::MonoClassMember::Type::Other) {
 												fieldList[name].value = nullptr;
 											}
+										
+										*/
 										}
 									}
 								}
@@ -456,7 +480,9 @@ namespace Stulu {
 					auto skyBoxComponentNode = gameObject["SkyBoxComponent"];
 					if (skyBoxComponentNode) {
 						auto& skyBox = deserialized.addComponent<SkyBoxComponent>();
-						skyBox.texture = std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>>(AssetsManager::get(UUID(skyBoxComponentNode["texture"].as<uint64_t>())).data));
+						UUID texture = UUID(skyBoxComponentNode["texture"].as<uint64_t>());
+						if(AssetsManager::existsAndType(texture, AssetType::SkyBox))
+							skyBox.texture = std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>>(AssetsManager::get(texture).data));
 						if(skyBoxComponentNode["rotation"])
 							skyBox.rotation = skyBoxComponentNode["rotation"].as<glm::vec3>();
 						skyBox.mapType = (SkyBoxComponent::MapType)skyBoxComponentNode["mapType"].as<int32_t>();

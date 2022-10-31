@@ -163,11 +163,13 @@ namespace Stulu {
 				drawDirectory(getEditorProject().assetPath, true);
 			}
 			if(ImGui::CollapsingHeader("Engine Assets")) {
-				std::string dir = Application::getEngineAssetDir();
-				drawDirectory(dir + "/SkyBox", true);
-				drawDirectory(dir + "/Shaders", true);
-				drawDirectory(dir + "/Meshes", true);
-				drawDirectory(dir + "/Textures", true);
+				Asset as = Resources::getDefaultSkyBoxAsset();
+				ImGui::Button("Default Skybox");
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+					UUID uuid = as.uuid;
+					ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::SkyBox)).c_str(), &uuid, sizeof(UUID));
+					ImGui::EndDragDropSource();
+				}
 			}
 		}
 		ImGui::End();
@@ -177,6 +179,7 @@ namespace Stulu {
 			pathCache.clear();
 	}
 	void AssetBrowserPanel::drawCreateFilePopUp() {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::BeginPopupModal("Create File", 0)) {
 			createPopUpUIFunc();
 			bool disabled = createPopUpFileName.empty();
@@ -219,6 +222,7 @@ namespace Stulu {
 		}
 	}
 	void AssetBrowserPanel::renderInspector() {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Asset Inspector", &m_inspector)) {
 			ImGui::TextWrapped("Asset %s", selected.path.c_str());
 			ImGui::Text("UUID %d", selected.uuid);
@@ -286,10 +290,14 @@ namespace Stulu {
 				}
 				else if (selected.type == AssetType::Texture2D) {
 					int type = (int)selected.type - 1;
-					Ref<Texture2D>& texture = std::dynamic_pointer_cast<Texture2D>(std::any_cast<Ref<Texture>&>(selected.data));
+					Ref<Texture2D> texture = std::dynamic_pointer_cast<Texture2D>(std::any_cast<Ref<Texture>>(selected.data));
 					ComponentsRender::drawVector2Control("Tilling", texture->getSettings().tiling);
-					ComponentsRender::drawComboControl("Format", texture->getSettings().format, "RGBA\0RGB\0RG\0R\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0RGBA32F\0Auto");
-					ComponentsRender::drawComboControl("Wrap Mode", texture->getSettings().wrap, "Clamp\0Repeat");
+					int32_t format = (int32_t)texture->getSettings().format;
+					int32_t wrap = (int32_t)texture->getSettings().wrap;
+					if (ComponentsRender::drawComboControl("Format", format, "RGBA\0RGB\0RG\0R\0SRGB\0SRGBA\0RGBA16F\0RGB16F\0RGBA32F\0RG32F\0Auto"))
+						texture->getSettings().format = (TextureFormat)format;
+					if(ComponentsRender::drawComboControl("Wrap Mode", wrap, "Clamp\0Repeat\0Clamp To Border"))
+						texture->getSettings().wrap = (TextureWrap)wrap;
 					if (ImGui::Button("Update")) {
 						texture->update();
 						AssetsManager::setProperity<TextureSettings>(selected.path, std::pair<std::string, TextureSettings> {"format", texture->getSettings()});
@@ -337,6 +345,9 @@ namespace Stulu {
 		if (pathCache.find(path) == pathCache.end() || !AssetsManager::exists(pathCache[path])) {
 			UUID result = AssetsManager::getFromPath(path);
 			if (result == UUID::null) {
+				if (directory.is_directory()) {
+					AssetsManager::addDirectory(path);
+				}
 				AssetsManager::loadAllFiles(m_path.string());
 				return getIcon(directory);
 			}
@@ -386,6 +397,7 @@ namespace Stulu {
 		return EditorResources::getFileTexture();
 	}
 	void AssetBrowserPanel::deletePath(const std::filesystem::directory_entry& _directory) {
+		ST_PROFILING_FUNCTION();
 		for (auto& directory : std::filesystem::directory_iterator(_directory)) {
 			if (directory.is_directory()) {
 				deletePath(directory);

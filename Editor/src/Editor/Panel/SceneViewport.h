@@ -14,5 +14,6 @@ namespace Stulu {
 
 		bool focused = false;
 		bool hovered = false;
+		bool drawn = false;
 	};
 }

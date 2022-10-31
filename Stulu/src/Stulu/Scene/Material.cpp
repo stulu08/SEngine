@@ -32,9 +32,12 @@ namespace Stulu {
 			mat->m_transparenceMode = (TransparencyMode)YAMLdata["transparencyMode"].as<uint32_t>();
 		if (YAMLdata["alphaCuttOff"])
 			mat->m_alphaCutOff = YAMLdata["alphaCuttOff"].as<float>();
+		mat->update();
 		return mat;
 	}
-	Material::Material(Asset& shader, const std::vector<MaterialDataType>& data, std::string name) {
+	Material::Material(Asset& shader, const std::vector<MaterialDataType>& data, const std::string& name, TransparencyMode tMode, float alphaCuttOff) {
+		m_transparenceMode = tMode;
+		m_alphaCutOff = alphaCuttOff;
 		m_shader = std::any_cast<Ref<Shader>>(shader.data);
 		m_shaderUuid = shader.uuid;
 		m_uuid = UUID();
@@ -84,7 +87,7 @@ namespace Stulu {
 		return cs.str();
 	}
 	void Material::uploadData() {
-		Ref<UniformBuffer>& materialBuffer = Renderer::getBuffer(BufferBinding::Material);
+		Ref<UniformBuffer> materialBuffer = Renderer::getBuffer(BufferBinding::Material);
 		if (materialBuffer == nullptr || uploadDataStart == nullptr) {
 			CORE_ERROR("Cant upload material data from Material {0}, buffer is null", m_name);
 			return;
@@ -96,59 +99,11 @@ namespace Stulu {
 			MaterialDataType& dataType = m_dataTypes[i];
 			if (dataType.type == ShaderDataType::Sampler) {
 				auto& texture = std::any_cast<Stulu::MaterialTexture&>(dataType.data);
-				texture.defaultTexture->bind(texture.binding);
+				texture.defaultTexture->bind(ST_USER_TEXTURE_START + texture.binding);
 				if (texture.texture != nullptr)
-					texture.texture->bind(texture.binding);
+					texture.texture->bind(ST_USER_TEXTURE_START + texture.binding);
 			}
 		}
-		return;
-		/*
-		uint32_t stride = 0;
-		s_materialBuffer->setData(&m_transparenceMode, sizeof(uint32_t), 0);
-		stride += sizeof(uint32_t);
-		s_materialBuffer->setData(&m_alphaCutOff, sizeof(float_t), stride );
-		stride += sizeof(float_t)*3;//std140 layout
-		for (int i = 0; i < m_dataTypes.size(); i++) {
-			MaterialDataType& dataType = m_dataTypes[i];
-			MaterialTexture texture;
-			switch (dataType.type) {
-				case ShaderDataType::Float:
-					s_materialBuffer->setData(&std::any_cast<float&>(dataType.data), getShaderDataTypeSize(dataType.type), stride);
-					stride += getShaderDataTypeSize(dataType.type);
-					break;
-				case ShaderDataType::Float2:
-					s_materialBuffer->setData(&std::any_cast<glm::vec2&>(dataType.data), getShaderDataTypeSize(dataType.type), stride);
-					stride += getShaderDataTypeSize(dataType.type);
-					break;
-				case ShaderDataType::Float3:
-					s_materialBuffer->setData(&std::any_cast<glm::vec3&>(dataType.data), getShaderDataTypeSize(dataType.type), stride);
-					stride += getShaderDataTypeSize(dataType.type);
-					break;
-				case ShaderDataType::Float4:
-					s_materialBuffer->setData(&std::any_cast<glm::vec4&>(dataType.data), getShaderDataTypeSize(dataType.type), stride);
-					stride += getShaderDataTypeSize(dataType.type);
-					break;
-				case ShaderDataType::Int:
-					s_materialBuffer->setData(&std::any_cast<int&>(dataType.data), getShaderDataTypeSize(dataType.type), stride);
-					stride += getShaderDataTypeSize(dataType.type);
-					break;
-				case ShaderDataType::Mat4:		
-					s_materialBuffer->setData(&std::any_cast<glm::mat4&>(dataType.data), getShaderDataTypeSize(dataType.type), stride);
-					stride += getShaderDataTypeSize(dataType.type);
-					break;
-				case ShaderDataType::Sampler:
-					texture = std::any_cast<Stulu::MaterialTexture&>(dataType.data);
-					if (texture.texture != nullptr)
-						texture.texture->bind(texture.binding);
-					else
-						texture.defaultTexture->bind(texture.binding);
-
-					break;
-				default:
-					CORE_ERROR("Uknown ShaderDataType or not supported");
-			}
-		}
-		*/
 	}
 	void Material::update(const std::vector<MaterialDataType>& data) {
 		m_dataTypes = data;
@@ -308,7 +263,7 @@ namespace Stulu {
 		else if (texture == Resources::getBlackTexture())
 			return "black";
 
-		return "white";
+		return "black";
 	}
 	const Ref<Texture> StringToDefaultTexture(const std::string& texture) {
 		if (texture == "white")

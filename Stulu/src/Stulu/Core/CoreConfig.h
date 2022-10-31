@@ -3,10 +3,17 @@
 //define OPENGL or Vulkan, only for debugging
 #define OPENGL 1
 
+
 #if OPENGL == 0
 	#define VULKAN
 	#undef OPENGL
+#else
+	#undef VULKAN
+	#define OPENGL 1
+	#define IMGUI_OPENGL_4 1
+	#define IMGUI_OPENGL_3 0
 #endif
+
 #ifdef ST_DEBUG
 	#define ST_PROFILING 1
 	#define ST_PROFILING_RENDERDATA 1

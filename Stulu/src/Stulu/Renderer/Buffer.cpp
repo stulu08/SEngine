@@ -70,5 +70,38 @@ namespace Stulu{
 		CORE_ASSERT(false, "Unknown error in IndexBuffer creation");
 			return nullptr;
 	}
+	Ref<UniformBuffer> UniformBuffer::create(uint32_t size, uint32_t binding) {
+		switch (Renderer::getRendererAPI())
+		{
+		case RenderAPI::API::OpenGL:
+			return std::make_shared<OpenGLUniformBuffer>(size, binding);
+		case RenderAPI::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in UniformBuffer creation");
+		return nullptr;
+	}
+	Ref<ShaderStorageBuffer> ShaderStorageBuffer::create(uint32_t size, uint32_t binding, BufferDrawMode mode) {
+		switch (Renderer::getRendererAPI())
+		{
+		case RenderAPI::API::OpenGL:
+			return std::make_shared<OpenGLShaderStorageBuffer>(size, binding, mode);
+		case RenderAPI::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in IndexBuffer creation");
+		return nullptr;
+	}
+
 
 }

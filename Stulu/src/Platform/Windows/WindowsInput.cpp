@@ -9,7 +9,6 @@
 
 namespace Stulu {
 	bool Input::isKeyDown(uint32_t keycode) {
-		ST_PROFILING_FUNCTION();
 		if (!s_enabled)
 			return false;
 		auto *window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
@@ -18,7 +17,6 @@ namespace Stulu {
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 	bool Input::isMouseDown(uint32_t button) {
-		ST_PROFILING_FUNCTION();
 		if (!s_enabled)
 			return false;
 		auto* window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
@@ -26,7 +24,6 @@ namespace Stulu {
 		return state == GLFW_PRESS;
 	}
 	glm::vec2 Input::getMousePos() {
-		ST_PROFILING_FUNCTION();
 		if (!s_enabled)
 			return {.0f,.0f};
 		auto* window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
@@ -35,15 +32,12 @@ namespace Stulu {
 		return {(float)x,(float)y};
 	}
 	float Input::getMouseX() {
-		ST_PROFILING_FUNCTION();
 		return getMousePos().x;
 	}
 	float Input::getMouseY() {
-		ST_PROFILING_FUNCTION();
 		return getMousePos().y;
 	}
 	void Input::setCursorMode(CursorMode mode) {
-		ST_PROFILING_FUNCTION();
 		int32_t m = GLFW_CURSOR_NORMAL;
 		switch (mode)
 		{
@@ -63,7 +57,6 @@ namespace Stulu {
 			glfwSetInputMode(static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow()), GLFW_CURSOR, m);
 	}
 	Input::CursorMode Input::getCursorMode() {
-		ST_PROFILING_FUNCTION();
 		uint32_t mode = glfwGetInputMode(static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow()), GLFW_CURSOR);
 		switch (mode)
 		{
@@ -79,7 +72,6 @@ namespace Stulu {
 	static glm::vec2 m_mouseDelta = glm::vec2(0.0f);
 	static float m_lastMouseXPos = 0, m_lastMouseYPos = 0;
 	glm::vec2 Input::getMouseDelta() {
-		ST_PROFILING_FUNCTION();
 		if (!s_enabled)
 			return glm::vec2(.0f);
 		return m_mouseDelta;
@@ -131,6 +123,7 @@ namespace Stulu {
 	}
 
 	void Input::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<KeyDownEvent>(onKeyDown);
 		dispacther.dispatch<KeyUpEvent>(onKeyUp);
