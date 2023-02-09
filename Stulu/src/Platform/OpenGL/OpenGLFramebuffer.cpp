@@ -67,8 +67,8 @@ namespace Stulu {
 		m_texture->resize(m_specs);
 		invalidate();
 	}
-	void OpenGLFramebuffer::attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, (int)*cubemap, 0);
+	void OpenGLFramebuffer::attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face, uint32_t mip) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+face, (int)*cubemap, mip);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	}
 	/////////////////////////////////////////////////////////////////////////////

@@ -3,9 +3,9 @@ transparencyMode: 0
 alphaCuttOff: 0.949999988
 DataTypes:
   - [4, [0.0196078438, 0.0196078438, 1, 1], albedo, 0]
-  - [1, 0.479999989, metallic, 1]
+  - [1, 1, metallic, 1]
   - [1, 0, roughness, 2]
-  - [1, 0.541000009, ao, 3]
+  - [1, 1, ao, 3]
   - [4, [0, 0, 0, 1], emission, 4]
   - [12, [0, 0, 1, white], albedoMap, 5]
   - [12, [1, 0, 1, black], metallicMap, 6]

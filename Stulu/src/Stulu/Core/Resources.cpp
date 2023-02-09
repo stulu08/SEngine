@@ -266,6 +266,16 @@ namespace Stulu {
 		return material;
 	}
 
+	Ref<Material> Resources::getTerrainMaterial() {
+		static Ref<Material> material;
+		if (!material) {
+			Ref<Material> material = createRef<Material>(AssetsManager::get(UUID(10)), std::vector<MaterialDataType>{}, "TerrainMaterial", TransparencyMode::Opaque, 1.0f);
+			AssetsManager::update(UUID(14), {AssetType::Material,material,"",UUID(14) });
+			return std::any_cast<Ref<Material>&>(AssetsManager::get(UUID(14)).data);
+		}
+		return material;
+	}
+
 	Ref<Material> Resources::createMaterial(const std::string& name, const UUID& uuid, const glm::vec4& albedo, const float& metallic, const float& roughness, const float& ao, const glm::vec4& emission, const UUID& albedoMap, const UUID& metallicMap, const UUID& roughnessMap, const UUID& aoMap, const UUID& emissionMap, const UUID& normalMap, const glm::vec2& textureTilling, TransparencyMode transparencyMode, float alphaCutOff) {
 		Ref<Material> material = createRef<Material>(AssetsManager::get(UUID(9)),
 			(std::vector<MaterialDataType>{

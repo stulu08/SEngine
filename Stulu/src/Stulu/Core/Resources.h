@@ -30,6 +30,7 @@ namespace Stulu {
 
 		static Ref<Material> getDefaultMaterial();
 		static Ref<Material> getReflectiveMaterial();
+		static Ref<Material> getTerrainMaterial();
 		//Creates a material based of the default shader
 		static Ref<Material> createMaterial(const std::string& name, const UUID& uuid = UUID(),
 			const glm::vec4& albedo = { .9f,.9f,.9f,1.0f }, const float& metallic = 0.0f, const float& roughness = 0.5f, const float& ao = .2f, const glm::vec4& emission = { 1.0f,1.0f ,1.0f ,0.0f },

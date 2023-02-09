@@ -56,6 +56,13 @@ namespace Stulu {
 	uint32_t terrainSize = 128;//in quads
 	PerlinSettings noiseSettings = { 8, 2.0f, 25.0f, glm::vec2((float)terrainSize) };
 	void generateDebugTerrain() {
+		struct TerrainVertex {
+			glm::vec3 pos = glm::vec3(.0f);
+			glm::vec3 normal = glm::vec3(.0f, 1.0f, .0f);
+			glm::vec2 texCoords = glm::vec3(.0f);
+			glm::vec4 color = glm::vec4(1.0f);
+			glm::vec4 material = glm::vec4(0.0f);
+		};
 		GameObject go = Scene::activeScene()->findGameObjectByName("Terrain");
 		if (!go) {
 			go = Scene::activeScene()->createGameObject("Terrain");
@@ -65,6 +72,10 @@ namespace Stulu {
 		if (!go.getComponent<MeshFilterComponent>().mesh.hasMesh) {
 			mesh = createRef<Mesh>();
 			go.getComponent<MeshFilterComponent>().setMesh(mesh, "Terrain Mesh");
+		}
+		if (go.hasComponent<MeshRendererComponent>()) {
+			go.getComponent<MeshRendererComponent>().material = Resources::getTerrainMaterial();
+
 		}
 		mesh = go.getComponent<MeshFilterComponent>().mesh.mesh;
 		go.getComponent<TransformComponent>().position = { -(terrainSize / 2.0f), .0f, -(terrainSize / 2.0f) };
@@ -105,8 +116,35 @@ namespace Stulu {
 			}
 			return { 1.0f, 1.0f, 1.0f, 1.0f };
 		};
+		//vec4(roughness, metallic, 0, 0)
+		auto& getMaterialByHeight = [&](float _y) -> glm::vec4 {
+			float y = _y / noiseSettings.multiplier;
+			if (y <= .4f) {//water
 
-		std::vector<Vertex> vertices((terrainSize + 1) * (terrainSize + 1));
+				if (y < .1f)//deep
+					return { 0.4f, 0.5f, 0.0f, 0.0f };
+				if (y < .2f)//medium
+					return { 0.2f, 0.4f, 0.0f, 0.0f };
+				if (y < .3f)//shallow
+					return { 0.2f, 0.3f, 0.0f, 0.0f };
+				if (y < .4f)//beach water
+					return { 0.1, 0.2f, 0.0f, 0.0f };
+			}
+			else {//land
+				if (y < .5f)//beach
+					return { 0.9, 0.4f, 0.0f, 0.0f };
+				if (y < .7f)//normal
+					return { 0.4, 0.4f, 0.0f, 0.0f };
+				if (y < .8f)//hill
+					return { 0.8f, 0.2f, 0.0f, 0.0f };
+				if (y < .9f)//mountain
+					return { 0.9f, 0.1f, 0.0f, 0.0f };
+				if (y < 1.0f)//snow
+					return { .1f, .2f, 0.0f, 0.0f };
+			}
+			return { 1.0f, 1.0f, 1.0f, 1.0f };
+		};
+		std::vector<TerrainVertex> vertices((terrainSize + 1) * (terrainSize + 1));
 		std::vector<uint32_t> triangles(terrainSize * terrainSize * 6);
 
 		for (uint32_t i = 0, z = 0; z <= terrainSize; z++)
@@ -114,10 +152,11 @@ namespace Stulu {
 			for (uint32_t x = 0; x <= terrainSize; x++)
 			{
 				float y = getYLevel(glm::vec2(x, z));
-				Vertex vertex;
+				TerrainVertex vertex;
 				vertex.pos = glm::vec3(x, y, z);
 				vertex.texCoords = glm::vec3(.0f);
 				vertex.color = getColorByHeight(y);
+				vertex.material = getColorByHeight(y);
 				vertices[i] = vertex;
 				i++;
 			}
@@ -144,7 +183,14 @@ namespace Stulu {
 
 			vert++;
 		}
-		mesh->setVertices(vertices);
+		const BufferLayout meshLayout = {
+		{ Stulu::ShaderDataType::Float3, "a_pos" },
+		{ Stulu::ShaderDataType::Float3, "a_normal" },
+		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
+		{ Stulu::ShaderDataType::Float4, "a_color" },
+		{ Stulu::ShaderDataType::Float4, "a_material" },
+		};
+		mesh->setVertices(vertices.data(), (uint32_t)(vertices.size()*sizeof(TerrainVertex)), meshLayout);
 		mesh->setIndices(triangles);
 
 		mesh->calculateNormals();
@@ -550,6 +596,8 @@ terrainSeed = Random::getInt(0, INT32_MAX);
 			ComponentsRender::drawInt3Control("Version", (int&)m_buildData.version.major, (int&)m_buildData.version.minor, (int&)m_buildData.version.patch);
 			ComponentsRender::drawUIntControl("Width", m_buildData.width);
 			ComponentsRender::drawUIntControl("Height", m_buildData.height);
+			ComponentsRender::drawBoolControl("Debug", m_buildData.debug); ImGui::SameLine();
+			ComponentsRender::drawHelpMarker("Currently only enables debug fps logging");
 			ImGui::Separator();
 			if (ImGui::TreeNodeEx("Scenes", ImGuiTreeNodeFlags_DefaultOpen)) {
 				for (auto& sceneUUID : m_buildData.scenesToBuild) {

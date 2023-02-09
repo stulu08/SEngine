@@ -409,6 +409,7 @@ namespace Stulu {
 
         auto [internalformat, dataformat] = TextureFormatToGLenum(m_settings.format, 4);
 
+
         for (uint32_t i = 0; i < 6; i++)
         {
             if(isGLTextureFormatFloat(m_settings.format))
@@ -442,6 +443,11 @@ namespace Stulu {
         glCullFace(GL_BACK);
         renderCube();
         glDepthFunc(GL_LESS);
+    }
+
+    void OpenGLCubeMap::genMips() const {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
 
     bool OpenGLCubeMap::operator==(const Texture& other) const {

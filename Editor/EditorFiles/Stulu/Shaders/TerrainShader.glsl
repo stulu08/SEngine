@@ -4,6 +4,7 @@ layout (location = 0) in vec3 a_pos;
 layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_textureIndex;
 layout (location = 3) in vec4 a_color;
+layout (location = 4) in vec4 a_material;
 ##include "Stulu/Bindings"
 
 layout(std140, binding = 1) uniform modelData
@@ -17,9 +18,11 @@ struct vertOutput
 	vec3 normal;
 	vec2 texCoords;
 	vec4 color;
+	float roughness;
+	float metallic;
 };
-layout (location = 0) out vertOutput _output;
-layout (location = 4) out flat float textureIndex;
+layout (location = 0) out flat float textureIndex;
+layout (location = 1) out vertOutput _output;
 
 void main()
 {
@@ -30,6 +33,8 @@ void main()
     _output.normal = (normalMatrix * vec4(a_normal, 0.0)).xyz;
 	_output.color = a_color;
 	_output.texCoords = a_pos.xz;
+	_output.roughness = a_material.x;
+	_output.metallic = a_material.y;
 
     gl_Position = viewProjection * world;
 }
@@ -47,11 +52,15 @@ struct vertInput
 	vec3 normal;
 	vec2 texCoords;
 	vec4 color;
+	float roughness;
+	float metallic;
 };
-layout (location = 0) in vertInput vertex;
-layout (location = 4) in flat float textureIndex;
+layout (location = 0) in flat float textureIndex;
+layout (location = 1) in vertInput vertex;
 
 layout(std140, binding = 5) uniform material {
+	uint transparencyMode;
+	float alphaCutOff;
 	vec2 size;
 	float brushWorldPos;
 };
@@ -63,8 +72,8 @@ void main (){
 	data.albedo = vertex.color.rgb;
 	data.emission = vec3(0.0);
 	data.ao = 0.2;
-	data.metallic = 0.0;
-	data.roughness = 1.0;
+	data.metallic = vertex.metallic;
+	data.roughness = vertex.roughness;
 	data.alpha = vertex.color.a;
 
 	data.normal = vertex.normal;

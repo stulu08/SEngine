@@ -14,7 +14,9 @@ namespace Stulu {
 		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar, FrameBufferSpecs(1, 1, samples));
 
 		if (reflectionMap == nullptr) {
-			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings(TextureFormat::RGB16F));
+			TextureSettings settings;
+			settings.format = TextureFormat::RGB16F;
+			reflectionMap = CubeMap::create(ST_REFLECTION_MAP_SIZE, TextureSettings(settings));
 		}
 		if (reflectionFrameBuffer == nullptr) {
 			FrameBufferSpecs specs;

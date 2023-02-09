@@ -292,11 +292,14 @@ namespace Stulu {
 		//reflection map pass
 		//https://www.adriancourreges.com/blog/2015/11/02/gta-v-graphics-study/
 		if (useReflectionMap && reflectionFrameBuffer && reflectionMap) {
+			//						  fb,    mip
+			static std::unordered_map<void*, uint32_t> mipIndexMap;
 			//						  fb,    index
 			static std::unordered_map<void*, uint32_t> mapIndexMap;
 			uint32_t& reflectionRenderIndex = mapIndexMap[cam.get()];
+			uint32_t& reflectionMipIndex = mipIndexMap[cam.get()];
 			reflectionFrameBuffer->bind();
-			reflectionFrameBuffer->attachCubeMapFace(reflectionMap, reflectionRenderIndex);
+			reflectionFrameBuffer->attachCubeMapFace(reflectionMap, reflectionRenderIndex, 0);
 			VFC::setCamera(1.0f, 0.1f, 200.0f, 90.0f, transform.worldPosition, getViewRotation(reflectionRenderIndex));
 			Renderer::uploadCameraBufferData(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 200.0f), calcView(reflectionRenderIndex, transform), transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
 			RenderCommand::clear();
@@ -307,6 +310,10 @@ namespace Stulu {
 				reflectionRenderIndex = 0;
 			else
 				reflectionRenderIndex++;
+			if (reflectionMipIndex >= 7)
+				reflectionMipIndex = 0;
+			else
+				reflectionMipIndex++;
 
 			renderedReflection = true;
 

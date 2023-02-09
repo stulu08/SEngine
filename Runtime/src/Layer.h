@@ -2,6 +2,7 @@
 #include <Stulu.h>
 
 namespace Stulu {
+
 	class RuntimeLayer : public Layer {
 	public:
 		RuntimeLayer();
@@ -14,6 +15,8 @@ namespace Stulu {
 		Ref<Scene>& getActiveScene() { return m_activeScene; }
 
 		void OpenScene(const std::string& binpath);
+		
+		static inline bool DebugMode = false;
 	private:
 		struct FbDrawData {
 			Ref<FrameBuffer> m_sceneFBo;

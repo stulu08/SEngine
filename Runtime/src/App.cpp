@@ -32,6 +32,8 @@ namespace Stulu {
 		appInfo.windowProps.height = node["Window Height"].as<uint32_t>();
 		appInfo.windowProps.VSync = node["Window VSync"].as<bool>();
 
+
+		RuntimeLayer::DebugMode = node["debug"].as<bool>();
 		return new RuntimeApp(appInfo);
 	}
 	RuntimeApp* RuntimeApp::s_instance = nullptr;
@@ -53,7 +55,6 @@ namespace Stulu {
 		m_assembly = createRef<AssemblyManager>(std::string(appInfo.ApplicationName) + "-data/Managed/ProjectAssembly.dll", "data/Managed/Stulu.ScriptCore.dll");
 
 		AssetsManager::loadAllFiles(std::string(appInfo.ApplicationName) + "-data/assets");
-
 
 
 		getWindow().show();

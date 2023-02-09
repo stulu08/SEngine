@@ -97,14 +97,10 @@ namespace Stulu {
         return frustum;
     }
     BoundingBoxAABB::BoundingBoxAABB(const Mesh* mesh) {
-        glm::vec3 min;
-        glm::vec3 max;
-
-        if (mesh->getVertices().size() <= 0) {
-            min = glm::vec3(.0f);
-            max = glm::vec3(.0f);
-        }
-        else {
+        glm::vec3 min = glm::vec3(.0f);
+        glm::vec3 max = glm::vec3(.0f);
+        
+        if (mesh->getVertices().size() > 0) {
             min = mesh->getVertices()[0].pos;
             max = mesh->getVertices()[0].pos;
             //get furthest point on each axis

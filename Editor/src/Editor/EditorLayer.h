@@ -64,6 +64,7 @@ namespace Stulu {
 			std::string path = "";
 			Version version = Version();
 			uint32_t width = 1920, height = 1080;
+			bool debug = false;
 		} m_buildData;
 
 		void drawObjectOutlines();

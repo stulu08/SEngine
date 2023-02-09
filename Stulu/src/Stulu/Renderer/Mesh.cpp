@@ -30,6 +30,8 @@ namespace Stulu {
 		m_vertexArray = Stulu::VertexArray::create();
 		recalculate();
 	}
+	Mesh::~Mesh() {
+	}
 	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
 		ST_PROFILING_FUNCTION();
 		m_vertexArray = Stulu::VertexArray::create();
@@ -75,7 +77,7 @@ namespace Stulu {
 			m_vertexArray->clearVertexBuffers();
 
 		m_vertices.clear();
-		m_verticesCount = verticesSize / getVertexBuffer()->getStride();
+		m_verticesCount = verticesSize / layout.getStride();
 		m_vertexData = vertices;
 
 		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer = VertexBuffer::create(verticesSize, vertices);
@@ -99,6 +101,8 @@ namespace Stulu {
 	}
 	const void Mesh::calculateNormals() {
 		ST_PROFILING_FUNCTION();
+		if (m_vertices.size() == 0)
+			return;
 		size_t indexCount = m_indices.size();
 
 		std::vector<Vertex> vertices = m_vertices;
@@ -129,13 +133,14 @@ namespace Stulu {
 		{
 			vertices[i].normal = glm::normalize(vertices[i].normal);
 		}
-		vertices.reserve(vertices.size());
 
 		setVertices(vertices);
 	}
 
 	Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
 		ST_PROFILING_FUNCTION();
+		if (m_vertices.size() == 0)
+			return Vertex();
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
 			vertLimit = getVerticesCount();
 
@@ -160,6 +165,8 @@ namespace Stulu {
 	}
 	glm::vec3 Mesh::getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
 		ST_PROFILING_FUNCTION();
+		if (m_vertices.size() == 0)
+			return glm::vec3(0.f);
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
 			vertLimit = getVerticesCount();
 

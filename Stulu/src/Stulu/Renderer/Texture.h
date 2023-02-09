@@ -67,6 +67,7 @@ namespace Stulu {
 		virtual void* getMap() const = 0;
 
 		virtual void draw() const = 0;
+		virtual void genMips() const = 0;
 	};
 	class STULU_API SkyBox : public CubeMap {
 	public:

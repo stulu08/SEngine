@@ -44,7 +44,7 @@ namespace Stulu {
 		virtual void invalidate() = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;
 
-		virtual void attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face) = 0;
+		virtual void attachCubeMapFace(const Ref<CubeMap>& cubemap, uint32_t face, uint32_t mip = 0) = 0;
 
 		virtual FrameBufferSpecs& getSpecs() = 0;
 		virtual Ref<FrameBufferTexture>& getTexture() = 0;

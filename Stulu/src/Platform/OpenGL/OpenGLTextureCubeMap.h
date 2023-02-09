@@ -11,6 +11,7 @@ namespace Stulu {
 
 		virtual void bind(uint32_t slot) const override;
 		virtual void draw() const override;
+		virtual void genMips() const override;
 
 		virtual void* getNativeRendererObject() const override { return (void*)(&m_map); }
 		virtual void* getMap() const override { return getNativeRendererObject(); }
@@ -40,6 +41,7 @@ namespace Stulu {
 		virtual void bindBRDFLUT(uint32_t slot) const override;
 
 		virtual void draw() const override;
+		virtual void genMips() const override { CORE_WARN("Not supported"); }
 
 		virtual void* getNativeRendererObject() const override { return (void*)(&m_envCubemap); }
 

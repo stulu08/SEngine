@@ -28,12 +28,14 @@ namespace Stulu {
 	class STULU_API Mesh {
 	public:
 		Mesh();
+		~Mesh();
 		Mesh(const Mesh&) = default;
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 		Mesh(Vertex* vertices, uint32_t verticesCount, uint32_t* indices, uint32_t indicesCount);
 		Mesh(void* vertices, uint32_t verticesSize, uint32_t* indices, uint32_t indicesCount, const BufferLayout& layout = s_defaultLayout);
 
 		const void recalculate();
+		//use only with the default vertex
 		const void calculateNormals();
 
 		void setVertices(const std::vector<Vertex>& vertices, const BufferLayout& layout = s_defaultLayout);
@@ -98,7 +100,6 @@ namespace Stulu {
 
 		std::vector<SubMesh> m_subMeshes;
 		uint32_t m_subMeshCount = 0;
-
 
 		static BufferLayout s_defaultLayout;
 
