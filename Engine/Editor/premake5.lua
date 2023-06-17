@@ -31,9 +31,9 @@ project "Editor"
 
 	includedirs
 	{
-		"%{ProjectDir.Stulu}/src",
-		"%{ProjectDir.Stulu}/vendor",
 		"src",
+		"%{dependencies}",
+		"%{IncludeDir.Stulu}/src",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
@@ -45,7 +45,7 @@ project "Editor"
 	postbuildcommands {
 		"{MKDIR} ".. builddir .."/Build",
 
-		"{COPY} %{ProjectDir.Discord}/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
+		"{COPY} %{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
 
 		"{COPYDIR} %{ProjectDir.Editor}/LooseFiles " .. builddir .. "",
 		"{COPYDIR} %{ProjectDir.Stulu}/LooseFiles " .. builddir .. "",

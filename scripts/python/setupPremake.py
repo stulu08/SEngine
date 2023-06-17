@@ -8,20 +8,21 @@ class PremakeConfiguration:
     premakeVersion = "5.0.0-beta1"
     premakeZipUrls = f"https://github.com/premake/premake-core/releases/download/v{premakeVersion}/premake-{premakeVersion}-windows.zip"
     premakeLicenseUrl = "https://raw.githubusercontent.com/premake/premake-core/master/LICENSE.txt"
-    premakeDirectory = "./Engine/Stulu/vendor/premake"
+    premakeDirectory = "./Dependencies/premake"
 
     @classmethod
     def Validate(cls):
         if (not cls.CheckIfPremakeInstalled()):
             print("Premake is not installed.")
             return False
-
+        
         print(f"Correct Premake located at {os.path.abspath(cls.premakeDirectory)}")
         return True
 
     @classmethod
     def CheckIfPremakeInstalled(cls):
-        premakeExe = Path(f"{cls.premakeDirectory}/premake5.exe");
+        premakeExe = Path(f"{cls.premakeDirectory}/premake5.exe")
+        print(f"\nLocated Premake located at {os.path.abspath(premakeExe)}")
         if (not premakeExe.exists()):
             return cls.InstallPremake()
 

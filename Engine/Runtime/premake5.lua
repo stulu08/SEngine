@@ -28,9 +28,9 @@ project "Runtime"
 
 	includedirs
 	{
-		"%{ProjectDir.Stulu}/src",
-		"%{ProjectDir.Stulu}/vendor",
 		"src",
+		"%{dependencies}",
+		"%{IncludeDir.Stulu}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",

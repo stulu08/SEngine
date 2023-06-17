@@ -2,9 +2,8 @@
 .vs/
 bin/
 bin-int/
-!Stulu/vendor/physx/bin
 Stulu/vendor/VulkanSDK
-build/
+Build/
 DebugProject/Data
 DebugProject/temp
 
@@ -14,6 +13,3 @@ DebugProject/temp
 *.vcxproj.filters
 *.vcxproj.user 
 *.csproj
-VulkanTesting/Profiling-Startup.json
-VulkanTesting/Profiling-Shutdown.json
-VulkanTesting/Profiling-Runtime.json

@@ -22,11 +22,11 @@ project "Stulu"
 	{
 		"src/**.h",
 		"src/**.cpp",
-		"vendor/stb_image/**.cpp",
-		"vendor/stb_image/**.h",
-		"vendor/glm/glm/**.hpp",
-		"vendor/glm/glm/**.inl",
-		"vendor/ReputelessPerlinNoise/**.h"
+		"%{dependencies}/stb_image/**.cpp",
+		"%{dependencies}/stb_image/**.h",
+		"%{dependencies}/glm/glm/**.hpp",
+		"%{dependencies}/glm/glm/**.inl",
+		"%{dependencies}/ReputelessPerlinNoise/**.h"
 	}
 
 	defines
@@ -44,7 +44,7 @@ project "Stulu"
 	includedirs
 	{
 		"src",
-		"%{ProjectDir.Stulu}/vendor",
+		"%{dependencies}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Vulkan}",
@@ -58,7 +58,7 @@ project "Stulu"
 		"%{IncludeDir.noise}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.PhysX}",
-		"%{IncludeDir.mono}/mono-2.0",
+		"%{IncludeDir.mono}",
 		
 	}
 
