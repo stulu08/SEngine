@@ -22,3 +22,6 @@
 [submodule "Stulu/vendor/yaml-cpp"]
 	path = Stulu/vendor/yaml-cpp
 	url = https://github.com/stulu08/yaml-cpp
+[submodule "Stulu/vendor/PhysX"]
+	path = Stulu/vendor/PhysX
+	url = https://github.com/stulu08/PhysX-Premake
