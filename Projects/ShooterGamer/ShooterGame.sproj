@@ -1,0 +1,5 @@
+name: ShooterGame
+assetPath: assets
+configPath: config
+dataPath: data
+windowINI: config/windowLayout.ini

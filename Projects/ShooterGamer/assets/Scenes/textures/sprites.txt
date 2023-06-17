@@ -1,0 +1,17 @@
+enemy,627,0,312,312
+bullet,362,732,7,25
+knife,313,368,312,312
+knifeAttack,314,0,312,312
+player-idle,0,17,313,313
+player-shoot,627,313,312,624
+player-walk,0,368,312,312
+cursor-shoot,362,681,50,50
+gameover,0,681,361,256
+start,0,331,92,36
+cursor,314,313,50,50
+grass,362,758,32,32
+sand,0,0,16,16
+stone,463,791,32,32
+tree,362,791,100,137
+water,93,331,32,32
+bright-grass,463,824,32,32
