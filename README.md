@@ -1,6 +1,6 @@
 # Stulu Engine [![License](https://img.shields.io/github/license/Stulu08/Sengine.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
 <p align="center">
-  <img width="600" height="600" src="https://github.com/stulu08/SEngine/raw/main/Resources/Logo/engine-logo.png">
+  <img width="600" height="600" src="https://raw.githubusercontent.com/stulu08/SEngine/dev/Resources/Logo/engine-logo.png">
 </p>
 
 The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial series by The Cherno on Youtube. It runs currently only on windows with opengl and not very much is implemented.
