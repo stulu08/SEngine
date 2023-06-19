@@ -314,7 +314,6 @@ namespace Stulu {
 			});
 		updateAssemblyScripts("onSceneExit()");
 		updateAssemblyScripts("onDestroy()");
-		
 		Input::setCursorMode(Input::CursorMode::Normal);
 		if (m_data.enablePhsyics3D) {
 			m_physics->releasePhysics();
@@ -455,6 +454,14 @@ namespace Stulu {
 				particle.draw();
 		}
 	}
+	void Scene::clearAllParticles() {
+		auto particleView = m_registry.view<TransformComponent, ParticleSystemComponent>();
+		for (auto gameObject : particleView)
+		{
+			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
+			particle.clear();
+		}
+	}
 	void Scene::updateTransform(TransformComponent& tc) {
 		if (tc.parent) {
 			TransformComponent& ptc = tc.parent.getComponent<TransformComponent>();
@@ -527,29 +534,23 @@ namespace Stulu {
 
 	void Scene::updateAssemblyScripts(const std::string& function, bool forceConstructNew) {
 		ST_PROFILING_FUNCTION();
-		try {
-			m_registry.view<ScriptingComponent>().each([=](entt::entity gameObject, ScriptingComponent& comp) {
-				for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
-					if (!i->isContructed() || forceConstructNew) {
-						//i->loadAllClassFunctions();
-						//i->loadAllVirtualParentFunctions();
-						i->callDefaultConstructor();
-						i->setAllClassFields();
-						//initilize component
-						if (initlizeGameObjectAttachedClass(gameObject, i))
-							i->call("onAwake()");
+		m_registry.view<ScriptingComponent>().each([=](entt::entity gameObject, ScriptingComponent& comp) {
+			for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
+				if (!i->isContructed() || forceConstructNew) {
+					i->backup_fields();
+					i->callDefaultConstructor();
+					i->load_fields_backup();
+					//initilize component
+					if (initlizeGameObjectAttachedClass(gameObject, i))
+						i->call("onAwake()");
 
 
-					}
-					if (!function.empty())
-						i->call(function);
 				}
-				});
-		}
-		catch (std::exception& ex) {
-			CORE_ERROR(ex.what());
-		}
-		
+				if (!function.empty())
+					i->call(function);
+			}
+			});
+
 	}
 
 	GameObject Scene::addModel(Model& model) {

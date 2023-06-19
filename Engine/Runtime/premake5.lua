@@ -36,7 +36,7 @@ project "Runtime"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.mono}/mono-2.0"
+		"%{IncludeDir.mono}"
 	}
 	links
 	{

@@ -526,7 +526,9 @@ namespace Stulu {
 						m_activeScene->getRenderer()->ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getTexture());
 				}
 			}
-			
+		}
+		else {
+			m_editorScene->clearAllParticles();
 		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera, m_sceneViewport.drawn);
@@ -1137,19 +1139,6 @@ namespace Stulu {
 				AllScnenesToBuild.push_back(AssetsManager::get(id).path);
 		}
 
-		//auto& assets = SceneSerializer::getAllSceneAssets(AllScnenesToBuild);
-		//for (UUID uuid : assets) {
-		//	if (AssetsManager::exists(uuid)) {
-		//		Asset asset = AssetsManager::get(uuid);
-		//		std::string path = projectDataPath + "/assets/" + std::filesystem::relative(asset.path, getEditorProject().assetPath).string();
-		//		std::string parent = std::filesystem::path(path).parent_path().string();
-		//		if (!std::filesystem::exists(parent))
-		//			std::filesystem::create_directories(parent);
-		//
-		//		std::filesystem::copy(asset.path, path, std::filesystem::copy_options::overwrite_existing);
-		//		std::filesystem::copy(asset.path + ".meta", path +".meta", std::filesystem::copy_options::overwrite_existing);
-		//	}
-		//}
 		copyAllFilesFromDir(getEditorProject().assetPath, projectDataPath + "/assets/");
 
 		if (std::filesystem::exists(dir + "/Build")) {

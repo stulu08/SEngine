@@ -54,6 +54,7 @@ namespace Stulu {
 		static bool drawComboControl(const std::string& header, int32_t& current_item, const std::vector<std::string>& items);
 		static bool drawMat4Control(const std::string& header, glm::mat4& v);
 		static bool drawHDRColorEdit(const std::string& header, glm::vec4& color);
+		static bool drawAssetControl(const std::string& header, UUID& uuid, AssetType type);
 
 
 		template<typename E>

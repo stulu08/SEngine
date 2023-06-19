@@ -261,29 +261,30 @@ namespace Stulu {
 			return AssetType::Directory;
 		return AssetType::Unknown;
 	}
-	UUID AssetsManager::getFromPath(const std::string& path) {
+	UUID AssetsManager::getFromPath(const std::filesystem::path& path) {
 		ST_PROFILING_FUNCTION();
 		if (path.empty() || !std::filesystem::exists(path))
 			return false;
 
-		if (FileExists(path + ".meta")) {
-			YAML::Node data = YAML::LoadFile(path + ".meta");
+
+		if (FileExists(path.string() + ".meta")) {
+			YAML::Node data = YAML::LoadFile(path.string() + ".meta");
 			return UUID(data["uuid"].as<uint64_t>());
 		}
 		
 		for (auto& i : assets) {
-			if (path == i.second.path)
+			if (path.compare(i.second.path) == 0)
 				return i.first;
 		}
 		return UUID::null;
 	}
-	UUID AssetsManager::getFromPath(const std::string& path, AssetType type) {
+	UUID AssetsManager::getFromPath(const std::filesystem::path& path, AssetType type) {
 		ST_PROFILING_FUNCTION();
 		if (path.empty() || !std::filesystem::exists(path))
 			return false;
 		for (UUID id : assetsTypeList[type]) {
 			Asset& i = get(id);
-			if (path == i.path && i.type == type)
+			if (path.compare(i.path) == 0)
 				return id;
 		}
 

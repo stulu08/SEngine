@@ -4,30 +4,6 @@
 #include "Stulu/Scene/YAML.h"
 
 
-#define StuluTypeRegister(_Type, DefinedType, TypeName) \
-{ \
-	Stulu::MonoClassMemberTypeFnInfo info; \
-	info.type = MonoObjectInstance::MonoClassMember::Type::DefinedType; \
-	info.getSize = []() -> size_t { \
-		return sizeof(_Type); \
-	}; \
-	info.assignFieldValue = [](MonoClassField* src, MonoObject* object) -> void* { \
-		return Stulu::assignFieldValue<_Type>(src, object); \
-	}; \
-	info.updateFieldValue = [](Stulu::MonoObjectInstance::MonoClassMember& src, MonoObject* object) -> void* { \
-		return Stulu::updateFieldValue<_Type>(src.value, src.m_fieldPtr, object); \
-	}; \
-	info.serialize = [](YAML::Emitter& out, Stulu::MonoObjectInstance::MonoClassMember& field) { \
-		out << YAML::Key << "Value" << *((_Type*)field.value); \
-	}; \
-	info.deserialize = [](std::unordered_map<std::string, Stulu::MonoObjectInstance::MonoClassMember>& fieldList, std::string name, YAML::detail::iterator_value& field) { \
-		*((_Type*)fieldList[name].value) = field["Value"].as<_Type>(); \
-	}; \
-	/*defined in EditorBindings*/ \
-	info.uiFunc = [](Stulu::Ref<Stulu::MonoObjectInstance>& script, Stulu::MonoObjectInstance::MonoClassMember& field, const std::string& name) { }; \
-	Stulu::MonoClassMemberTypeFnInfo::infos[TypeName] = info; \
-}
-
 namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
 		ST_PROFILING_FUNCTION();
@@ -38,13 +14,16 @@ namespace Stulu {
 			return;
 		}
 
-		StuluTypeRegister(glm::vec4, Vector4_t, "Stulu.Vector4");
-		StuluTypeRegister(glm::vec3, Vector3_t, "Stulu.Vector4");
-		StuluTypeRegister(glm::vec2, Vector2_t, "Stulu.Vector4");
-		StuluTypeRegister(float, float_t, "System.Single");
-		StuluTypeRegister(uint32_t, uint_t, "System.UInt32");
-		StuluTypeRegister(int32_t, int_t, "System.Int32");
-		StuluTypeRegister(bool, bool_t, "System.Boolean");
+		Property::TypeRegister["System.Int32"] = [](MonoObject* object, MonoClassField* field) { return createRef<Int32Property>(object, field); };
+		Property::TypeRegister["System.UInt32"] = [](MonoObject* object, MonoClassField* field) { return createRef<UInt32Property>(object, field); };
+		Property::TypeRegister["System.Single"] = [](MonoObject* object, MonoClassField* field) { return createRef<FloatProperty>(object, field); };
+		Property::TypeRegister["System.Boolean"] = [](MonoObject* object, MonoClassField* field) { return createRef<BoolProperty>(object, field); };
+		Property::TypeRegister["Stulu.Vector2"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector2Property>(object, field); };
+		Property::TypeRegister["Stulu.Vector3"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector3Property>(object, field); };
+		Property::TypeRegister["Stulu.Vector4"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector4Property>(object, field); };
+		Property::TypeRegister["Stulu.Texture2D"] = [](MonoObject* object, MonoClassField* field) { return createRef<Texture2DProperty>(object, field); };
+
+		//StuluTypeRegisterCast(Stulu::UUID, AssetHandle_t, "Stulu.Texture2D", uint64_t);
 
 		loadScriptCore(assemblyPath, coreAssemblyPath);
 	}
@@ -68,7 +47,9 @@ namespace Stulu {
 #include "Bindings/Transform.h"
 #include "Bindings/Rigidbody.h"
 #include "Bindings/Graphics2D.h"
+#include "Bindings/Texture2D.h"
 #include "Bindings/Gizmo.h"
+#include "Bindings/Folders.h"
 
 #define add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), StuluBindings::_Binding)
 #define _add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), _Binding)
@@ -161,5 +142,11 @@ namespace Stulu {
 		add_call("gizmo_drawCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawCube);
 		add_call("gizmo_drawSphere(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawSphere);
 
+		add_call("texture2d_getWidth(ulong)", Texture2D::getWidth);
+		add_call("texture2d_getHeight(ulong)", Texture2D::getHeight);
+		add_call("texture2d_getPath(ulong)", Texture2D::getPath);
+		add_call("texture2d_findbypath(string)", Texture2D::findByPath);
+
+		add_call("folders_assetPath()", Folders::assetsPath);
 	}
 }

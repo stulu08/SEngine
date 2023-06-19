@@ -69,6 +69,7 @@ namespace Stulu {
 		void updateTransform(TransformComponent& tc);
 		void updateAllTransforms();
 		void updateParticles(bool render, bool update);
+		void clearAllParticles();
 		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
 		GameObject findGameObjectByName(const std::string& name);
 

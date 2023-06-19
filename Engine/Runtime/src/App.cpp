@@ -57,6 +57,7 @@ namespace Stulu {
 
 		getWindow().setVSync(appInfo.windowProps.VSync);
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
+		Resources::GameAssetDirectory = std::string(appInfo.ApplicationName) + "-data/assets";
 		s_instance = this;
 		runtimeLayer = new RuntimeLayer();
 

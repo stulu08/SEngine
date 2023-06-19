@@ -21,13 +21,13 @@ namespace Stulu {
 	};
 	
 	struct Asset {
-		AssetType type;
-		std::any data;
-		std::string path;
-		UUID uuid;
+		AssetType type = AssetType::Unknown;
+		std::any data = nullptr;
+		std::string path = "";
+		UUID uuid = UUID::null;
 
 	};
-	static inline Asset NullAsset{ AssetType ::Unknown,nullptr,"",UUID::null};
+	static inline Asset NullAsset{ AssetType::Unknown,nullptr,"",UUID::null};
 	class STULU_API AssetsManager {
 	public:
 		/// read UUID from .meta file
@@ -76,8 +76,8 @@ namespace Stulu {
 
 			return std::any_cast<T&>(assets[uuid].data);
 		}
-		static UUID getFromPath(const std::string& path);
-		static UUID getFromPath(const std::string& path, AssetType type);
+		static UUID getFromPath(const std::filesystem::path& path);
+		static UUID getFromPath(const std::filesystem::path& path, AssetType type);
 		static const AssetType assetTypeFromExtension(const std::string& extension);
 
 		static void loadAllFiles(const std::string& directory, bool loadNewFiles = true);

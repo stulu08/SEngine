@@ -127,6 +127,11 @@
             Orange
             </summary>
         </member>
+        <member name="P:Stulu.Folders.Assets">
+            <summary>
+            Path to assets folder
+            </summary>
+        </member>
         <member name="T:Stulu.Gizmo">
             <summary>
             Direct Acces to the Engine Editor Gizmo Renderer, can not be seen in the Game Window, only in Editor Window
@@ -960,6 +965,11 @@
         <member name="M:Stulu.Mathf.Lerp(Stulu.Vector3,Stulu.Vector3,System.Single)">
             <summary>
             Return the linear interpolation, equals to a + (b - a) * t.
+            </summary>
+        </member>
+        <member name="M:Stulu.Texture2D.FromPath(System.String)">
+            <summary>
+            Relative to the assets folder, for Editor {ProjDir}/assets and for Runtime {appname}-data/assets
             </summary>
         </member>
     </members>

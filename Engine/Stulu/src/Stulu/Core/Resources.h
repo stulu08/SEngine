@@ -19,10 +19,14 @@ namespace Stulu {
 		static Ref<Mesh> getCubeMesh();
 		static Ref<Mesh> getPlaneMesh();
 		static Ref<Mesh> getSphereMesh();
+		static Ref<Mesh> getHighResSphereMesh();
+		static Ref<Mesh> getIcoSphereMesh();
 		static Ref<Mesh> getCapsuleMesh();
 		static MeshAsset& getCubeMeshAsset();
 		static MeshAsset& getPlaneMeshAsset();
 		static MeshAsset& getSphereMeshAsset();
+		static MeshAsset& getHighResSphereMeshAsset();
+		static MeshAsset& getIcoSphereMeshAsset();
 		static MeshAsset& getCapsuleMeshAsset();
 
 		static Ref<VertexArray>& getFullscreenVA();
@@ -39,5 +43,8 @@ namespace Stulu {
 		);
 
 		static Ref<Shader> getSkyBoxShader();
+
+		// the asset directory of of the Project
+		static inline std::string GameAssetDirectory = "";
 	};
 }

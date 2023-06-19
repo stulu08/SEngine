@@ -147,59 +147,86 @@ namespace Stulu {
 		ImGui::End();
 		return true;
 	}
-#define SCRIPTING_UI_FUNCTION(TYPE) \
-	{TYPE & value = *((TYPE*)field.value); \
-	if (ComponentsRender::drawControl<TYPE>(name, value)) { \
-		script->getFields()[name].value = (void*)&value; \
-		script->setClassField(name); \
-	}}
 	MonoClass* showInEditorAttrb;
 	void EditorInspectorPanel::drawScriptingComponent(GameObject gameObject) {
 		if (!showInEditorAttrb)
 			showInEditorAttrb = Application::get().getAssemblyManager()->getScriptCoreAssembly()->createClass("Stulu", "ShowInEditorAttribute");
+
 		ScriptingComponent& comp = gameObject.getComponent<ScriptingComponent>();
 		for (auto script : comp.runtimeScripts) {
 			if (ImGui::TreeNodeEx(script->getClassName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 				for (auto& name : script->getFieldOrder()) {
-					auto& field = script->getFields()[name];
-					if (!MonoObjectInstance::fieldHasAttribute(field, showInEditorAttrb))
+					Ref<Property> prop;
+					for (auto f : script->getFields()) {
+						if (f->getName() == name) {
+							prop = f;
+							break;
+						}
+					}
+
+					if (!prop || !MonoObjectInstance::FieldHasAttribute(prop, showInEditorAttrb))
 						continue;
-					script->reloadClassFieldValue(name);
-					if (MonoClassMemberTypeFnInfo::infos.find(field.typeName) != MonoClassMemberTypeFnInfo::infos.end()) {
-						MonoClassMemberTypeFnInfo::infos.at(field.typeName).uiFunc(script, field, name);
-					}
-					else {
-						//other
-						script->getFields()[name].value = nullptr;
-					}
-					/*
-					switch (field.type) {
-					case MonoObjectInstance::MonoClassMember::Type::Vector4_t:
-						SCRIPTING_UI_FUNCTION(glm::vec4);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::Vector3_t:
-						SCRIPTING_UI_FUNCTION(glm::vec3);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::Vector2_t:
-						SCRIPTING_UI_FUNCTION(glm::vec2);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::float_t:
-						SCRIPTING_UI_FUNCTION(float);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::int_t:
-						SCRIPTING_UI_FUNCTION(int32_t);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::uint_t:
-						SCRIPTING_UI_FUNCTION(uint32_t);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::bool_t:
-						SCRIPTING_UI_FUNCTION(bool);
-						break;
-					case MonoObjectInstance::MonoClassMember::Type::Other:
-						script->getFields()[name].value = nullptr;
+
+
+					switch (prop->getType()) {
+					case PropertyType::Int_t:{
+						Ref<Int32Property> tprop = std::dynamic_pointer_cast<Int32Property>(prop);
+						int32_t value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
 						break;
 					}
-					*/
+					case PropertyType::UInt_t: {
+						Ref<UInt32Property> tprop = std::dynamic_pointer_cast<UInt32Property>(prop);
+						uint32_t value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::Float_t: {
+						Ref<FloatProperty> tprop = std::dynamic_pointer_cast<FloatProperty>(prop);
+						float value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::Bool_t: {
+						Ref<BoolProperty> tprop = std::dynamic_pointer_cast<BoolProperty>(prop);
+						bool value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::Vector2_t: {
+						Ref<Vector2Property> tprop = std::dynamic_pointer_cast<Vector2Property>(prop);
+						auto value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::Vector3_t: {
+						Ref<Vector3Property> tprop = std::dynamic_pointer_cast<Vector3Property>(prop);
+						auto value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::Vector4_t: {
+						Ref<Vector4Property> tprop = std::dynamic_pointer_cast<Vector4Property>(prop);
+						auto value = tprop->GetValue();
+						if (ComponentsRender::drawControl(name, value))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::AssetHandle: {
+						Ref<AssetProperty> tprop = std::dynamic_pointer_cast<AssetProperty>(prop);
+						auto value = tprop->GetValue();
+						if (ComponentsRender::drawAssetControl(name, value, tprop->getAssetType()))
+							tprop->SetValue(value);
+						break;
+					}
+					}
+					
 				}
 				if (ImGui::Button("Remove")) {
 					comp.runtimeScripts.erase(std::find(comp.runtimeScripts.begin(), comp.runtimeScripts.end(), script));

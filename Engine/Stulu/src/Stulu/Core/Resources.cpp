@@ -23,7 +23,9 @@ namespace Stulu {
 		getPlaneMesh();
 
 		AssetsManager::add(assetPath + "/Meshes/capsule.fbx");
-		AssetsManager::add(assetPath + "/Meshes/sphere.obj");
+		AssetsManager::add(assetPath + "/Meshes/ico_sphere.fbx");
+		AssetsManager::add(assetPath + "/Meshes/high_res_sphere.obj");
+		AssetsManager::add(assetPath + "/Meshes/sphere.fbx");
 		
 	}
 
@@ -83,6 +85,12 @@ namespace Stulu {
 	}
 	Ref<Mesh> Resources::getSphereMesh() {
 		return getSphereMeshAsset().mesh;
+	}
+	Ref<Mesh> Resources::getHighResSphereMesh() {
+		return getHighResSphereMeshAsset().mesh;
+	}
+	Ref<Mesh> Resources::getIcoSphereMesh() {
+		return getIcoSphereMeshAsset().mesh;
 	}
 	Ref<Mesh> Resources::getCapsuleMesh() {
 		return getCapsuleMeshAsset().mesh;
@@ -170,6 +178,12 @@ namespace Stulu {
 	}
 	MeshAsset& Resources::getSphereMeshAsset() {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data);
+	}
+	MeshAsset& Resources::getHighResSphereMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(407)).data);
+	}
+	MeshAsset& Resources::getIcoSphereMeshAsset() {
+		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(406)).data);
 	}
 	MeshAsset& Resources::getCapsuleMeshAsset() {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(405)).data);

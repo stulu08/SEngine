@@ -140,12 +140,11 @@ namespace Stulu {
 				out << YAML::Key << "Namespace" << YAML::Value << instance->getNameSpace();
 
 				out << YAML::Key << "Fields" << YAML::Value << YAML::BeginSeq;
-				for (auto& [name, field] : instance->getFields()) {
+				for (auto& field : instance->getFields()) {
 					out << YAML::BeginMap;
-					out << YAML::Key << "Name" << name;
-					out << YAML::Key << "Type" << (int32_t)field.type;
-					if (MonoClassMemberTypeFnInfo::infos.find(field.typeName) != MonoClassMemberTypeFnInfo::infos.end())
-						MonoClassMemberTypeFnInfo::infos.at(field.typeName).serialize(out, field);
+					out << YAML::Key << "Name" << field->getName();
+					out << YAML::Key << "Type" << (uint32_t)field->getType();
+					field->Serialize(out);
 					out << YAML::EndMap;
 				}
 				out << YAML::EndSeq;
@@ -416,26 +415,17 @@ namespace Stulu {
 								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
 								object->loadAll();
 								for (YAML::detail::iterator_value field : inst["Fields"]) {
-									std::string name = field["Name"].as<std::string>();
-									auto& fieldList = object->getFields();
-									if (fieldList.find(name) != fieldList.end()) {
-										auto type = (MonoObjectInstance::MonoClassMember::Type)field["Type"].as<int32_t>();
 
-										if (fieldList[name].type == type) {
-											bool assigned = false;
-											for (auto& [typeName, fn] : MonoClassMemberTypeFnInfo::infos) {
-												if (type == fn.type) {
-													fn.deserialize(fieldList, name, field);
-													assigned = true;
-													break;
-												}
-											}
-											if (!assigned)
-												fieldList[name].value = nullptr;
-										}
+									std::string name = field["Name"].as<std::string>();
+									PropertyType type = (PropertyType)field["Type"].as<uint32_t>();
+
+									for (auto fieldItem : object->getFields()) {
+										if (fieldItem->getName() != name || fieldItem->getType() != type)
+											continue;
+										fieldItem->Deserialize(field);
+
 									}
 								}
-								object->setAllClassFields();
 								AddedScriptingComponent.runtimeScripts.push_back(object);
 							}
 						}
@@ -655,176 +645,5 @@ namespace Stulu {
 			return false;
 		}
 		return true;
-	}
-	
-	std::vector<UUID> SceneSerializer::getAllSceneAssets(const std::vector<std::string> scenes) {
-		std::vector<UUID> assets;
-
-		//shaders will be added soon
-
-		for (auto scene : scenes) {
-			
-			Ref<Scene> m_scene;
-			{
-				if (scene.empty()) {
-					continue;
-				}
-				m_scene = createRef<Scene>();
-				SceneSerializer ss(m_scene);
-				if (ss.deSerialze(scene)) {
-					m_scene->onViewportResize(Application::getWidth(), Application::getHeight());
-				}
-				else {
-					continue;
-				}
-			}
-
-			if (AssetsManager::existsAndType(AssetsManager::getFromPath(scene), AssetType::Scene)) {
-				assets.push_back(AssetsManager::getFromPath(scene));
-			}
-			else {
-				continue;
-			}
-
-			auto& registry = m_scene->m_registry;
-			registry.view<SpriteRendererComponent>().each([&](entt::entity go, SpriteRendererComponent& spriteRen) {
-				if (spriteRen.texture) {
-					if (AssetsManager::exists(spriteRen.texture->uuid)) {
-						assets.push_back(spriteRen.texture->uuid);
-					}
-					else {
-						UUID id = spriteRen.texture->uuid;
-						if (AssetsManager::existsAndType(id, AssetType::Texture2D) || AssetsManager::existsAndType(id, AssetType::RenderTexture)) {
-							assets.push_back(id);
-						}
-					}
-				}
-				});
-			registry.view<MeshRendererComponent>().each([&](entt::entity go, MeshRendererComponent& meshRen) {
-				if (meshRen.material) {
-					if (AssetsManager::exists(meshRen.material->getUUID())) {
-						Asset& asset = AssetsManager::get(meshRen.material->getUUID());
-						if (!asset.path.empty())
-							assets.push_back(meshRen.material->getUUID());
-						else {
-							UUID modelId = AssetsManager::getModelFromMaterial(asset.uuid);
-							if (AssetsManager::existsAndType(modelId, AssetType::Model)) {
-								assets.push_back(modelId);
-
-								Asset model = AssetsManager::get(modelId);
-								if (std::filesystem::path(model.path).extension() == ".gltf") {
-									auto& path = std::filesystem::path(model.path);
-									auto& nP = path.parent_path().string() + "/" + path.filename().replace_extension().string() + ".bin";
-									if (std::filesystem::exists(nP)) {
-										UUID i = AssetsManager::getFromPath(nP);
-										if (AssetsManager::exists(i)) {
-											assets.push_back(i);
-										}
-									}
-								}
-
-							}
-						}
-					}
-				}
-				});
-			registry.view<MeshFilterComponent>().each([&](entt::entity go, MeshFilterComponent& meshFilter) {
-				if (meshFilter.mesh.mesh) {
-					UUID meshUUID = meshFilter.mesh.uuid;
-					if (AssetsManager::exists(meshUUID)) {
-						UUID modelId = AssetsManager::getModelFromMesh(meshUUID);
-						if (AssetsManager::existsAndType(modelId, AssetType::Model)) {
-							assets.push_back(modelId);
-
-							Asset model = AssetsManager::get(modelId);
-							if (std::filesystem::path(model.path).extension() == ".gltf") {
-								auto& path = std::filesystem::path(model.path);
-								auto& nP = path.parent_path().string() + "/" + path.filename().replace_extension().string() + ".bin";
-								if (std::filesystem::exists(nP)) {
-									UUID i = AssetsManager::getFromPath(nP);
-									if (AssetsManager::exists(i)) {
-										assets.push_back(i);
-									}
-								}
-							}
-						}
-					}
-				}
-				});
-			registry.view<SkyBoxComponent>().each([&](entt::entity go, SkyBoxComponent& skybox) {
-				if (skybox.texture) {
-					if (AssetsManager::exists(skybox.texture->uuid)) {
-						std::string path = AssetsManager::get(skybox.texture->uuid).path;
-						if (path.substr(path.find_last_of('.'), path.npos) == ".hdr")
-							assets.push_back(skybox.texture->uuid);
-						else {
-							try {
-								//.skybox
-								YAML::Node data = YAML::LoadFile(path);
-
-								Asset right = AssetsManager::get(data["right"].as<uint64_t>());
-								if (AssetsManager::exists(right.uuid)) {
-									assets.push_back(right.uuid);
-								}
-								Asset left = AssetsManager::get(data["left"].as<uint64_t>());
-								if (AssetsManager::exists(left.uuid)) {
-									assets.push_back(left.uuid);
-								}
-								Asset top = AssetsManager::get(data["top"].as<uint64_t>());
-								if (AssetsManager::exists(top.uuid)) {
-									assets.push_back(top.uuid);
-								}
-								Asset bottom = AssetsManager::get(data["bottom"].as<uint64_t>());
-								if (AssetsManager::exists(bottom.uuid)) {
-									assets.push_back(bottom.uuid);
-								}
-								Asset front = AssetsManager::get(data["front"].as<uint64_t>());
-								if (AssetsManager::exists(front.uuid)) {
-									assets.push_back(front.uuid);
-								}
-								Asset back = AssetsManager::get(data["back"].as<uint64_t>());
-								if (AssetsManager::exists(back.uuid)) {
-									assets.push_back(back.uuid);
-								}
-								assets.push_back(skybox.texture->uuid);
-							}
-							catch (YAML::Exception ex) {
-								CORE_ERROR(ex.what());
-							}
-						}
-					}
-				}
-				});
-			registry.view<MeshColliderComponent>().each([&](entt::entity go, MeshColliderComponent& collider) {
-				if (collider.mesh.mesh) {
-					UUID meshUUID = collider.mesh.uuid;
-					if (AssetsManager::exists(meshUUID)) {
-						UUID modelId = AssetsManager::getModelFromMesh(meshUUID);
-						if (AssetsManager::existsAndType(modelId, AssetType::Model)) {
-							assets.push_back(modelId);
-
-							Asset model = AssetsManager::get(modelId);
-							if (std::filesystem::path(model.path).extension() == ".gltf") {
-								auto& path = std::filesystem::path(model.path);
-								auto& nP = path.parent_path().string() + "/" + path.filename().replace_extension().string() + ".bin";
-								if (std::filesystem::exists(nP)) {
-									UUID i = AssetsManager::getFromPath(nP);
-									if (AssetsManager::exists(i)) {
-										assets.push_back(i);
-									}
-								}
-							}
-						}
-					}
-				}
-				});
-		}
-		std::vector<UUID> as;
-		for (auto& id : assets) {
-			if (std::find(as.begin(), as.end(), id) == as.end()) {
-				as.push_back(id);//remove duplicated
-			}
-		}
-		return as;
 	}
 }

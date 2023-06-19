@@ -4,17 +4,6 @@
 #include "Editor/Bindings/Gui.h"
 
 namespace Stulu {
-#define StuluUIFuncTypeRegister(TYPE, TypeName) \
-	{\
-		Stulu::MonoClassMemberTypeFnInfo::infos[TypeName].uiFunc = [](Stulu::Ref<Stulu::MonoObjectInstance>& script, MonoObjectInstance::MonoClassMember& field, const std::string& name) { \
-			TYPE& value = *((TYPE*)field.value); \
-			if (ComponentsRender::drawControl<TYPE>(name, value)) { \
-				script->getFields()[name].value = (void*)&value; \
-				script->setClassField(name); \
-			} \
-		}; \
-	} \
-
 
 	void loadEditorMonoBindings() {
 		ST_INFO("Loading Editor Bindings");
@@ -35,13 +24,5 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.Editor.InternalCalls::gui_Vector3(string,Stulu.Vector3&)", StuluBindings::Editor::Gui::Vector3);
 
 		ST_INFO("Finished Loading Editor Bindings");
-
-		StuluUIFuncTypeRegister(glm::vec4, "Stulu.Vector4");
-		StuluUIFuncTypeRegister(glm::vec3, "Stulu.Vector4");
-		StuluUIFuncTypeRegister(glm::vec2, "Stulu.Vector4");
-		StuluUIFuncTypeRegister(float, "System.Single");
-		StuluUIFuncTypeRegister(uint32_t, "System.UInt32");
-		StuluUIFuncTypeRegister(int32_t, "System.Int32");
-		StuluUIFuncTypeRegister(bool, "System.Boolean");
 	}
 }

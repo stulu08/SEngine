@@ -1,82 +1,25 @@
 Scene: Untitled
 Settings:
+  shaderFlags: 0
   env_lod: 0.158999994
-  useReflectionMapReflections: false
+  shadowDistance: 50
+  shadowFar: 500
   enablePhsyics3D: true
   physicsData.gravity: [0, -9.80000019, 0]
   physicsData.length: 1
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
-  - GameObject: 91324720934723243
-    GameObjectBaseComponent:
-      name: Directional Light
-      tag: default
-    TransformComponent:
-      position: [0, -2.53458739e-13, 3.5]
-      rotation: [1.2206263e-07, 3.18996801e-15, 2.61338631e-08, 1]
-      scale: [1, 1, 1]
-    LightComponent:
-      color: [1, 1, 1]
-      lightType: 0
-      strength: 1
-      areaRadius: 1
-      spotLight_cutOff: 10
-      spotLight_outerCutOff: 15
-  - GameObject: 1511857955403913349
-    GameObjectBaseComponent:
-      name: Perspective Camera
-      tag: MainCam
-    TransformComponent:
-      position: [0, 0, 0.787358999]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    CameraComponent:
-      Camera Settings:
-        clearType: 1
-        clearColor: [0, 0, 0, 1]
-        fov: 80
-        zoom: 1
-        zNear: 0.00999999978
-        zFar: 250
-        isRenderTarget: false
-        aspectRatio: 1.77777779
-        textureWidth: 1920
-        textureHeight: 1080
-      mode: 0
-      depth: 1
-      renderTexture: 0
-    SkyBoxComponent:
-      texture: 11
-      rotation: [0, 0, 0]
-      mapType: 0
-    PostProcessingComponent:
-      exposure: 1
-      gamma: 2.20000005
-      bloomIntensity: 0.5
-      bloomTreshold: 1.10000002
-      bloomEnabled: true
-  - GameObject: 2903616040819496040
-    GameObjectBaseComponent:
-      name: Terrain
-      tag: default
-    TransformComponent:
-      position: [-64, 0, -64]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    MeshRendererComponent:
-      cullMode: 0
-    MeshFilterComponent:
-      mesh: 2219422735591511706
   - GameObject: 5973457225374795717
     GameObjectBaseComponent:
-      name: GameObject
       tag: default
+      name: GameObject
     TransformComponent:
       position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     ParticleSystemComponent:
+      maxParticle: 1000
       emitStart: 1
       emitCount: 2
       moving: true
@@ -106,3 +49,73 @@ GameObjects:
       endSizeMax: [0.5, 0.5, 0.5]
       beginColor: [1, 1, 1, 1]
       endColor: [1, 0, 0, 0]
+  - GameObject: 2903616040819496040
+    GameObjectBaseComponent:
+      tag: default
+      name: Terrain
+    TransformComponent:
+      position: [-64, 0, -64]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    ScriptingComponent:
+      Scripts:
+        - Name: TestScript
+          Namespace: ""
+          Fields:
+            - Name: texture
+              Type: 8
+              Value: 5873076562288971920
+            - Name: vec
+              Type: 2
+              Value: [0, 0, 0]
+    MeshRendererComponent:
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 2727904888424188675
+  - GameObject: 1511857955403913349
+    GameObjectBaseComponent:
+      tag: MainCam
+      name: Perspective Camera
+    TransformComponent:
+      position: [0, 0, 0.787358999]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    CameraComponent:
+      Camera Settings:
+        clearColor: [0, 0, 0, 1]
+        clearType: 1
+        fov: 80
+        zoom: 1
+        zFar: 250
+        isRenderTarget: false
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
+      mode: 0
+      depth: 1
+      renderTexture: 0
+    SkyBoxComponent:
+      rotation: [0, 0, 0]
+      mapType: 0
+      texture: 11
+    PostProcessingComponent:
+      exposure: 1
+      gamma: 2.20000005
+      bloomIntensity: 0.5
+      bloomTreshold: 1.10000002
+      bloomEnabled: true
+  - GameObject: 91324720934723243
+    GameObjectBaseComponent:
+      tag: default
+      name: Directional Light
+    TransformComponent:
+      position: [0, -2.53458739e-13, 3.5]
+      rotation: [1.2206263e-07, 3.18996801e-15, 2.61338631e-08, 1]
+      scale: [1, 1, 1]
+    LightComponent:
+      color: [1, 1, 1]
+      lightType: 0
+      strength: 1
+      areaRadius: 1
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15

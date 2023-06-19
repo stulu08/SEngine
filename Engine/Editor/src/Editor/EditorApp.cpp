@@ -23,6 +23,7 @@ namespace Stulu {
 			ST_ERROR("No Project, please open a Project");
 			s_project = Project(Platform::openFile("Stulu Project File\0 * .sproj\0"), true);
 		}
+		Resources::GameAssetDirectory = s_project.assetPath;
 
 		getWindow().setVSync(false);
 		getWindow().setWindowIcon("Editor/Textures/engine-app-icon.png");

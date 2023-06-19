@@ -46,6 +46,16 @@ namespace Stulu {
 						g.addComponent<MeshFilterComponent>().mesh = Resources::getSphereMeshAsset();
 						g.addComponent<SphereColliderComponent>();
 					}
+					if (ImGui::MenuItem("HighRes Sphere")) {
+						GameObject g = m_scene->createGameObject("HighRes Sphere");
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getHighResSphereMeshAsset();
+						g.addComponent<SphereColliderComponent>();
+					}
+					if (ImGui::MenuItem("Icosphere")) {
+						GameObject g = m_scene->createGameObject("Icosphere");
+						g.addComponent<MeshFilterComponent>().mesh = Resources::getIcoSphereMeshAsset();
+						g.addComponent<SphereColliderComponent>();
+					}
 					if (ImGui::MenuItem("Capsule")) {
 						GameObject g = m_scene->createGameObject("Capsule");
 						g.addComponent<MeshFilterComponent>().mesh = Resources::getCapsuleMeshAsset();

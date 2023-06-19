@@ -869,6 +869,18 @@ namespace Stulu {
 		change |= ImGui::DragFloat((header + " Intensity").c_str(), &color[3]);
 		return change;
 	}
+	bool ComponentsRender::drawAssetControl(const std::string& header, UUID& uuid, AssetType type) {
+		Asset asset = NullAsset;
+		AssetsManager::saveGet(uuid, asset);
+
+		if (type == AssetType::Texture2D) {
+			return drawTextureEdit(header, uuid, false);
+		}
+
+
+		ImGui::Text("Invalid Asset type");
+		return false;
+	}
 	Ref<Texture> ComponentsRender::getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t resultWidth, uint32_t resultHeight) {
 		FrameBufferSpecs specs;
 		specs.width = resultWidth;
@@ -1229,7 +1241,6 @@ namespace Stulu {
 	//returns true if changed
 	template<>
 	bool ComponentsRender::drawControl(const std::string& header, bool& value) { return drawBoolControl(header, value); }
-
 
 	Previewing::Previewing()  {
 		

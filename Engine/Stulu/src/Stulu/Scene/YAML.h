@@ -9,7 +9,6 @@ namespace Stulu {
 	class AssetsManager;
 }
 namespace YAML {
-
 	template<>
 	struct convert<glm::vec2> {
 		inline static Node encode(const glm::vec2& rhs) {

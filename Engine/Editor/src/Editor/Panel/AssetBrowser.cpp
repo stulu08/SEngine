@@ -225,7 +225,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Asset Inspector", &m_inspector)) {
 			ImGui::TextWrapped("Asset %s", selected.path.c_str());
-			ImGui::Text("UUID %d", selected.uuid);
+			ImGui::Text("UUID %llu", selected.uuid);
 			ImGui::Text("Properitys:", selected.path.c_str());
 			if (ImGui::BeginChild("Properitys") && selected.uuid != UUID::null) {
 				if (selected.type == AssetType::Model) {

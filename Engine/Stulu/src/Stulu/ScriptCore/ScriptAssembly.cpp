@@ -224,8 +224,8 @@ namespace Stulu {
 	void ScriptAssembly::reload(std::function<bool(const std::string&)>& recompileFinished, std::function<bool(const std::string&)>& recompile) {
 		ST_PROFILING_FUNCTION();
 		CORE_INFO("Reloading Assembly: {0}", m_assembly);
-
 		for (auto [id, object] : m_objects) {
+			object->backup_fields();
 			object->m_assembly = nullptr;
 		}
 

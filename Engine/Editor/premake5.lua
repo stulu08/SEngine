@@ -33,13 +33,13 @@ project "Editor"
 	{
 		"src",
 		"%{dependencies}",
-		"%{IncludeDir.Stulu}/src",
+		"%{IncludeDir.Stulu}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.mono}/mono-2.0",
+		"%{IncludeDir.mono}",
 		"%{IncludeDir.Discord}",
 	}
 	postbuildcommands {
