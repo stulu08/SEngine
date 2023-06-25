@@ -206,14 +206,11 @@ namespace Stulu {
 								ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 								ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 							}
-							ComponentsRender::drawFloatSliderControl("Exposure", m_sceneCamera.getPostProcessingData().exposure, .0f, 5.0f);
-							ComponentsRender::drawFloatSliderControl("Gamma", m_sceneCamera.getPostProcessingData().gamma, .0f, 5.0f);
-							if (ImGui::TreeNodeEx("Bloom")) {
-								ComponentsRender::drawBoolControl("Bloom", m_sceneCamera.getPostProcessingData().bloomData.bloomEnabled);
-								ComponentsRender::drawFloatControl("Intensity", m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity, .001f);
-								ComponentsRender::drawFloatControl("Treshold", m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold, .1f);
-								ImGui::TreePop();
-							}
+							PostProcessingComponent comp;
+							comp.data = m_sceneCamera.getPostProcessingData();
+							ComponentsRender::drawComponent(GameObject::null, comp);
+							m_sceneCamera.getPostProcessingData() = comp.data;
+
 							if (useMainCam) {
 								ImGui::PopItemFlag();
 								ImGui::PopStyleVar();
@@ -546,7 +543,7 @@ namespace Stulu {
 		GameObject selected = m_editorHierarchy.getCurrentObject();//in editor scene
 		m_editorHierarchy.setScene(m_activeScene);
 		if (selected)
-			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().uuid, m_activeScene.get()));
+			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().getUUID(), m_activeScene.get()));
 	}
 	void EditorLayer::onRuntimeStop() {
 		s_runtime = false;
@@ -556,7 +553,7 @@ namespace Stulu {
 		GameObject selected = m_editorHierarchy.getCurrentObject();//in runtime scene
 		m_editorHierarchy.setScene(m_activeScene);
 		if (selected)
-			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().uuid, m_activeScene.get()));
+			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().getUUID(), m_activeScene.get()));
 
 		m_runtimeScene = nullptr;
 	}

@@ -34,12 +34,26 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<PostProcessingComponent>(GameObject gameObject, PostProcessingComponent& component) {
-		ComponentsRender::drawFloatSliderControl("Exposure", component.data.exposure, .0f, 5.0f);
-		ComponentsRender::drawFloatSliderControl("Gamma", component.data.gamma, .0f, 5.0f);
+		bool enabled = component.data.enableGammaCorrection == 1.0f;
+		drawBoolControl("Gamma Correction", enabled);
+		if (enabled)
+			component.data.enableGammaCorrection = 1.0f;
+		else {
+			component.data.enableGammaCorrection = 0.0f;
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+		drawFloatSliderControl("Exposure", component.data.exposure, .0f, 5.0f);
+		drawFloatSliderControl("Gamma", component.data.gamma, .0f, 5.0f);
+		if (!enabled) {
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
+		}
+
 		if (ImGui::TreeNodeEx("Bloom")) {
-			ComponentsRender::drawBoolControl("Enabled", component.data.bloomData.bloomEnabled);
-			ComponentsRender::drawFloatControl("Intensity", component.data.bloomData.bloomIntensity, .001f);
-			ComponentsRender::drawFloatControl("Treshold", component.data.bloomData.bloomTreshold, .1f);
+			drawBoolControl("Enabled", component.data.bloomData.bloomEnabled);
+			drawFloatControl("Intensity", component.data.bloomData.bloomIntensity, .001f);
+			drawFloatControl("Treshold", component.data.bloomData.bloomTreshold, .1f);
 			ImGui::TreePop();
 		}
 	}
@@ -1004,6 +1018,49 @@ namespace Stulu {
 					uuid = id;
 					change = true;
 				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		if (ImGui::SmallButton("Remove")) {
+			uuid = UUID::null;
+			change = true;
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::PopStyleVar();
+		ImGui::EndColumns();
+
+		ImGui::PopID();
+		return change;
+	}
+	bool ComponentsRender::drawGameObjectEdit(const std::string& header, UUID& uuid) {
+		
+		ImGui::PushID(header.c_str());
+		bool change = false;
+		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::SetColumnWidth(0, 100.0f);
+		ImGui::Text(header.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(1, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5, 3 });
+		std::string name = "Drag to assign!";
+
+		if (uuid != UUID::null) {
+			GameObject go = GameObject::getById(uuid, Scene::activeScene());
+			if (go && go.hasComponent<GameObjectBaseComponent>())
+				name = go.getComponent<GameObjectBaseComponent>().name;
+		}
+
+		ImGui::BulletText("Gameobject: %s", name);
+
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT_HIERARCHY_MOVE")) {
+				ST_ASSERT(payload->DataSize == sizeof(GameObject), "GAMEOBJECT_HIERARCHY_MOVE Drag Drop payload size wrong");
+				GameObject go = *(const GameObject*)payload->Data;
+				uuid = go.getId();
+				change = true;
 			}
 			ImGui::EndDragDropTarget();
 		}

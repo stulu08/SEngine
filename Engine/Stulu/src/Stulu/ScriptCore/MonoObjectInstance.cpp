@@ -33,6 +33,7 @@ namespace Stulu {
 			CORE_ERROR("Could not create MonoObjectInstance from {0}.{1}", m_nameSpace, m_className);
 		m_fieldOrder = other.m_fieldOrder;
 		m_functions = other.m_functions;
+		m_reloadFieldsChache = other.m_reloadFieldsChache;
 
 		loadAllClassFields();
 		for (auto otherField : other.m_fields) {
@@ -64,11 +65,12 @@ namespace Stulu {
 	void MonoObjectInstance::addFunction(const std::string& fnName, const MonoFunction& mfn) {
 		m_functions[fnName] = mfn;
 	}
-	void MonoObjectInstance::loadAll() {
+	void MonoObjectInstance::loadAll(bool construct) {
 		ST_PROFILING_FUNCTION();
 		loadAllClassFunctions();
 		loadAllVirtualParentFunctions();
-		callDefaultConstructor();
+		if(construct)
+			callDefaultConstructor();
 		loadAllClassFields();
 	}
 
@@ -107,6 +109,7 @@ namespace Stulu {
 					mono_method_desc_free(descPtr);
 					return;
 				}
+				mono_method_desc_free(descPtr);
 			}
 		}
 		CORE_ERROR("Could not create Monofunction from {0}", function.name);
@@ -130,6 +133,7 @@ namespace Stulu {
 					mono_method_desc_free(descPtr);
 					return meth;
 				}
+				mono_method_desc_free(descPtr);
 			}
 		}
 		CORE_ERROR("Could not create Monofunction from {0}.{1}", fnName, m_nameSpace);
@@ -258,23 +262,35 @@ namespace Stulu {
 	void MonoObjectInstance::backup_fields() {
 		ST_PROFILING_FUNCTION();
 		m_reloadFieldsChache.clear();
-		for (auto field : m_fields) {
-			std::string id = field->getName() + "@" + std::to_string((uint32_t)field->getType());
-			m_reloadFieldsChache.insert({ id, field->CopyValueToBuffer() });
-		}
+		m_reloadFieldsChache = create_field_backup();
 	}
 	void MonoObjectInstance::load_fields_backup() {
+		load_fields_backup_from(m_reloadFieldsChache);
+		m_reloadFieldsChache.clear();
+	}
+	std::unordered_map<std::string, void*> MonoObjectInstance::create_field_backup() {
+		ST_PROFILING_FUNCTION();
+		std::unordered_map<std::string, void*> map;
 		for (auto field : m_fields) {
 			std::string id = field->getName() + "@" + std::to_string((uint32_t)field->getType());
-			if (m_reloadFieldsChache.find(id) != m_reloadFieldsChache.end()) {
-				field->SetValueFromBuffer(m_reloadFieldsChache[id]);
+			map.insert({ id, field->CopyValueToBuffer() });
+		}
+		return map;
+	}
+
+	void MonoObjectInstance::load_fields_backup_from(std::unordered_map<std::string, void*>& map) {
+		for (auto field : m_fields) {
+			std::string id = field->getName() + "@" + std::to_string((uint32_t)field->getType());
+			if (map.find(id) != map.end()) {
+				field->SetValueFromBuffer(map[id]);
 			}
 		}
-		for (auto [name, buffer] : m_reloadFieldsChache) {
-			if (buffer)
+		for (auto& [name, buffer] : map) {
+			if (buffer) {
 				free(buffer);
+				buffer = nullptr;
+			}
 		}
-		m_reloadFieldsChache.clear();
 	}
 	bool MonoObjectInstance::FieldHasAttribute(Ref<Property> field, MonoClass* attribute) {
 		if (attribute) {

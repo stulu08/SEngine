@@ -129,16 +129,31 @@ namespace YAML {
 			node.push_back((uint32_t)rhs.format);
 			node.push_back((uint32_t)rhs.wrap);
 			node.push_back(rhs.tiling);
+			node.push_back((uint32_t)rhs.filtering);
+			node.push_back(rhs.border);
 			node.SetStyle(EmitterStyle::Flow);
 			return node;
 		}
 
 		inline static bool decode(const Node& node, Stulu::TextureSettings& rhs) {
-			if (!node.IsSequence() || node.size() != 3)
+			if (!node.IsSequence())
 				return false;
-			rhs.format = (Stulu::TextureFormat)node[0].as<uint32_t>();
-			rhs.wrap = (Stulu::TextureWrap)node[1].as<uint32_t>();
-			rhs.tiling = node[2].as<glm::vec2>();
+			if (node.size() == 3) {
+				rhs.format = (Stulu::TextureFormat)node[0].as<uint32_t>();
+				rhs.wrap = (Stulu::TextureWrap)node[1].as<uint32_t>();
+				rhs.tiling = node[2].as<glm::vec2>();
+			}
+			else if (node.size() == 5) {
+				rhs.format = (Stulu::TextureFormat)node[0].as<uint32_t>();
+				rhs.wrap = (Stulu::TextureWrap)node[1].as<uint32_t>();
+				rhs.tiling = node[2].as<glm::vec2>();
+				rhs.filtering = (Stulu::TextureFiltering)node[3].as<glm::uint32_t>();
+				rhs.border = node[4].as<glm::vec4>();
+			}
+			else {
+				return false;
+			}
+			
 			return true;
 		}
 	};
@@ -277,7 +292,7 @@ namespace Stulu {
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::TextureSettings& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq;
-		out << (uint32_t)v.format << (uint32_t)v.wrap << v.tiling;
+		out << (uint32_t)v.format << (uint32_t)v.wrap << v.tiling << (uint32_t)v.filtering << v.border;
 		out << YAML::EndSeq;
 		return out;
 	}

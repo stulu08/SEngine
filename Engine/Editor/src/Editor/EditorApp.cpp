@@ -23,6 +23,7 @@ namespace Stulu {
 			ST_ERROR("No Project, please open a Project");
 			s_project = Project(Platform::openFile("Stulu Project File\0 * .sproj\0"), true);
 		}
+		Log::addFileSink(s_project.path + "/logs/" + Log::generateTimeString() + ".log");
 		Resources::GameAssetDirectory = s_project.assetPath;
 
 		getWindow().setVSync(false);

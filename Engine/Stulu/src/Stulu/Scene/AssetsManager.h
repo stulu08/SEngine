@@ -56,6 +56,13 @@ namespace Stulu {
 			}
 			return false;
 		}
+		static inline bool saveGetAndType(const UUID& uuid, Asset& outAsset, AssetType type) {
+			if (existsAndType(uuid, type)) {
+				outAsset = assets[uuid];
+				return true;
+			}
+			return false;
+		}
 		const static AssetType getAssetTypeByPath(const std::string& path);
 		const static type_info& getType(const UUID& uuid);
 		const static AssetType& getAssetType(const UUID& uuid);

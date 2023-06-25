@@ -24,6 +24,7 @@ namespace Stulu {
 	}
 	Scene::~Scene() {
 		ST_PROFILING_FUNCTION();
+		m_uuidGameObjectMap.clear();
 		m_registry.clear();
 	}
 
@@ -31,17 +32,25 @@ namespace Stulu {
 		return createGameObject("GameObject", uuid);
 	}
 
-	GameObject Scene::createGameObject(const std::string& name, UUID uuid) {
+	GameObject Scene::createGameObject(const std::string& name, UUID uuid, uint32_t id) {
 		ST_PROFILING_FUNCTION();
-		GameObject go = { m_registry.create(), this };
-		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
-		base.uuid = uuid;
+		GameObject go;
+		if(id != UINT32_MAX)
+			go = { m_registry.create((entt::entity)id), this };
+		else
+			go = { m_registry.create(), this };
 
+		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject", uuid);
+		base.updateUUID(uuid);
 		go.addComponent<TransformComponent>();
 		return go;
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
 		ST_PROFILING_FUNCTION();
+		if (!gameObject) {
+			CORE_ERROR("Cant destroy GameObject null");
+			return;
+		}
 		updateAssemblyScripts("onDestroy()");
 		if (gameObject.hasComponent<NativeBehaviourComponent>()) {
 			auto& b = gameObject.getComponent<NativeBehaviourComponent>();
@@ -60,7 +69,10 @@ namespace Stulu {
 			if (transform.parent == gameObject)
 				destroyGameObject({ go, this });
 			});
+
+		m_uuidGameObjectMap.erase(gameObject.getId());
 		m_registry.destroy(gameObject);
+
 		gameObject.m_entity = entt::null;
 		gameObject.m_scene = nullptr;
 		gameObject = GameObject::null;
@@ -177,21 +189,8 @@ namespace Stulu {
 				});
 			updateAssemblyScripts("onRender2D()");
 		}
-		auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
-		for (auto gameObject : view)
-		{
-			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-			if (sprite.texture)
-				Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
-			else
-				Renderer2D::drawQuad(transform, sprite.color);
-		}
-		auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
-		for (auto gameObject : circleView)
-		{
-			auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
-			Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
-		}
+
+		m_renderer->drawAll2d(transformComp);
 		updateParticles(true, true);
 		Renderer2D::flush();
 		cameraComp.getNativeCamera()->unbindFrameBuffer();
@@ -240,21 +239,7 @@ namespace Stulu {
 		//draw 2D stuff
 		camera.getCamera()->bindFrameBuffer();
 		Renderer2D::begin();
-		auto view = m_registry.view<TransformComponent, SpriteRendererComponent>();
-		for (auto gameObject : view)
-		{
-			auto [transform, sprite] = view.get<TransformComponent, SpriteRendererComponent>(gameObject);
-			if (sprite.texture)
-				Renderer2D::drawTexturedQuad(transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
-			else
-				Renderer2D::drawQuad(transform, sprite.color);
-		}
-		auto circleView = m_registry.view<TransformComponent, CircleRendererComponent>();
-		for (auto gameObject : circleView)
-		{
-			auto [transform, sprite] = circleView.get<TransformComponent, CircleRendererComponent>(gameObject);
-			Renderer2D::drawCircle(transform, sprite.color, sprite.thickness, sprite.fade);
-		}
+		m_renderer->drawAll2d(camera.getTransform());
 		updateParticles(true, false);
 		Renderer2D::flush();
 		camera.getCamera()->unbindFrameBuffer();
@@ -534,23 +519,25 @@ namespace Stulu {
 
 	void Scene::updateAssemblyScripts(const std::string& function, bool forceConstructNew) {
 		ST_PROFILING_FUNCTION();
-		m_registry.view<ScriptingComponent>().each([=](entt::entity gameObject, ScriptingComponent& comp) {
-			for (Ref<Stulu::MonoObjectInstance> i : comp.runtimeScripts) {
+		s_activeScene = this;
+		for (auto& [gameObject, comp] : m_registry.storage<ScriptingComponent>().each()) {
+			for (Ref<Stulu::MonoObjectInstance>& i : comp.runtimeScripts) {
 				if (!i->isContructed() || forceConstructNew) {
-					i->backup_fields();
-					i->callDefaultConstructor();
-					i->load_fields_backup();
-					//initilize component
-					if (initlizeGameObjectAttachedClass(gameObject, i))
-						i->call("onAwake()");
-
-
+					initScriptRuntime(i, { gameObject, this });
 				}
 				if (!function.empty())
 					i->call(function);
 			}
-			});
+		}
+	}
 
+	void Scene::initScriptRuntime(Ref<MonoObjectInstance>& script, GameObject gameobject) {
+		script->backup_fields();
+		script->callDefaultConstructor();
+		script->load_fields_backup();
+		//initilize component
+		if (initlizeGameObjectAttachedClass(gameobject, script))
+			script->call("onAwake()");
 	}
 
 	GameObject Scene::addModel(Model& model) {
@@ -637,7 +624,7 @@ namespace Stulu {
 				auto view = src.view<Component>();
 				for (auto srcGameObject : view)
 				{
-					entt::entity dstGameObject = enttMap.at(src.get<GameObjectBaseComponent>(srcGameObject).uuid);
+					entt::entity dstGameObject = enttMap.at(src.get<GameObjectBaseComponent>(srcGameObject).getUUID());
 
 					auto& srcComponent = src.get<Component>(srcGameObject);
 					dst.emplace_or_replace<Component>(dstGameObject, srcComponent);
@@ -729,20 +716,21 @@ namespace Stulu {
 		auto idView = srcSceneRegistry.view<GameObjectBaseComponent>();
 		for (auto e : idView)
 		{
-			UUID uuid = srcSceneRegistry.get<GameObjectBaseComponent>(e).uuid;
+			UUID uuid = srcSceneRegistry.get<GameObjectBaseComponent>(e).getUUID();
 			const auto& name = srcSceneRegistry.get<GameObjectBaseComponent>(e).name;
-			GameObject newGameObject = newScene->createGameObject(name, uuid);
+			GameObject newGameObject = newScene->createGameObject(name, uuid, (uint32_t)e);
 			newGameObject.getComponent<GameObjectBaseComponent>().tag = srcSceneRegistry.get<GameObjectBaseComponent>(e).tag;
 			enttMap[uuid] = newGameObject;
 			if (srcSceneRegistry.get<TransformComponent>(e).parent)
-				parentMap[uuid] = srcSceneRegistry.get<TransformComponent>(e).parent.getComponent<GameObjectBaseComponent>().uuid;
+				parentMap[uuid] = srcSceneRegistry.get<TransformComponent>(e).parent.getComponent<GameObjectBaseComponent>().getUUID();
 		}
+
 		Scene* temp = s_activeScene;
 		s_activeScene = newScene.get();
 		// Copy components (except GameObjectBaseComponent)
 		CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
-		s_activeScene = temp;
 
+		s_activeScene = temp;
 
 		for (auto& [objUUID, parUUID] : parentMap) {
 			GameObject::getById(objUUID, newScene.get()).getComponent<TransformComponent>().parent = GameObject::getById(parUUID, newScene.get());

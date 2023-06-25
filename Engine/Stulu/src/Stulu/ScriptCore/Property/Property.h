@@ -34,7 +34,7 @@ namespace Stulu {
 		Other, 
 		Vector4_t, Vector3_t, Vector2_t, 
 		Float_t, Int_t, UInt_t, Bool_t, 
-		AssetHandle
+		AssetHandle, GameObject_t
 	};
 	class STULU_API Property {
 	public:
@@ -217,6 +217,7 @@ namespace Stulu {
 		virtual PropertyType getType() const override { return PropertyType::Vector4_t; };
 	};
 #pragma endregion
+#pragma region Assets
 	class STULU_API AssetProperty : public BaseProperty {
 	public:
 		AssetProperty(MonoObject* object, MonoClassField* field);
@@ -244,5 +245,27 @@ namespace Stulu {
 
 		virtual AssetType getAssetType() const override { return AssetType::Texture2D; };
 
+	};
+#pragma endregion
+	class STULU_API GameObjectProperty : public BaseProperty {
+	public:
+		GameObjectProperty(MonoObject* object, MonoClassField* field);
+
+		virtual void Serialize(YAML::Emitter& out) const override;
+		virtual void Deserialize(YAML::detail::iterator_value& node) override;
+
+		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void* CopyValueToBuffer() const override;
+		virtual void SetValueFromBuffer(void* source) override;
+		virtual UUID GetValue() const;
+		virtual void SetValue(const UUID& value);
+		virtual uint32_t GetValueRaw() const;
+		virtual void SetValueRaw(uint32_t value);
+
+		virtual size_t getSize() const override { return sizeof(UUID); };
+		virtual PropertyType getType() const override { return PropertyType::GameObject_t; };
+	protected:
+		MonoClassField* m_idFieldPtr = nullptr;
+		MonoObject* m_assetObjectPtr = nullptr;
 	};
 }

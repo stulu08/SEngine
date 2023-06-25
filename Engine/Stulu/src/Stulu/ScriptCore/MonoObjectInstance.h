@@ -14,7 +14,7 @@ namespace Stulu {
 
 		void addFunction(const std::string& fnName, const MonoFunction& mfn);
 
-		void loadAll();
+		void loadAll(bool construct = true);
 
 		void loadFunction(const std::string& fnName);
 		void loadVirtualFunction(const std::string& fnName, MonoClass* functionClass);
@@ -42,6 +42,9 @@ namespace Stulu {
 		bool isContructed() { return m_constructed; }
 		void backup_fields();
 		void load_fields_backup();
+
+		std::unordered_map<std::string, void*> create_field_backup();
+		void load_fields_backup_from(std::unordered_map<std::string, void*>& map);
 	private:
 		void reload();
 		std::unordered_map<std::string, void*> m_reloadFieldsChache;

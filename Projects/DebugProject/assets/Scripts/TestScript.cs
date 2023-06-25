@@ -11,14 +11,10 @@ public class TestScript : Component {
 
 	}
 	public override void onUpdate() {
-		if(texture != null) {
-			Log.Info(Folders.Assets);
-			Log.Info(texture.width + "|" + texture.height + "|" + texture.path);
-		}
 		
 	}
 	public override void onRender2D() {
-
+		Graphics2D.drawTexturedQuad(texture, new Vector3(0, 0, 0), Color.White);
 	}
 	public override void onDrawGizmos() {
 		return;

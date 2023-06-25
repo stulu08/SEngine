@@ -14,6 +14,16 @@ namespace Stulu {
 
 		std::string name = "";
 	};
+	struct MonoClassEntry {
+		std::string name;
+		std::string nameSpace;
+
+		friend bool operator==(const MonoClassEntry& left, const MonoClassEntry& right) {
+			return left.name == right.name && left.nameSpace == right.nameSpace;
+		}
+	};
+
+
 	class STULU_API MonoObjectInstance;
 	class STULU_API ScriptAssembly {
 	public:
@@ -55,10 +65,6 @@ namespace Stulu {
 		void RegisterObject(UUID id, MonoObjectInstance* object) { m_objects.insert({ id, object }); }
 		void DeRegisterObject(UUID id) { m_objects.erase(id); }
 		
-		struct MonoClassEntry {
-			std::string name;
-			std::string nameSpace;
-		};
 		void loadAllClasses(MonoClass* parentClass);
 		std::vector<MonoClassEntry>& getClasses() { return m_classes; }
 

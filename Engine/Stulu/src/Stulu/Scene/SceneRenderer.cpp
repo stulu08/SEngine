@@ -48,8 +48,11 @@ namespace Stulu {
 			vec4 color = texture2D(texSampler, v_tex);
 			
 			apply_bloom(color);
-			
-			a_color = gammaCorrect(color, gamma, toneMappingExposure);
+
+			if(enableGammaCorrection == 1.0f)
+				a_color = gammaCorrect(color, gamma, toneMappingExposure);
+			else
+				a_color = color;
 
 			if(color.a == 0.0f)
 				discard;
@@ -341,6 +344,44 @@ namespace Stulu {
 		m_shadowMap = FrameBuffer::create(specs);
 	}
 
+	void SceneRenderer::drawAll2d(const TransformComponent& camera) {
+		struct Entry {
+			entt::entity id;
+			enum Type {
+				Quad, Circle
+			}type;
+		};
+		glm::vec3 camPos = camera.worldPosition;
+		auto quadview = m_scene->m_registry.view<TransformComponent, SpriteRendererComponent>();
+		auto circleView = m_scene->m_registry.view<TransformComponent, CircleRendererComponent>();
+		std::vector<Entry> drawList;
+		drawList.reserve(quadview.size_hint() + circleView.size_hint());
+		for (auto gameObject : quadview) {
+			drawList.push_back({ gameObject, Entry::Quad });
+		}
+		for (auto gameObject : circleView) {
+			drawList.push_back({ gameObject, Entry::Circle });
+		}
+		std::sort(drawList.begin(), drawList.end(), [=](const Entry& left, const Entry& right)->bool {
+			GameObject le = { left.id, m_scene };
+			GameObject re = { right.id, m_scene };
+			return glm::distance(camPos, le.getComponent<TransformComponent>().worldPosition) > glm::distance(camPos, re.getComponent<TransformComponent>().worldPosition);
+		});
+		for (Entry& entry : drawList) {
+			if (entry.type == Entry::Quad) {
+				auto [transform, sprite] = quadview.get(entry.id);
+				if (sprite.texture)
+					Renderer2D::drawTexturedQuad(transform.transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
+				else
+					Renderer2D::drawQuad(transform.transform, sprite.color);
+			}
+			else {
+				auto [transform, sprite] = circleView.get(entry.id);
+				Renderer2D::drawCircle(transform.transform, sprite.color, sprite.thickness, sprite.fade);
+			}
+		}
+	}
+
 	void SceneRenderer::RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform) {
 		if (!filter.mesh.hasMesh)
 			return;
@@ -452,6 +493,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		m_postProcessingBufferData.time = Time::time;
 		m_postProcessingBufferData.delta = Time::deltaTime;
+		m_postProcessingBufferData.enableGammaCorrection = data.enableGammaCorrection;
 		m_postProcessingBufferData.toneMappingExposure = data.exposure;
 		m_postProcessingBufferData.gamma = data.gamma;
 		m_postProcessingBufferData.bloomStrength = data.bloomData.bloomIntensity;

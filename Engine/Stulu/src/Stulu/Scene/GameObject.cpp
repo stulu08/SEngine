@@ -10,23 +10,25 @@ namespace Stulu {
 	bool GameObject::isValid() const {
 		if (m_entity == entt::null || m_scene == nullptr)
 			return false;
+		if (!m_scene->m_registry.valid(m_entity))
+			return false;
 		if (hasComponent<GameObjectBaseComponent>() && hasComponent<TransformComponent>())
-			if(getId() != UUID::null)
-				return true;
+			return getComponent<GameObjectBaseComponent>().getUUID() != UUID::null;
 		return false;
 	}
 	UUID GameObject::getId() const {
-		return getComponent<GameObjectBaseComponent>().uuid;
+		if(hasComponent<GameObjectBaseComponent>())
+			return getComponent<GameObjectBaseComponent>().getUUID();
+		return UUID::null;
 	}
 	GameObject GameObject::getById(const UUID& id, Scene* scene) {
 		ST_PROFILING_FUNCTION();
-		GameObject object = GameObject::null;
-		scene->m_registry.view<GameObjectBaseComponent>().each([&](entt::entity ent, GameObjectBaseComponent& comp) {
-			if (comp.uuid == id) {
-				object = GameObject(ent,scene);
-				return;
-			}
-		});
-		return object;
+		if (id == UUID::null || scene == nullptr)
+			return GameObject::null;
+		auto pos = scene->m_uuidGameObjectMap.find(id);
+		if (pos != scene->m_uuidGameObjectMap.end()) {
+			return GameObject((*pos).second, scene);
+		}
+		return GameObject::null;
 	}
 }

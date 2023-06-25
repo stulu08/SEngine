@@ -76,6 +76,7 @@ namespace Stulu {
 					mono_method_desc_free(descPtr);
 					return function;
 				}
+				mono_method_desc_free(descPtr);
 			}
 		}
 		CORE_ERROR("Could not create Monofunction from {0}{1}", m_nameSpace, classStr);
@@ -102,6 +103,7 @@ namespace Stulu {
 					mono_method_desc_free(descPtr);
 					return function;
 				}
+				mono_method_desc_free(descPtr);
 			}
 		}
 		CORE_ERROR("Could not create Monofunction from {0}{1}", m_nameSpace, classStr);
@@ -203,15 +205,14 @@ namespace Stulu {
 			const char* name_space = mono_metadata_string_heap(m_monoImage, cols[MONO_TYPEDEF_NAMESPACE]);
 			_class = mono_class_from_name(m_monoImage, name_space, name);
 
-			std::string n = mono_class_get_name(_class);
-
-			
+			if (!_class || mono_class_is_enum(_class))
+				continue;
 
 			if (_parentClass) {
 				MonoClass* parentCl = mono_class_get_parent(_class);
 				if (!parentCl)
 					continue;
-				std::string classParent = parent = mono_class_get_namespace(parentCl) + std::string(".") + mono_class_get_name(parentCl);
+				std::string classParent = mono_class_get_namespace(parentCl) + std::string(".") + mono_class_get_name(parentCl);
 				if(classParent == parent)
 					m_classes.push_back({ mono_class_get_name(_class), mono_class_get_namespace(_class)});
 			}

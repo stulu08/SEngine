@@ -35,7 +35,7 @@ namespace Stulu {
 		~Scene();
 
 		GameObject createGameObject(UUID uuid);
-		GameObject createGameObject(const std::string& name = "GameObject", UUID uuid = UUID());
+		GameObject createGameObject(const std::string& name = "GameObject", UUID uuid = UUID(), uint32_t id = UINT32_MAX);
 		void destroyGameObject(GameObject gameObject);
 
 		void onUpdateEditor(Timestep ts, SceneCamera& camera, bool render = true);
@@ -72,6 +72,7 @@ namespace Stulu {
 		void clearAllParticles();
 		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
 		GameObject findGameObjectByName(const std::string& name);
+		void initScriptRuntime(Ref<MonoObjectInstance>& script, GameObject gameobject);
 
 
 		template<typename... Components>
@@ -100,6 +101,7 @@ namespace Stulu {
 		bool m_firstRuntimeUpdate = false;
 
 		entt::registry m_registry;
+		std::unordered_map<UUID, entt::entity> m_uuidGameObjectMap;
 
 		void setupPhysics();
 		void updatePhysics();
@@ -124,6 +126,7 @@ namespace Stulu {
 		friend class SceneSerializer;
 		friend class EditorHierarchyPanel;
 		friend class ComponentsRender;
+		friend class GameObjectBaseComponent;
 
 
 		static inline Scene* s_activeScene = nullptr;

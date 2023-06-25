@@ -6,6 +6,8 @@ namespace Stulu {
 	void EditorHierarchyPanel::setScene(const Ref<Scene>& scene) {
 		m_selectedObject = GameObject::null;
 		m_scene = scene;
+		m_lastHovered = GameObject::null;
+		m_firstHovered = 0.0f;
 	}
 	void EditorHierarchyPanel::render(bool* open) {
 		ST_PROFILING_FUNCTION();
@@ -13,11 +15,12 @@ namespace Stulu {
 			if (m_scene == nullptr)
 				return noScene();
 
-			m_scene->m_registry.each([&](auto goID) {
-				GameObject gameObject{ goID, m_scene.get() };
-				if(gameObject.isValid())
+			for (auto [id, comp] : m_scene->m_registry.storage<GameObjectBaseComponent>().each()) {
+				GameObject gameObject{ id, m_scene.get() };
+				if (gameObject.isValid())
 					drawObject(gameObject);
-				});
+			}
+			
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 				m_selectedObject = GameObject::null;
@@ -110,7 +113,7 @@ namespace Stulu {
 		bool open = ImGui::TreeNodeEx((void*)gameObject, flags, baseComp.name.c_str());
 		if(ImGui::IsItemClicked())
 			m_selectedObject = gameObject;
-
+		
 		//drag drop
 		if (ImGui::BeginDragDropSource()) {
 			ImGui::SetDragDropPayload("GAMEOBJECT_HIERARCHY_MOVE", &gameObject, sizeof(GameObject));
@@ -143,6 +146,22 @@ namespace Stulu {
 				}
 			}
 			ImGui::EndDragDropTarget();
+
+			if (m_lastHovered == gameObject) {
+				float time = m_firstHovered == 0.0f ? Time::applicationRuntime : m_firstHovered;
+				if (Time::applicationRuntime - time >= m_timeToHoverSelect)
+					m_selectedObject = gameObject;
+			}
+			else {
+				m_lastHovered = gameObject;
+				m_firstHovered = Time::applicationRuntime;
+			}
+		}
+		else {
+			if (m_lastHovered == gameObject) {
+				m_lastHovered = GameObject::null;
+				m_firstHovered = 0.0f;
+			}
 		}
 
 		//end

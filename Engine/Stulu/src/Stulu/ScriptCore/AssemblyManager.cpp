@@ -22,8 +22,7 @@ namespace Stulu {
 		Property::TypeRegister["Stulu.Vector3"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector3Property>(object, field); };
 		Property::TypeRegister["Stulu.Vector4"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector4Property>(object, field); };
 		Property::TypeRegister["Stulu.Texture2D"] = [](MonoObject* object, MonoClassField* field) { return createRef<Texture2DProperty>(object, field); };
-
-		//StuluTypeRegisterCast(Stulu::UUID, AssetHandle_t, "Stulu.Texture2D", uint64_t);
+		Property::TypeRegister["Stulu.GameObject"] = [](MonoObject* object, MonoClassField* field) { return createRef<GameObjectProperty>(object, field); };
 
 		loadScriptCore(assemblyPath, coreAssemblyPath);
 	}
@@ -50,6 +49,7 @@ namespace Stulu {
 #include "Bindings/Texture2D.h"
 #include "Bindings/Gizmo.h"
 #include "Bindings/Folders.h"
+#include "Bindings/SpriteRenderer.h"
 
 #define add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), StuluBindings::_Binding)
 #define _add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), _Binding)
@@ -65,6 +65,7 @@ namespace Stulu {
 
 		StuluGameObject_RegisterComponent("Stulu.TransformComponent", TransformComponent);
 		StuluGameObject_RegisterComponent("Stulu.RigidbodyComponent", RigidbodyComponent);
+		StuluGameObject_RegisterComponent("Stulu.SpriteRendererComponent", SpriteRendererComponent);
 
 		mono_add_internal_call("Stulu.InternalCalls::application_exit(int)", Application::exit);
 		mono_add_internal_call("Stulu.InternalCalls::application_getWidth()", Application::getWidth);
@@ -90,7 +91,7 @@ namespace Stulu {
 		mono_add_internal_call("Stulu.InternalCalls::input_getMouseDelta(Stulu.Vector2&)", StuluBindings::Input::getMouseDelta);
 		mono_add_internal_call("Stulu.InternalCalls::input_getMousePos(Stulu.Vector2&)", StuluBindings::Input::getMousePos);
 
-		mono_add_internal_call("Stulu.InternalCalls::gameObject_create(string,string,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector3);", StuluBindings::GameObject::create);
+		mono_add_internal_call("Stulu.InternalCalls::gameObject_create(string,string,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector3)", StuluBindings::GameObject::create);
 		mono_add_internal_call("Stulu.InternalCalls::gameObject_add_component(uint,System.Type)", StuluBindings::GameObject::addComponent);
 		mono_add_internal_call("Stulu.InternalCalls::gameObject_has_component(uint,System.Type)", StuluBindings::GameObject::hasComponent);
 		mono_add_internal_call("Stulu.InternalCalls::gameObject_remove_component(uint,System.Type)", StuluBindings::GameObject::removeComponent);
@@ -102,6 +103,7 @@ namespace Stulu {
 		add_call("gameObject_createCube(string,string,Stulu.Vector3)", GameObject::createCube);
 		add_call("gameObject_createCapsule(string,string,Stulu.Vector3)", GameObject::createCapsule);
 		add_call("gameObject_createPlane(string,string,Stulu.Vector3)", GameObject::createPlane);
+		add_call("gameObject_destroy(uint)", GameObject::destroy);
 
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_setPos(uint,Stulu.Vector3&)", StuluBindings::Transform::setPos);
 		mono_add_internal_call("Stulu.InternalCalls::transformComp_getPos(uint,Stulu.Vector3&)", StuluBindings::Transform::getPos);
@@ -131,6 +133,7 @@ namespace Stulu {
 
 		add_call("renderer2D_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawLine);
 		add_call("renderer2D_drawQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawQuad);
+		add_call("renderer2D_drawTexturedQuad(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,Stulu.Vector2&,ulong)", Graphics2D::drawQuadTexture);
 		add_call("renderer2D_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", Graphics2D::drawCircle);
 		add_call("renderer2D_drawLineRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawLineRect);
 		add_call("renderer2D_drawLineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Graphics2D::drawLineCube);
@@ -146,7 +149,16 @@ namespace Stulu {
 		add_call("texture2d_getHeight(ulong)", Texture2D::getHeight);
 		add_call("texture2d_getPath(ulong)", Texture2D::getPath);
 		add_call("texture2d_findbypath(string)", Texture2D::findByPath);
+		add_call("texture2d_getWhiteTexture()", Texture2D::getWhite);
+		add_call("texture2d_getBlackTexture()", Texture2D::getBlack);
 
 		add_call("folders_assetPath()", Folders::assetsPath);
+
+		add_call("spriteRenComp_getTexture(uint)", SpriteRendererComponent::getTexture);
+		add_call("spriteRenComp_setTexture(uint,ulong)", SpriteRendererComponent::setTexture);
+		add_call("spriteRenComp_getTiling(uint,Stulu.Vector2&)", SpriteRendererComponent::getTiling);
+		add_call("spriteRenComp_setTiling(uint,Stulu.Vector2&)", SpriteRendererComponent::setTiling);
+		add_call("spriteRenComp_getColor(uint,Stulu.Vector4&)", SpriteRendererComponent::getColor);
+		add_call("spriteRenComp_setColor(uint,Stulu.Vector4&)", SpriteRendererComponent::setColor);
 	}
 }

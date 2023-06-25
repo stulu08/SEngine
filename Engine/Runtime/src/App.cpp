@@ -55,6 +55,8 @@ namespace Stulu {
 	RuntimeApp::RuntimeApp(const ApplicationInfo& appInfo) 
 		: Application(appInfo) {
 
+		Log::addFileSink("logs / " + Log::generateTimeString() + ".log", Log::Level::warn);
+
 		getWindow().setVSync(appInfo.windowProps.VSync);
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
 		Resources::GameAssetDirectory = std::string(appInfo.ApplicationName) + "-data/assets";

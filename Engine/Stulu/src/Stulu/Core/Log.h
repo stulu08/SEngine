@@ -1,6 +1,7 @@
 #pragma once
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/fmt/ostr.h>
 
 #include "Stulu/Core/CoreConfig.h"
@@ -14,9 +15,11 @@ namespace Stulu {
 		};
 
 		static void init();
+		static void addFileSink(const std::string& logFile, Level flushLevel = Level::trace);
 
 		static std::shared_ptr<spdlog::logger>& GetCoreLogger();
 		static std::shared_ptr<spdlog::logger>& GetClientLogger();
+		static std::string generateTimeString();
 
 		static inline void engine_log(int32_t level, const char* msg) {
 			switch (level)
@@ -62,6 +65,7 @@ namespace Stulu {
 				break;
 			}
 		}
+
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
 		static std::shared_ptr<spdlog::logger> s_ClientLogger;

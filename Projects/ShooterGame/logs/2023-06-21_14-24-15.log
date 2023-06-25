@@ -1,0 +1,12 @@
+[2023-06-21 14:24:15.763] [STULU] [info] Added file sink: D:\stulu\dev\SEngine\Projects\ShooterGame/logs/2023-06-21_14-24-15.log
+[2023-06-21 14:24:15.834] [STULU] [info] Compiling D:\stulu\dev\SEngine\Projects\ShooterGame\data/EdiorProjectAssembly.dll
+[2023-06-21 14:24:16.502] [STULU] [info] Compiling finished
+[2023-06-21 14:24:16.645] [STULU] [info] Loading Assembly: Data/Managed/Stulu.ScriptCore.dll
+[2023-06-21 14:24:16.646] [STULU] [info] Loading Assembly finished
+[2023-06-21 14:24:16.646] [STULU] [info] Loading Assembly: D:\stulu\dev\SEngine\Projects\ShooterGame\data/EdiorProjectAssembly.dll
+[2023-06-21 14:24:16.647] [STULU] [info] Loading Assembly finished
+[2023-06-21 14:24:16.674] [APP] [info] Loading Editor Bindings
+[2023-06-21 14:24:16.675] [APP] [info] Finished Loading Editor Bindings
+[2023-06-21 14:24:16.675] [APP] [info] Loading all Project assets from: D:\stulu\dev\SEngine\Projects\ShooterGame\assets
+[2023-06-21 14:25:14.343] [STULU] [info] Force Exit: 0
+[2023-06-21 14:25:14.368] [STULU] [info] Ended

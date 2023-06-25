@@ -501,6 +501,7 @@ layout(std140, binding = 3) uniform postProcessing
 {
 	float time;
 	float delta;
+	float enableGammaCorrection;
 	float toneMappingExposure;
 	float gamma;
 	float bloomStrength;

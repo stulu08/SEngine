@@ -20,18 +20,56 @@ namespace StuluBindings {
 		static inline void addComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
 				if (addComponentRegister.find(typeName) != addComponentRegister.end()) {
-					return addComponentRegister[typeName](Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()));
+					return addComponentRegister[typeName](gameObject);
+				}
+
+				auto assemblyManager = Stulu::Application::get().getAssemblyManager();
+				MonoClass* clazz = mono_type_get_class(type);
+				if (!clazz)
+					return;
+				const auto& classes = assemblyManager->getAssembly()->getClasses();
+
+				Stulu::MonoClassEntry classEntry;
+				classEntry.name = mono_class_get_name(clazz);
+				classEntry.nameSpace = mono_class_get_namespace(clazz);
+
+				if (std::find(classes.begin(), classes.end(), classEntry) != classes.end()) {
+					Stulu::ScriptingComponent& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
+					auto object = Stulu::createRef<Stulu::MonoObjectInstance>(classEntry.nameSpace, classEntry.name, assemblyManager->getAssembly().get());
+					object->loadAll();
+					gameObject.getScene()->initScriptRuntime(object, gameObject);
+					comp.runtimeScripts.push_back(object);
 				}
 			}
 		}
 		static inline bool hasComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
 				if (hasComponentRegister.find(typeName) != hasComponentRegister.end()) {
-					return hasComponentRegister[typeName](Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()));
+					return hasComponentRegister[typeName](gameObject);
+				}
+				auto assemblyManager = Stulu::Application::get().getAssemblyManager();
+				MonoClass* clazz = mono_type_get_class(type);
+				if (!clazz)
+					return false;
+				auto& classes = assemblyManager->getAssembly()->getClasses();
+
+				Stulu::MonoClassEntry classEntry;
+				classEntry.name = mono_class_get_name(clazz);
+				classEntry.nameSpace = mono_class_get_namespace(clazz);
+
+				if (std::find(classes.begin(), classes.end(), classEntry) != classes.end()) {
+					auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
+					for (auto& script : comp.runtimeScripts) {
+						if (script->getClassPtr() == clazz) {
+							return true;
+						}
+					}
 				}
 			}
 			return false;
@@ -39,9 +77,30 @@ namespace StuluBindings {
 		static inline bool removeComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
 				if (removeComponentRegister.find(typeName) != removeComponentRegister.end()) {
-					return removeComponentRegister[typeName](Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()));
+					return removeComponentRegister[typeName](gameObject);
+				}
+
+				auto assemblyManager = Stulu::Application::get().getAssemblyManager();
+				MonoClass* clazz = mono_type_get_class(type);
+				if (!clazz)
+					return false;
+				const auto& classes = assemblyManager->getAssembly()->getClasses();
+
+				Stulu::MonoClassEntry classEntry;
+				classEntry.name = mono_class_get_name(clazz);
+				classEntry.nameSpace = mono_class_get_namespace(clazz);
+
+				if (std::find(classes.begin(), classes.end(), classEntry) != classes.end()) {
+					auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
+					for (auto script : comp.runtimeScripts) {
+						if (script->getClassPtr() == clazz) {
+							comp.runtimeScripts.erase(std::find(comp.runtimeScripts.begin(), comp.runtimeScripts.end(), script));
+							return true;
+						}
+					}
 				}
 			}
 			return false;
@@ -129,6 +188,9 @@ namespace StuluBindings {
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
 			go.addComponent<Stulu::MeshColliderComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
 			return go;
+		}
+		static inline void destroy(uint32_t id) {
+			Stulu::Scene::activeScene()->destroyGameObject(Stulu::GameObject((entt::entity)id, Stulu::Scene::activeScene()));
 		}
 	};
 }

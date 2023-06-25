@@ -57,6 +57,8 @@ namespace Stulu {
 		void drawSkyBox(const Ref<CubeMap>& skybox);
 
 		void resizeShadowMap(uint32_t size);
+
+		void drawAll2d(const TransformComponent& camera);
 	private:
 		Ref<Texture> DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data);
 

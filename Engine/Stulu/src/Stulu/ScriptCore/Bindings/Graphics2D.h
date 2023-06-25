@@ -15,6 +15,21 @@ namespace StuluBindings {
 				Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
 				color->toNative_s());
 		}
+		static inline void drawQuadTexture(struct Vector3* pos, struct Quaternion* rotation, struct Vector3* scale, struct Vector4* color, struct Vector2* tiling, uint64_t id) {
+			Stulu::Asset asset;
+			if (Stulu::AssetsManager::saveGetAndType(id, asset, Stulu::AssetType::Texture2D)) {
+				auto texture = std::any_cast<Stulu::Ref<Stulu::Texture>>(asset.data);
+				Stulu::Renderer2D::drawTexturedQuad(
+					Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
+					texture, tiling->toNative_s(), color->toNative_s());
+			}
+			else {
+				Stulu::Renderer2D::drawQuad(
+					Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
+					color->toNative_s());
+			}
+			
+		}
 		static inline void drawCircle(struct Vector3* pos, struct Quaternion* rotation, struct Vector3* scale, struct Vector4* color, float thickness, float fade) {
 			Stulu::Renderer2D::drawCircle(
 				Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),

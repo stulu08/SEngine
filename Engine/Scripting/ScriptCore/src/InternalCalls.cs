@@ -60,6 +60,8 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static uint gameObject_create(String name, String tag, Vector3 postion, Quaternion rotation, Vector3 Scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static uint gameObject_destroy(uint entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void gameObject_add_component(uint entityId, Type t);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static bool gameObject_has_component(uint entityId, Type t);
@@ -143,6 +145,8 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void renderer2D_drawQuad(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void renderer2D_drawTexturedQuad(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, ref Vector2 tiling, _UUID textureID);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void renderer2D_drawCircle(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, float thickness, float fade);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void renderer2D_drawLineRect(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
@@ -172,10 +176,28 @@ namespace Stulu {
 		internal extern static string texture2d_getPath(_UUID textureID);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static _UUID texture2d_findbypath(string path);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static _UUID texture2d_getWhiteTexture();
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static _UUID texture2d_getBlackTexture();
 		#endregion
-		#region Fodlers
+		#region Folders
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static string folders_assetPath();
+		#endregion
+		#region SpriteRenderer
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static _UUID spriteRenComp_getTexture(uint entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spriteRenComp_setTexture(uint entityId, _UUID id);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spriteRenComp_getTiling(uint entityId, out Vector2 tiling);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spriteRenComp_setTiling(uint entityId, ref Vector2 tiling);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spriteRenComp_getColor(uint entityId, out Vector4 tiling);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spriteRenComp_setColor(uint entityId, ref Vector4 tiling);
 		#endregion
 	}
 }

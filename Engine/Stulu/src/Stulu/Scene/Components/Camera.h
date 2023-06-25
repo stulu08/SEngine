@@ -5,6 +5,7 @@
 namespace Stulu {
 #define BLOOM_MAX_SAMPLES 10u
 	struct PostProcessingData {
+		float enableGammaCorrection = 1.0f;
 		float gamma = 2.2f;
 		float exposure = 1.0f;
 		struct Bloom {

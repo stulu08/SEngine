@@ -37,10 +37,15 @@ namespace Stulu {
 				windowINI = std::filesystem::absolute(path + "/" + node["windowINI"].as<std::string>()).string();
 			}
 			else if (loadFolderIfFail) {
-				path = file;
-				assetPath = file + "/assets";
-				configPath = file + "/config";
-				dataPath = file + "/data";
+				if (std::filesystem::path(file).has_extension() && std::filesystem::path(file).has_parent_path()) {
+					path = std::filesystem::path(file).parent_path().string();
+				}
+				else {
+					path = file;
+				}
+				assetPath = path + "/assets";
+				configPath = path + "/config";
+				dataPath = path + "/data";
 				windowINI = configPath + "/windowLayout.ini";
 				size_t lastS = path.find_last_of("/\\");
 				lastS = lastS == std::string::npos ? 0 : lastS + 1;

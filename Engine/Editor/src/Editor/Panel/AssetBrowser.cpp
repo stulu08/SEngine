@@ -58,14 +58,14 @@ namespace Stulu {
 					const Ref<Texture>& ico = getIcon(directory);
 					ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 					ImVec4 bgColor = { 0,0,0,0 };
-					if(selected.path == path.string())
+					if (selected.path == path.string())
 						bgColor = ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive);
 					if (extension == ".mat") {
 						icoColor = ImVec4(1, 1, 1, 1);
 					}
 					ImGui::PushID(filename.string().c_str());
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-					
+
 					//ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)ico->getRendererID()), { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 					ImGui::ImageButton(ico, { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 				}
@@ -80,80 +80,81 @@ namespace Stulu {
 						m_path /= filename;
 				}
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-					selected = AssetsManager::get(AssetsManager::getFromPath(path.string(),AssetsManager::getAssetTypeByPath(path.string())));
-				}
-				if (ImGui::BeginPopupContextWindow("ASSET_BROWSER_RIGHT_CLICK_PROPS")) {
-					if (ImGui::BeginMenu("Create")) {
-						if (ImGui::MenuItem("Material")) {
-							openCreatePopUp = true;
-							createPopUpFileName = "New Material.mat";
-							createPopUpFileContent = Resources::getDefaultMaterial()->toDataString(true);
-							createPopUpUIFunc = [=] {
-								ImGui::InputText("Name", &createPopUpFileName);
-								ImGui::TextWrapped("Curently you can only edit Materials with an Text Editor");
-							};
-						}
-						if (ImGui::MenuItem("Scene")) {
-							openCreatePopUp = true;
-							createPopUpFileName = "New Scene.scene";
-							createPopUpFileContent = EditorResources::getDefaultSceneSource();
-						}
-						if (ImGui::MenuItem("Render Texture")) {
-							openCreatePopUp = true;
-							createPopUpFileName = "New Render Texture.srt";
-							createPopUpFileContent = "Nothing to see here";
-						}
-						if (ImGui::MenuItem("Shader")) {
-							openCreatePopUp = true;
-							createPopUpFileName = "New Shader.glsl";
-							createPopUpFileContent = Resources::getDefaultMaterial()->getShader()->getSource(true);
-						}
-						if (ImGui::MenuItem("Script")) {
-							openCreatePopUp = true;
-							createPopUpFileName = "NewScriptClass";
-							createPopUpFileContent = "";
-							onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
-								ST_INFO("Creating new File at: {0}", currentDirectory + "/" + fileName + ".cs");
-								FILE* file = fopen((currentDirectory + "/" + fileName + ".cs").c_str(), "a");
-								createPopUpFileContent = "using Stulu;\nusing System.Collections;\npublic class " + fileName + " : Component {\n	public override void onStart() {\n\n	}\n	public override void onUpdate() {\n\n	}\n}";
-								fprintf(file, createPopUpFileContent.c_str());
-								fclose(file);
-							};
-						}
-						if (ImGui::MenuItem("Directory")) {
-							openCreatePopUp = true;
-							createPopUpFileName = "New Directory";
-							onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
-								ST_INFO("Creating new Directory at: {0}", currentDirectory + "/" + fileName);
-								Platform::createDirectory((currentDirectory + "/" + fileName).c_str());
-							};
-						}
-						ImGui::EndMenu();
-					}
-					ImGui::Separator();
-					if (ImGui::MenuItem("Delete")) {
-						AssetsManager::remove(selected.uuid, true, true);
-						selected = NullAsset;
-					}
-					ImGui::Separator();
-					if (ImGui::MenuItem("Recompile Shaders")) {
-						AssetsManager::reloadShaders(getEditorProject().assetPath);
-					}
-					ImGui::Separator();
-					if (ImGui::MenuItem("Reload Assembly")) {
-						rebuildAssembly();
-					}
-					ImGui::EndPopup();
+					selected = AssetsManager::get(AssetsManager::getFromPath(path.string(), AssetsManager::getAssetTypeByPath(path.string())));
 				}
 				ImGui::TextWrapped(filename.string().c_str());
 				ImGui::NextColumn();
 				ImGui::PopID();
-				
 			}
 			ImGui::Columns(1);
+
+			if (ImGui::BeginPopupContextWindow("ASSET_BROWSER_RIGHT_CLICK_PROPS")) {
+				if (ImGui::BeginMenu("Create")) {
+					if (ImGui::MenuItem("Material")) {
+						openCreatePopUp = true;
+						createPopUpFileName = "New Material.mat";
+						createPopUpFileContent = Resources::getDefaultMaterial()->toDataString(true);
+						createPopUpUIFunc = [=] {
+							ImGui::InputText("Name", &createPopUpFileName);
+							ImGui::TextWrapped("Curently you can only edit Materials with an Text Editor");
+						};
+					}
+					if (ImGui::MenuItem("Scene")) {
+						openCreatePopUp = true;
+						createPopUpFileName = "New Scene.scene";
+						createPopUpFileContent = EditorResources::getDefaultSceneSource();
+					}
+					if (ImGui::MenuItem("Render Texture")) {
+						openCreatePopUp = true;
+						createPopUpFileName = "New Render Texture.srt";
+						createPopUpFileContent = "Nothing to see here";
+					}
+					if (ImGui::MenuItem("Shader")) {
+						openCreatePopUp = true;
+						createPopUpFileName = "New Shader.glsl";
+						createPopUpFileContent = Resources::getDefaultMaterial()->getShader()->getSource(true);
+					}
+					if (ImGui::MenuItem("Script")) {
+						openCreatePopUp = true;
+						createPopUpFileName = "NewScriptClass";
+						createPopUpFileContent = "";
+						onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+							ST_INFO("Creating new File at: {0}", currentDirectory + "/" + fileName + ".cs");
+							FILE* file = fopen((currentDirectory + "/" + fileName + ".cs").c_str(), "a");
+							createPopUpFileContent = "using Stulu;\nusing System.Collections;\npublic class " + fileName + " : Component {\n	public override void onStart() {\n\n	}\n	public override void onUpdate() {\n\n	}\n}";
+							fprintf(file, createPopUpFileContent.c_str());
+							fclose(file);
+						};
+					}
+					if (ImGui::MenuItem("Directory")) {
+						openCreatePopUp = true;
+						createPopUpFileName = "New Directory";
+						onCreatePopUpFile = [=](const std::string& currentDirectory, const std::string& fileName) {
+							ST_INFO("Creating new Directory at: {0}", currentDirectory + "/" + fileName);
+							Platform::createDirectory((currentDirectory + "/" + fileName).c_str());
+						};
+					}
+					ImGui::EndMenu();
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Delete")) {
+					AssetsManager::remove(selected.uuid, true, true);
+					selected = NullAsset;
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Recompile Shaders")) {
+					AssetsManager::reloadShaders(getEditorProject().assetPath);
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Reload Assembly")) {
+					rebuildAssembly();
+				}
+				ImGui::EndPopup();
+			}
+
 		}
 		ImGui::End();
-		
+
 		if (openCreatePopUp)
 			ImGui::OpenPopup("Create File");
 		drawCreateFilePopUp();
@@ -162,7 +163,7 @@ namespace Stulu {
 			if (ImGui::CollapsingHeader("Project Assets")) {
 				drawDirectory(getEditorProject().assetPath, true);
 			}
-			if(ImGui::CollapsingHeader("Engine Assets")) {
+			if (ImGui::CollapsingHeader("Engine Assets")) {
 				Asset as = Resources::getDefaultSkyBoxAsset();
 				ImGui::Button("Default Skybox");
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
@@ -173,11 +174,12 @@ namespace Stulu {
 			}
 		}
 		ImGui::End();
-		if(m_inspector)
+		if (m_inspector)
 			renderInspector();
 		if (pathBefore != m_path.string())
 			pathCache.clear();
 	}
+
 	void AssetBrowserPanel::drawCreateFilePopUp() {
 		ST_PROFILING_FUNCTION();
 		if (ImGui::BeginPopupModal("Create File", 0)) {
@@ -229,7 +231,7 @@ namespace Stulu {
 			ImGui::Text("Properitys:", selected.path.c_str());
 			if (ImGui::BeginChild("Properitys") && selected.uuid != UUID::null) {
 				if (selected.type == AssetType::Model) {
-					if (ImGui::TreeNodeEx("Meshes",ImGuiTreeNodeFlags_SpanFullWidth)) {
+					if (ImGui::TreeNodeEx("Meshes", ImGuiTreeNodeFlags_SpanFullWidth)) {
 						std::vector<MeshAsset>& meshVec = std::any_cast<Model&>(selected.data).getMeshes();
 						for (int i = 0; i < meshVec.size(); i++) {
 							if (meshVec[i].name.c_str()) {
@@ -278,6 +280,7 @@ namespace Stulu {
 					ComponentsRender::drawVector2Control("Tilling", texture->getSettings().tiling);
 					ComponentsRender::drawEnumComboControl("Format", texture->getSettings().format);
 					ComponentsRender::drawEnumComboControl("Wrap Mode", texture->getSettings().wrap);
+					ComponentsRender::drawEnumComboControl("Filtering", texture->getSettings().filtering);
 
 					if (ImGui::Button("Update")) {
 						texture->update();
@@ -321,6 +324,7 @@ namespace Stulu {
 		}
 		ImGui::End();
 	}
+
 	const Ref<Texture>& AssetBrowserPanel::getIcon(const std::filesystem::directory_entry& directory) {
 		std::string path = directory.path().string();
 		if (pathCache.find(path) == pathCache.end() || !AssetsManager::exists(pathCache[path])) {
@@ -337,8 +341,8 @@ namespace Stulu {
 		if (directory.is_directory()) {
 			return EditorResources::getFolderTexture();
 		}
-		
-		
+
+
 		Asset& asset = AssetsManager::get(pathCache[path]);
 		switch (asset.type)
 		{

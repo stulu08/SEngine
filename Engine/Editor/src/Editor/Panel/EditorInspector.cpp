@@ -8,6 +8,7 @@ namespace Stulu {
 	/// <returns></returns>
 	bool EditorInspectorPanel::render(GameObject gameObject, bool* open) {
 		ST_PROFILING_FUNCTION();
+		Scene::setActiveScene(gameObject.m_scene);
 		if (ImGui::Begin("Inspector", open)) {
 			if (gameObject == GameObject::null) {
 				ImGui::End();
@@ -222,6 +223,13 @@ namespace Stulu {
 						Ref<AssetProperty> tprop = std::dynamic_pointer_cast<AssetProperty>(prop);
 						auto value = tprop->GetValue();
 						if (ComponentsRender::drawAssetControl(name, value, tprop->getAssetType()))
+							tprop->SetValue(value);
+						break;
+					}
+					case PropertyType::GameObject_t: {
+						Ref<GameObjectProperty> tprop = std::dynamic_pointer_cast<GameObjectProperty>(prop);
+						auto value = tprop->GetValue();
+						if (ComponentsRender::drawGameObjectEdit(name, value))
 							tprop->SetValue(value);
 						break;
 					}

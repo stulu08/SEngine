@@ -319,11 +319,12 @@ namespace Stulu {
 
 		BEGIN_SERIALIZE_COMPONENT(PostProcessingComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent.data, exposure);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent.data, gamma);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent.data.bloomData, bloomIntensity);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent.data.bloomData, bloomTreshold);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent.data.bloomData, bloomEnabled);
+			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.exposure);
+			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.gamma);
+			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.enableGammaCorrection);
+			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.bloomData.bloomIntensity);
+			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.bloomData.bloomTreshold);
+			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.bloomData.bloomEnabled);
 		}
 		END_SERIALIZE_COMPONENT();
 
@@ -331,7 +332,7 @@ namespace Stulu {
 	}
 
 	void SceneSerializer::serialze(const std::string& path) {
-
+		Scene::setActiveScene(m_scene.get());
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
@@ -349,12 +350,15 @@ namespace Stulu {
 
 		out << YAML::EndMap;
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		m_scene->m_registry.each([&](entt::entity id) {
-				GameObject go = { id, m_scene.get() };
-				if (!go.isValid())
-					return;
+		for (auto [id, comp] : m_scene->m_registry.storage<GameObjectBaseComponent>().each()) {
+			GameObject go = { id, m_scene.get() };
+			if (!go.isValid())
+				return;
+
+			SerializerGameObject(out, go);
+		}
+		([&](entt::entity id) {
 				
-				SerializerGameObject(out, go);
 			});
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -367,6 +371,7 @@ namespace Stulu {
 
 
 	bool SceneSerializer::deSerialze(const std::string& path) {
+		Scene::setActiveScene(m_scene.get());
 		try {
 			YAML::Node data = YAML::LoadFile(path);
 			std::string SceneName = data["Scene"].as<std::string>();
@@ -404,31 +409,6 @@ namespace Stulu {
 						DESERIALIZE_PROPERTY(AddedTransformComponent, position);
 						DESERIALIZE_PROPERTY(AddedTransformComponent, rotation);
 						DESERIALIZE_PROPERTY(AddedTransformComponent, scale);
-					}
-					END_DESERIALIZE_COMPONENT();
-
-					BEGIN_DESERIALIZE_COMPONENT(ScriptingComponent);
-					{
-						for (auto inst : componentNode["Scripts"]) {
-							MonoClass* exists = mono_class_from_name(Application::get().getAssemblyManager()->getAssembly()->getImage(), inst["Namespace"].as<std::string>().c_str(), inst["Name"].as<std::string>().c_str());
-							if (exists) {
-								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
-								object->loadAll();
-								for (YAML::detail::iterator_value field : inst["Fields"]) {
-
-									std::string name = field["Name"].as<std::string>();
-									PropertyType type = (PropertyType)field["Type"].as<uint32_t>();
-
-									for (auto fieldItem : object->getFields()) {
-										if (fieldItem->getName() != name || fieldItem->getType() != type)
-											continue;
-										fieldItem->Deserialize(field);
-
-									}
-								}
-								AddedScriptingComponent.runtimeScripts.push_back(object);
-							}
-						}
 					}
 					END_DESERIALIZE_COMPONENT();
 
@@ -505,6 +485,7 @@ namespace Stulu {
 					{
 						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.gamma);
 						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.exposure);
+						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.enableGammaCorrection);
 						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.bloomData.bloomIntensity);
 						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.bloomData.bloomTreshold);
 						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.bloomData.bloomEnabled);
@@ -627,14 +608,39 @@ namespace Stulu {
 			//handle childs and parents
 			if (gos) {
 				for (auto gameObject : gos) {
-					GameObject go = GameObject::getById(gameObject["GameObject"].as<uint64_t>(), m_scene.get());
+					GameObject deserialized = GameObject::getById(gameObject["GameObject"].as<uint64_t>(), m_scene.get());
 
 					auto transformComponentNode = gameObject["TransformComponent"];
 					if (transformComponentNode) {
 						if (transformComponentNode["parent"]) {
-							go.getComponent<TransformComponent>().parent = GameObject::getById(UUID(transformComponentNode["parent"].as<uint64_t>()), m_scene.get());
+							deserialized.getComponent<TransformComponent>().parent = GameObject::getById(UUID(transformComponentNode["parent"].as<uint64_t>()), m_scene.get());
 						}
 					}
+
+					BEGIN_DESERIALIZE_COMPONENT(ScriptingComponent);
+					{
+						for (auto inst : componentNode["Scripts"]) {
+							MonoClass* exists = mono_class_from_name(Application::get().getAssemblyManager()->getAssembly()->getImage(), inst["Namespace"].as<std::string>().c_str(), inst["Name"].as<std::string>().c_str());
+							if (exists) {
+								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
+								object->loadAll();
+								for (YAML::detail::iterator_value field : inst["Fields"]) {
+
+									std::string name = field["Name"].as<std::string>();
+									PropertyType type = (PropertyType)field["Type"].as<uint32_t>();
+
+									for (auto fieldItem : object->getFields()) {
+										if (fieldItem->getName() != name || fieldItem->getType() != type)
+											continue;
+										fieldItem->Deserialize(field);
+
+									}
+								}
+								AddedScriptingComponent.runtimeScripts.push_back(object);
+							}
+						}
+					}
+					END_DESERIALIZE_COMPONENT();
 
 				}
 			}

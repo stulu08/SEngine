@@ -3,6 +3,7 @@
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/ScriptCore/AssemblyManager.h"
+#include "Stulu/Scene/GameObject.h"
 
 namespace Stulu {
 	Ref<Property> Property::Create(MonoObject* object, MonoClassField* field) {
@@ -269,6 +270,7 @@ namespace Stulu {
 			mono_field_set_value(m_parentObjectPtr, m_fieldPtr, &temp);
 	}
 #pragma endregion
+#pragma region Assets
 	AssetProperty::AssetProperty(MonoObject* object, MonoClassField* field)
 		: BaseProperty(object, field) {
 		MonoDomain* domain = Application::get().getAssemblyManager()->getDomain();
@@ -279,8 +281,10 @@ namespace Stulu {
 			// initilized property if null
 			if (m_assetObjectPtr == nullptr) {
 				m_assetObjectPtr = mono_object_new(domain, fieldClass);
-				mono_runtime_object_init(m_assetObjectPtr);
-				mono_field_set_value(m_parentObjectPtr, m_fieldPtr, m_assetObjectPtr);
+				if (m_assetObjectPtr) {
+					mono_runtime_object_init(m_assetObjectPtr);
+					mono_field_set_value(m_parentObjectPtr, m_fieldPtr, m_assetObjectPtr);
+				}
 			}
 		}
 	}
@@ -293,7 +297,7 @@ namespace Stulu {
 	void AssetProperty::CopyValueTo(Ref<Property> other) const {
 		if (other->getType() != this->getType())
 			return;
-		auto otherProp = std::dynamic_pointer_cast<Texture2DProperty>(other);
+		auto otherProp = std::dynamic_pointer_cast<AssetProperty>(other);
 		otherProp->SetValue(this->GetValue());
 	}
 	void* AssetProperty::CopyValueToBuffer() const {
@@ -321,5 +325,76 @@ namespace Stulu {
 			mono_field_set_value(m_assetObjectPtr, m_uuidFieldPtr, &temp);
 		else
 			CORE_ERROR("Null");
+	}
+#pragma endregion
+	GameObjectProperty::GameObjectProperty(MonoObject* object, MonoClassField* field)
+		: BaseProperty(object, field) {
+
+		Ref<ScriptAssembly> assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
+		MonoDomain* domain = assembly->getDomain();
+
+		MonoClass* fieldClass = mono_type_get_class(this->getTypePtr());
+		if (fieldClass) {
+			m_idFieldPtr = mono_class_get_field_from_name(fieldClass, "ID");
+			m_assetObjectPtr = mono_field_get_value_object(domain, m_fieldPtr, m_parentObjectPtr);
+		}
+	}
+
+	void GameObjectProperty::Serialize(YAML::Emitter& out) const {
+		out << YAML::Key << "Value" << (uint64_t)GetValue();
+	}
+	void GameObjectProperty::Deserialize(YAML::detail::iterator_value& node) {
+		SetValue(node["Value"].as<uint64_t>());
+	}
+	void GameObjectProperty::CopyValueTo(Ref<Property> other) const {
+		if (other->getType() != this->getType())
+			return;
+		auto otherProp = std::dynamic_pointer_cast<GameObjectProperty>(other);
+		otherProp->SetValue(this->GetValue());
+	}
+	void* GameObjectProperty::CopyValueToBuffer() const {
+		uint64_t* data = (uint64_t*)malloc(this->getSize());
+		*data = GetValue();
+		return data;
+	}
+	void GameObjectProperty::SetValueFromBuffer(void* source) {
+		if (!source)
+			return;
+		SetValue(*((uint64_t*)source));
+	}
+	UUID GameObjectProperty::GetValue() const {
+		GameObject obj = GameObject((entt::entity)GetValueRaw(), Scene::activeScene());
+		if(obj.isValid())
+			return obj.getId();
+		return UUID::null;
+	}
+	void GameObjectProperty::SetValue(const UUID& value) {
+		SetValueRaw(GameObject::getById(value, Scene::activeScene()));
+	}
+	uint32_t GameObjectProperty::GetValueRaw() const {
+		entt::entity outValue = entt::null;
+		if (m_idFieldPtr && m_assetObjectPtr) {
+			mono_field_get_value(m_assetObjectPtr, m_idFieldPtr, &outValue);
+		}
+		return (uint32_t)outValue;
+	}
+	void GameObjectProperty::SetValueRaw(uint32_t value) {
+		Ref<ScriptAssembly> assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
+		MonoDomain* domain = assembly->getDomain();
+
+		if (m_fieldPtr) {
+			MonoClass* fieldClass = mono_type_get_class(this->getTypePtr());
+			if (!m_assetObjectPtr) {
+				m_assetObjectPtr = mono_object_new(domain, fieldClass);
+			}
+			// call constructor
+			MonoMethod* ctor = mono_class_get_method_from_name(fieldClass, ".ctor", 1);
+			if (ctor) {
+				void* args[1];
+				args[0] = &value;
+				assembly->invokeFunction(ctor, m_assetObjectPtr, args);
+			}
+			mono_field_set_value(m_parentObjectPtr, m_fieldPtr, m_assetObjectPtr);
+		}
 	}
 }

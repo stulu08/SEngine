@@ -18,15 +18,28 @@
 namespace Stulu {
 
 	class GameObjectBaseComponent : public Component {
-	public:
+	private:
 		UUID uuid;
+	public:
+		inline UUID getUUID() const {
+			return uuid;
+		}
+		inline void updateUUID(const UUID& newUuid) {
+			auto& map = gameObject.getScene()->m_uuidGameObjectMap;
+			if(map.find(uuid) != map.end())
+				map.erase(uuid);
+
+			this->uuid = newUuid;
+			map[newUuid] = gameObject;
+		}
+
 		std::string name = "GameObject";
 		std::string tag = "default";
 
 		GameObjectBaseComponent() = default;
 		GameObjectBaseComponent(const GameObjectBaseComponent&) = default;
-		GameObjectBaseComponent(const std::string& name)
-			: name(name) { };
+		GameObjectBaseComponent(const std::string& name, const UUID& uuid)
+			: name(name), uuid(uuid) {};
 	};
 	class TransformComponent : public Component {
 	public:
@@ -216,13 +229,13 @@ namespace Stulu {
 		MeshFilterComponent,
 		NativeBehaviourComponent,
 		CameraComponent,
-		ScriptingComponent,
 		RigidbodyComponent,
 		BoxColliderComponent,
 		SphereColliderComponent,
 		CapsuleColliderComponent,
 		MeshColliderComponent,
 		PostProcessingComponent,
-		ParticleSystemComponent
+		ParticleSystemComponent,
+		ScriptingComponent
 		>;
 }

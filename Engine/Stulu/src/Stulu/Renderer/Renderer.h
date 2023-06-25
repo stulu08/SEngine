@@ -28,6 +28,7 @@ namespace Stulu{
 	struct PostProcessingBufferData {
 		float time = 0.0f;
 		float delta = 0.0f;
+		float enableGammaCorrection = 1.0f;
 		float toneMappingExposure = 1.0f;
 		float gamma = 2.2f;
 		float bloomStrength = 1.0f;

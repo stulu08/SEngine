@@ -74,6 +74,7 @@ namespace Stulu {
 
 		static void drawHelpMarker(const char* desc);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap = false);
+		static bool drawGameObjectEdit(const std::string& header, UUID& gameObject);
 		static bool drawMaterialEdit(const std::string& header, UUID& uuid, bool canChange = true);
 		static bool drawMeshEdit(const std::string& header, UUID& uuid);
 

@@ -97,6 +97,74 @@ namespace Stulu {
 			InternalCalls.renderer2D_drawQuad(ref _position, ref _rotation, ref _scale, ref color);
 		}
 		#endregion
+		#region TEXTUREQUAD
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector3 position, Vector4 color) {
+			Quaternion rotation = new Quaternion(0, 0, 0, 1);
+			Vector3 scale = new Vector3(1);
+			Vector2 tiling = new Vector2(1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref position, ref rotation, ref scale, ref color, ref tiling, texture.ID);
+		}
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector3 position, Vector3 scale, Vector4 color) {
+			Quaternion rotation = new Quaternion(0, 0, 0, 1);
+			Vector2 tiling = new Vector2(1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref position, ref rotation, ref scale, ref color, ref tiling, texture.ID);
+		}
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector3 position, Vector3 scale, Vector4 color, Vector2 tiling) {
+			Quaternion rotation = new Quaternion(0, 0, 0, 1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref position, ref rotation, ref scale, ref color, ref tiling, texture.ID);
+		}
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector3 position, Vector3 scale, Quaternion rotation, Vector4 color, Vector2 tiling) => InternalCalls.renderer2D_drawTexturedQuad(ref position, ref rotation, ref scale, ref color, ref tiling, texture.ID);
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector2 position, Vector4 color) {
+			Vector3 _position = new Vector3(position, 0);
+			Quaternion _rotation = new Quaternion(0, 0, 0, 1);
+			Vector3 _scale = new Vector3(1);
+			Vector2 tiling = new Vector2(1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref _position, ref _rotation, ref _scale, ref color, ref tiling, texture.ID);
+		}
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector2 position, Vector2 scale, Vector4 color) {
+			Vector3 _position = new Vector3(position, 0);
+			Quaternion _rotation = new Quaternion(0, 0, 0, 1);
+			Vector3 _scale = new Vector3(scale, 1);
+			Vector2 tiling = new Vector2(1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref _position, ref _rotation, ref _scale, ref color, ref tiling, texture.ID);
+		}
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector2 position, Vector2 scale, Vector4 color, Vector2 tiling) {
+			Vector3 _position = new Vector3(position, 0);
+			Quaternion _rotation = new Quaternion(0, 0, 0, 1);
+			Vector3 _scale = new Vector3(scale, 1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref _position, ref _rotation, ref _scale, ref color, ref tiling, texture.ID);
+		}
+		/// <summary>
+		/// Draws a 2D Quad
+		/// </summary>
+		public static void drawTexturedQuad(Texture2D texture, Vector2 position, Vector2 scale, float rotation, Vector4 color, Vector2 tiling) {
+			Vector3 _position = new Vector3(position, 0);
+			Quaternion _rotation = new Quaternion(new Vector3(0, 0, rotation));
+			Vector3 _scale = new Vector3(scale, 1);
+			InternalCalls.renderer2D_drawTexturedQuad(ref _position, ref _rotation, ref _scale, ref color, ref tiling, texture.ID);
+		}
+		#endregion
 		#region OutlinedQuad
 		/// <summary>
 		/// Draws a 2D Outlined Quad

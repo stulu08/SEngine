@@ -11,7 +11,7 @@ namespace Stulu {
 		internal void initilize(uint goId) {
 			this.gameObject = new GameObject(goId);
 		}
-		public uint id { get => gameObject.id; }
+		public uint id { get => gameObject.ID; }
 
 		public TransformComponent transform => gameObject.transform;
 		public string name { get => this.gameObject.Name; set => this.gameObject.Name = value; }

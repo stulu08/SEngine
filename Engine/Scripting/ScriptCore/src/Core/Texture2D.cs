@@ -2,7 +2,13 @@
 using System;
 
 namespace Stulu {
-	public class Texture2D : Texture{
+	public class Texture2D : Texture {
+		public static Texture2D White => new Texture2D(InternalCalls.texture2d_getWhiteTexture());
+		public static Texture2D Black => new Texture2D(InternalCalls.texture2d_getBlackTexture());
+
+		internal Texture2D() {
+			Initilize(0);
+		}
 		internal Texture2D(UInt64 id) {
 			Initilize(id);
 		}
@@ -16,13 +22,6 @@ namespace Stulu {
 		/// </summary>
 		public static Texture2D FromPath(string path) {
 			return new Texture2D(InternalCalls.texture2d_findbypath(path));
-		}
-
-		public static bool operator ==(Texture2D tex1, Texture2D tex2) {
-			return tex1.ID == tex2.ID;
-		}
-		public static bool operator !=(Texture2D tex1, Texture2D tex2) {
-			return tex1.ID != tex2.ID;
 		}
 	}
 }

@@ -17,5 +17,9 @@ namespace Stulu {
 
 		Ref<Scene> m_scene;
 		GameObject m_selectedObject = GameObject::null;
+
+		GameObject m_lastHovered;
+		float m_firstHovered;
+		const float m_timeToHoverSelect = 1.0f;
 	};
 }
