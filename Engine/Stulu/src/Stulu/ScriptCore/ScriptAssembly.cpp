@@ -22,7 +22,7 @@ namespace Stulu {
 		}
 
 		mono_domain_set(m_monoScriptDomain, 0);
-
+		
 		m_monoAssembly = mono_domain_assembly_open(mono_domain_get(), m_assembly.c_str());
 		if (!m_monoAssembly) {
 			CORE_ERROR("Mono Assembly creation failed for {0}", m_assembly);

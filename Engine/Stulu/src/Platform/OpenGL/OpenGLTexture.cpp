@@ -13,6 +13,7 @@ namespace Stulu {
 		m_width = width;
 		m_height = height;
 		m_settings = settings;
+		m_rendererID = 0;
 		m_hasMips = m_settings.levels > 1 || m_settings.forceGenMips;
 
 		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(m_settings.format);
@@ -32,7 +33,6 @@ namespace Stulu {
 
 		if (m_hasMips)
 			glGenerateMipmap(GL_TEXTURE_2D);
-		
 	}
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, const TextureSettings& settings)
 		:m_path(path), m_settings(settings) {

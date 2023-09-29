@@ -47,7 +47,6 @@ namespace Stulu {
 			}
 		}
 		buildAssembly(s_project.dataPath + "/EdiorProjectAssembly.dll");
-		//m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/ProjectAssembly.dll");
 		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EdiorProjectAssembly.dll", "Data/Managed/Stulu.ScriptCore.dll");
 		s_project.assembly = getAssemblyManager()->getAssembly();
 

@@ -93,9 +93,16 @@ project "Stulu"
 	}
 	
 	postbuildcommands{
+		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/mono\"",
+		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data\"",
+		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
+
 		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/LooseFiles/\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.5\" \"%{ProjectDir.Stulu}/LooseFiles/mono/4.5\"",
 		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/LooseFiles/mono/4.8-Api\"",
+
+		"{COPYDIR} \"%{physxDir}/loader/" .. outputdir .. "\" \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
+
 	}
 	
 	

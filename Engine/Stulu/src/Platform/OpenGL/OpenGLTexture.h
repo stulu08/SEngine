@@ -37,6 +37,9 @@ namespace Stulu {
 		virtual operator int() override { return m_rendererID; }
 		//temp
 		virtual std::string getPath() const override { return m_path; }
+
+		// internal
+		void setSettings(const TextureSettings& settings) { m_settings = settings; }
 	private:
 		std::string m_path = "";
 		uint32_t m_width;

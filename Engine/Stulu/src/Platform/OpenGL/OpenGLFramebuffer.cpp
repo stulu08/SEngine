@@ -83,10 +83,8 @@ namespace Stulu {
 			glDeleteTextures(1, &m_depthAttachment);
 		if (m_colorAttachment)
 			glDeleteTextures(1, &m_colorAttachment);
-		
 		bool multisampled = m_specs.samples > 1;
 		GLenum target = multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
-
 
 		if(m_specs.colorTexture.format != TextureFormat::None) {
 			TextureSettings& settings = m_specs.colorTexture;
@@ -193,5 +191,9 @@ namespace Stulu {
 		else {
 			m_colorTexture->updateInternal(m_colorAttachment, m_specs.width, m_specs.height, m_specs.colorTexture);
 		}
+		if(m_colorTexture)
+			m_colorTexture->setSettings(this->m_specs.colorTexture);
+		if (m_depthTexture)
+			m_depthTexture->setSettings(this->m_specs.depthTexture);
 	}
 }
