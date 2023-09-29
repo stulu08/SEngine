@@ -1,0 +1,8 @@
+not all is mine
+https://github.com/TheCherno/Hazel/tree/master/scripts
+https://github.com/TheCherno/Hazel
+https://github.com/TheCherno
+
+I wrote 
+setupMono.py
+and parts of setup.py, setupVulkan.py

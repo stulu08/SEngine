@@ -1,24 +1,27 @@
 [submodule "Stulu/vendor/spdlog"]
-	path = Stulu/vendor/spdlog
+	path = Dependencies/spdlog
 	url = https://github.com/gabime/spdlog
 [submodule "Stulu/vendor/glm"]
-	path = Stulu/vendor/glm
+	path = Dependencies/glm
 	url = https://github.com/g-truc/glm
 [submodule "Stulu/vendor/GLFW"]
-	path = Stulu/vendor/GLFW
+	path = Dependencies/GLFW
 	url = https://github.com/stulu08/glfw
 [submodule "Stulu/vendor/imgui"]
-	path = Stulu/vendor/imgui
+	path = Dependencies/imgui
 	url = https://github.com/stulu08/imgui
 [submodule "Stulu/vendor/assimp"]
-	path = Stulu/vendor/assimp
+	path = Dependencies/assimp
 	url = https://github.com/stulu08/assimp
 [submodule "Editor/vendor/discord-rpc"]
-	path = Editor/vendor/discord-rpc
+	path = Dependencies/discord-rpc
 	url = https://github.com/stulu08/discord-rpc
 [submodule "Stulu/vendor/ImGuizmo"]
-	path = Stulu/vendor/ImGuizmo
+	path = Dependencies/ImGuizmo
 	url = https://github.com/stulu08/ImGuizmo
 [submodule "Stulu/vendor/yaml-cpp"]
-	path = Stulu/vendor/yaml-cpp
+	path = Dependencies/yaml-cpp
 	url = https://github.com/stulu08/yaml-cpp
+[submodule "Stulu/vendor/PhysX"]
+	path = Dependencies/PhysX
+	url = https://github.com/stulu08/PhysX-Premake

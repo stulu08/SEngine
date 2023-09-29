@@ -1,4 +1,5 @@
-include "./vendor/premake/premake_customization/solution_items.lua"
+include "./Dependencies/premake/premake_customization/solution_items.lua"
+include "./Dependencies/premake/premake_customization/generate_doc.lua"
 workspace "Stulu"
 	startproject "Editor"
 	configurations
@@ -14,59 +15,78 @@ workspace "Stulu"
 	solution_items 
 	{
 		"premake5.lua",
-		"Editor/premake5.lua",
-		"Stulu/premake5.lua",
+		"Engine/Editor/premake5.lua",
+		"Engine/Stulu/premake5.lua",
+		"Engine/Runtime/premake5.lua",
 		"README.md"
-		
 	}
-	architecture "x64"
+	architecture "x86_64"
+
+	filter "configurations:Debug"
+		defines     "_DEBUG"
+
+	filter "configurations:Release or Dist"
+		defines     "NDEBUG"
+
+	filter { "system:windows", "configurations:Dist", "toolset:not mingw" }
+		flags		{ "LinkTimeOptimization" }
+	
+	filter "action:vs*"
+		linkoptions {
+			"/ignore:4006",
+			"/ignore:4099"
+		}
 
 staticBuild = true
 staticRuntime = true
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
-builddir = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-builddirData = "%{wks.location}/build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/data"
+builddir = "%{wks.location}/Engine/Build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 vulkanSDK = os.getenv("VULKAN_SDK")
-physx = "%{wks.location}/Stulu/vendor/physx"
-
-IncludeDir = {}
-IncludeDir["spdlog"] = "%{wks.location}/Stulu/vendor/spdlog/include"
-IncludeDir["GLFW"] = "%{wks.location}/Stulu/vendor/GLFW/include"
-IncludeDir["Glad"] = "%{wks.location}/Stulu/vendor/Glad/include"
-IncludeDir["ImGui"] = "%{wks.location}/Stulu/vendor/imgui"
-IncludeDir["ImGuizmo"] = "%{wks.location}/Stulu/vendor/ImGuizmo"
-IncludeDir["assimp"] = "%{wks.location}/Stulu/vendor/assimp/include"
-IncludeDir["glm"] = "%{wks.location}/Stulu/vendor/glm"
-IncludeDir["yaml_cpp"] = "%{wks.location}/Stulu/vendor/yaml-cpp/include"
-IncludeDir["stb_image"] = "%{wks.location}/Stulu/vendor/stb_image"
-IncludeDir["noise"] = "%{wks.location}/Stulu/vendor/ReputelessPerlinNoise"
-IncludeDir["entt"] = "%{wks.location}/Stulu/vendor/entt"
-IncludeDir["Vulkan"] = "%{vulkanSDK}/Include"
-IncludeDir["PhysX"] = "%{physx}/include"
-IncludeDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc/include"
+monoDir = os.getenv("MONO_PATH")
+dependencies = "%{wks.location}/Dependencies"
+physxDir = "%{dependencies}/PhysX/"
 
 ProjectDir = {}
-ProjectDir["Stulu"] = "%{wks.location}/Stulu"
-ProjectDir["Editor"] = "%{wks.location}/Editor"
-ProjectDir["Discord"] = "%{wks.location}/Editor/vendor/discord-rpc"
-ProjectDir["Demo"] = "%{wks.location}/Demo"
+ProjectDir["Stulu"] = "%{wks.location}/Engine/Stulu"
+ProjectDir["Editor"] = "%{wks.location}/Engine/Editor"
+ProjectDir["Runtime"] = "%{wks.location}/Engine/Runtime"
+ProjectDir["ScriptCore"] = "%{wks.location}/Engine/Scripting/ScriptCore"
+ProjectDir["EditorScriptCore"] = "%{wks.location}/Engine/Scripting/EditorScriptCore"
+ProjectDir["DebugProject"] = "%{wks.location}/Projects/DebugProject"
+
+IncludeDir = {}
+IncludeDir["spdlog"] = "%{dependencies}/spdlog/include"
+IncludeDir["GLFW"] = "%{dependencies}/GLFW/include"
+IncludeDir["Glad"] = "%{dependencies}/Glad/include"
+IncludeDir["ImGui"] = "%{dependencies}/imgui"
+IncludeDir["ImGuizmo"] = "%{dependencies}/ImGuizmo"
+IncludeDir["assimp"] = "%{dependencies}/assimp/include"
+IncludeDir["glm"] = "%{dependencies}/glm"
+IncludeDir["yaml_cpp"] = "%{dependencies}/yaml-cpp/include"
+IncludeDir["stb_image"] = "%{dependencies}/stb_image"
+IncludeDir["noise"] = "%{dependencies}/ReputelessPerlinNoise"
+IncludeDir["entt"] = "%{dependencies}/entt"
+IncludeDir["Discord"] = "%{dependencies}/discord-rpc/include"
+IncludeDir["Vulkan"] = "%{vulkanSDK}/Include"
+IncludeDir["PhysX"] = "%{physxDir}/include"
+IncludeDir["mono"] = "%{monoDir}/include/mono-2.0"
+IncludeDir["Stulu"] = "%{ProjectDir.Stulu}/src"
 
 
+include "Dependencies/PhysX"
 group "Dependencies"
-include "Stulu/vendor/GLFW"
-include "Stulu/vendor/Glad"
-include "Stulu/vendor/imgui"
-include "Stulu/vendor/assimp"
-include "Stulu/vendor/yaml-cpp"
-include "Stulu/vendor/ImGuizmo"
-include "Editor/vendor/discord-rpc"
+include "Dependencies/GLFW"
+include "Dependencies/Glad"
+include "Dependencies/imgui"
+include "Dependencies/assimp"
+include "Dependencies/yaml-cpp"
+include "Dependencies/ImGuizmo"
+include "Dependencies/discord-rpc"
+group "Engine"
+include "Engine/Stulu"
+include "Engine/Editor"
+include "Engine/Runtime"
+include "Engine/Scripting"
 group ""
-
-include "Stulu"
-include "Editor"
-include "VulkanTesting"
-include "Stulu Hub"
-include "Demo"

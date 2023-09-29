@@ -1,9 +1,0 @@
-uuid: 6191677976667509058
-type: 4
-props:
-  meshes:
-    - uuid: 1145864717682832425
-      index: 0
-    - uuid: 11267236082947906107
-      index: 1
-  test: tests

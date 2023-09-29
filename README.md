@@ -1,6 +1,6 @@
 # Stulu Engine [![License](https://img.shields.io/github/license/Stulu08/Sengine.svg)](https://github.com/Stulu08/SEngine/blob/master/LICENSE)
 <p align="center">
-  <img width="600" height="600" src="https://github.com/stulu08/SEngine/raw/main/resources/logo/engine-logo.png">
+  <img width="600" height="600" src="https://raw.githubusercontent.com/stulu08/SEngine/dev/Resources/Logo/engine-logo.png">
 </p>
 
 The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial series by The Cherno on Youtube. It runs currently only on windows with opengl and not very much is implemented.
@@ -45,19 +45,18 @@ The Stulu Engine is an 3D and 2D Game Engine which is write with the tutorial se
 
 - Download or clone the repository with all the submodules
 
-- Run the [setup.bat](https://github.com/stulu08/SEngine/blob/main/generateProjects.bat) file to install python and vulkan
+- Run the [setup.bat](https://github.com/stulu08/SEngine/blob/main/scripts/setup.bat) file to install or check for python, vulkan and mono
 
 - Open the Solution and build the project
 
 
 ***
 ### Next
-- File Watcher
-- Much optimization(my code is garbage)
-- 3D Rendering(Thread, Render queue, Shadows, Reflections)
-- 2D Rendering
-- Scripting(C#)
 - Vulkan
+- Much optimization(my code is garbage)
+- More Physics(Joints, Springs, 2D)
+- Shadows
+- File Watcher
 
 
 Icons for the Assets Explorer made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/)

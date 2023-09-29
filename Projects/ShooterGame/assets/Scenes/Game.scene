@@ -1,0 +1,118 @@
+Scene: Untitled
+Settings:
+  shaderFlags: 0
+  env_lod: 1
+  shadowDistance: 50
+  shadowFar: 500
+  enablePhsyics3D: true
+  physicsData.gravity: [0, -9.80000019, 0]
+  physicsData.length: 1
+  physicsData.speed: 9.81000042
+  physicsData.workerThreads: 4
+GameObjects:
+  - GameObject: 13466669828294394545
+    GameObjectBaseComponent:
+      tag: default
+      name: WeaponPos
+    TransformComponent:
+      position: [0.15273577, 0.438662261, -1.00000381]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 13048292393727820683
+  - GameObject: 14564680955990931456
+    GameObjectBaseComponent:
+      tag: default
+      name: Map
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [100, 100, 1]
+    SpriteRendererComponent:
+      color: [1, 1, 1, 1]
+      tiling: [100, 100]
+      texture: 14290160134042434897
+  - GameObject: 13048292393727820683
+    GameObjectBaseComponent:
+      tag: MainCam
+      name: Player
+    TransformComponent:
+      position: [0, 0, 50]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    ScriptingComponent:
+      Scripts:
+        - Name: Player
+          Namespace: ""
+          Fields:
+            - Name: Speed
+              Type: 4
+              Value: 8
+            - Name: FireRate
+              Type: 4
+              Value: 20
+            - Name: nextTimeToFire
+              Type: 4
+              Value: 2.38187099
+            - Name: SpriteRendererObject
+              Type: 9
+              Value: 13083740738606192618
+            - Name: WeaponPosObject
+              Type: 9
+              Value: 13466669828294394545
+            - Name: WalkTexture
+              Type: 8
+              Value: 8684234338152933478
+            - Name: ShootTexture
+              Type: 8
+              Value: 2189050282932716799
+            - Name: IdleTexture
+              Type: 8
+              Value: 16954993210861126876
+            - Name: KnifeTexture
+              Type: 8
+              Value: 9688856221568096034
+            - Name: KnifeIdle
+              Type: 8
+              Value: 13464879091170913085
+            - Name: activeTexture
+              Type: 8
+              Value: 0
+            - Name: state
+              Type: 0
+            - Name: counter
+              Type: 5
+              Value: 30
+    CameraComponent:
+      Camera Settings:
+        clearColor: [0.199115038, 0.199115038, 0.199115038, 1]
+        clearType: 0
+        fov: 80
+        zoom: 5
+        zFar: 250
+        isRenderTarget: false
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
+      mode: 1
+      depth: 1
+      renderTexture: 0
+    PostProcessingComponent:
+      data.exposure: 1
+      data.gamma: 2.20000005
+      data.enableGammaCorrection: 0
+      data.bloomData.bloomIntensity: 0.5
+      data.bloomData.bloomTreshold: 1.10000002
+      data.bloomData.bloomEnabled: false
+  - GameObject: 13083740738606192618
+    GameObjectBaseComponent:
+      tag: default
+      name: Sprite
+    TransformComponent:
+      position: [0, 0, -1]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 13048292393727820683
+    SpriteRendererComponent:
+      color: [1, 1, 1, 1]
+      tiling: [1, 1]
+      texture: 16954993210861126876
