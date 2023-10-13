@@ -177,16 +177,28 @@ namespace Stulu {
 		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(402)).data);
 	}
 	MeshAsset& Resources::getSphereMeshAsset() {
-		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data);
+		if (AssetsManager::existsAndType(UUID(404), AssetType::Mesh)) {
+			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(404)).data);
+		}
+		return getCubeMeshAsset();
 	}
 	MeshAsset& Resources::getHighResSphereMeshAsset() {
-		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(407)).data);
+		if (AssetsManager::existsAndType(UUID(407), AssetType::Mesh)) {
+			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(407)).data);
+		}
+		return getCubeMeshAsset();
 	}
 	MeshAsset& Resources::getIcoSphereMeshAsset() {
-		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(406)).data);
+		if (AssetsManager::existsAndType(UUID(406), AssetType::Mesh)) {
+			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(406)).data);
+		}
+		return getCubeMeshAsset();
 	}
 	MeshAsset& Resources::getCapsuleMeshAsset() {
-		return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(405)).data);
+		if (AssetsManager::existsAndType(UUID(405), AssetType::Mesh)) {
+			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(405)).data);
+		}
+		return getCubeMeshAsset();
 	}
 
 	Ref<VertexArray>& Resources::getFullscreenVA() {

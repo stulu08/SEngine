@@ -2,10 +2,8 @@
 .vs/
 bin/
 bin-int/
-Stulu/vendor/VulkanSDK
 Build/
-DebugProject/Data
-DebugProject/temp
+__pycache__
 
 #Files
 *.sln

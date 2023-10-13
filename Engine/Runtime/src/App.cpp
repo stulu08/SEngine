@@ -29,6 +29,7 @@ namespace Stulu {
 			appInfo.DefaultAssetsPath = "Stulu";
 			appInfo.EnableImgui = false;
 			appInfo.HideWindowOnSart = false;
+			appInfo.LoadDefaultAssets = true;
 
 			if (node["Window Title"])
 				appInfo.windowProps.title = node["Window Title"].as<std::string>();
@@ -54,8 +55,7 @@ namespace Stulu {
 
 	RuntimeApp::RuntimeApp(const ApplicationInfo& appInfo) 
 		: Application(appInfo) {
-
-		Log::addFileSink("logs / " + Log::generateTimeString() + ".log", Log::Level::warn);
+		Log::addFileSink("logs/" + Log::generateTimeString() + ".log", Log::Level::warn);
 
 		getWindow().setVSync(appInfo.windowProps.VSync);
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();

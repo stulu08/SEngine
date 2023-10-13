@@ -26,7 +26,6 @@ class MonoConfiguration:
     def CheckMono(cls):
         mono = os.environ.get("MONO_PATH")
         if (mono is None):
-            print("\nYou don't have Mono installed correctly!")
             print("Checking for mono at path " + cls.defaultMonoDir)
             
             if(os.path.isdir(cls.defaultMonoDir)):

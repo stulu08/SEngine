@@ -10,6 +10,7 @@
 #include "Stulu/Core/Input.h"
 #include "Stulu/Core/Resources.h"
 #include "Stulu/ScriptCore/AssemblyManager.h"
+#include "Stulu/ImGui/Gizmo.h"
 
 namespace Stulu {
 #ifdef OPENGL
@@ -30,11 +31,13 @@ namespace Stulu {
 		s_instance = this;
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
-		Renderer::init();
+		if (appInfo.LoadDefaultAssets) {
+			Renderer::init();
+		}
 		if (appInfo.HideWindowOnSart) {
 			m_window->hide();
 		}
-		else {
+		else if(!appInfo.LoadDefaultAssets){
 			//Load Texture for loading
 			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.windowProps.width, m_appInfo.windowProps.height));
 
@@ -56,12 +59,17 @@ namespace Stulu {
 
 			m_window->onUpdate();
 		}
-		CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), appInfo.DefaultAssetsPath);
-		Resources::load();
+		if (appInfo.LoadDefaultAssets) {
+			CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), appInfo.DefaultAssetsPath);
+			Resources::load();
+		}
 
 		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
+		}
+		if (appInfo.LoadDefaultAssets) {
+			Gizmo::init();
 		}
 	}
 	Application::~Application() {

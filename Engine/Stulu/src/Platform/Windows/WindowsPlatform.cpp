@@ -140,6 +140,9 @@ namespace Stulu {
 
 		return { totalVirtualMem,virtualMemUsed,virtualMemUsedByMe,totalPhysMem,physMemUsed,physMemUsedByMe };
 	}
+	int Platform::Message(const std::string& title, const std::string& msg, uint32_t type) {
+		return MessageBoxA(NULL, msg.c_str(), title.c_str(), type);
+	}
 	int Platform::changeWorkingDirectory(const char* dir) {
 		int succes;
 		wchar_t wide_buffer[MAX_PATH];

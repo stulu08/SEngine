@@ -34,10 +34,6 @@ namespace Stulu {
 		static void setStyleByInt(int style);
 		static void setFontByInt(int style);
 
-		static void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
-		static void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);
-		static void StyleColorsDark(ImGuiStyle* dst = NULL);
-
 		static inline void saveAll() { save(); saveColors(); }
 	private:
 		static void loadFonts();

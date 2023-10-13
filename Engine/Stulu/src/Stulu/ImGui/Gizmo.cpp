@@ -156,7 +156,7 @@ namespace Stulu {
 			s_data.sphereVertexArray = VertexArray::create();
 			//copy sphere mesh
 			{
-				Ref<Mesh>& sphereMesh = Resources::getSphereMesh();
+				Ref<Mesh> sphereMesh = Resources::getSphereMesh();
 
 				Ref<VertexBuffer> vb = VertexBuffer::create((uint32_t)(sphereMesh->getVerticesCount() * sizeof(Vertex)), &sphereMesh->getVertices()[0]);
 				vb->setLayout(Mesh::getDefaultLayout());

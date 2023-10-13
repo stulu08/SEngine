@@ -8,7 +8,7 @@ project "Editor"
 	targetname ("Stulu Editor");
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
-	debugdir ("" .. builddir .. "")
+	debugdir ("" .. builddir .. "/Editor")
 	debugargs { "%{wks.location}/Projects/DebugProject/DebugProject.sproj" }
 	dependson { "EditorScriptCore","Runtime" }
 	defines
@@ -43,17 +43,17 @@ project "Editor"
 		"%{IncludeDir.Discord}",
 	}
 	postbuildcommands {
-		"{MKDIR} ".. builddir .."/Build",
+		"{MKDIR} ".. builddir .."/Editor/Build",
 
-		"{COPY} %{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "",
+		"{COPY} %{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "/Editor",
 
-		"{COPYDIR} %{ProjectDir.Editor}/LooseFiles " .. builddir .. "",
-		"{COPYDIR} %{ProjectDir.Stulu}/LooseFiles " .. builddir .. "",
+		"{COPYDIR} %{ProjectDir.Editor}/LooseFiles " .. builddir .. "/Editor",
+		"{COPYDIR} %{ProjectDir.Stulu}/LooseFiles " .. builddir .. "/Editor",
 		
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." " .. builddir .. "/Data/Managed",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." " .. builddir .. "/Data/Managed",
+		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." " .. builddir .. "/Editor/Data/Managed",
+		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." " .. builddir .. "/Editor/Data/Managed",
 
-		"{COPYFILE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exe\" \"" .. builddir .. "/Build/Stulu Runtime.exe\"",
+		"{COPYFILE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exe\" \"" .. builddir .. "/Editor/Build/Stulu Runtime.exe\"",
 	}
 	links
 	{
@@ -62,7 +62,7 @@ project "Editor"
 	}
 	filter "system:windows"
 		systemversion "latest"
-		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Editor.exe\" " .. builddir .. "")
+		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Editor.exe\" " .. builddir .. "/Editor")
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"

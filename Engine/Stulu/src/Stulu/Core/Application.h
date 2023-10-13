@@ -15,6 +15,8 @@ namespace Stulu {
 		std::string DefaultAssetsPath;
 		bool HideWindowOnSart;
 		bool EnableImgui;
+		// this includes default assets, gizmo and renderer
+		bool LoadDefaultAssets;
 		WindowProps windowProps;
 
 		ApplicationInfo(
@@ -23,10 +25,11 @@ namespace Stulu {
 			const std::string& defaultAssetsPath = "assets", 
 			bool hideWindowOnSart = false, 
 			bool EnableImgui = true,
+			bool LoadDefaultAssets = true,
 			const WindowProps& windowProps = WindowProps())
 			:	ApplicationName(applicationName), ApplicationVersion(applicationVersion), 
 				DefaultAssetsPath(defaultAssetsPath), HideWindowOnSart(hideWindowOnSart),
-				EnableImgui(EnableImgui), windowProps(windowProps) { }
+				EnableImgui(EnableImgui), LoadDefaultAssets(LoadDefaultAssets), windowProps(windowProps) { }
 	};
 	class STULU_API AssemblyManager;
 	class STULU_API Application {

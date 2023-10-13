@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import platform
 
@@ -19,11 +20,14 @@ MonoRequirements.Validate()
 print("\nUpdating submodules...")
 subprocess.call(["git", "submodule", "update", "--init", "--recursive"])
 
+if (len(sys.argv) > 1 and sys.argv[1] == "nobuild"):
+    sys.exit(0)
+
 if (premakeInstalled):
     #if platform.system() == "Windows":
     #    print("\nRunning premake...")
     #    subprocess.call([os.path.abspath("./scripts/Win-GenProjects.bat"), "nopause"])
-    print('\nWhat project files do you want?')
+    print('\nSelect action')
     print("   \"-vs22\" for Visual Studio 2022")
     print("   \"-vs19\" for Visual Studio 2019")
     print("   \"-make\" for GNU Makefiles")

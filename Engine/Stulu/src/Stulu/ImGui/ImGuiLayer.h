@@ -5,6 +5,7 @@ struct ImVec2;
 struct ImVec4;
 struct ImGuiContext;
 struct ImDrawList;
+struct ImGuiStyle;
 #ifndef ImTextureID
 typedef void* ImTextureID;          // Default: store a pointer or an integer fitting in a pointer (most renderer backends are ok with that)
 #endif
@@ -29,6 +30,10 @@ namespace ImGui {
 	STULU_API bool ImageButton(const Stulu::Ref<Stulu::Texture>& texture, const glm::vec2& size, const glm::vec2& uv0 = glm::vec2(0, 0), const glm::vec2& uv1 = glm::vec2(1, 1), int frame_padding = -1, const glm::vec4& bg_col = glm::vec4(0, 0, 0, 0), const glm::vec4& tint_col = glm::vec4(1, 1, 1, 1));    // <0 frame_padding uses default frame padding settings. 0 for no padding
 
 	STULU_API ImTextureID StuluTextureToImGui(const Stulu::Ref<Stulu::Texture>& texture);
+
+	STULU_API void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
+	STULU_API void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);
+	STULU_API void StyleColorsGrayDark(ImGuiStyle* dst = NULL);
 }
 namespace Stulu {
 	class STULU_API ImGuiLayer : public Layer
