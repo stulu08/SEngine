@@ -29,11 +29,14 @@ namespace Stulu {
 		:m_appInfo(appInfo) {
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
+
 		m_window = Window::create(m_appInfo.windowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
+
 		if (appInfo.LoadDefaultAssets) {
 			Renderer::init();
 		}
+
 		if (appInfo.HideWindowOnSart) {
 			m_window->hide();
 		}
@@ -59,6 +62,7 @@ namespace Stulu {
 
 			m_window->onUpdate();
 		}
+
 		if (appInfo.LoadDefaultAssets) {
 			CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), appInfo.DefaultAssetsPath);
 			Resources::load();
@@ -68,9 +72,12 @@ namespace Stulu {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
 		}
+
 		if (appInfo.LoadDefaultAssets) {
 			Gizmo::init();
 		}
+
+		Resources::GameAssetDirectory = appInfo.DefaultAssetsPath;
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();

@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include <process.h>
+#include <shellapi.h>
 
 namespace Stulu::Launcher {
 	static bool Downloading = false;
@@ -20,7 +21,6 @@ namespace Stulu::Launcher {
 		std::string path = *_path;
 		std::string arg = "git clone https://github.com/stulu08/SEngine.git ";
 		arg += "\"" + path + "\" --recursive";
-		CORE_INFO(arg);
 		if (std::system(arg.c_str())) {
 			std::filesystem::current_path(path);
 			if (std::system("git status")) {
@@ -100,6 +100,31 @@ FOR /F "tokens=*" %%g IN ('"Engine\Editor\LooseFiles\tools\vswhere.exe" -latest 
 			return true;
 		}
 		return false;
+	}
+	std::string TranslateDownloadError(uint32_t code) {
+		/*
+#define ERROR_PATH 1
+#define ERROR_GIT 2
+#define ERROR_SETUP 3
+#define ERROR_PREMAKE 4
+#define ERROR_BUILD 5
+#define ERROR_BUILD_FILE 6
+		*/
+		switch (code)
+		{
+		case ERROR_PATH:
+			return "Invalid Path";
+		case ERROR_GIT:
+			return "Could not clone or pull repo";
+		case ERROR_SETUP:
+			return "Error while running setup";
+		case ERROR_PREMAKE:
+			return "Error while generating build files";
+		case ERROR_BUILD_FILE:
+		case ERROR_BUILD:
+			return "Error while building";
+		}
+		return "Could not translate!";
 	}
 }
 #endif

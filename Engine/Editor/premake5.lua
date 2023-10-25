@@ -43,15 +43,15 @@ project "Editor"
 		"%{IncludeDir.Discord}",
 	}
 	postbuildcommands {
-		"{MKDIR} ".. builddir .."/Editor/Build",
+		"{MKDIR} \"".. builddir .."/Editor/Build\"",
 
-		"{COPY} %{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll " .. builddir .. "/Editor",
+		"{COPY} \"%{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll\" \"" .. builddir .. "/Editor\"",
 
-		"{COPYDIR} %{ProjectDir.Editor}/LooseFiles " .. builddir .. "/Editor",
-		"{COPYDIR} %{ProjectDir.Stulu}/LooseFiles " .. builddir .. "/Editor",
+		"{COPYDIR} \"%{ProjectDir.Editor}/LooseFiles\" \"" .. builddir .. "/Editor\"",
+		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles\" \"" .. builddir .. "/Editor\"",
 		
-		"{COPYDIR} %{ProjectDir.ScriptCore}/bin/".. outputdir .." " .. builddir .. "/Editor/Data/Managed",
-		"{COPYDIR} %{ProjectDir.EditorScriptCore}/bin/".. outputdir .." " .. builddir .. "/Editor/Data/Managed",
+		"{COPYDIR} \"%{ProjectDir.ScriptCore}/bin/".. outputdir .."\" \"" .. builddir .. "/Editor/Data/Managed\"",
+		"{COPYDIR} \"%{ProjectDir.EditorScriptCore}/bin/".. outputdir .."\" \"" .. builddir .. "/Editor/Data/Managed\"",
 
 		"{COPYFILE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exe\" \"" .. builddir .. "/Editor/Build/Stulu Runtime.exe\"",
 	}

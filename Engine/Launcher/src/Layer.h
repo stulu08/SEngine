@@ -12,6 +12,7 @@ namespace Stulu::Launcher {
 
 	void StartDownload(const std::string& path);
 	bool CheckDownloadFinished(uint32_t& ret);
+	std::string TranslateDownloadError(uint32_t code);
 
 	class LauncherLayer : public Layer {
 	public:

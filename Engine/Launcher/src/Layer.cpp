@@ -25,18 +25,18 @@ namespace Stulu::Launcher {
 
 	void LauncherLayer::onImguiRender(Timestep timestep) {
 		RenderCommand::clear();
-		// create one big window
+
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
 
 		const float margin = ImGui::GetStyle().ItemSpacing.x;
-
 		m_width = viewport->Size.x;
 		m_height = viewport->Size.y;
 		m_menuBarWidth = m_width / 8.0f;
 		m_userHeight = m_height - (margin * 2.0f);
 		m_contentAreaWidth = m_width - m_menuBarWidth - (margin * 3.0f);
+
 		if (ImGui::Begin("##Main", (bool*)0, ImGuiWindowFlags_NoDecoration)) {
 			if (ImGui::BeginChild("##Menu", ImVec2(m_menuBarWidth, m_userHeight), true)) {
 				if (ImGui::Selectable("Home", &m_showHome, ImGuiSelectableFlags_SpanAllColumns)) {
@@ -69,10 +69,12 @@ namespace Stulu::Launcher {
 			ImGui::Text("Path");
 			ImGui::SameLine();
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
+
 			ImGui::SetNextItemWidth(m_contentAreaWidth / 3.0f);
 			ImGui::InputText("##Path", &path);
 
 			ImGui::SameLine();
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
 			if (ImGui::Button("Browse")) {
 				path = Platform::browseFolder();
 			}
@@ -93,7 +95,7 @@ namespace Stulu::Launcher {
 		uint32_t ret = 0;
 		if (CheckDownloadFinished(ret)) {
 			if (ret) {
-				Platform::Message("Error", "An error occured while downloading: " + std::to_string(ret), (uint32_t)MessageBoxType::Icon_Error | (uint32_t)MessageBoxType::Ok);
+				Platform::Message("Error", "An error occured while downloading: " + std::to_string(ret) + "\n" + TranslateDownloadError(ret), (uint32_t)MessageBoxType::Icon_Error | (uint32_t)MessageBoxType::Ok);
 			}
 			else {
 				Platform::Message("Sucess", "Engine was downloaded", (uint32_t)MessageBoxType::Icon_Information | (uint32_t)MessageBoxType::Ok);
@@ -102,28 +104,31 @@ namespace Stulu::Launcher {
 		}
 	}
 	void LauncherLayer::drawEngineWindow() {
-		if (ImGui::Button("Download Engine")) {
-			m_openDownload = true;
-		}
 		if (m_downloading) {
+			ImGui::BeginDisabled();
 			const uint32_t t = (uint32_t)Time::applicationRuntime;
 			if (t % 4 == 0) {
-				ImGui::Text("Downloading");
+				ImGui::Button("Downloading");
 			}
 			else if (t % 4 == 1) {
-				ImGui::Text("Downloading.");
+				ImGui::Button("Downloading.");
 			}
 			else if (t % 4 == 2) {
-				ImGui::Text("Downloading..");
+				ImGui::Button("Downloading..");
 			}
 			else if (t % 4 == 3) {
-				ImGui::Text("Downloading...");
+				ImGui::Button("Downloading...");
 			}
+			ImGui::EndDisabled();
+		}else if (ImGui::Button("Download Engine")) {
+			m_openDownload = true;
 		}
 
 	}
 	void LauncherLayer::drawProjectsWindow() {
-
+		if (ImGui::Button("Add Existing")) {
+			Platform::openFile("Stulu Project Files (*.sproj)\0 *.sproj");
+		}
 	}
 	void LauncherLayer::drawHomeWindow() {
 		auto tex = Resources::getLogoTexture();
@@ -131,7 +136,7 @@ namespace Stulu::Launcher {
 		const float width = m_contentAreaWidth / 2.0f;
 		const float height = m_contentAreaWidth / 2.0f * aspect;
 		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - width) * 0.5f);
-		ImGui::Image(Resources::getLogoTexture(), { width, height }, { 0,1 }, { 1,0 });
+		ImGui::Image(tex, { width, height }, { 0,1 }, { 1,0 });
 	}
 	void LauncherLayer::drawMainWindow() {
 		if (m_showHome) {
