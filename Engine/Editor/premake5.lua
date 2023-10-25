@@ -62,7 +62,7 @@ project "Editor"
 	}
 	filter "system:windows"
 		systemversion "latest"
-		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Editor.exe\" " .. builddir .. "/Editor")
+		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Editor.exe\" \"" .. builddir .. "/Editor\"")
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
