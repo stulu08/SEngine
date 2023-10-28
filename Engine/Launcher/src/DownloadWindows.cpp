@@ -58,7 +58,7 @@ FOR /F "tokens=*" %%g IN ('"Engine\Editor\LooseFiles\tools\vswhere.exe" -latest 
 		arg += " -nologo";
 		fputs(arg.c_str(), file);
 		fclose(file);
-
+		
 		if (system("call build.bat")) {
 			CORE_ERROR("Building failed");
 			return ERROR_BUILD;

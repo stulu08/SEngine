@@ -9,7 +9,6 @@ namespace Stulu::Launcher {
 
 	LauncherLayer::LauncherLayer()
 		: Layer("LauncherLayer") {
-		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 	}
 
 	LauncherLayer::~LauncherLayer() {
@@ -21,9 +20,11 @@ namespace Stulu::Launcher {
 		io.IniFilename = NULL;
 
 		ImGui::StyleColorsOceanDark();
+
 	}
 
 	void LauncherLayer::onImguiRender(Timestep timestep) {
+		RenderCommand::setClearColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 		RenderCommand::clear();
 
 		ImGuiViewport* viewport = ImGui::GetMainViewport();

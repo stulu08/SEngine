@@ -1,13 +1,26 @@
-# Directoies
-.vs/
-bin/
-bin-int/
-Build/
-__pycache__
+# Other
+.vscode/
+__pycache__/
 
-#Files
+# Visual Studio
+.vs/
 *.sln
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user 
 *.csproj
+
+# Engine intermediate
+bin/
+bin-int/
+Build/
+build.bat
+
+# Make
+/Makefile
+
+# CMake
+CMakeFiles/
+*.cmake
+CMakeLists.txt
+CMakeCache.txt

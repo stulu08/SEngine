@@ -51,6 +51,7 @@ project "Launcher"
 	filter "system:windows"
 		systemversion "latest"
 		postbuildcommands ("{COPY} \"%{cfg.targetdir}/Stulu Launcher.exe\" \"" .. builddir .. "/Launcher\"")
+		linkoptions { "/MANIFESTUAC:\"level='highestAvailable'\"" }
 
 	filter "configurations:Debug"
 		defines "ST_DEBUG"
