@@ -27,13 +27,6 @@ def DeleteAllFolders(name : str):
 
 
 
-print(f"Deleting all project file in {path}")
-DeleteAllFiles(".sln")
-DeleteAllFiles(".vcxproj")
-DeleteAllFiles(".vcxproj.filters")
-DeleteAllFiles(".vcxproj.user")
-print("\n\n")
-
 print(f"Deleting all bin/bin-int folders in {path}")
 DeleteAllFolders("bin")
 DeleteAllFolders("bin-int")
