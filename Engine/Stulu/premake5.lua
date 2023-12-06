@@ -85,6 +85,7 @@ project "Stulu"
 		"VkLayer_utils.lib",
 		
 		"mono-2.0-sgen.lib",
+		--"libmono-static-sgen.lib",
 	}
 	libdirs 
 	{ 

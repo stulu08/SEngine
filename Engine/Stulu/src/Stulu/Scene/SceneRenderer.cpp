@@ -8,11 +8,11 @@
 #include "Stulu/Core/Time.h"
 
 namespace Stulu {
-	SceneRenderer::SceneRenderer(Scene* scene, uint32_t shadowMapSize)
+	SceneRenderer::SceneRenderer(Scene* scene)
 		: m_scene(scene) {
 		ST_PROFILING_FUNCTION();
-		if (!s_quadPostProcShader) {
-			s_quadPostProcShader = Shader::create("quadFullScreenPP", R"(
+
+		const char* vertex_default = R"(
 		#version 460
 		layout (location = 0) in vec3 a_pos;
 		layout (location = 1) in vec2 a_texCoords;
@@ -28,7 +28,10 @@ namespace Stulu {
 			pos.z = z;
 			gl_Position=vec4(pos, 1.0);
 		}
-		)", R"(
+		)";
+
+		if (!s_quadPostProcShader) {
+			s_quadPostProcShader = Shader::create("quadFullScreenPP", vertex_default, R"(
 		#version 460
 		in vec2 v_tex;
 		##include "Stulu/Functions"
@@ -36,7 +39,6 @@ namespace Stulu {
 		layout (binding = 0) uniform sampler2D texSampler;
 		layout (binding = 1) uniform sampler2D bloom;
 		out vec4 a_color;
-
 		void apply_bloom(inout vec4 original)
 		{
 			vec3 bc = texture(bloom, v_tex).rgb;
@@ -47,7 +49,8 @@ namespace Stulu {
 		{
 			vec4 color = texture2D(texSampler, v_tex);
 			
-			apply_bloom(color);
+			if(bloomStrength > 0.0f)
+				apply_bloom(color);
 
 			if(enableGammaCorrection == 1.0f)
 				a_color = gammaCorrect(color, gamma, toneMappingExposure);
@@ -59,6 +62,7 @@ namespace Stulu {
 		}
 		)");
 		}
+
 		if (!s_shadowShader) {
 			s_shadowShader = Shader::create("shadowShader", R"(
 		#version 460 core
@@ -85,7 +89,7 @@ namespace Stulu {
 		}
 		)");
 		}
-		resizeShadowMap(shadowMapSize);
+		resizeShadowMap();
 	}
 
 	void SceneRenderer::Begin() {
@@ -322,12 +326,10 @@ namespace Stulu {
 		
 	}
 
-	void SceneRenderer::resizeShadowMap(uint32_t size) {
-		m_shadowMapSize = size;
-
+	void SceneRenderer::resizeShadowMap() {
 		FrameBufferSpecs specs;
-		specs.width = m_shadowMapSize;
-		specs.height = m_shadowMapSize;
+		specs.width = (uint32_t)m_scene->m_data.graphicsData.shadowMapSize;
+		specs.height = (uint32_t)m_scene->m_data.graphicsData.shadowMapSize;
 		specs.samples = 1;
 
 		specs.colorTexture.format = TextureFormat::None;
@@ -496,22 +498,25 @@ namespace Stulu {
 		m_postProcessingBufferData.enableGammaCorrection = data.enableGammaCorrection;
 		m_postProcessingBufferData.toneMappingExposure = data.exposure;
 		m_postProcessingBufferData.gamma = data.gamma;
-		m_postProcessingBufferData.bloomStrength = data.bloomData.bloomIntensity;
+		m_postProcessingBufferData.bloomStrength = data.bloomData.bloomEnabled ? data.bloomData.bloomIntensity : 0.0f;
 		Renderer::getBuffer(BufferBinding::PostProcessing)->setData(&m_postProcessingBufferData, sizeof(PostProcessingBufferData));
 
-		Ref<Texture> bloomResult = Resources::getBlackTexture();
 		//bloom
-		if (data.bloomData.bloomEnabled)
+		Ref<Texture> bloomResult = Resources::getBlackTexture();
+		if (data.bloomData.bloomEnabled) {
 			bloomResult = DoBloom(destination, source, data);
+		}
 
-		//gamma correction, tonemapping and apply bloom
+		//gamma correction, tonemapping, apply bloom
 		{
 			source->bind(0);
 			bloomResult->bind(1);
 			s_quadPostProcShader->bind();
-			destination->bind();
+
 			float z = -1.0f;
 			Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
+			
+			destination->bind();
 			RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
 			destination->unbind();
 		}

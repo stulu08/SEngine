@@ -55,6 +55,10 @@ namespace Stulu {
 				windowINI = configPath + "/windowLayout.ini";
 			}
 		}
+	
+		void generateProjectFiles();
+		void rebuildAssembly();
+		void buildAssembly(const std::string& m_assembly);
 	};
 
 	class EditorApp : public Application {
@@ -70,7 +74,4 @@ namespace Stulu {
 		static EditorApp* s_instance;
 		static Project s_project;
 	};
-
-	void rebuildAssembly();
-	void buildAssembly(const std::string& m_assembly);
 }

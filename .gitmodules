@@ -25,3 +25,6 @@
 [submodule "Stulu/vendor/PhysX"]
 	path = Dependencies/PhysX
 	url = https://github.com/stulu08/PhysX-Premake
+[submodule "Dependencies/premake-core-static-lib"]
+	path = Dependencies/premake-core-static-lib
+	url = https://github.com/stulu08/premake-core-static-lib

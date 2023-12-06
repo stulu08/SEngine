@@ -41,6 +41,7 @@ project "Editor"
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.mono}",
 		"%{IncludeDir.Discord}",
+		"%{IncludeDir.premake}",
 	}
 	postbuildcommands {
 		"{MKDIR} \"".. builddir .."/Editor/Build\"",
@@ -58,6 +59,7 @@ project "Editor"
 	links
 	{
 		"Stulu", 
+		"Premake5", 
 		"discord-rpc"
 	}
 	filter "system:windows"

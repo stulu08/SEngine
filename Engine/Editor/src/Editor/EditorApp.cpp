@@ -1,6 +1,8 @@
 #include "EditorApp.h"
 #include <Stulu/Core/EntryPoint.h>
 #include "DiscordRPC.h"
+#include <StuluPremake.h>
+
 namespace Stulu {
 	void loadEditorMonoBindings();
 	Application* Stulu::CreateApplication() {
@@ -27,7 +29,7 @@ namespace Stulu {
 		Resources::GameAssetDirectory = s_project.assetPath;
 
 		getWindow().setVSync(false);
-		getWindow().setWindowIcon("Editor/Textures/engine-app-icon.png");
+		getWindow().setWindowIcon("Editor/Textures/PNG - Icon - White.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
@@ -46,8 +48,8 @@ namespace Stulu {
 				std::filesystem::copy_file(dir.path(), s_project.dataPath + "/" + dir.path().filename().string());
 			}
 		}
-		buildAssembly(s_project.dataPath + "/EdiorProjectAssembly.dll");
-		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EdiorProjectAssembly.dll", "Data/Managed/Stulu.ScriptCore.dll");
+		s_project.buildAssembly(s_project.dataPath + "/EditorProjectAssembly.dll");
+		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EditorProjectAssembly.dll", "Data/Managed/Stulu.ScriptCore.dll");
 		s_project.assembly = getAssemblyManager()->getAssembly();
 
 		loadEditorMonoBindings();
@@ -68,31 +70,37 @@ namespace Stulu {
 	}
 
 
-
-	void rebuildAssembly() {
+	void Project::generateProjectFiles() {
 		ST_PROFILING_FUNCTION();
+		stulu_premake_exec(path.c_str(), ST_PREMAKE_ACTION_VS2022);
+	}
+
+	void Project::rebuildAssembly() {
+		ST_PROFILING_FUNCTION();
+		generateProjectFiles();
 #ifdef ST_PLATFORM_WINDOWS
-		static const std::string buildCmd = "tools\\msbuild.bat \"" + getEditorProject().path + "/Assembly.sln\"";
+		static const std::string buildCmd = "tools\\msbuild.bat \"" + path + "/Assembly.sln\"";
 
 		static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
-			return std::filesystem::exists(getEditorProject().dataPath + "/EdiorProjectAssembly.dll");
+			return std::filesystem::exists(dataPath + "/EditorProjectAssembly.dll");
 		};
 		static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
 			return system(buildCmd.c_str());
 		};
-		getEditorProject().assembly->reload(recompileFinished, recompile);
+		assembly->reload(recompileFinished, recompile);
 #else
 		//will soon switch to mono xbuild for linux
 		CORE_ERROR("Building Projects is not supported currently on this Platform");
 #endif
-		getEditorProject().assembly->getClasses().clear();
+		assembly->getClasses().clear();
 		MonoClass* componentClass = Application::get().getAssemblyManager()->getScriptCoreAssembly()->createClass("Stulu", "Component");
-		getEditorProject().assembly->loadAllClasses(componentClass);
+		assembly->loadAllClasses(componentClass);
 	}
-	void buildAssembly(const std::string& m_assembly) {
+	void Project::buildAssembly(const std::string& m_assembly) {
 		ST_PROFILING_FUNCTION();
+		generateProjectFiles();
 #ifdef ST_PLATFORM_WINDOWS
-		static const std::string buildCmd = "tools\\msbuild.bat \"" + getEditorProject().path + "/Assembly.sln\"";
+		static const std::string buildCmd = "tools\\msbuild.bat \"" + path + "/Assembly.sln\"";
 
 		if (std::filesystem::exists(m_assembly))
 			std::filesystem::remove(m_assembly);

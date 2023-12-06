@@ -960,17 +960,7 @@ namespace Stulu {
 		return std::dynamic_pointer_cast<Texture>(buffer->getTexture());
 	}
 	void ComponentsRender::drawHelpMarker(const char* desc) {
-		
-		ImGui::TextDisabled("(?)");
-		if (ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-			ImGui::TextUnformatted(desc);
-			ImGui::PopTextWrapPos();
-			ImGui::EndTooltip();
-		}
-
+		ImGui::HelpMarker(desc);
 	}
 
 	bool ComponentsRender::drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap) {

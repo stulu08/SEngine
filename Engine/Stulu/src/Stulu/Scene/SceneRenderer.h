@@ -23,7 +23,7 @@ namespace Stulu {
 			}
 		};
 
-		SceneRenderer(Scene* scene, uint32_t shadowMapSize = 1024);
+		SceneRenderer(Scene* scene);
 		virtual ~SceneRenderer() {};
 
 		void Begin();
@@ -56,7 +56,7 @@ namespace Stulu {
 		void drawScene();
 		void drawSkyBox(const Ref<CubeMap>& skybox);
 
-		void resizeShadowMap(uint32_t size);
+		void resizeShadowMap();
 
 		void drawAll2d(const TransformComponent& camera);
 	private:
@@ -69,7 +69,6 @@ namespace Stulu {
 
 		//shadows
 		static inline Ref<Shader> s_shadowShader;
-		uint32_t m_shadowMapSize = 1024;
 		Ref<FrameBuffer> m_shadowMap;
 		int32_t m_shadowCaster = -1;
 

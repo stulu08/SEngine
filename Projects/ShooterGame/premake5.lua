@@ -1,4 +1,3 @@
-include "premake/premake_customization/solution_items.lua"
 workspace "Assembly"
 	startproject "EdiorProjectAssembly"
 	configurations
@@ -9,10 +8,6 @@ workspace "Assembly"
 	flags
 	{
 		"MultiProcessorCompile"
-	}
-	solution_items 
-	{
-		"premake5.lua",
 	}
 	architecture "x64"
 	

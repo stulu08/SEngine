@@ -81,6 +81,7 @@ namespace Stulu {
 				}
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
 					selected = AssetsManager::get(AssetsManager::getFromPath(path.string(), AssetsManager::getAssetTypeByPath(path.string())));
+					EditorInspectorPanel::AssetMode = true;
 				}
 				ImGui::TextWrapped(filename.string().c_str());
 				ImGui::NextColumn();
@@ -147,7 +148,7 @@ namespace Stulu {
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Reload Assembly")) {
-					rebuildAssembly();
+					getEditorProject().rebuildAssembly();
 				}
 				ImGui::EndPopup();
 			}
@@ -174,8 +175,6 @@ namespace Stulu {
 			}
 		}
 		ImGui::End();
-		if (m_inspector)
-			renderInspector();
 		if (pathBefore != m_path.string())
 			pathCache.clear();
 	}
@@ -222,107 +221,6 @@ namespace Stulu {
 			}
 			ImGui::EndPopup();
 		}
-	}
-	void AssetBrowserPanel::renderInspector() {
-		ST_PROFILING_FUNCTION();
-		if (ImGui::Begin("Asset Inspector", &m_inspector)) {
-			ImGui::TextWrapped("Asset %s", selected.path.c_str());
-			ImGui::Text("UUID %llu", selected.uuid);
-			ImGui::Text("Properitys:", selected.path.c_str());
-			if (ImGui::BeginChild("Properitys") && selected.uuid != UUID::null) {
-				if (selected.type == AssetType::Model) {
-					if (ImGui::TreeNodeEx("Meshes", ImGuiTreeNodeFlags_SpanFullWidth)) {
-						std::vector<MeshAsset>& meshVec = std::any_cast<Model&>(selected.data).getMeshes();
-						for (int i = 0; i < meshVec.size(); i++) {
-							if (meshVec[i].name.c_str()) {
-								std::string name = "Mesh: " + meshVec[i].name;
-								ImGui::Text(name.c_str());
-								ImGui::PushID(name.c_str());
-							}
-							else {
-								std::string name = "Mesh: " + std::to_string(i);
-
-								ImGui::TextWrapped(name.c_str());
-								ImGui::PushID(name.c_str());
-							}
-							if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-								ImGui::SetDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Mesh)).c_str(), &meshVec[i].uuid, sizeof(UUID));
-								ImGui::EndDragDropSource();
-							}
-							ImGui::PopID();
-						}
-						ImGui::TreePop();
-					}
-					if (ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_SpanFullWidth)) {
-						auto& matVec = std::any_cast<Model&>(selected.data).getMaterials();
-						for (auto& [index, mat] : matVec) {
-							std::string name;
-							if (mat->getName().c_str()) {
-								name = "Material: " + mat->getName();
-							}
-							else {
-								name = "Material: " + std::to_string(index);
-							}
-							if (ImGui::TreeNodeEx(name.c_str())) {
-								ComponentsRender::drawMaterialEdit("Material", mat->getUUID(), false);
-								ImGui::TreePop();
-							}
-						}
-						ImGui::TreePop();
-					}
-				}
-				else if (selected.type == AssetType::Material) {
-					ComponentsRender::drawMaterialEdit("Material", selected.uuid, false);
-				}
-				else if (selected.type == AssetType::Texture2D) {
-					int type = (int)selected.type - 1;
-					Ref<Texture2D> texture = std::dynamic_pointer_cast<Texture2D>(std::any_cast<Ref<Texture>>(selected.data));
-					ComponentsRender::drawVector2Control("Tilling", texture->getSettings().tiling);
-					ComponentsRender::drawEnumComboControl("Format", texture->getSettings().format);
-					ComponentsRender::drawEnumComboControl("Wrap Mode", texture->getSettings().wrap);
-					ComponentsRender::drawEnumComboControl("Filtering", texture->getSettings().filtering);
-
-					if (ImGui::Button("Update")) {
-						texture->update();
-						AssetsManager::setProperity<TextureSettings>(selected.path, std::pair<std::string, TextureSettings> {"format", texture->getSettings()});
-					}
-				}
-				else if (selected.type == AssetType::SkyBox) {
-					int type = (int)selected.type - 1;
-					static std::vector<uint32_t> ress = { 64,128,256,512,1024,2048,4096 };
-					uint32_t resolution = AssetsManager::getProperity<uint32_t>(selected.path, "resolution");
-
-					auto pos = std::find(ress.begin(), ress.end(), resolution);
-					int item;
-					if (pos != ress.end())
-						item = (int)std::distance(ress.begin(), pos);
-					else
-						item = 3;
-
-					if (ComponentsRender::drawComboControl("Resolution", item, " 64\0 128\0 256\0 512\0 1024\0 2048\0 4096")) {
-						resolution = ress[item];
-						AssetsManager::setProperity<uint32_t>(selected.path, { "resolution" ,ress[item] });
-					}
-					Ref<SkyBox>& texture = std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>&>(selected.data));
-					bool disabled = texture->getWidth() == resolution;
-					if (disabled)
-					{
-						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-					}
-					if (ImGui::Button("Update")) {
-						texture->update(selected.path);
-					}
-					if (disabled)
-					{
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-					}
-				}
-			}
-			ImGui::EndChild();
-		}
-		ImGui::End();
 	}
 
 	const Ref<Texture>& AssetBrowserPanel::getIcon(const std::filesystem::directory_entry& directory) {

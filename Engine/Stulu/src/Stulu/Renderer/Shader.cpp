@@ -345,21 +345,17 @@ vec3 gammaCorrect(vec3 color, float _gamma, float exposure) {
 	return color;
 }
 float ComputeShadow(const vec4 fragPosLightSpace, sampler2D map, const vec3 normal, const vec3 lightDir) {
-	// perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+
     float closestDepth = texture(map, projCoords.xy).r; 
-    // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
 
-    // calculate bias (based on depth map resolution and slope)
-	//float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.002);
-	float bias = 0.002;
+    // calculate bias
+	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.002);
+	//float bias = 0.002;
 
-    // check whether current frag pos is in shadow
-    //float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     // PCF
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(map, 0);
@@ -373,7 +369,6 @@ float ComputeShadow(const vec4 fragPosLightSpace, sampler2D map, const vec3 norm
     }
     shadow /= 9.0;
     
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
     if(projCoords.z > 1.0)
         shadow = 0.0;
         

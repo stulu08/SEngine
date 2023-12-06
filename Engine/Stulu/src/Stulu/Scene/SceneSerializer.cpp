@@ -18,6 +18,7 @@
 #define SERIALIZE_PROPERTY_P(obj, field) out << YAML::Key << #field << YAML::Value << obj->field;
 #define SERIALIZE_PROPERTY_PC(obj, field, cast) out << YAML::Key << #field << YAML::Value << (cast)obj->field;
 
+
 #define SERIALIZE_PROPERTY_IFEXIST(obj, field) \
 if (obj.field) { \
 	out << YAML::Key << #field << YAML::Value << obj.field; \
@@ -30,6 +31,7 @@ if (obj.field) { \
 #define SERIALIZE_BEGINMAP(name) out << YAML::Key << name << YAML::Value << YAML::BeginMap;
 #define SERIALIZE_ENDMAP() out << YAML::EndMap;
 
+#define SERIALIZE_ENUM(obj, field) SERIALIZE_PROPERTY_C(obj, field, int)
 #define SERIALIZE_ENUMPROP(obj, field) SERIALIZE_PROPERTY_C(obj, field, int)
 #define SERIALIZE_UUIDPROP(obj, field) SERIALIZE_PROPERTY_C(obj, field, uint64_t)
 #define SERIALIZE_TEXTURE(obj, field)\
@@ -73,6 +75,7 @@ if (from[#field]) \
 if (from[#field]) \
 	obj.field = (cast)from[#field].as<datatype>();
 #define DESERIALIZE(obj, field, from) DESERIALIZE_D(obj, field, from, decltype(obj.field))
+#define DESERIALIZE_C(obj, field, from, cast) DESERIALIZE_DC(obj, field, from, decltype(obj.field), cast)
 
 
 #define DESERIALIZE_PROPERTY(obj, field) DESERIALIZE_PROPERTY_D(obj, field, decltype(obj.field))
@@ -342,6 +345,7 @@ namespace Stulu {
 		SERIALIZE(m_scene->m_data.graphicsData, env_lod);
 		SERIALIZE(m_scene->m_data.graphicsData, shadowDistance);
 		SERIALIZE(m_scene->m_data.graphicsData, shadowFar);
+		SERIALIZE(m_scene->m_data.graphicsData, shadowMapSize);
 		SERIALIZE(m_scene->m_data, enablePhsyics3D);
 		SERIALIZE(m_scene->m_data, physicsData.gravity);
 		SERIALIZE(m_scene->m_data, physicsData.length);
@@ -384,7 +388,8 @@ namespace Stulu {
 				DESERIALIZE(m_scene->m_data.graphicsData, env_lod, settings);
 				DESERIALIZE(m_scene->m_data.graphicsData, shadowDistance, settings);
 				DESERIALIZE(m_scene->m_data.graphicsData, shadowFar, settings);
-
+				DESERIALIZE(m_scene->m_data.graphicsData, shadowMapSize, settings);
+				
 				DESERIALIZE(m_scene->m_data, enablePhsyics3D, settings);
 				DESERIALIZE(m_scene->m_data, physicsData.gravity, settings);
 				DESERIALIZE(m_scene->m_data, physicsData.length, settings);

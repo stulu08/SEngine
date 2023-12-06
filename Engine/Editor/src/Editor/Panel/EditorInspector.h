@@ -5,7 +5,13 @@ namespace Stulu {
 	public:
 		EditorInspectorPanel() = default;
 
-		bool render(GameObject gameObject, bool* open);
+		bool render(bool* open);
+
+		void renderGameObjectInspector();
+		void renderAssetInspector();
+
+
+		static inline bool AssetMode = false;
 	private:
 		template <typename T>
 		void drawComponent(GameObject gameObject, std::string name, bool removeable = true);

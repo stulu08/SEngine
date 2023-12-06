@@ -20,7 +20,11 @@
 namespace Stulu {
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
-		m_renderer = createScope<SceneRenderer>(this, 1024);
+		m_renderer = createScope<SceneRenderer>(this);
+	}
+	Scene::Scene(const SceneData data) 
+		: m_data(data) {
+		m_renderer = createScope<SceneRenderer>(this);
 	}
 	Scene::~Scene() {
 		ST_PROFILING_FUNCTION();
@@ -700,11 +704,10 @@ namespace Stulu {
 
 	Ref<Scene> Scene::copy(Ref<Scene> scene) {
 		ST_PROFILING_FUNCTION();
-		Ref<Scene> newScene = createRef<Scene>();
+		Ref<Scene> newScene = createRef<Scene>(scene->m_data);
 
 		newScene->m_viewportWidth = scene->m_viewportWidth;
 		newScene->m_viewportHeight = scene->m_viewportHeight;
-		newScene->m_data = scene->m_data;
 
 		std::unordered_map<UUID, entt::entity> enttMap;
 		//gameobject with uuid of first has a parent gameobject with uuid of second

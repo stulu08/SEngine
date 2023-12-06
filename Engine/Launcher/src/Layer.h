@@ -2,7 +2,11 @@
 #include <Stulu.h>
 
 namespace Stulu::Launcher {
-
+	struct BuildOptions {
+		std::string path;
+		bool debugBuild;
+		bool buildUsingAllCores;
+	};
 #define ERROR_PATH 1
 #define ERROR_GIT 2
 #define ERROR_SETUP 3
@@ -10,7 +14,7 @@ namespace Stulu::Launcher {
 #define ERROR_BUILD 5
 #define ERROR_BUILD_FILE 6
 
-	void StartDownload(const std::string& path);
+	void StartDownload(const BuildOptions& path);
 	bool CheckDownloadFinished(uint32_t& ret);
 	std::string TranslateDownloadError(uint32_t code);
 

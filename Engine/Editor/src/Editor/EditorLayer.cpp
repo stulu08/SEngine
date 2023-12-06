@@ -217,14 +217,68 @@ namespace Stulu {
 							}
 							ImGui::TreePop();
 						}
-						if (ImGui::TreeNodeEx("Scene Graphics")) {
-							ComponentsRender::drawFloatControl("Shadow distance", data.graphicsData.shadowDistance);
-							ComponentsRender::drawFloatControl("Shadow far", data.graphicsData.shadowFar);
-							ComponentsRender::drawUIntControl("Shadow Map Resolution", m_activeScene->getRenderer()->m_shadowMapSize);
-							ImGui::SameLine();
-							if (ImGui::Button("Apply"))
-								m_activeScene->getRenderer()->resizeShadowMap(m_activeScene->getRenderer()->m_shadowMapSize);
-							ComponentsRender::drawFloatSliderControl("Environment Lod", data.graphicsData.env_lod, 0.0f, 4.0f);
+						if (ImGui::TreeNodeEx("Scene")) {
+							auto& gData = m_activeScene->m_data.graphicsData;
+							if (ImGui::TreeNodeEx("Shadows")) {
+								ComponentsRender::drawFloatControl("Distance", gData.shadowDistance);
+								{
+									enum class Quality : uint32_t {
+										Custom = 0,
+										Low = 1,
+										Medium = 2,
+										High = 3,
+										Ultra = 4
+									} quality;
+
+									if (gData.shadowMapSize == 1024) {
+										quality = Quality::Low;
+									}
+									else if (gData.shadowMapSize == 2048) {
+										quality = Quality::Medium;
+									}
+									else if (gData.shadowMapSize == 4096) {
+										quality = Quality::High;
+									}
+									else if (gData.shadowMapSize == 8192) {
+										quality = Quality::Ultra;
+									}
+									else {
+										quality = Quality::Custom;
+									}
+
+
+									if (ComponentsRender::drawEnumComboControl("Quality", quality)) {
+
+										switch (quality)
+										{
+										case Quality::Low:
+											gData.shadowMapSize = 1024;
+											gData.shadowFar = 100.0f;
+											break;
+										case Quality::Medium:
+											gData.shadowMapSize = 2048;
+											gData.shadowFar = 250.0f;
+											break;
+										case Quality::High:
+											gData.shadowMapSize = 4096;
+											gData.shadowFar = 350.0f;
+											break;
+										case Quality::Ultra:
+											gData.shadowMapSize = 8192;
+											gData.shadowFar = 500.0f;
+											break;
+										}
+										m_activeScene->getRenderer()->resizeShadowMap();
+									}
+								}
+								ComponentsRender::drawFloatControl("Far", gData.shadowFar);
+								if (ComponentsRender::drawUIntControl("Map Size", gData.shadowMapSize)) {
+									m_activeScene->getRenderer()->resizeShadowMap();
+								}
+
+								
+							}
+							ComponentsRender::drawFloatSliderControl("Environment Lod", gData.env_lod, 0.0f, 4.0f);
 							ImGui::TreePop();
 						}
 
@@ -266,9 +320,7 @@ namespace Stulu {
 			m_editorHierarchy.render(&m_showHierarchy);
 		}
 		if (m_showInspector) {
-			if (!m_inspectorPanel.render(m_editorHierarchy.getCurrentObject(), &m_showInspector)) {
-				m_editorHierarchy.setSelectedGameObject(GameObject::null);
-			}
+			m_inspectorPanel.render(&m_showInspector);
 		}
 		if (m_showAssetBrowser) {
 			m_assetBrowser.render(&m_showAssetBrowser);
@@ -1116,7 +1168,7 @@ namespace Stulu {
 
 		SaveScene(m_currentScenePath);
 
-		rebuildAssembly();
+		getEditorProject().rebuildAssembly();
 		const std::string projectDataPath = dir + "/" + m_buildData.name + "-data";
 		if (!std::filesystem::exists(dir)) {
 			std::filesystem::create_directory(dir);

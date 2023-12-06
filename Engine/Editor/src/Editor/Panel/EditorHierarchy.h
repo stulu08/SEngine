@@ -7,8 +7,8 @@ namespace Stulu {
 		EditorHierarchyPanel() { m_scene = nullptr; };
 
 		void setScene(const Ref<Scene>& scene);
-		GameObject getCurrentObject() { return m_selectedObject; }
-		void setSelectedGameObject(GameObject object) { m_selectedObject = object; }
+		static inline GameObject& getCurrentObject() { return m_selectedObject; }
+		static void setSelectedGameObject(GameObject object);
 		void render(bool* open);
 	private:
 		void drawObject(GameObject gameObject, int childIndex = 0);
@@ -16,7 +16,7 @@ namespace Stulu {
 		void noScene();
 
 		Ref<Scene> m_scene;
-		GameObject m_selectedObject = GameObject::null;
+		static inline GameObject m_selectedObject = GameObject::null;
 
 		GameObject m_lastHovered;
 		float m_firstHovered;

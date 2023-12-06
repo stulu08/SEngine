@@ -14,11 +14,12 @@ namespace Stulu::Launcher {
 	HANDLE thread = NULL;
 
 	DWORD WINAPI gitClone(LPVOID par) {
-		std::string* _path = (std::string*)par;
-		if (!_path) {
+		BuildOptions* options = (BuildOptions*)par;
+		if (!options) {
 			return ERROR_PATH;
 		}
-		std::string path = *_path;
+		const std::string path = options->path;
+
 		std::string arg = "git clone https://github.com/stulu08/SEngine.git ";
 		arg += "\"" + path + "\" --recursive";
 		if (std::system(arg.c_str())) {
@@ -46,37 +47,48 @@ namespace Stulu::Launcher {
 
 		std::filesystem::current_path(path);
 
-		FILE* file = fopen("build.bat", "w+");
-		if (!file) {
-			CORE_ERROR("Building failed");
-			return ERROR_BUILD;
-		}
-		arg = R"(
-FOR /F "tokens=*" %%g IN ('"Engine\Editor\LooseFiles\tools\vswhere.exe" -latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe') do (SET VAR=%%g)
-"%VAR%" Stulu.sln /p:Configuration=Dist -verbosity:minimal -maxcpucount:)";
-		arg += std::to_string(std::thread::hardware_concurrency());
-		arg += " -nologo";
-		fputs(arg.c_str(), file);
-		fclose(file);
-		
-		if (system("call build.bat")) {
-			CORE_ERROR("Building failed");
-			return ERROR_BUILD;
+		const char* configs[] ={
+			"Debug","Release","Dist"
+		};
+		for (int i = (options->debugBuild ? 0 : 2); i < 3; i++) {
+			std::ofstream fileStream;
+			fileStream.open("build.bat", std::ios::out);
+
+			if (!fileStream.is_open()) {
+				CORE_ERROR("Building failed");
+				return ERROR_BUILD;
+			}
+
+			fileStream << R"(FOR /F "tokens=*" %%g IN ('"Engine\Editor\LooseFiles\tools\vswhere.exe" )";
+			fileStream << R"(-latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe') do (SET VAR=%%g))" << std::endl;
+			fileStream << R"("%VAR%" Stulu.sln /p:Configuration=)" << configs[i] << " -verbosity:minimal -maxcpucount:";
+			if(options->buildUsingAllCores)
+				fileStream << std::thread::hardware_concurrency();
+			else
+				fileStream << "1";
+			fileStream << " -nologo";
+
+			fileStream.close();
+
+			if (system("call build.bat")) {
+				CORE_ERROR("Building failed");
+				return ERROR_BUILD;
+			}
 		}
 
 		return 0;
 	}
 
-	void StartDownload(const std::string& path) {
+	void StartDownload(const BuildOptions& options) {
 		if (Downloading) {
 			CORE_ERROR("Already downloading")
 			return;
 		}
-		if(!std::filesystem::exists(path))
-			std::filesystem::create_directories(path);
-		std::filesystem::current_path(path);
+		if(!std::filesystem::exists(options.path))
+			std::filesystem::create_directories(options.path);
+		std::filesystem::current_path(options.path);
 
-		thread = CreateThread(nullptr, 0, gitClone, (LPVOID)&path, 0, nullptr);
+		thread = CreateThread(nullptr, 0, gitClone, (LPVOID)&options, 0, nullptr);
 		if (!thread) {
 			DWORD err = GetLastError();
 			CORE_ERROR("CreateThread() failed with error {0}", err);

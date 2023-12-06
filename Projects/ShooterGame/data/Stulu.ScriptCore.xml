@@ -762,6 +762,11 @@
             Convertes the object to a string using Object.ToString and prints it to the console as a trace message
             </summary>
         </member>
+        <member name="M:Stulu.Texture2D.FromPath(System.String)">
+            <summary>
+            Relative to the assets folder, for Editor {ProjDir}/assets and for Runtime {appname}-data/assets
+            </summary>
+        </member>
         <member name="T:Stulu.Time">
             <summary>
             You can acces time information with it
@@ -1005,11 +1010,6 @@
         <member name="M:Stulu.Mathf.Lerp(Stulu.Vector3,Stulu.Vector3,System.Single)">
             <summary>
             Return the linear interpolation, equals to a + (b - a) * t.
-            </summary>
-        </member>
-        <member name="M:Stulu.Texture2D.FromPath(System.String)">
-            <summary>
-            Relative to the assets folder, for Editor {ProjDir}/assets and for Runtime {appname}-data/assets
             </summary>
         </member>
     </members>

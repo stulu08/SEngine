@@ -18,9 +18,7 @@ namespace Stulu::Launcher {
 	void LauncherLayer::onAttach() {
 		ImGuiIO& io = ImGui::GetIO();
 		io.IniFilename = NULL;
-
 		ImGui::StyleColorsOceanDark();
-
 	}
 
 	void LauncherLayer::onImguiRender(Timestep timestep) {
@@ -64,7 +62,7 @@ namespace Stulu::Launcher {
 	}
 	void LauncherLayer::drawDownloadWindow() {
 		if (ImGui::BeginPopupModal("Download Engine", 0, ImGuiWindowFlags_AlwaysAutoResize)) {
-			static std::string path = "C:\\Program Files\\Stulu\\Engine";
+			static BuildOptions options = { "C:\\Stulu\\Engine", false, true };
 
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2);
 			ImGui::Text("Path");
@@ -72,15 +70,27 @@ namespace Stulu::Launcher {
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
 
 			ImGui::SetNextItemWidth(m_contentAreaWidth / 3.0f);
-			ImGui::InputText("##Path", &path);
+			ImGui::InputText("##Path", &options.path);
 
 			ImGui::SameLine();
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 2);
 			if (ImGui::Button("Browse")) {
-				path = Platform::browseFolder();
+				options.path = Platform::browseFolder();
 			}
+			
+
+			ImGui::Checkbox("Debug builds", &options.debugBuild);
+			ImGui::SameLine();
+			ImGui::HelpMarker("Size with debug builds: ~8GB\nSize without debug buils: ~4GB");
+
+			ImGui::SameLine();
+			ImGui::Checkbox("Fastbuild", &options.buildUsingAllCores);
+			ImGui::SameLine();
+			ImGui::HelpMarker(("Utilizes all concurrent threads(" + std::to_string(std::thread::hardware_concurrency()) + ") availabe for building").c_str());
+
+
 			if (ImGui::Button("Download")) {
-				StartDownload(path);
+				StartDownload(options);
 				m_downloading = true;
 				ImGui::CloseCurrentPopup();
 			}

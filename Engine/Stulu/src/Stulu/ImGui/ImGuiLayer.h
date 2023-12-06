@@ -34,6 +34,8 @@ namespace ImGui {
 	STULU_API void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
 	STULU_API void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);
 	STULU_API void StyleColorsGrayDark(ImGuiStyle* dst = NULL);
+
+	STULU_API void HelpMarker(const char* text);
 }
 namespace Stulu {
 	class STULU_API ImGuiLayer : public Layer

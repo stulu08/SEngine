@@ -54,7 +54,7 @@ namespace Stulu {
 	Ref<Texture> Resources::getLoadingTexture() {
 		static Ref<Texture2D> tex;
 		if (!tex) {
-			tex = Texture2D::create(Application::getEngineAssetDir()+"/Textures/loading.png");
+			tex = Texture2D::create(Application::getEngineAssetDir()+"/Textures/Loading.png");
 			AssetsManager::update(UUID(303), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(303), });
 		}
 		return std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(303)).data);
@@ -63,7 +63,7 @@ namespace Stulu {
 	Ref<Texture> Resources::getLogoTexture() {
 		static Ref<Texture2D> tex;
 		if (!tex) {
-			tex = Texture2D::create(Application::getEngineAssetDir() + "/Textures/logo.png");
+			tex = Texture2D::create(Application::getEngineAssetDir() + "/Textures/PNG - Logo - White.png");
 			AssetsManager::update(UUID(304), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(304), });
 		}
 		return std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(304)).data);

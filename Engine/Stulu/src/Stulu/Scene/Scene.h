@@ -10,12 +10,13 @@
 #include "Stulu/Events/KeyEvent.h"
 #include <entt.hpp>
 
-namespace Stulu {
+namespace Stulu {	
 	struct SceneGraphicsData {
 		float env_lod = 1.0f;
 		float sampleScale = 1.7f;
 		float shadowDistance = 50.0f;
 		float shadowFar = 500.0f;
+		uint32_t shadowMapSize = 2048;
 	};
 	struct SceneData {
 		SceneGraphicsData graphicsData;
@@ -32,6 +33,7 @@ namespace Stulu {
 	class STULU_API Scene {
 	public:
 		Scene();
+		Scene(const SceneData data);
 		~Scene();
 
 		GameObject createGameObject(UUID uuid);
@@ -93,6 +95,7 @@ namespace Stulu {
 		void renderSceneForCamera(GameObject gameObject, bool callEvents = true);
 		void closeSceneForRendering();
 
+		void* UserData = nullptr;
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 		SceneData m_data;
