@@ -8,7 +8,9 @@ namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
 		ST_PROFILING_FUNCTION();
 		
-		mono_set_assemblies_path("mono");
+
+		const auto& path = std::filesystem::current_path().string();
+		mono_set_dirs((path + "/mono/lib/").c_str(), (path + "/mono/etc/").c_str());
 
 		m_monoDomain = mono_jit_init("StuluEngine");
 
