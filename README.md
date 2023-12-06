@@ -2,8 +2,8 @@
 
 <p align="center">
   <picture>
-     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/stulu08/SEngine/main/Resources/Logo/PNG - Logo - Black.png">
-     <img width="600" height="600" src="https://raw.githubusercontent.com/stulu08/SEngine/main/Resources/Logo/PNG - Logo - White.png">
+     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/stulu08/SEngine/main/Resources/Logo/PNG - Logo - White.png">
+     <img width="600" height="600" src="https://raw.githubusercontent.com/stulu08/SEngine/main/Resources/Logo/PNG - Logo - Black.png">
   </picture>
 </p>
 
