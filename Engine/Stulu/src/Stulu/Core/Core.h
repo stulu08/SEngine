@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "CoreConfig.h" in Log.h
-//#include "PlatformConfig.h" in Log.h
 #include "Log.h"
 
 #define ST_BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
@@ -10,6 +8,8 @@
 #define ST_CONCAT(a, b) ST_CONCAT_INNER(a, b)
 #define ST_ENUM_TYPE uint16_t
 #define ST_ENUM(name) enum class name : ST_ENUM_TYPE
+#define ST_STRINGIFY(x) ST_MAKESTRING(x)
+#define ST_MAKESTRING(x) #x
 
 #ifdef ST_PLATFORM_WINDOWS
 #define ST_DEBUGBREAK() __debugbreak()

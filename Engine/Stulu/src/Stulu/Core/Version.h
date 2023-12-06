@@ -23,6 +23,5 @@ inline std::ostream& operator<<(std::ostream& os, const Version& e) {
 	return os << e.major << "." << e.minor << "." << e.patch;
 }
 
-#define ST_ENGINE_VERSION Version(2,4,1)
-#define ST_ENGINE_VERSION_STR ("2.4.1")
-#define ST_ENGINE_NAME ("Stulu Engine")
+#define ST_ENGINE_VERSION Version(ST_ENGINE_VERSION_MAJOR, ST_ENGINE_VERSION_MINOR, ST_ENGINE_VERSION_PATCH)
+#define ST_ENGINE_VERSION_STR (ST_STRINGIFY(ST_ENGINE_VERSION_MAJOR) "." ST_STRINGIFY(ST_ENGINE_VERSION_MINOR) "." ST_STRINGIFY(ST_ENGINE_VERSION_PATCH))

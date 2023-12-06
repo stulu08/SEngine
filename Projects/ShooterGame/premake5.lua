@@ -1,5 +1,5 @@
 workspace "Assembly"
-	startproject "EdiorProjectAssembly"
+	startproject "EditorProjectAssembly"
 	configurations
 	{
 		"Debug",
@@ -45,10 +45,10 @@ project "ProjectAssembly"
 		runtime "Release"
 		optimize "on"
 		
-project "EdiorProjectAssembly"
+project "EditorProjectAssembly"
 	kind "SharedLib"
 	language "C#"
-	targetname "EdiorProjectAssembly"
+	targetname "EditorProjectAssembly"
 	
 	dependson { "ProjectAssembly" }
 	

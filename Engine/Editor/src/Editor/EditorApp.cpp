@@ -31,7 +31,7 @@ namespace Stulu {
 		getWindow().setVSync(false);
 		getWindow().setWindowIcon("Editor/Textures/PNG - Icon - White.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
-		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION.to_string() + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
+		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION_STR + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
 		editorLayer = new EditorLayer();
 
@@ -53,8 +53,7 @@ namespace Stulu {
 		s_project.assembly = getAssemblyManager()->getAssembly();
 
 		loadEditorMonoBindings();
-
-
+		
 		ST_INFO("Loading all Project assets from: {0}", s_project.assetPath);
 		AssetsManager::loadAllFiles(s_project.assetPath);
 		pushLayer(editorLayer);

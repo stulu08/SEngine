@@ -14,6 +14,7 @@ namespace Stulu::Launcher {
 		: Application(ApplicationInfo("Stulu Launcher", Version(1,0,0), ".", true, true, false)) {
 		Log::addFileSink("logs/" + Log::generateTimeString() + ".log", Log::Level::warn);
 		getWindow().setVSync(true);
+		getWindow().setWindowTitle(std::string("Stulu Launcher V") + ST_ENGINE_VERSION_STR);
 		s_instance = this;
 		m_layer = new LauncherLayer();
 		getWindow().show();
