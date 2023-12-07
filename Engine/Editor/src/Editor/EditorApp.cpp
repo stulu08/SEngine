@@ -78,13 +78,11 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		generateProjectFiles();
 #ifdef ST_PLATFORM_WINDOWS
-		static const std::string buildCmd = "tools\\msbuild.bat \"" + path + "/Assembly.sln\"";
-
 		static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
 			return std::filesystem::exists(dataPath + "/EditorProjectAssembly.dll");
 		};
 		static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
-			return system(buildCmd.c_str());
+			return system(createBuildFile().c_str());
 		};
 		assembly->reload(recompileFinished, recompile);
 #else
@@ -99,13 +97,12 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		generateProjectFiles();
 #ifdef ST_PLATFORM_WINDOWS
-		static const std::string buildCmd = "tools\\msbuild.bat \"" + path + "/Assembly.sln\"";
 
 		if (std::filesystem::exists(m_assembly))
 			std::filesystem::remove(m_assembly);
 
 		CORE_INFO("Compiling {0}", m_assembly);
-		if (system(buildCmd.c_str())) {
+		if (system(createBuildFile().c_str())) {
 			CORE_ERROR("Compiling failed: {0}", m_assembly);
 		}
 		while (true) {
@@ -127,5 +124,34 @@ namespace Stulu {
 		CORE_ERROR("Building Projects is not supported currently on this Platform");
 #endif
 	}
+	std::string Project::createBuildFile() {
+		std::ofstream fileStream;
+		fileStream.open("build.bat", std::ios::out);
+
+		if (!fileStream.is_open()) {
+			CORE_ASSERT(false, "Building failed");
+			return "echo Build failed";
+		}
+
+		fileStream << R"(FOR /F "tokens=*" %%g IN ('"tools\vswhere.exe" )";
+		fileStream << R"(-latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe') do (SET VAR=%%g))" << std::endl;
+		fileStream << R"("%VAR%" )";
+		fileStream << path << "/Assembly.sln /p:Configuration=";
+
+		if (buildSettings.debug) {
+			fileStream << "Debug";
+		}
+		else {
+			fileStream << "Release";
+		}
+
+		fileStream << " -verbosity:minimal -maxcpucount:" << buildSettings.threads;
+		fileStream << " -nologo";
+
+		fileStream.close();
+
+		return "call build.bat";
+	}
+
 
 }

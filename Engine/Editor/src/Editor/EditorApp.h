@@ -9,7 +9,10 @@ namespace Stulu {
 		std::string configPath = "";
 		std::string dataPath = "";
 		std::string windowINI;
-
+		struct  {
+			uint32_t threads = 2;
+			bool debug = false;
+		}buildSettings;
 		Ref<ScriptAssembly> assembly;
 
 		Project()
@@ -59,6 +62,7 @@ namespace Stulu {
 		void generateProjectFiles();
 		void rebuildAssembly();
 		void buildAssembly(const std::string& m_assembly);
+		std::string createBuildFile();
 	};
 
 	class EditorApp : public Application {

@@ -233,13 +233,11 @@ namespace Stulu {
 		mono_domain_set(m_monoRootDomain, 0);
 		mono_domain_unload(m_monoScriptDomain);
 
-
-
 		//delete m_assembly but safe a copy if build fails
 		if(std::filesystem::exists(m_assembly + ".temp"))
 			std::filesystem::remove(m_assembly + ".temp");
 
-		std::filesystem::copy_file(m_assembly,m_assembly+".temp");
+		std::filesystem::copy_file(m_assembly, m_assembly + ".temp");
 		std::filesystem::remove(m_assembly);
 		
 		//recompile c# code with postbuildcommands to move files
