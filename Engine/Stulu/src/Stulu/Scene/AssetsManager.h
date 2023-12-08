@@ -122,7 +122,6 @@ namespace Stulu {
 		}
 		template <typename T>
 		static inline void setProperitys(const std::string path, const std::vector<std::pair<std::string, T>>& vs) {
-			ST_PROFILING_FUNCTION();
 			if (!FileExists(path + ".meta")) {
 				createMeta(UUID(), path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 			}

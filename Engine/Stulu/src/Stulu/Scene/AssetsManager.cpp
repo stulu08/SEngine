@@ -262,7 +262,6 @@ namespace Stulu {
 		return AssetType::Unknown;
 	}
 	UUID AssetsManager::getFromPath(const std::filesystem::path& path) {
-		ST_PROFILING_FUNCTION();
 		if (path.empty() || !std::filesystem::exists(path))
 			return false;
 
@@ -279,7 +278,6 @@ namespace Stulu {
 		return UUID::null;
 	}
 	UUID AssetsManager::getFromPath(const std::filesystem::path& path, AssetType type) {
-		ST_PROFILING_FUNCTION();
 		if (path.empty() || !std::filesystem::exists(path))
 			return false;
 		for (UUID id : assetsTypeList[type]) {
@@ -403,7 +401,6 @@ namespace Stulu {
 		}
 	}
 	UUID AssetsManager::getModelFromMesh(UUID mesh) {
-		ST_PROFILING_FUNCTION();
 		if (mesh == UUID::null)
 			return UUID::null;
 
@@ -419,7 +416,6 @@ namespace Stulu {
 		return UUID::null;
 	}
 	UUID AssetsManager::getModelFromMaterial(UUID material) {
-		ST_PROFILING_FUNCTION();
 		if (material == UUID::null)
 			return UUID::null;
 

@@ -338,6 +338,7 @@ namespace Stulu {
 		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
 	}
 	void EditorLayer::drawMenuBar() {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 
@@ -475,6 +476,7 @@ namespace Stulu {
 		ImGui::End();
 	}
 	void EditorLayer::drawLicenseWindow() {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Licenses/3rd Party/Dependencies", &m_showLicensesWindow)) {
 			for (auto& [name, content] : m_licenses) {
 				if (ImGui::CollapsingHeader(name.c_str())) {
@@ -485,6 +487,7 @@ namespace Stulu {
 		ImGui::End();
 	}
 	void EditorLayer::drawBuildWindow() {
+		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Build", &m_showBuildWindow)) {
 			ComponentsRender::drawStringControl("Name", m_buildData.name);
 			ComponentsRender::drawInt3Control("Version", (int&)m_buildData.version.major, (int&)m_buildData.version.minor, (int&)m_buildData.version.patch);
@@ -585,6 +588,7 @@ namespace Stulu {
 		drawObjectOutlines();
 	}
 	void EditorLayer::onRuntimeStart() {
+		ST_PROFILING_FUNCTION();
 		Time::Scale = 1.0f;
 		s_runtime = true;
 		m_runtimeScene = Scene::copy(m_editorScene);
@@ -598,6 +602,7 @@ namespace Stulu {
 			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().getUUID(), m_activeScene.get()));
 	}
 	void EditorLayer::onRuntimeStop() {
+		ST_PROFILING_FUNCTION();
 		s_runtime = false;
 		m_activeScene->onRuntimeStop();
 		m_activeScene = m_editorScene;
@@ -675,6 +680,7 @@ namespace Stulu {
 #pragma endregion
 #pragma region Gizmos
 	void EditorLayer::drawObjectOutlines() {
+		ST_PROFILING_FUNCTION();
 		GameObject selected = m_editorHierarchy.getCurrentObject();
 		if (selected) {
 			auto& tc = selected.getComponent<TransformComponent>();
@@ -769,6 +775,7 @@ namespace Stulu {
 		}
 	}
 	void EditorLayer::onDrawGizmoSelected(GameObject selected) {
+		ST_PROFILING_FUNCTION();
 		auto& tc = selected.getComponent<TransformComponent>();
 		{
 			float snapValue = .0f;
@@ -905,6 +912,7 @@ namespace Stulu {
 		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 	}
 	void EditorLayer::onEvent(Event& e) {
+		ST_PROFILING_FUNCTION();
 		if(m_sceneViewport.focused && m_sceneViewport.hovered)
 			m_sceneCamera.onEvent(e);
 		else if (e.getEventType() == EventType::WindowResize) {
@@ -995,6 +1003,7 @@ namespace Stulu {
 		return false;
 	}
 	bool EditorLayer::onGameObjectPick(MouseButtonDownEvent& e) {
+		ST_PROFILING_FUNCTION();
 		return false;
 	}
 #pragma endregion
@@ -1163,6 +1172,7 @@ namespace Stulu {
 #pragma endregion
 
 	void EditorLayer::buildProject(const std::string& dir) {
+		ST_PROFILING_FUNCTION();
 		if (std::filesystem::exists(dir))
 			std::filesystem::remove_all(dir);
 
@@ -1241,10 +1251,5 @@ namespace Stulu {
 			std::filesystem::create_directories(to);
 		}
 		std::filesystem::copy(from, to, std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
-		/*for (std::filesystem::directory_entry dir : std::filesystem::recursive_directory_iterator(from)) {
-			auto relativeToPath = std::filesystem::relative(dir, from);
-			if(!dir.is_directory())
-				std::filesystem::copy(dir.path(), to + "/" + relativeToPath.string());
-		}*/
 	}
 }

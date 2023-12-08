@@ -15,7 +15,6 @@ namespace Stulu {
 		}
 	}
 	void CameraComponent::onResize(uint32_t width, uint32_t height) {
-		ST_PROFILING_FUNCTION();
 		settings.textureWidth = width;
 		settings.textureHeight = height;
 		updateSize();
@@ -27,7 +26,6 @@ namespace Stulu {
 		updateProjection();
 	}
 	void CameraComponent::updateProjection() {
-		ST_PROFILING_FUNCTION();
 		if (mode == CameraMode::Perspective) {
 			cam->setProjection(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);
 			frustum = VFC::createFrustum(settings.aspectRatio, settings.zNear, settings.zFar, settings.fov, gameObject.getComponent<TransformComponent>());
@@ -49,7 +47,6 @@ namespace Stulu {
 		
 	}
 	void CameraComponent::updateMode() {
-		ST_PROFILING_FUNCTION();
 		if (mode == CameraMode::Orthographic) {
 			cam.reset(new OrthographicCamera(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar));
 			cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);

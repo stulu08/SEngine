@@ -9,27 +9,7 @@
 
 #include "Stulu/Math/Math.h"
 #include "Stulu/Scene/AssetsManager.h"
-#pragma region YAML
-#ifndef DLL_H_62B23520_7C8E_11DE_8A39_0800200C9A66
-#define DLL_H_62B23520_7C8E_11DE_8A39_0800200C9A66
-#undef YAML_CPP_API
-#ifdef YAML_CPP_DLL				 
-#ifdef yaml_cpp_EXPORTS  					 
-#define YAML_CPP_API __declspec(dllexport)
-#else
-#define YAML_CPP_API __declspec(dllimport)
-#endif
-#else
-#define YAML_CPP_API
-#endif
-#endif
-namespace YAML {
-	class YAML_CPP_API Emitter;
-	namespace detail {
-		struct iterator_value;
-	}
-}
-#pragma endregion
+#include "Stulu/Scene/YAML.h"
 
 namespace Stulu {
 	enum class PropertyType : uint32_t {

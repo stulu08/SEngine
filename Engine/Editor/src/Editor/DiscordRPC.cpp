@@ -38,6 +38,7 @@ namespace Stulu {
     bool DiscordRPC::s_activated = false;
 
     void DiscordRPC::init(const char* applicationID) {
+        ST_PROFILING_FUNCTION();
         try {
             //rpc = std::async(DiscordRPC::threadLoop, applicationID);
             rpc = std::thread(DiscordRPC::threadLoop, applicationID);
@@ -48,6 +49,7 @@ namespace Stulu {
         s_activated = true;
     }
     void DiscordRPC::shutdown() {
+        ST_PROFILING_FUNCTION();
         s_running = false;
         if (s_activated) {
             rpc.join();

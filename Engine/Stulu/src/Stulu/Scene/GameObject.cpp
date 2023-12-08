@@ -22,7 +22,6 @@ namespace Stulu {
 		return UUID::null;
 	}
 	GameObject GameObject::getById(const UUID& id, Scene* scene) {
-		ST_PROFILING_FUNCTION();
 		if (id == UUID::null || scene == nullptr)
 			return GameObject::null;
 		auto pos = scene->m_uuidGameObjectMap.find(id);

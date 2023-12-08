@@ -280,7 +280,6 @@ namespace Stulu {
 		return EditorResources::getFileTexture();
 	}
 	void AssetBrowserPanel::deletePath(const std::filesystem::directory_entry& _directory) {
-		ST_PROFILING_FUNCTION();
 		for (auto& directory : std::filesystem::directory_iterator(_directory)) {
 			if (directory.is_directory()) {
 				deletePath(directory);
@@ -291,7 +290,6 @@ namespace Stulu {
 		std::remove(_directory.path().string().c_str());
 	}
 	void AssetBrowserPanel::drawDirectory(const std::filesystem::path& _path, bool includePathDir) {
-		ST_PROFILING_FUNCTION();
 		if (includePathDir) {
 			ImGuiTreeNodeFlags flags = !containsDirSubDirs(_path) ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 			if (ImGui::TreeNodeEx(_path.filename().string().c_str(), flags)) {

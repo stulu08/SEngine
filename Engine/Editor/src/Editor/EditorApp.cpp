@@ -1,11 +1,11 @@
 #include "EditorApp.h"
 #include <Stulu/Core/EntryPoint.h>
 #include "DiscordRPC.h"
-#include <StuluPremake.h>
 
 namespace Stulu {
 	void loadEditorMonoBindings();
 	Application* Stulu::CreateApplication() {
+		ST_PROFILING_FUNCTION();
 		uint64_t rp = 733733383645167637;
 		DiscordRPC::init(std::to_string(rp).c_str());
 		DiscordRPC::setDetails("Loading the assets...");
@@ -17,6 +17,7 @@ namespace Stulu {
 	EditorApp::EditorApp() 
 		: Application(ApplicationInfo("Stulu Editor",Version(1,0,0), "Stulu", false, true, true, WindowProps("Stulu Editor", 1280, 720))) {
 		ST_PROFILING_FUNCTION();
+
 		if (getStartArgs().size() > 1) {
 			ST_INFO("Loading project: {0}", getStartArgs()[1]);
 			s_project = Project(getStartArgs()[1], true);
@@ -25,6 +26,7 @@ namespace Stulu {
 			ST_ERROR("No Project, please open a Project");
 			s_project = Project(Platform::openFile("Stulu Project File\0 * .sproj\0"), true);
 		}
+
 		Log::addFileSink(s_project.path + "/logs/" + Log::generateTimeString() + ".log");
 		Resources::GameAssetDirectory = s_project.assetPath;
 
@@ -67,91 +69,4 @@ namespace Stulu {
 		getEditorLayer().savePanelConfig(); 
 		StyleEditor::saveAll();
 	}
-
-
-	void Project::generateProjectFiles() {
-		ST_PROFILING_FUNCTION();
-		stulu_premake_exec(path.c_str(), ST_PREMAKE_ACTION_VS2022);
-	}
-
-	void Project::rebuildAssembly() {
-		ST_PROFILING_FUNCTION();
-		generateProjectFiles();
-#ifdef ST_PLATFORM_WINDOWS
-		static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
-			return std::filesystem::exists(dataPath + "/EditorProjectAssembly.dll");
-		};
-		static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
-			return system(createBuildFile().c_str());
-		};
-		assembly->reload(recompileFinished, recompile);
-#else
-		//will soon switch to mono xbuild for linux
-		CORE_ERROR("Building Projects is not supported currently on this Platform");
-#endif
-		assembly->getClasses().clear();
-		MonoClass* componentClass = Application::get().getAssemblyManager()->getScriptCoreAssembly()->createClass("Stulu", "Component");
-		assembly->loadAllClasses(componentClass);
-	}
-	void Project::buildAssembly(const std::string& m_assembly) {
-		ST_PROFILING_FUNCTION();
-		generateProjectFiles();
-#ifdef ST_PLATFORM_WINDOWS
-
-		if (std::filesystem::exists(m_assembly))
-			std::filesystem::remove(m_assembly);
-
-		CORE_INFO("Compiling {0}", m_assembly);
-		if (system(createBuildFile().c_str())) {
-			CORE_ERROR("Compiling failed: {0}", m_assembly);
-		}
-		while (true) {
-			if (std::filesystem::exists(m_assembly)) {
-				if (std::filesystem::exists(m_assembly)) {
-					CORE_INFO("Compiling finished");
-					break;
-				}
-				else {
-					CORE_ERROR("File not found: {0}", m_assembly);
-					CORE_ERROR("Compiling failed: {0}", m_assembly);
-					break;
-				}
-
-			}
-		}
-#else
-		//will soon switch to mono xbuild for linux
-		CORE_ERROR("Building Projects is not supported currently on this Platform");
-#endif
-	}
-	std::string Project::createBuildFile() {
-		std::ofstream fileStream;
-		fileStream.open("build.bat", std::ios::out);
-
-		if (!fileStream.is_open()) {
-			CORE_ASSERT(false, "Building failed");
-			return "echo Build failed";
-		}
-
-		fileStream << R"(FOR /F "tokens=*" %%g IN ('"tools\vswhere.exe" )";
-		fileStream << R"(-latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe') do (SET VAR=%%g))" << std::endl;
-		fileStream << R"("%VAR%" )";
-		fileStream << path << "/Assembly.sln /p:Configuration=";
-
-		if (buildSettings.debug) {
-			fileStream << "Debug";
-		}
-		else {
-			fileStream << "Release";
-		}
-
-		fileStream << " -verbosity:minimal -maxcpucount:" << buildSettings.threads;
-		fileStream << " -nologo";
-
-		fileStream.close();
-
-		return "call build.bat";
-	}
-
-
 }

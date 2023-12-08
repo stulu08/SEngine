@@ -40,7 +40,7 @@ namespace Stulu {
 		if (appInfo.HideWindowOnSart) {
 			m_window->hide();
 		}
-		else if(!appInfo.LoadDefaultAssets){
+		else if(appInfo.LoadDefaultAssets){
 			//Load Texture for loading
 			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.windowProps.width, m_appInfo.windowProps.height));
 
@@ -113,7 +113,6 @@ namespace Stulu {
 
 	}
 	void Application::run() {
-		ST_PROFILING_FUNCTION();
 		m_lastFrameTime = Platform::getTime();
 		m_runnig = true;
 		while (m_runnig) {

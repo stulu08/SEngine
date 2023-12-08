@@ -14,7 +14,6 @@ namespace Stulu {
 	}
 
 	Ref<SubTexture2D> SubTexture2D::fromCoords(const glm::vec2& spriteCoords, const glm::vec2& spriteCellSize, const Ref<Texture2D>& texture, const glm::vec2& spriteSize) {
-		ST_PROFILING_FUNCTION();
 
 		float textureWidth = (float)texture->getWidth(), textureHeight = (float)texture->getHeight();
 
@@ -30,7 +29,6 @@ namespace Stulu {
 
 	Ref<SubTexture2D> SubTexture2D::fromPosition(const glm::vec2& spritePos, const glm::vec2& spriteSize, const Ref<Texture2D>& texture)
 	{
-		ST_PROFILING_FUNCTION();
 
 		float textureWidth = (float)texture->getWidth(), textureHeight = (float)texture->getHeight();
 

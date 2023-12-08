@@ -89,7 +89,6 @@ namespace Stulu {
 		return succes;
 	}
 	const char* Platform::getCurrentWorkingDirectory() {
-		ST_PROFILING_FUNCTION();
 		char path[PATH_MAX];
 		getcwd(path, PATH_MAX);
 		return path;

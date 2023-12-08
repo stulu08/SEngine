@@ -37,7 +37,6 @@ namespace Stulu {
 	}
 
 	GameObject Scene::createGameObject(const std::string& name, UUID uuid, uint32_t id) {
-		ST_PROFILING_FUNCTION();
 		GameObject go;
 		if(id != UINT32_MAX)
 			go = { m_registry.create((entt::entity)id), this };
@@ -50,7 +49,6 @@ namespace Stulu {
 		return go;
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
-		ST_PROFILING_FUNCTION();
 		if (!gameObject) {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
@@ -341,6 +339,7 @@ namespace Stulu {
 		if (Time::deltaTime == 0.0f || m_firstRuntimeUpdate) {
 			return;
 		}
+		ST_PROFILING_FUNCTION();
 		{
 			ST_PROFILING_SCOPE("Waiting for PhysX");
 			bool alreadyRun = false;
@@ -353,7 +352,6 @@ namespace Stulu {
 				}
 			}
 		}
-		ST_PROFILING_FUNCTION();
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
@@ -522,7 +520,6 @@ namespace Stulu {
 	}
 
 	void Scene::updateAssemblyScripts(const std::string& function, bool forceConstructNew) {
-		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		for (auto& [gameObject, comp] : m_registry.storage<ScriptingComponent>().each()) {
 			for (Ref<Stulu::MonoObjectInstance>& i : comp.runtimeScripts) {
@@ -665,7 +662,6 @@ namespace Stulu {
 	}
 
 	void Scene::updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent) {
-		ST_PROFILING_FUNCTION();
 		auto& view = m_registry.view<TransformComponent>();
 		for (auto goId : view) {
 			GameObject go = GameObject(goId, this);
@@ -692,7 +688,6 @@ namespace Stulu {
 	}
 
 	GameObject Scene::findGameObjectByName(const std::string& name) {
-		ST_PROFILING_FUNCTION();
 		auto view = m_registry.view<GameObjectBaseComponent>();
 		for (auto gameObject : view)
 		{

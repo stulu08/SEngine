@@ -6,7 +6,6 @@
 namespace Stulu {
 	PerspectiveCamera::PerspectiveCamera(float fov, float aspect, float z_near, float z_far, const FrameBufferSpecs& specs)
 		:m_projcetionMatrix(glm::perspective(glm::radians(fov), aspect, z_near, z_far)) {
-		ST_PROFILING_FUNCTION();
 		m_frameBuffer = FrameBuffer::create(specs);
 	}
 

@@ -169,7 +169,6 @@ namespace Stulu {
 		updateTextures();
 	}
 	void OpenGLFrameBufferTexture::resize(FrameBufferSpecs& specs) {
-		ST_PROFILING_FUNCTION();
 		m_specs = specs;
 	}
 	void OpenGLFrameBufferTexture::bind(uint32_t slot) const {

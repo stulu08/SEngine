@@ -66,7 +66,6 @@ namespace Stulu {
 		m_functions[fnName] = mfn;
 	}
 	void MonoObjectInstance::loadAll(bool construct) {
-		ST_PROFILING_FUNCTION();
 		loadAllClassFunctions();
 		loadAllVirtualParentFunctions();
 		if(construct)
@@ -75,7 +74,6 @@ namespace Stulu {
 	}
 
 	void MonoObjectInstance::loadFunction(const std::string& fnName) {
-		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -84,7 +82,6 @@ namespace Stulu {
 		m_functions[fnName].name = m_nameSpace + "." + m_className + ":" + fnName;
 	}
 	void MonoObjectInstance::loadVirtualFunction(const std::string& fnName, MonoClass* functionClass) {
-		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -115,7 +112,6 @@ namespace Stulu {
 		CORE_ERROR("Could not create Monofunction from {0}", function.name);
 	}
 	MonoMethod* MonoObjectInstance::getVirtualFunction(const std::string& fnName, MonoClass* functionClass) const {
-		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return nullptr;
@@ -140,7 +136,6 @@ namespace Stulu {
 		return nullptr;
 	}
 	void MonoObjectInstance::loadAllClassFunctions() {
-		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -164,7 +159,6 @@ namespace Stulu {
 		}
 	}
 	void MonoObjectInstance::loadAllVirtualParentFunctions() {
-		ST_PROFILING_FUNCTION();
 		if (!m_classPtr) {
 			CORE_ERROR("Invalid class: {0}.{1}", m_nameSpace, m_className);
 			return;
@@ -186,7 +180,6 @@ namespace Stulu {
 		
 	}
 	void MonoObjectInstance::loadAllClassFields() {
-		ST_PROFILING_FUNCTION();
 		bool createOrder = m_fieldOrder.size() == 0;
 		m_fields.clear();
 		void* iter = NULL;
@@ -260,7 +253,6 @@ namespace Stulu {
 		
 	}
 	void MonoObjectInstance::backup_fields() {
-		ST_PROFILING_FUNCTION();
 		m_reloadFieldsChache.clear();
 		m_reloadFieldsChache = create_field_backup();
 	}
@@ -269,7 +261,6 @@ namespace Stulu {
 		m_reloadFieldsChache.clear();
 	}
 	std::unordered_map<std::string, void*> MonoObjectInstance::create_field_backup() {
-		ST_PROFILING_FUNCTION();
 		std::unordered_map<std::string, void*> map;
 		for (auto field : m_fields) {
 			std::string id = field->getName() + "@" + std::to_string((uint32_t)field->getType());

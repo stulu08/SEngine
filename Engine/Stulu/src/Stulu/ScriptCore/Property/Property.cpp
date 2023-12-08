@@ -1,6 +1,5 @@
 #include "st_pch.h"
 #include "Property.h"
-#include "Stulu/Scene/YAML.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/ScriptCore/AssemblyManager.h"
 #include "Stulu/Scene/GameObject.h"
