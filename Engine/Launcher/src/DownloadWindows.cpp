@@ -59,7 +59,7 @@ namespace Stulu::Launcher {
 				return ERROR_BUILD;
 			}
 
-			fileStream << R"(FOR /F "tokens=*" %%g IN ('"Engine\Editor\LooseFiles\tools\vswhere.exe" )";
+			fileStream << R"(FOR /F "tokens=*" %%g IN ('"Engine\Editor\LooseFiles\Data\vswhere\vswhere.exe" )";
 			fileStream << R"(-latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe') do (SET VAR=%%g))" << std::endl;
 			fileStream << R"("%VAR%" Stulu.sln /p:Configuration=)" << configs[i] << " -verbosity:minimal -maxcpucount:";
 			if(options->buildUsingAllCores)

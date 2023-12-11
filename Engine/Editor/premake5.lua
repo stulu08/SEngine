@@ -44,17 +44,15 @@ project "Editor"
 		"%{IncludeDir.premake}",
 	}
 	postbuildcommands {
-		"{MKDIR} \"".. builddir .."/Editor/Build\"",
-
 		"{COPY} \"%{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll\" \"" .. builddir .. "/Editor\"",
 
 		"{COPYDIR} \"%{ProjectDir.Editor}/LooseFiles\" \"" .. builddir .. "/Editor\"",
 		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles\" \"" .. builddir .. "/Editor\"",
 		
-		"{COPYDIR} \"%{ProjectDir.ScriptCore}/bin/".. outputdir .."\" \"" .. builddir .. "/Editor/Data/Managed\"",
-		"{COPYDIR} \"%{ProjectDir.EditorScriptCore}/bin/".. outputdir .."\" \"" .. builddir .. "/Editor/Data/Managed\"",
+		"{COPYDIR} \"%{ProjectDir.ScriptCore}/bin/".. outputdir .."\" \"" .. builddir .. "/Editor/Data/Stulu/Managed\"",
+		"{COPYDIR} \"%{ProjectDir.EditorScriptCore}/bin/".. outputdir .."\" \"" .. builddir .. "/Editor/Data/Stulu/Managed\"",
 
-		"{COPYFILE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exe\" \"" .. builddir .. "/Editor/Build/Stulu Runtime.exe\"",
+		"{COPYFILE} \"%{ProjectDir.Runtime}/bin/" .. outputdir .. "/Stulu Runtime.exe\" \"" .. builddir .. "/Editor/Data/Stulu/Runtime/Stulu Runtime.exe\"",
 	}
 	links
 	{

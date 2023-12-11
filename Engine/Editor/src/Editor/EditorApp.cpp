@@ -15,7 +15,7 @@ namespace Stulu {
 	EditorApp* EditorApp::s_instance = nullptr;
 	Project EditorApp::s_project;
 	EditorApp::EditorApp() 
-		: Application(ApplicationInfo("Stulu Editor",Version(1,0,0), "Stulu", false, true, true, WindowProps("Stulu Editor", 1280, 720))) {
+		: Application(ApplicationInfo("Stulu Editor",Version(1,0,0), "Data/Stulu", false, true, true, WindowProps("Stulu Editor", 1280, 720))) {
 		ST_PROFILING_FUNCTION();
 
 		if (getStartArgs().size() > 1) {
@@ -31,15 +31,16 @@ namespace Stulu {
 		Resources::GameAssetDirectory = s_project.assetPath;
 
 		getWindow().setVSync(false);
-		getWindow().setWindowIcon("Editor/Textures/PNG - Icon - White.png");
+		getWindow().setWindowIcon(getDataPath() + "/Textures/PNG - Icon - White.png");
 		API_Infos apiInfos = getWindow().getContext()->getApiInfos();
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION_STR + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + s_project.path);
 		s_instance = this;
+
 		editorLayer = new EditorLayer();
 
 
 		//copy assembly files to project
-		for (std::filesystem::directory_entry dir : std::filesystem::directory_iterator("Data/Managed")) {
+		for (std::filesystem::directory_entry dir : std::filesystem::directory_iterator("Data/Stulu/Managed")) {
 			if (dir.path().extension().string() == ".dll" || dir.path().extension().string() == ".xml"/*c# doc file*/) {
 				if (!std::filesystem::exists(s_project.dataPath)) {
 					std::filesystem::create_directory(s_project.dataPath);
@@ -51,7 +52,7 @@ namespace Stulu {
 			}
 		}
 		s_project.buildAssembly(s_project.dataPath + "/EditorProjectAssembly.dll");
-		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EditorProjectAssembly.dll", "Data/Managed/Stulu.ScriptCore.dll");
+		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EditorProjectAssembly.dll", "Data/Stulu/Managed/Stulu.ScriptCore.dll");
 		s_project.assembly = getAssemblyManager()->getAssembly();
 
 		loadEditorMonoBindings();

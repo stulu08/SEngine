@@ -1191,7 +1191,7 @@ namespace Stulu {
 
 		std::filesystem::copy(getEditorProject().dataPath + "/ProjectAssembly.dll", projectDataPath + "/Managed", std::filesystem::copy_options::overwrite_existing);
 
-		copyAllFilesFromDir("Build", dir);
+		copyAllFilesFromDir("Data/Stulu/Runtime", dir);
 		std::vector<std::string> AllScnenesToBuild;
 		for (auto& id : m_buildData.scenesToBuild) {
 			if (AssetsManager::existsAndType(id, AssetType::Scene))
@@ -1204,13 +1204,9 @@ namespace Stulu {
 			std::filesystem::remove_all(dir + "/Build");
 		}
 		//copy engine stuff
-		copyAllFilesFromDir("Data/PhysX", dir + "/Data/PhysX");
-		copyAllFilesFromDir("mono", dir + "/mono");
-		copyAllFilesFromDir("Stulu", dir + "/Stulu");
+		copyAllFilesFromDir("Data", dir + "/Data");
 		copyAllFilesFromDir("Licenses", dir + "/Licenses");
 
-		std::filesystem::create_directories(dir + "/Data/Managed");
-		std::filesystem::copy("Data/Managed/Stulu.ScriptCore.dll", dir + "/Data/Managed/Stulu.ScriptCore.dll", std::filesystem::copy_options::overwrite_existing);
 		std::filesystem::copy("mono-2.0-sgen.dll", dir + "/mono-2.0-sgen.dll", std::filesystem::copy_options::overwrite_existing);
 
 		//generate app file

@@ -1,65 +1,66 @@
 #include "Resources.h"
+#include "EditorApp.h"
 
 namespace Stulu {
 
 	Ref<Texture>& EditorResources::getEmptySlotTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/empty.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/empty.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getFileTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/file.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/file.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getFolderTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/folder.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/folder.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getObjectTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/object.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/object.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getSceneTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/scene.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/scene.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getNoCameraTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/nocam.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/nocam.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getPlayTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/play.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/play.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getPauseTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/pause.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/pause.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getStopTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/stop.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/stop.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getSkyBoxTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/skybox.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/skybox.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getScriptTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/code.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/code.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getLightTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/Gizmo/light.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/Gizmo/light.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getDirectionalLightTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/Gizmo/directionallight.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/Gizmo/directionallight.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getSpotLightTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/Gizmo/spotlight.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/Gizmo/spotlight.png");
 		return s_texture;
 	}
 	Ref<Texture>& EditorResources::getCameraTexture() {
-		static Ref<Texture> s_texture = Texture2D::create("Editor/Textures/Gizmo/camera.png");
+		static Ref<Texture> s_texture = Texture2D::create(getEditorDataPath() + "/Textures/Gizmo/camera.png");
 		return s_texture;
 	}
 	const std::string EditorResources::getDefaultSceneSource()

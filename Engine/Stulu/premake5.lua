@@ -94,15 +94,13 @@ project "Stulu"
 	}
 	
 	postbuildcommands{
-		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/mono/lib/mono\"",
-		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/mono/etc\"",
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data\"",
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
+		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/mono\"",
 
 		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/LooseFiles/\"",
-		"{COPYDIR} \"%{monoDir}/etc\" \"%{ProjectDir.Stulu}/LooseFiles/mono/etc\"",
-		"{COPYDIR} \"%{monoDir}/lib/mono/4.5\" \"%{ProjectDir.Stulu}/LooseFiles/mono/lib/mono/4.5\"",
-		"{COPYDIR} \"%{monoDir}/lib/mono/4.8-Api\" \"%{ProjectDir.Stulu}/LooseFiles/mono/lib/mono/4.8-Api\"",
+		"{COPYDIR} \"%{monoDir}/etc\" \"%{ProjectDir.Stulu}/LooseFiles/Data/mono/etc\"",
+		"{COPYDIR} \"%{monoDir}/lib/\" \"%{ProjectDir.Stulu}/LooseFiles/Data/mono/lib/\"",
 
 		"{COPYDIR} \"%{physxDir}/loader/" .. outputdir .. "\" \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
 

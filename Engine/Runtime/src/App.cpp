@@ -26,7 +26,7 @@ namespace Stulu {
 				appInfo.ApplicationName = node["App Name"].as<std::string>();
 			if(node["App Verison"])
 				appInfo.ApplicationVersion = *(Version*)&((glm::uvec3)node["App Verison"].as<glm::vec3>());
-			appInfo.DefaultAssetsPath = "Stulu";
+			appInfo.DefaultAssetsPath = "Data/Stulu";
 			appInfo.EnableImgui = false;
 			appInfo.HideWindowOnSart = false;
 			appInfo.LoadDefaultAssets = true;

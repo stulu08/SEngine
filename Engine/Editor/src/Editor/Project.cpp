@@ -97,7 +97,7 @@ namespace Stulu {
 			return "echo Build failed";
 		}
 
-		fileStream << R"(FOR /F "tokens=*" %%g IN ('"tools\vswhere.exe" )";
+		fileStream << R"(FOR /F "tokens=*" %%g IN ('"Data\vswhere\vswhere.exe" )";
 		fileStream << R"(-latest -prerelease -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe') do (SET VAR=%%g))" << std::endl;
 		fileStream << R"("%VAR%" )";
 		fileStream << path << "/Assembly.sln /p:Configuration=";
