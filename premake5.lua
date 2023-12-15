@@ -38,7 +38,6 @@ workspace "Stulu"
 		}
 
 staticBuild = true
-staticRuntime = true
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 builddir = "%{wks.location}/Engine/Build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"

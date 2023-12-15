@@ -13,7 +13,7 @@ namespace Stulu {
 
 		m_monoDomain = mono_jit_init("StuluEngine");
 
-		if (!m_monoDomain) {
+		if (!m_monoDomain)  {
 			CORE_ERROR("Mono Domain creation failed");
 			return;
 		}

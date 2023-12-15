@@ -2,13 +2,14 @@ project "Launcher"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	if(staticRuntime) then
-		staticruntime "on"
-	end
+	staticruntime "off"
+
 	targetname ("Stulu Launcher");
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
+
 	debugdir ("" .. builddir .. "/Launcher")
+
 	defines
 	{
 		"ST_RUNTIME",
@@ -20,6 +21,7 @@ project "Launcher"
 			"ST_DYNAMIC_LINK",
 		}
 	end
+
 	files
 	{
 		"src/**.h",

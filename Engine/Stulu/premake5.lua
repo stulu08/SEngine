@@ -6,9 +6,7 @@ project "Stulu"
 	end
 	language "C++"
 	cppdialect "C++17"
-	if(staticRuntime) then
-		staticruntime "on"
-	end
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")

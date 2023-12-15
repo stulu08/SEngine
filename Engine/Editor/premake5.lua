@@ -2,15 +2,16 @@ project "Editor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	if(staticRuntime) then
-		staticruntime "on"
-	end
+	staticruntime "off"
+
 	targetname ("Stulu Editor");
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
+	dependson { "EditorScriptCore","Runtime" }
+
 	debugdir ("" .. builddir .. "/Editor")
 	debugargs { "%{wks.location}/Projects/DebugProject/DebugProject.sproj" }
-	dependson { "EditorScriptCore","Runtime" }
+
 	defines
 	{
 		"ST_EDITOR",
@@ -22,6 +23,7 @@ project "Editor"
 			"ST_DYNAMIC_LINK",
 		}
 	end
+
 	files
 	{
 		"src/**.h",

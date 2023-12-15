@@ -124,7 +124,7 @@ namespace Stulu {
             }
         }
         //add all fonts to fonts.txt which are not present
-        for (auto& dir : std::filesystem::directory_iterator("Data/Editor/Fonts/")) {
+        for (auto& dir : std::filesystem::directory_iterator(getEditorDataPath() + "/Fonts/")) {
             const auto& path = dir.path();
             if (path.extension() != ".ttf")
                 continue;
@@ -140,7 +140,7 @@ namespace Stulu {
         std::fstream stream(file, std::ios::out);
         stream << "fontCount=" << fonts.size() << "\n";
         for (int i = 0; i < fonts.size(); i++) {
-            io.Fonts->AddFontFromFileTTF(("Data/Editor/Fonts/" + fonts[i]).c_str(), 15.0f);
+            io.Fonts->AddFontFromFileTTF((getEditorDataPath() + "/Fonts/" + fonts[i]).c_str(), 15.0f);
             stream << i << "=" << fonts[i] << "\n";
         }
         stream.close();

@@ -2,9 +2,8 @@ project "Runtime"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	if(staticRuntime) then
-		staticruntime "on"
-	end
+	staticruntime "off"
+
 	targetname ("Stulu Runtime");
 	targetdir ("bin/" .. outputdir .. "")
 	objdir ("bin-int/" .. outputdir .. "")
@@ -20,6 +19,7 @@ project "Runtime"
 			"ST_DYNAMIC_LINK",
 		}
 	end
+
 	files
 	{
 		"src/**.h",
