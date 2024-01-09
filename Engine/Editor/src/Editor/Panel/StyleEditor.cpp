@@ -99,7 +99,7 @@ namespace Stulu {
         ST_TRACE("Loading all Fonts from {0}{1}", Application::getStartDirectory(), getEditorDataPath() + "/Fonts/");
         std::string file = getEditorDataPath() + "/Fonts/fonts.txt";
         std::vector<std::string> fonts;
-
+        
         //load fonts
         if (FileExists(file)) {
             std::unordered_map<std::string, std::string> values;

@@ -39,9 +39,9 @@ float filterAlpha(float alpha, uint mode, float cutOut = 1.0) {
 	}
 
 	float value = -1.0;
-    value += 1.0 * when_eq(mode, 1) * when_gt(alpha, cutOut);
-    value += alpha * when_eq(mode, 2);
-    value += 1.0 * when_neq(value, -1.0);
+    value += 1.0 * float(when_eq(mode, 1)) * when_gt(alpha, cutOut);
+    value += alpha * float(when_eq(mode, 2));
+    value += 1.0 * float(when_neq(value, -1.0));
     return value;
 }
 vec3 getSkyBoxCoords(vec3 view, mat4 _skyBoxRotation) {

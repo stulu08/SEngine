@@ -47,6 +47,7 @@ namespace Stulu {
 		void popOverlay(Layer* layer);
 
 		inline const Ref<AssemblyManager>& getAssemblyManager() const { return m_assembly; }
+		inline Ref<AssemblyManager>& getAssemblyManager() { return m_assembly; }
 		inline ImGuiLayer* getImGuiLayer() const { return m_imguiLayer; }
 		inline Window& getWindow() const { return *m_window; }
 		

@@ -97,7 +97,7 @@ project "Stulu"
 		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/mono\"",
 		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
 		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Shader\"",
-
+		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Native\"",
 
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Shader\"",
 		"{COPYDIR} \"%{ProjectDir.Stulu}/src/Shader\" \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Shader\"",
@@ -107,11 +107,14 @@ project "Stulu"
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data\"",
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/mono\"",
+		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Native\"",
+
+		"{COPYDIR} \"%{cfg.targetdir}\" \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Native\"",
 
 		"{COPY} \"%{monoDir}/bin/mono-2.0-sgen.dll\" \"%{ProjectDir.Stulu}/LooseFiles/\"",
 		"{COPYDIR} \"%{monoDir}/etc\" \"%{ProjectDir.Stulu}/LooseFiles/Data/mono/etc\"",
 		"{COPYDIR} \"%{monoDir}/lib/\" \"%{ProjectDir.Stulu}/LooseFiles/Data/mono/lib/\"",
-
+		
 		"{COPYDIR} \"%{physxDir}/loader/" .. outputdir .. "\" \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
 
 	}

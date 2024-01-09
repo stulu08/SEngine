@@ -70,7 +70,7 @@ namespace Stulu {
 			std::filesystem::remove(std::string(appInfo.ApplicationName) + "-data/Managed/Stulu.ScriptCore.dll");
 		std::filesystem::copy("data/Managed/Stulu.ScriptCore.dll", std::string(appInfo.ApplicationName) + "-data/Managed/Stulu.ScriptCore.dll");
 		
-		m_assembly = createRef<AssemblyManager>(std::string(appInfo.ApplicationName) + "-data/Managed/ProjectAssembly.dll", "Data/Managed/Stulu.ScriptCore.dll");
+		m_assembly = createRef<AssemblyManager>(std::string(appInfo.ApplicationName) + "-data/Managed/ManagedAssembly.dll", "Data/Managed/Stulu.ScriptCore.dll");
 
 		AssetsManager::loadAllFiles(std::string(appInfo.ApplicationName) + "-data/assets");
 

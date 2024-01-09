@@ -33,23 +33,6 @@ void DestinationStore(const vec4 color, const vec2 pixelPos) {
 vec3 Prefilter(vec3 color) { 
     color = min(color, clampValue);
 
-#if 0
-    const vec3 luminanceVector = vec3(0.2125, 0.7154, 0.0721);
-    float luminance = dot(luminanceVector, color);
-    luminance = max(0.0, luminance - threshFilter.x);
-    color *= sign(luminance);
-    return color;
-//#else
-    float brightness = max(color.r, max(color.g, color.b));
-    float soft = brightness - threshFilter.y;
-    soft = clamp(soft, 0, threshFilter.z);
-    soft = soft * soft * threshFilter.w;
-
-    float contrib = max(soft, brightness - threshFilter.x);
-
-    return color * contrib;
-#endif
-
     const vec3 luminanceVector = vec3(0.2125, 0.7154, 0.0721);
     float luminance = dot(luminanceVector, color);
     

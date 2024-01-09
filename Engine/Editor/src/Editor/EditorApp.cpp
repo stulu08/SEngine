@@ -38,25 +38,10 @@ namespace Stulu {
 
 		editorLayer = new EditorLayer();
 
-
-		//copy assembly files to project
-		for (std::filesystem::directory_entry dir : std::filesystem::directory_iterator("Data/Stulu/Managed")) {
-			if (dir.path().extension().string() == ".dll" || dir.path().extension().string() == ".xml"/*c# doc file*/) {
-				if (!std::filesystem::exists(s_project.dataPath)) {
-					std::filesystem::create_directory(s_project.dataPath);
-				}
-				if (std::filesystem::exists(s_project.dataPath + "/" + dir.path().filename().string())) {
-					std::filesystem::remove(s_project.dataPath + "/" + dir.path().filename().string());
-				}
-				std::filesystem::copy_file(dir.path(), s_project.dataPath + "/" + dir.path().filename().string());
-			}
-		}
-		s_project.buildAssembly(s_project.dataPath + "/EditorProjectAssembly.dll");
-		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/EditorProjectAssembly.dll", "Data/Stulu/Managed/Stulu.ScriptCore.dll");
+		s_project.buildAssembly(s_project.dataPath + "/ManagedAssembly.dll");
+		m_assembly = createRef<AssemblyManager>(s_project.dataPath + "/ManagedAssembly.dll", "Data/Stulu/Managed/Stulu.ScriptCore.dll");
 		s_project.assembly = getAssemblyManager()->getAssembly();
 
-		loadEditorMonoBindings();
-		
 		ST_INFO("Loading all Project assets from: {0}", s_project.assetPath);
 		AssetsManager::loadAllFiles(s_project.assetPath);
 		pushLayer(editorLayer);

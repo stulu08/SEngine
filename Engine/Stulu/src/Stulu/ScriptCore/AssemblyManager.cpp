@@ -20,15 +20,22 @@ namespace Stulu {
 
 		mono_thread_set_main(mono_thread_current());
 
-		Property::TypeRegister["System.Int32"] = [](MonoObject* object, MonoClassField* field) { return createRef<Int32Property>(object, field); };
-		Property::TypeRegister["System.UInt32"] = [](MonoObject* object, MonoClassField* field) { return createRef<UInt32Property>(object, field); };
-		Property::TypeRegister["System.Single"] = [](MonoObject* object, MonoClassField* field) { return createRef<FloatProperty>(object, field); };
-		Property::TypeRegister["System.Boolean"] = [](MonoObject* object, MonoClassField* field) { return createRef<BoolProperty>(object, field); };
-		Property::TypeRegister["Stulu.Vector2"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector2Property>(object, field); };
-		Property::TypeRegister["Stulu.Vector3"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector3Property>(object, field); };
-		Property::TypeRegister["Stulu.Vector4"] = [](MonoObject* object, MonoClassField* field) { return createRef<Vector4Property>(object, field); };
-		Property::TypeRegister["Stulu.Texture2D"] = [](MonoObject* object, MonoClassField* field) { return createRef<Texture2DProperty>(object, field); };
-		Property::TypeRegister["Stulu.GameObject"] = [](MonoObject* object, MonoClassField* field) { return createRef<GameObjectProperty>(object, field); };
+		RegisterProperty<Int32Property>("System.Int32");
+		RegisterProperty<UInt32Property>("System.UInt32");
+		RegisterProperty<FloatProperty>("System.Single");
+		RegisterProperty<BoolProperty>("System.Boolean");
+		RegisterProperty<Vector2Property>("Stulu.Vector2");
+		RegisterProperty<Vector3Property>("Stulu.Vector3");
+		RegisterProperty<Vector4Property>("Stulu.Vector4");
+		RegisterProperty<Texture2DProperty>("Stulu.Texture2D");
+		RegisterProperty<GameObjectProperty>("Stulu.GameObject");
+
+		RegisterComponent<TransformComponent>("Stulu.TransformComponent");
+		RegisterComponent<RigidbodyComponent>("Stulu.RigidbodyComponent");
+		RegisterComponent<SpriteRendererComponent>("Stulu.SpriteRendererComponent");
+
+		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_monoDomain, coreAssemblyPath);
+		m_assembly = createRef<ScriptAssembly>(m_monoDomain, assemblyPath.c_str());
 
 		loadScriptCore(assemblyPath, coreAssemblyPath);
 	}
@@ -41,37 +48,18 @@ namespace Stulu {
 			mono_jit_cleanup(m_monoDomain);
 		}
 	}
-}
 
+	void AssemblyManager::RegisterFunction(const std::string& staticFunc, const void* func) {
+		mono_add_internal_call(staticFunc.c_str(), func);
+	}
 
-
-#include "Bindings/Log.h"
-#include "Bindings/Time.h"
-#include "Bindings/Input.h"
-#include "Bindings/GameObject.h"
-#include "Bindings/Transform.h"
-#include "Bindings/Rigidbody.h"
-#include "Bindings/Graphics2D.h"
-#include "Bindings/Texture2D.h"
-#include "Bindings/Gizmo.h"
-#include "Bindings/Folders.h"
-#include "Bindings/SpriteRenderer.h"
-
-#define add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), StuluBindings::_Binding)
-#define _add_call(Name, _Binding) mono_add_internal_call((std::string("Stulu.InternalCalls::") + Name).c_str(), _Binding)
-
-namespace Stulu {
 	void AssemblyManager::loadScriptCore(const std::string& assemblyPath, const std::string& coreAssemblyPath) {
 		ST_PROFILING_FUNCTION();
-		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_monoDomain, coreAssemblyPath);
-		m_assembly = createRef<ScriptAssembly>(m_monoDomain, assemblyPath.c_str());
-
 		MonoClass* componentClass = m_scriptCoreAssembly->createClass("Stulu", "Component");
 		m_assembly->loadAllClasses(componentClass);
 
-		StuluGameObject_RegisterComponent("Stulu.TransformComponent", TransformComponent);
-		StuluGameObject_RegisterComponent("Stulu.RigidbodyComponent", RigidbodyComponent);
-		StuluGameObject_RegisterComponent("Stulu.SpriteRendererComponent", SpriteRendererComponent);
+#define add_call(Name, _Binding) RegisterFunction(std::string("Stulu.InternalCalls::") + Name, StuluBindings::_Binding)
+#define _add_call(Name, _Binding) RegisterFunction(std::string("Stulu.InternalCalls::") + Name, _Binding)
 
 		_add_call("application_exit(int)", Application::exit);
 		_add_call("application_getWidth()", Application::getWidth);

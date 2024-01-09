@@ -1169,7 +1169,7 @@ namespace Stulu {
 			std::filesystem::create_directories(projectDataPath + "/Licenses");
 		}
 
-		std::filesystem::copy(getEditorProject().dataPath + "/ProjectAssembly.dll", projectDataPath + "/Managed", std::filesystem::copy_options::overwrite_existing);
+		std::filesystem::copy(getEditorProject().dataPath + "/ManagedAssembly.dll", projectDataPath + "/Managed", std::filesystem::copy_options::overwrite_existing);
 
 		copyAllFilesFromDir("Data/Stulu/Runtime", dir);
 		std::vector<std::string> AllScnenesToBuild;

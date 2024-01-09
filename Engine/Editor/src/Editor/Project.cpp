@@ -33,7 +33,16 @@ namespace Stulu {
 	}
 	void Project::generateProjectFiles() {
 		ST_PROFILING_FUNCTION();
-		stulu_premake_exec(path.c_str(), ST_PREMAKE_ACTION_VS2022);
+		auto& cPath = std::filesystem::absolute(std::filesystem::current_path());
+		std::string buildDir = "--BuildDir=" + cPath.string();
+
+		auto& instalPath = std::filesystem::absolute(cPath.string() + "/../../../../");
+		std::string installDir = "--InstallDir=" + instalPath.string();
+
+		const char* options[2];
+		options[0] = buildDir.c_str();
+		options[1] = installDir.c_str();
+		stulu_premake_exec_options(path.c_str(), ST_PREMAKE_ACTION_VS2022, options, 2);
 	}
 
 	void Project::rebuildAssembly() {
@@ -41,7 +50,7 @@ namespace Stulu {
 		generateProjectFiles();
 #ifdef ST_PLATFORM_WINDOWS
 		static std::function<bool(const std::string&)> recompileFinished = [=](const std::string&)->bool {
-			return std::filesystem::exists(dataPath + "/EditorProjectAssembly.dll");
+			return std::filesystem::exists(dataPath + "/ManagedAssembly.dll");
 			};
 		static std::function<bool(const std::string&)> recompile = [=](const std::string&)->bool {
 			return system(createBuildFile().c_str());
@@ -102,11 +111,17 @@ namespace Stulu {
 		fileStream << R"("%VAR%" )";
 		fileStream << path << "/Assembly.sln /p:Configuration=";
 
-		if (buildSettings.debug) {
-			fileStream << "Debug";
-		}
-		else {
+		switch (buildSettings.config)
+		{
+		case BuildSettings::Debug:
+				fileStream << "Debug";
+				break;
+		case BuildSettings::Release:
 			fileStream << "Release";
+			break;
+		case BuildSettings::Dist:
+			fileStream << "Dist";
+			break;
 		}
 
 		fileStream << " -verbosity:minimal -maxcpucount:" << buildSettings.threads;

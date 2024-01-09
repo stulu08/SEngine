@@ -2,13 +2,6 @@
 #include "Stulu/Scene/GameObject.h"
 #include <Stulu/Scene/Components/Components.h>
 #include <Stulu/Core/Resources.h>
-#define StuluGameObject_RegisterComponent(Name, Type) \
-{\
-	using namespace Stulu; \
-	::StuluBindings::GameObject::addComponentRegister[Name] = [](::Stulu::GameObject go) { go.addComponent<Type>(); }; \
-	::StuluBindings::GameObject::hasComponentRegister[Name] = [](::Stulu::GameObject go) -> bool { return go.hasComponent<Type>(); }; \
-	::StuluBindings::GameObject::removeComponentRegister[Name] = [](::Stulu::GameObject go) -> bool { return go.removeComponent<Type>(); }; \
-}
 
 namespace StuluBindings {
 	class GameObject {
