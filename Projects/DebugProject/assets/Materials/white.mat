@@ -12,5 +12,5 @@ DataTypes:
   - [12, [2, 0, 1, black], roughnessMap, 7]
   - [12, [3, 0, 1, black], normalMap, 8]
   - [12, [4, 0, 1, black], aoMap, 9]
-  - [12, [5, 0, 1, black], emissionMap, 10]
+  - [12, [5, 0, 1, white], emissionMap, 10]
   - [2, [1, 1], textureTilling, 11]

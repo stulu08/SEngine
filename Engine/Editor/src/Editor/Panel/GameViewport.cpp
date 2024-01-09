@@ -39,10 +39,10 @@ namespace Stulu {
 				if (frameBuffer == nullptr)
 					viewPortTexture = EditorResources::getNoCameraTexture();
 				else {
-					if (frameBuffer->getTexture() == nullptr)
+					if (frameBuffer == nullptr)
 						viewPortTexture = EditorResources::getNoCameraTexture();
 					else
-						viewPortTexture = frameBuffer->getTexture();
+						viewPortTexture = frameBuffer->getColorAttachment();
 				}
 				ImVec2 viewportSize = sizes[m_selectedSize];
 

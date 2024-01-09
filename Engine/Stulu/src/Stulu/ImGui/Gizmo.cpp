@@ -74,8 +74,11 @@ namespace Stulu {
 		FrameBufferSpecs specs;
 		specs.width = Application::getWidth();
 		specs.height = Application::getHeight();
-		specs.colorTexture = TextureFormat::RGBA;
-		s_data.drawBuffer = FrameBuffer::create(specs);
+
+		TextureSettings colorBuffer;
+		colorBuffer.format = TextureFormat::RGBA;
+
+		s_data.drawBuffer = FrameBuffer::create(specs, colorBuffer);
 
 		{//cubes
 			Ref<IndexBuffer> indexBuffer;
@@ -150,7 +153,7 @@ namespace Stulu {
 			s_data.cubeVertexArray->addVertexBuffer(s_data.cubeVertexBuffer);
 			s_data.cubeVertexArray->setIndexBuffer(indexBuffer);
 			s_data.cubeVertexBufferBase = new CubeVertex[s_data.maxVertices];
-			s_data.cubeShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoCube.glsl");
+			s_data.cubeShader = Renderer::getShaderSystem()->GetShader("Gizmo/Cube");
 		}
 		{//spheres
 			s_data.sphereVertexArray = VertexArray::create();
@@ -167,13 +170,13 @@ namespace Stulu {
 			}
 			
 			s_data.sphereDataBufferBase = new SphereInstanceData[s_data.maxSpheres];
-			s_data.sphereShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/GizmoSphere.glsl");
+			s_data.cubeShader = Renderer::getShaderSystem()->GetShader("Gizmo/Sphere");
 		}
 	}
 	void Gizmo::Begin() {
 		ST_PROFILING_FUNCTION();
 		//check for resize
-		if (s_data.mWidth != s_data.drawBuffer->getTexture()->getWidth() || s_data.mHeight != s_data.drawBuffer->getTexture()->getHeight()) {
+		if (s_data.mWidth != s_data.drawBuffer->getColorAttachment()->getWidth() || s_data.mHeight != s_data.drawBuffer->getColorAttachment()->getHeight()) {
 			s_data.drawBuffer->resize((uint32_t)s_data.mWidth, (uint32_t)s_data.mHeight);
 		}
 
@@ -203,7 +206,7 @@ namespace Stulu {
 	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
 		RenderCommand::setDepthTesting(false);
 		camera->bind();
-		s_data.drawBuffer->getTexture()->bind(0);
+		s_data.drawBuffer->getColorAttachment()->bind(0);
 		Resources::getFullscreenShader()->bind();
 		float z = -1.0f;
 		Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));

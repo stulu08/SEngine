@@ -66,7 +66,6 @@ namespace Stulu {
 					ImGui::PushID(filename.string().c_str());
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 
-					//ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)ico->getRendererID()), { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 					ImGui::ImageButton(ico, { icoSize, icoSize }, { 0, 1 }, { 1, 0 }, -1, bgColor, icoColor);
 				}
 				if (ImGui::BeginDragDropSource()) {
@@ -79,7 +78,7 @@ namespace Stulu {
 					if (directory.is_directory())
 						m_path /= filename;
 				}
-				if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+				if ((ImGui::IsMouseReleased(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Right)) && ImGui::IsItemHovered(ImGuiMouseButton_Right)) {
 					selected = AssetsManager::get(AssetsManager::getFromPath(path.string(), AssetsManager::getAssetTypeByPath(path.string())));
 					EditorInspectorPanel::AssetMode = true;
 				}
@@ -113,7 +112,7 @@ namespace Stulu {
 					if (ImGui::MenuItem("Shader")) {
 						openCreatePopUp = true;
 						createPopUpFileName = "New Shader.glsl";
-						createPopUpFileContent = Resources::getDefaultMaterial()->getShader()->getSource(true);
+						createPopUpFileContent = ReadFile(Renderer::getShaderSystem()->GetEntry(Resources::getDefaultMaterial()->getShader()->getName())->GetPath());
 					}
 					if (ImGui::MenuItem("Script")) {
 						openCreatePopUp = true;
@@ -144,7 +143,7 @@ namespace Stulu {
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Recompile Shaders")) {
-					AssetsManager::reloadShaders(getEditorProject().assetPath);
+					Renderer::getShaderSystem()->ReloadShaders();
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Reload Assembly")) {

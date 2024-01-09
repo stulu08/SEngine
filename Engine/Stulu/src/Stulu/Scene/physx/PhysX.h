@@ -28,13 +28,13 @@ namespace Stulu{
     class STULU_API CharacterController;
     class STULU_API Mesh;
     class STULU_API PhysX;
-    physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
-    glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec);
+    STULU_API physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
+    STULU_API glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec);
 
-    physx::PxQuat PhysicsQuatfromglmQuat(const glm::quat& quat);
-    glm::vec3 PhysicsQuattoglmVec3(const physx::PxQuat& quat);
+    STULU_API physx::PxQuat PhysicsQuatfromglmQuat(const glm::quat& quat);
+    STULU_API glm::vec3 PhysicsQuattoglmVec3(const physx::PxQuat& quat);
 
-    physx::PxTransform PhysicsTransformfromTransformComponent(const glm::mat4& transform);
+    STULU_API physx::PxTransform PhysicsTransformfromTransformComponent(const glm::mat4& transform);
 
     struct PhysicsData {
         float speed = 9.81f;

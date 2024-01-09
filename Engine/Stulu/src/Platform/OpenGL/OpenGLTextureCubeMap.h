@@ -51,7 +51,7 @@ namespace Stulu {
 		Ref<OpenGLCubeMap> m_prefilterMap;
 		uint32_t m_captureFBO, m_captureRBO;
 	};
-	class STULU_API OpenGLSkyBox : public SkyBox {
+	class OpenGLSkyBox : public SkyBox {
 	public:
 		OpenGLSkyBox(uint32_t resolution, void* data) { update(resolution, data); }
 		OpenGLSkyBox(const std::vector<std::string>& faces, uint32_t resolution) { update(faces, resolution); }
@@ -87,7 +87,7 @@ namespace Stulu {
 		virtual void update(const std::vector<std::string>& faces, uint32_t resolution) override;
 		virtual void update(const std::string& hdrTexturePath, uint32_t resolution) override;
 
-		static uint32_t genrateBRDFLUT(uint32_t resolution);
+		static Ref<Texture2D> genrateBRDFLUT(uint32_t resolution);
 	private:
 		TextureSettings m_settings;
 		uint32_t m_resolution;//need to be set in constructor
@@ -95,7 +95,6 @@ namespace Stulu {
 		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
 		uint32_t m_brdfLUT = 0;
 		static inline uint32_t s_quadVAO = 0, s_quadVBO = 0;
-		static inline Ref<Shader> s_brdfShader = nullptr, s_prefilterShader = nullptr, s_irradianceShader = nullptr, s_equirectangularToCubemapShader = nullptr, s_skyboxShader = nullptr;
 
 		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
 
@@ -103,10 +102,10 @@ namespace Stulu {
 
 		friend class OpenGLReflectionMap;
 
-		static std::string getEquirectangularToCubemapShaderSource();
-		static std::string getIrradianceShaderSource();
-		static std::string getPrefilterShaderSorce();
-		static std::string getSkyBoxSource();
-		static Ref<ComputeShader>& getBrdfShader();
+		static Ref<Shader> getEquirectangularToCubemapShader();
+		static Ref<Shader> getIrradianceShader();
+		static Ref<Shader> getPrefilterShader();
+		static Ref<Shader> getCubeMapShader();
+		static Ref<Shader> getBRDFLUTShader();
 	};
 }

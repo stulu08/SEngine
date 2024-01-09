@@ -20,7 +20,6 @@ namespace Stulu {
 		FrameBufferSpecs fspecs;
 		fspecs.width = Stulu::Application::get().getWidth();
 		fspecs.height = Stulu::Application::get().getHeight();
-		fspecs.colorTexture.format = TextureFormat::RGBA16F;
 		m_sceneFrameBuffer = FrameBuffer::create(fspecs);
 
 		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
@@ -60,36 +59,36 @@ namespace Stulu {
 		if (m_showDebugWindow) {
 			if (ImGui::Begin("Debug Window", &m_showDebugWindow)) {
 				if (ImGui::TreeNodeEx("Bloom")) {
+					auto& data = m_sceneCamera.getPostProcessingData().bloom;
 
-					ComponentsRender::drawFloatControl("SampleScale", m_activeScene->getData().graphicsData.sampleScale);
+					ComponentsRender::drawFloatControl("SampleScale", data.sampleScale);
 
-					auto& data = m_sceneCamera.getPostProcessingData().bloomData;
 					{//downsample
 						static uint32_t sample = 0;
 						static uint32_t width = 0, height = 0;
 						ComponentsRender::drawUIntSliderControl(std::string("D index(") + std::to_string(width) + "x" + std::to_string(height) + ")", sample, 0, data.samples - 1);
-						auto& texture = data.downSample[sample];
+						auto& texture = data.downSample;
 						if (texture) {
-							width = texture->getWidth();
-							height = texture->getHeight();
+							width = texture->getMipWidth(sample);
+							height = texture->getMipHeight(sample);
 							ImGui::Image(texture, glm::vec2(200.0f) * m_sceneCamera.getAspectRatioXY(), { 0,1 }, { 1,0 }, glm::vec4(1.0f), glm::vec4(COLOR_GRAY_VEC4));
 						}
 					}
 					{//upsample
 						static uint32_t sample = 0;
 						static uint32_t width = 0, height = 0;
-						ComponentsRender::drawUIntSliderControl(std::string("U index(") + std::to_string(width) + "x" + std::to_string(height) + ")", sample, 0, data.samples - 1);
-						auto& texture = data.upSample[sample];
+						ComponentsRender::drawUIntSliderControl(std::string("U index(") + std::to_string(width) + "x" + std::to_string(height) + ")", sample, 0, data.samples - 2);
+						auto& texture = data.upSample;
 						if (texture) {
-							width = texture->getWidth();
-							height = texture->getHeight();
+							width = texture->getMipWidth(sample);
+							height = texture->getMipHeight(sample);
 							ImGui::Image(texture, glm::vec2(200.0f) * m_sceneCamera.getAspectRatioXY(), { 0,1 }, { 1,0 }, glm::vec4(1.0f), glm::vec4(COLOR_GRAY_VEC4));
 						}
 					}
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Shadows")) {
-					Ref<Texture> tex = m_activeScene->getRenderer()->m_shadowMap->getTexture()->getDepthAttachment();
+					Ref<Texture> tex = m_activeScene->getRenderer()->m_shadowMap->getDepthAttachment();
 					ImGui::Image(tex, glm::vec2(256.0f), {0,1}, {1, 0});
 					ImGui::TreePop();
 				}
@@ -173,17 +172,12 @@ namespace Stulu {
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Shaders")) {
-					for (UUID& id : AssetsManager::getAllByType(AssetType::Shader)) {
-						if (id == UUID::null)
-							continue;
-						Asset& asset = AssetsManager::get(id);
-						Ref<Shader>& shader = AssetsManager::getAs<Ref<Shader>>(id);
-						if (ImGui::TreeNodeEx(shader->getName().c_str())) {
-							if (ImGui::TreeNodeEx("Source")) {
-								static bool preProcessed = false;
-								ImGui::Checkbox("Pre Processed", &preProcessed);
-								ImGui::TextUnformatted(shader->getSource(preProcessed).c_str());
-								ImGui::TreePop();
+					auto& shaders = Renderer::getShaderSystem()->GetShaders();
+					for (const auto& [name, entry] : shaders) {
+						if (ImGui::TreeNodeEx(name.c_str())) {
+							ImGui::Text("Path: %s", entry->GetPath().c_str());
+							for (auto& prop : entry->GetProperities()) {
+								ImGui::Text("%s: %s", magic_enum::enum_name(prop->getType()).data(), prop->getName().c_str());
 							}
 							ImGui::TreePop();
 						}
@@ -573,9 +567,9 @@ namespace Stulu {
 				m_sceneFrameBuffer->unbind();
 				if (!cam.settings.isRenderTarget) {
 					if (cam.postProcessing)
-						m_activeScene->getRenderer()->ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getTexture(), *cam.postProcessing);
+						m_activeScene->getRenderer()->ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getColorAttachment(), *cam.postProcessing);
 					else
-						m_activeScene->getRenderer()->ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getTexture());
+						m_activeScene->getRenderer()->ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getColorAttachment());
 				}
 			}
 		}
@@ -1067,6 +1061,8 @@ namespace Stulu {
 			}
 			if (values.find("build.name") != values.end())
 				m_buildData.name = values["build.name"];
+			if (values.find("build.publisher") != values.end())
+				m_buildData.publisher = values["build.publisher"];
 			if (values.find("build.width") != values.end())
 				m_buildData.width = stoi(values["build.width"]);
 			if (values.find("build.height") != values.end())
@@ -1101,17 +1097,6 @@ namespace Stulu {
 				values[name] = data;
 				count++;
 			}
-			if (values.find("postProcessingData.exposure") != values.end())
-				m_sceneCamera.getPostProcessingData().exposure = std::stof(values["postProcessingData.exposure"]);
-			if (values.find("postProcessingData.gamma") != values.end())
-				m_sceneCamera.getPostProcessingData().gamma = std::stof(values["postProcessingData.gamma"]);
-			if (values.find("postProcessingData.bloomIntensity") != values.end())
-				m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity = std::stof(values["postProcessingData.bloomIntensity"]);
-			if (values.find("postProcessingData.bloomTreshold") != values.end())
-				m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold = std::stof(values["postProcessingData.bloomTreshold"]);
-			if (values.find("postProcessingData.bloomEnabled") != values.end())
-				m_sceneCamera.getPostProcessingData().bloomData.bloomEnabled = std::stof(values["postProcessingData.bloomEnabled"]);
-			m_sceneCamera.getPostProcessingData() = m_sceneCamera.getPostProcessingData();
 
 			ST_TRACE("Loaded Editor Camera config from {0}", file);
 		}
@@ -1144,6 +1129,7 @@ namespace Stulu {
 
 			stream << "build.name=" << m_buildData.name << "\n";
 			stream << "build.width=" << m_buildData.width << "\n";
+			stream << "build.publisher=" << m_buildData.publisher << "\n";
 			stream << "build.height=" << m_buildData.height << "\n";
 			stream << "build.major=" << m_buildData.version.major << "\n";
 			stream << "build.minor=" << m_buildData.version.minor << "\n";
@@ -1157,12 +1143,6 @@ namespace Stulu {
 			std::string file = getEditorProject().configPath + "/editor-camera-config.ini";
 			std::remove(file.c_str());
 			std::fstream stream(file, std::ios::out);
-
-			stream << "postProcessingData.exposure=" << m_sceneCamera.getPostProcessingData().exposure << "\n";
-			stream << "postProcessingData.gamma=" << m_sceneCamera.getPostProcessingData().gamma << "\n";
-			stream << "postProcessingData.bloomIntensity=" << m_sceneCamera.getPostProcessingData().bloomData.bloomIntensity << "\n";
-			stream << "postProcessingData.bloomTreshold=" << m_sceneCamera.getPostProcessingData().bloomData.bloomTreshold << "\n";
-			stream << "postProcessingData.bloomEnabled=" << m_sceneCamera.getPostProcessingData().bloomData.bloomEnabled << "\n";
 
 			stream.close();
 			ST_TRACE("Saved Editor Camera config to {0}", file);
@@ -1222,6 +1202,7 @@ namespace Stulu {
 		out << YAML::BeginMap;
 		out << YAML::Key << "App Name" << YAML::Value << name;
 		out << YAML::Key << "App Verison" << YAML::Value << (glm::vec3) * ((glm::uvec3*)&version);
+		out << YAML::Key << "Publisher" << YAML::Value << m_buildData.publisher;
 		out << YAML::Key << "Window Title" << YAML::Value << window.title;
 		out << YAML::Key << "Window Width" << YAML::Value << window.width;
 		out << YAML::Key << "Window Height" << YAML::Value << window.height;

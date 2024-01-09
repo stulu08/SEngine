@@ -10,7 +10,6 @@ namespace Stulu {
 		FrameBufferSpecs fspecs;
 		fspecs.width = Stulu::Application::get().getWindow().getWidth();
 		fspecs.height = Stulu::Application::get().getWindow().getHeight();
-		fspecs.colorTexture = TextureFormat::RGBA16F;
 		m_fbDrawData.m_sceneFBo = FrameBuffer::create(fspecs);
 		{
 			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
@@ -83,10 +82,10 @@ namespace Stulu {
 		//draw texture to screen
 		{
 			m_activeScene->getRenderer()->GenSceneTexture(m_fbDrawData.m_sceneFBo);
-			RenderCommand::setViewport(0, 0, m_fbDrawData.m_sceneFBo->getTexture()->getWidth(), m_fbDrawData.m_sceneFBo->getTexture()->getHeight());
+			RenderCommand::setViewport(0, 0, m_fbDrawData.m_sceneFBo->getColorAttachment()->getWidth(), m_fbDrawData.m_sceneFBo->getColorAttachment()->getHeight());
 			RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 			RenderCommand::clear();
-			m_fbDrawData.m_sceneFBo->getTexture()->bind(0);
+			m_fbDrawData.m_sceneFBo->getColorAttachment()->bind(0);
 			m_fbDrawData.m_quadShader->bind();
 			m_fbDrawData.m_quadVertexArray->bind();
 			RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);

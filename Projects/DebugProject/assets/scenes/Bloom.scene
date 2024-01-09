@@ -1,0 +1,212 @@
+Scene: Untitled
+Settings:
+  shaderFlags: 0
+  env_lod: 1
+  shadowDistance: 50
+  shadowFar: 500
+  shadowMapSize: 2048
+  enablePhsyics3D: true
+  physicsData.gravity: [0, -9.80000019, 0]
+  physicsData.length: 1
+  physicsData.speed: 9.81000042
+  physicsData.workerThreads: 4
+GameObjects:
+  - GameObject: 8993364188938532831
+    GameObjectBaseComponent:
+      tag: default
+      name: Area Light
+    TransformComponent:
+      position: [0, 1.8132422, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 3645201050428147864
+    LightComponent:
+      color: [1, 0.0530973673, 0]
+      lightType: 1
+      strength: 2.20000005
+      areaRadius: 2.4000001
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15
+  - GameObject: 7136603589444206172
+    GameObjectBaseComponent:
+      tag: default
+      name: Plane
+    TransformComponent:
+      position: [0, -0.216676205, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [6.8499999, 6.8499999, 6.8499999]
+    MeshRendererComponent:
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 402
+    MeshColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      convex: false
+      mesh: 402
+  - GameObject: 4973943235852397725
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.006
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412954986, 2.8906846, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 6562384308776807013
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 16465540561045209691
+  - GameObject: 14894602875345976061
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.005
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412954986, 2.8906846, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 150867238780996080
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 568034296935173038
+  - GameObject: 17331528542925403570
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.004
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412954986, 2.8906846, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 7471232160367977333
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 12908027739334620811
+  - GameObject: 9063242922275586662
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.003
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412954986, 2.8906846, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 17345014575970525776
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 5667752528934988961
+  - GameObject: 16443861505797336333
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.002
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412954986, 2.8906846, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 9204061297565033039
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 13657692302112368534
+  - GameObject: 381642599075545045
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.001
+    TransformComponent:
+      position: [-0.00914090872, -0.250159711, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412955016, 2.89068484, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 2246654256457386391
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 11958176187422625657
+  - GameObject: 2748852624702799326
+    GameObjectBaseComponent:
+      tag: default
+      name: Cylinder.009
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.412954986, 2.8906846, 0.412955016]
+      parent: 3645201050428147864
+    MeshRendererComponent:
+      material: 1667659857049034321
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 2408360451645163493
+  - GameObject: 3645201050428147864
+    GameObjectBaseComponent:
+      tag: default
+      name: Saber
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.100000009, 0.100000009, 0.100000001]
+    CapsuleColliderComponent:
+      dynamicFriction: 0.600000024
+      staticFriction: 0.600000024
+      restitution: 0
+      radius: 0.699999988
+      height: 62
+      offset: [0, 1.39999998, 0]
+      horizontal: true
+    RigidbodyComponent:
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      moveX: true
+      moveY: true
+      moveZ: true
+      kinematic: false
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]
+  - GameObject: 293002038549553951
+    GameObjectBaseComponent:
+      tag: MainCam
+      name: Perspective Camera
+    TransformComponent:
+      position: [0, 0, 10]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    CameraComponent:
+      Camera Settings:
+        clearColor: [0, 0, 0, 1]
+        clearType: 1
+        fov: 80
+        zoom: 1
+        zFar: 250
+        isRenderTarget: false
+        aspectRatio: 1.77777779
+        textureWidth: 1920
+        textureHeight: 1080
+      mode: 0
+      depth: -1
+      renderTexture: 0
+    SkyBoxComponent:
+      rotation: [0, 0, 0]
+      mapType: 0
+      texture: 15111769435266358273
+    PostProcessingComponent:
+      Gamma Correction:
+        enabled: true
+        gamma: 1.39999998
+        exposure: 0.200000003
+      Bloom:
+        enabled: true
+        intensity: 0.129999995
+        threshold: 2.4000001
+        knee: 0.38499999
+        clamp: 25.2999992
+        resolutionScale: 0.5
+        diffusion: 8
+        maxSamples: 10

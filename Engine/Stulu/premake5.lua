@@ -20,6 +20,8 @@ project "Stulu"
 	{
 		"src/**.h",
 		"src/**.cpp",
+		"src/Shader/**",
+
 		"%{dependencies}/stb_image/**.cpp",
 		"%{dependencies}/stb_image/**.h",
 		"%{dependencies}/glm/glm/**.hpp",
@@ -91,7 +93,17 @@ project "Stulu"
 		"%{monoDir}/lib"
 	}
 	
-	postbuildcommands{
+	prebuildcommands {
+		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/mono\"",
+		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
+		"{RMDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Shader\"",
+
+
+		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Shader\"",
+		"{COPYDIR} \"%{ProjectDir.Stulu}/src/Shader\" \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Shader\"",
+	}
+
+	postbuildcommands {
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data\"",
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/PhysX\"",
 		"{MKDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/mono\"",

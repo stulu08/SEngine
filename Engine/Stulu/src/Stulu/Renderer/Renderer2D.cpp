@@ -110,7 +110,7 @@ namespace Stulu {
 			s_renderer2Ddata.quadVertexArray->addVertexBuffer(s_renderer2Ddata.quadVertexBuffer);
 			s_renderer2Ddata.quadVertexArray->setIndexBuffer(indexBuffer);
 			s_renderer2Ddata.quadVertexBufferBase = new QuadVertex[s_renderer2Ddata.maxVertices];
-			s_renderer2Ddata.quadShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/2DQuad.glsl");
+			s_renderer2Ddata.quadShader = Renderer::getShaderSystem()->GetShader("2D/Quad");
 		}
 		{//circles
 			s_renderer2Ddata.circleVertexArray = VertexArray::create();
@@ -125,7 +125,7 @@ namespace Stulu {
 			s_renderer2Ddata.circleVertexArray->addVertexBuffer(s_renderer2Ddata.circleVertexBuffer);
 			s_renderer2Ddata.circleVertexArray->setIndexBuffer(indexBuffer);
 			s_renderer2Ddata.circleVertexBufferBase = new CircleVertex[s_renderer2Ddata.maxVertices];
-			s_renderer2Ddata.circleShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/2DCircle.glsl");
+			s_renderer2Ddata.circleShader = Renderer::getShaderSystem()->GetShader("2D/Circle");
 		}
 		{
 			s_renderer2Ddata.lineVertexArray = VertexArray::create();
@@ -137,7 +137,7 @@ namespace Stulu {
 				});
 			s_renderer2Ddata.lineVertexArray->addVertexBuffer(s_renderer2Ddata.lineVertexBuffer);
 			s_renderer2Ddata.lineVertexBufferBase = new LineVertex[s_renderer2Ddata.maxVertices];
-			s_renderer2Ddata.lineShader = Shader::create(Application::getEngineAssetDir() + "/Shaders/2DLine.glsl");
+			s_renderer2Ddata.lineShader = Renderer::getShaderSystem()->GetShader("2D/Line");
 		}
 		{//textures
 			s_renderer2Ddata.whiteTexture = std::dynamic_pointer_cast<Texture2D>(Resources::getWhiteTexture());

@@ -5,7 +5,7 @@
 #define ST_ENGINE_NAME ("Stulu Engine")
 #define ST_ENGINE_VERSION_MAJOR 23
 #define ST_ENGINE_VERSION_MINOR 12
-#define ST_ENGINE_VERSION_PATCH 6
+#define ST_ENGINE_VERSION_PATCH 16
 
 #if OPENGL == 0
 	#define VULKAN

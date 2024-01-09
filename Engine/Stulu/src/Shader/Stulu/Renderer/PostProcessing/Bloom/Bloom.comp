@@ -1,0 +1,95 @@
+#ifndef _STULU_BLOOM_COMP_
+#define _STULU_BLOOM_COMP_
+
+#include "Stulu/Branchless.glsl"
+#include "Stulu/Math.glsl"
+
+#include "Stulu/Renderer/PostProcessing/PostProcessing.glsl"
+
+layout(std430, binding = 6) buffer data {
+    vec4 threshFilter;
+	vec2 desRes;
+    float sampleScale;
+	float clampValue;
+    uint iteration;
+};
+
+
+layout (binding = 0) uniform sampler2D source;
+layout (binding = 1) uniform sampler2D downSampledSource;
+layout(rgba32f, binding = 2) uniform writeonly image2D destination;
+
+vec3 TextureSourceLoad(const vec2 pixelPos) {
+    return textureLod(source, pixelPos / desRes, iteration).xyz;
+}
+vec3 TextureDSSourceLoad(const vec2 pixelPos) {
+    return textureLod(downSampledSource, pixelPos / desRes, iteration - 1).xyz;
+}
+
+void DestinationStore(const vec4 color, const vec2 pixelPos) {
+	imageStore(destination, ivec2(round(pixelPos.x), round(pixelPos.y)), color);
+}
+
+vec3 Prefilter(vec3 color) { 
+    color = min(color, clampValue);
+
+    const vec3 luminanceVector = vec3(0.2125, 0.7154, 0.0721);
+    float luminance = dot(luminanceVector, color);
+    
+    float soft = luminance - threshFilter.y;
+    soft = clamp(soft, 0, threshFilter.z);
+    soft = soft * soft * threshFilter.w;
+
+    luminance = max(soft, luminance - threshFilter.x);
+    color *= sign(luminance);
+    return color;
+}
+
+vec3 Bloom_Down(ivec2 pixelPos) {
+	vec2 pos = vec2(float(pixelPos.x), float(pixelPos.y));
+
+	vec3 A = TextureSourceLoad(pos + vec2(-1.0, -1.0));
+    vec3 B = TextureSourceLoad(pos + vec2( 0.0, -1.0));
+    vec3 C = TextureSourceLoad(pos + vec2( 1.0, -1.0));
+    vec3 D = TextureSourceLoad(pos + vec2(-0.5, -0.5));
+    vec3 E = TextureSourceLoad(pos + vec2( 0.5, -0.5));
+    vec3 F = TextureSourceLoad(pos + vec2(-1.0,  0.0));
+    vec3 G = TextureSourceLoad(pos                   );
+    vec3 H = TextureSourceLoad(pos + vec2( 1.0,  0.0));
+    vec3 I = TextureSourceLoad(pos + vec2(-0.5,  0.5));
+    vec3 J = TextureSourceLoad(pos + vec2( 0.5,  0.5));
+    vec3 K = TextureSourceLoad(pos + vec2(-1.0,  1.0));
+    vec3 L = TextureSourceLoad(pos + vec2( 0.0,  1.0));
+    vec3 M = TextureSourceLoad(pos + vec2( 1.0,  1.0));
+
+    vec2 div = (1.0 / 4.0) * vec2(0.5, 0.125);
+
+    vec3 o = (D + E + I + J) * div.x;
+    o += (A + B + G + F) * div.y;
+    o += (B + C + H + G) * div.y;
+    o += (F + G + L + K) * div.y;
+    o += (G + H + M + L) * div.y;
+
+    return o;
+}
+
+vec3 Bloom_TentUp(ivec2 pixelPos) {
+	vec2 pos = vec2(float(pixelPos.x), float(pixelPos.y));
+	vec4 d = vec4(1.0, 1.0, -1.0, 0.0) * (sampleScale);
+    vec3 s;
+	s =  TextureSourceLoad(pos - d.xy);
+    s += TextureSourceLoad(pos - d.wy) * 2.0;
+    s += TextureSourceLoad(pos - d.zy);
+		 			 
+    s += TextureSourceLoad(pos + d.zw) * 2.0;
+    s += TextureSourceLoad(pos       ) * 4.0;
+    s += TextureSourceLoad(pos + d.xw) * 2.0;
+		 			 
+    s += TextureSourceLoad(pos + d.zy);
+    s += TextureSourceLoad(pos + d.wy) * 2.0;
+    s += TextureSourceLoad(pos + d.xy);
+	
+	return s * (1.0 / 16.0);
+}
+
+#endif

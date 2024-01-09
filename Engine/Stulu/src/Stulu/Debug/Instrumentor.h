@@ -21,7 +21,7 @@ namespace Stulu {
         std::string Name;
     };
 
-    class STULU_API Instrumentor
+    class Instrumentor
     {
     private:
         InstrumentationSession* m_CurrentSession;
@@ -91,7 +91,7 @@ namespace Stulu {
         }
     };
 
-    class STULU_API InstrumentationTimer
+    class InstrumentationTimer
     {
     public:
         InstrumentationTimer(const char* name)

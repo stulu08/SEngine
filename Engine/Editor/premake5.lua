@@ -26,9 +26,9 @@ project "Editor"
 
 	files
 	{
+		"src/Shader/**",
 		"src/**.h",
 		"src/**.cpp",
-		"Stulu/**.glsl"
 	}
 
 	includedirs
@@ -45,7 +45,20 @@ project "Editor"
 		"%{IncludeDir.Discord}",
 		"%{IncludeDir.premake}",
 	}
+	prebuildcommands {
+		"{RMDIR} \"" .. builddir .. "/Editor/\"",
+		"{RMDIR} \"%{ProjectDir.Editor}/LooseFiles/Data/Stulu/Shader/Stulu/Editor\"",
+
+
+		"{MKDIR} \"%{ProjectDir.Editor}/LooseFiles/Data/Stulu/Shader/Stulu/Editor\"",
+		"{COPYDIR} \"%{ProjectDir.Editor}/src/Shader/Stulu/Editor\" \"%{ProjectDir.Editor}/LooseFiles/Data/Stulu/Shader/Stulu/Editor\"",
+	}
+
 	postbuildcommands {
+		"{MKDIR} \"" .. builddir .. "/Editor/Data/Stulu/Editor\"",
+		"{MKDIR} \"" .. builddir .. "/Editor/Data/Stulu/Runtime\"",
+		"{MKDIR} \"" .. builddir .. "/Editor/Data/Stulu/Managed\"",
+
 		"{COPY} \"%{dependencies}/discord-rpc/bin/" .. outputdir .. "/discord-rpc.dll\" \"" .. builddir .. "/Editor\"",
 
 		"{COPYDIR} \"%{ProjectDir.Editor}/LooseFiles\" \"" .. builddir .. "/Editor\"",

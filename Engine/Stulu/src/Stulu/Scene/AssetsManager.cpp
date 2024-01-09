@@ -3,21 +3,12 @@
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Scene/Components/Camera.h"
-#include <Stulu/Core/Resources.h>
+#include "Stulu/Core/Resources.h"
+#include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
 	std::unordered_map<UUID, Asset> AssetsManager::assets;
 	std::unordered_map<AssetType, std::vector<UUID>> AssetsManager::assetsTypeList;
-
-	bool FileExists(const std::string& name) {
-		if (FILE* file = fopen(name.c_str(), "r")) {
-			fclose(file);
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
 
 	UUID AssetsManager::add(const std::string& path) {
 		if (std::filesystem::is_directory(path))
@@ -79,10 +70,10 @@ namespace Stulu {
 			update(uuid, { type,path,path,uuid });
 			break;
 		case Stulu::AssetType::Material:
-			update(uuid, { type,Material::create(path,uuid),path,uuid });
+			update(uuid, { type, Material::create(path,uuid),path,uuid });
 			break;
 		case Stulu::AssetType::Shader:
-			update(uuid, { type,Shader::create(path),path,uuid });
+			update(uuid, { type, Renderer::getShaderSystem()->AddShader(path), path,uuid});
 			break;
 		case Stulu::AssetType::Scene:
 			update(uuid,{ type,path,path,uuid });
@@ -143,6 +134,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		if ((uuid == 301|| uuid == 302) && assets.find(uuid) != assets.end()) {
 			CORE_ASSERT(false, "White or Black Texture is being overwritten");
+			return;
 		}
 
 		switch (data.type)
@@ -201,6 +193,9 @@ namespace Stulu {
 			if (asset.type == AssetType::Material) {
 				std::any_cast<Ref<Material>>(asset.data).reset();
 			}
+			else if (asset.type == AssetType::Shader) {
+				Renderer::getShaderSystem()->RemoveShader(std::any_cast<Ref<Shader>>(asset.data)->getName());
+			}
 			std::vector<UUID>& typeList = assetsTypeList[asset.type];
 			typeList.erase(std::find(typeList.begin(), typeList.end(), uuid));
 			asset.data.reset();
@@ -243,7 +238,7 @@ namespace Stulu {
 	const AssetType AssetsManager::assetTypeFromExtension(const std::string& extension) {
 		if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga")
 			return AssetType::Texture2D;
-		if (extension == ".skybox" || extension == ".hdr")
+		if (extension == ".skybox" || extension == ".hdr" || extension == ".tif")
 			return AssetType::SkyBox;
 		if (extension == ".srt")
 			return AssetType::RenderTexture;
@@ -384,21 +379,6 @@ namespace Stulu {
 					add(path.string());
 			}
 		};
-	}
-	void AssetsManager::reloadShaders(const std::string& directory) {
-		ST_PROFILING_FUNCTION();
-		CORE_TRACE("Reloading Shaders: {0}", directory);
-		for (auto& [uuid, asset] : assets) {
-			if (asset.type != AssetType::Shader) {
-				continue;
-			}
-			if (FileExists(asset.path)) {
-				CORE_TRACE("Reloading Shader: {0}", asset.path);
-
-				Ref<Shader>& shader = std::any_cast<Ref<Shader>&>(asset.data);
-				shader->reload(asset.path);
-			}
-		}
 	}
 	UUID AssetsManager::getModelFromMesh(UUID mesh) {
 		if (mesh == UUID::null)

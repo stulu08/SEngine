@@ -48,7 +48,7 @@ project "Launcher"
 		"{MKDIR} \"".. builddir .."/Launcher/Licenses\"",
 		"{MKDIR} \"".. builddir .."/Launcher/Textures\"",
 		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles/Licenses\" \"" .. builddir .. "/Launcher/Licenses\"",
-		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles/Stulu/Textures\" \"" .. builddir .. "/Launcher/Textures\"",
+		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles/Data/Stulu/Textures\" \"" .. builddir .. "/Launcher/Textures\"",
 	}
 	filter "system:windows"
 		systemversion "latest"

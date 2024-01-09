@@ -7,46 +7,40 @@ namespace Stulu {
 	class STULU_API OpenGLShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& path);
-		OpenGLShader(const std::string& name, const std::string& src);
-		OpenGLShader(const std::string& name, const std::string& vertex, const std::string& fragment);
+		OpenGLShader(const std::string& name, const ShaderSource& sources);
 		virtual ~OpenGLShader();
 
-		virtual void reload(const std::string& path) override;
+		virtual void reload(const ShaderSource& sources) override;
+		virtual void reload(const std::string& vertex, const std::string& fragment) override { reload(ShaderSource{ vertex, fragment }); }
+		virtual void reload(const std::string& compute) override { reload(ShaderSource{ compute }); } 
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
-		virtual const std::string& getName() const override { return m_name; }
-		virtual const std::string& getSource(bool afterPreProcessing = true) const override { return afterPreProcessing ? m_sourcePreProcessed : m_source; }
-		virtual void setMat4(const std::string& name, const glm::mat4& mat) override;
-		virtual void setFloat4(const std::string& name, const glm::vec4& vec) override;
-		virtual void setFloat3(const std::string& name, const glm::vec3& vec) override;
-		virtual void setFloat2(const std::string& name, const glm::vec2& vec) override;
-		virtual void setFloat(const std::string& name, const float Float) override;
-		virtual void setInt(const std::string& name, const int32_t Int) override;
-		virtual void setIntArray(const std::string& name, const int* values, uint32_t count) override;
-		virtual void uploadMat4Uniform(const std::string& name,const glm::mat4& matrix);
-		virtual void uploadMat3Uniform(const std::string& name,const glm::mat3& matrix);
-		virtual void uploadFloat4Uniform(const std::string& name, const glm::vec4& float4);
-		virtual void uploadFloat3Uniform(const std::string& name, const glm::vec3& float3);
-		virtual void uploadFloat2Uniform(const std::string& name, const glm::vec2& float2);
-		virtual void uploadFloatUniform(const std::string& name, const float _float);
-		virtual void uploadIntUniform(const std::string& name, const int32_t _int);
-		virtual void uploadIntArrayUniform(const std::string& name, const int* values, uint32_t count);
 
-		virtual std::unordered_map<std::string, Ref<ShaderProperity>>& getProperitys() override { return m_properitys; }
-		virtual Ref<ShaderProperity>& getProperity(std::string properityName) override { return m_properitys[properityName]; }
-		virtual bool hasProperity(std::string properityName) override { return m_properitys.find(properityName) != m_properitys.end(); }
+		virtual void Dispatch(const glm::uvec3& numWorkGroups = { 1u,1u,1u }, uint32_t usage = 0xFFFFFFFF) override;
+		virtual void Dispatch(const uint32_t numWorkGroupsX, const uint32_t numWorkGroupsY, const uint32_t numWorkGroupsZ, uint32_t usage = 0xFFFFFFFF) override {
+			Dispatch({ numWorkGroupsX ,numWorkGroupsY,numWorkGroupsZ }, usage);
+		}
+
+		virtual void setFloat(const std::string& name, float value) override;
+		virtual void setInt(const std::string& name, int value) override;
+		virtual void setVec(const std::string& name, const glm::vec4& value) override;
+		virtual void setMat(const std::string& name, const glm::mat4& value) override;
+		virtual void setFloatArray(const std::string& name, const float* floats, uint32_t count) override;
+		virtual void setIntArray(const std::string& name, const int* ints, uint32_t count) override;
+		virtual void setVecArray(const std::string& name, const glm::vec4* vecs, uint32_t count) override;
+		virtual void setMatArray(const std::string& name, const glm::mat4* mats, uint32_t count) override;
+
+		virtual void setTexture(const std::string& name, uint32_t binding, const Ref<Texture>& texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite) override;
+		virtual void setTextureInternal(const std::string& name, uint32_t binding, void* texture, uint32_t mipLevel = 0, AccesMode mode = AccesMode::ReadWrite, TextureFormat format = TextureFormat::Auto) override;
+
+		virtual const std::string& getName() const override { return m_name; }
+		virtual const void* getNativeRendererObject() const override { return &m_rendererID; };
 	private:
 		uint32_t m_rendererID;
 		std::string m_name;
-		std::string m_source = "";
-		std::string m_sourcePreProcessed = "";
-		std::unordered_map<std::string, Ref<ShaderProperity>> m_properitys;
 
-		std::string readFile(const std::string& path);
-		std::unordered_map<GLenum,std::string> preProcess(const std::string src);
-		void compile(const std::unordered_map<unsigned int, std::string>& shaderSrcs);
+		void compile(const ShaderSource& sources);
 	};
 }
 

@@ -49,7 +49,7 @@ namespace Stulu {
 		float dieTime = .0f;
 		bool alive = true;
 	};
-	class ParticleSystemComponent : public Component {
+	class STULU_API ParticleSystemComponent : public Component {
 	public:
 		ParticleSystemComponent() = default;
 		ParticleSystemComponent(const ParticleSystemComponent&) = default;

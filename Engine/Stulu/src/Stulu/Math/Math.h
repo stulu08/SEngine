@@ -144,5 +144,10 @@ namespace Stulu {
 
 			return total / count;
 		}
+
+		template<class T>
+		inline static T logBase(T a, T b) {
+			return glm::log2(a) / glm::log2(b);
+		}
 	};
 }

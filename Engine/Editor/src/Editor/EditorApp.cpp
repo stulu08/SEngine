@@ -15,7 +15,7 @@ namespace Stulu {
 	EditorApp* EditorApp::s_instance = nullptr;
 	Project EditorApp::s_project;
 	EditorApp::EditorApp() 
-		: Application(ApplicationInfo("Stulu Editor",Version(1,0,0), "Data/Stulu", false, true, true, WindowProps("Stulu Editor", 1280, 720))) {
+		: Application(ApplicationInfo("Stulu Editor", "Stulu", Version(1, 0, 0), "Data/Stulu", false, true, true, WindowProps("Stulu Editor", 1280, 720))) {
 		ST_PROFILING_FUNCTION();
 
 		if (getStartArgs().size() > 1) {

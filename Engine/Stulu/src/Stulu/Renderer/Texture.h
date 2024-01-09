@@ -19,7 +19,11 @@ namespace Stulu {
 		ClampToEdge, Repeat, ClampToBorder
 	};
 	enum class TextureFiltering : uint32_t {
-		Linear, Nearest
+		Linear,
+		Nearest,
+		Trilinear,
+
+		Bilinear = Linear,
 	};
 	struct TextureSettings {
 		TextureFormat format = TextureFormat::Auto;
@@ -28,7 +32,6 @@ namespace Stulu {
 		uint32_t levels = 1;
 		glm::vec4 border = glm::vec4(1.0f);
 		TextureFiltering filtering = TextureFiltering::Linear;
-		bool forceGenMips = false;
 
 		TextureSettings(TextureFormat format = TextureFormat::Auto, TextureWrap wrap = TextureWrap::Repeat, 
 			const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1, glm::vec4 border = glm::vec4(1.0f),

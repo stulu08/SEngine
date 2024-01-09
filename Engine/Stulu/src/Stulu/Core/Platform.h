@@ -1,7 +1,6 @@
 #pragma once
 #include "Core.h"
 
-
 namespace Stulu {
 	/// <summary>
 	/// in bytes

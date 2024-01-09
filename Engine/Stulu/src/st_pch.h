@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Stulu/Core/Core.h"
+
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -28,9 +30,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "Stulu/Core/CoreConfig.h"
-#include "Stulu/Core/PlatformConfig.h"
-#include "Stulu/Core/Log.h"
 #include "Stulu/Debug/Instrumentor.h"
 #include "Stulu/Debug/RenderDataProfiler.h"
 

@@ -195,7 +195,6 @@ namespace Stulu {
 	public:
 		PostProcessingComponent() {
 			data = PostProcessingData();
-			data.bloomData.bloomEnabled = true;
 		}
 		PostProcessingComponent(const PostProcessingComponent&) = default;
 

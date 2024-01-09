@@ -24,6 +24,7 @@ project "Runtime"
 	{
 		"src/**.h",
 		"src/**.cpp",
+		"src/**.rc"
 	}
 
 	includedirs

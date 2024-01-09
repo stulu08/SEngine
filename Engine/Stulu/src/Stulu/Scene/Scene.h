@@ -13,7 +13,6 @@
 namespace Stulu {	
 	struct SceneGraphicsData {
 		float env_lod = 1.0f;
-		float sampleScale = 1.7f;
 		float shadowDistance = 50.0f;
 		float shadowFar = 500.0f;
 		uint32_t shadowMapSize = 2048;

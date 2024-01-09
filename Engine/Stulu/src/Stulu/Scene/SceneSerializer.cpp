@@ -1,4 +1,5 @@
 #include "st_pch.h"
+#include "st_pch.h"
 #include "SceneSerializer.h"
 #include "Stulu/Scene/YAML.h"
 
@@ -55,18 +56,18 @@ out << YAML::EndMap; \
 }
 
 #define DESERIALIZE_PROPERTY_D(obj, field, datatype)  \
-if (componentNode[#field]) \
-	obj.field = componentNode[#field].as<datatype>();
+if (nodeStack.back().second[#field]) \
+	obj.field = nodeStack.back().second[#field].as<datatype>();
 #define DESERIALIZE_PROPERTY_DC(obj, field, cast, datatype)  \
-if (componentNode[#field]) \
-	obj.field = (cast)componentNode[#field].as<datatype>();
+if (nodeStack.back().second[#field]) \
+	obj.field = (cast)nodeStack.back().second[#field].as<datatype>();
 
 #define DESERIALIZE_PROPERTY_DP(obj, field, datatype)  \
-if (componentNode[#field]) \
-	obj->field = componentNode[#field].as<datatype>();
+if (nodeStack.back().second[#field]) \
+	obj->field = nodeStack.back().second[#field].as<datatype>();
 #define DESERIALIZE_PROPERTY_DPC(obj, field, cast)  \
-if (componentNode[#field]) \
-	obj->field = (cast)componentNode[#field].as<datatype>();
+if (nodeStack.back().second[#field]) \
+	obj->field = (cast)nodeStack.back().second[#field].as<datatype>();
 
 #define DESERIALIZE_D(obj, field, from, datatype)  \
 if (from[#field]) \
@@ -86,14 +87,14 @@ if (from[#field]) \
 #define DESERIALIZE_ENUMPROP(obj, field) DESERIALIZE_PROPERTY_DC(obj, field, decltype(obj.field), int)
 #define DESERIALIZE_UUIDPROP(obj, field) DESERIALIZE_PROPERTY_DC(obj, field, UUID, uint64_t);
 #define DESERIALIZE_ASSETSMANAGER(obj, field, type, dataType) \
-if (componentNode[#field]) { \
-	UUID id = componentNode[#field].as<uint64_t>(); \
+if (nodeStack.back().second[#field]) { \
+	UUID id = nodeStack.back().second[#field].as<uint64_t>(); \
 	if (AssetsManager::existsAndType(id, type)) \
 		obj.field = std::any_cast<dataType>(AssetsManager::get(id).data); \
 }
 #define DESERIALIZE_ASSETSMANAGER_C(obj, field, type, dataType, cast) \
-if (componentNode[#field]) { \
-	UUID id = componentNode[#field].as<uint64_t>(); \
+if (nodeStack.back().second[#field]) { \
+	UUID id = nodeStack.back().second[#field].as<uint64_t>(); \
 	if (AssetsManager::existsAndType(id, type)) \
 		obj.field = std::dynamic_pointer_cast<cast>(std::any_cast<dataType>(AssetsManager::get(id).data)); \
 }
@@ -108,9 +109,26 @@ if (componentNode[#field]) { \
 #define BEGIN_DESERIALIZE_COMPONENT(comp) { \
 auto componentNode = gameObject[#comp]; \
 if (componentNode) { \
+	std::vector<std::pair<std::string, YAML::Node>> nodeStack; \
+	nodeStack.push_back( { #comp, componentNode } ); \
+	try {\
 	comp& Added##comp = deserialized.saveAddComponent<comp>();
 
-#define END_DESERIALIZE_COMPONENT() } }
+#define END_DESERIALIZE_COMPONENT() }\
+catch (YAML::Exception ex) { \
+	CORE_ERROR("{1}: YAML exception while deserialzing \"{3}\" at {2}: {0}", ex.what(), path, ex.mark.line, nodeStack.back().first) \
+}\
+}\
+}
+
+#define DESERIALIZE_BEGINMAP(name) { \
+nodeStack.push_back( { name, nodeStack.back().second[name] } ); \
+if(nodeStack.back().second) {
+
+#define DESERIALIZE_ENDMAP() \
+}else {CORE_ERROR("Cant open map: {0}", nodeStack.back().first)}\
+nodeStack.pop_back(); \
+}
 
 namespace Stulu {
 
@@ -322,12 +340,26 @@ namespace Stulu {
 
 		BEGIN_SERIALIZE_COMPONENT(PostProcessingComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.exposure);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.gamma);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.enableGammaCorrection);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.bloomData.bloomIntensity);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.bloomData.bloomTreshold);
-			SERIALIZE_PROPERTY(SerializedPostProcessingComponent, data.bloomData.bloomEnabled);
+			const auto& settings = SerializedPostProcessingComponent.data.settings;
+
+			const auto& gammaCorrection = SerializedPostProcessingComponent.data.settings.gammaCorrection;
+			SERIALIZE_BEGINMAP("Gamma Correction");
+				SERIALIZE_PROPERTY(gammaCorrection, enabled);
+				SERIALIZE_PROPERTY(gammaCorrection, gamma);
+				SERIALIZE_PROPERTY(gammaCorrection, exposure);
+			SERIALIZE_ENDMAP();
+
+			const auto& bloom = SerializedPostProcessingComponent.data.settings.bloom;
+			SERIALIZE_BEGINMAP("Bloom");
+				SERIALIZE_PROPERTY(bloom, enabled);
+				SERIALIZE_PROPERTY(bloom, intensity);
+				SERIALIZE_PROPERTY(bloom, threshold);
+				SERIALIZE_PROPERTY(bloom, knee);
+				SERIALIZE_PROPERTY(bloom, clamp);
+				SERIALIZE_PROPERTY(bloom, resolutionScale);
+				SERIALIZE_PROPERTY(bloom, diffusion);
+				SERIALIZE_PROPERTY(bloom, maxSamples);
+			SERIALIZE_ENDMAP();
 		}
 		END_SERIALIZE_COMPONENT();
 
@@ -379,7 +411,6 @@ namespace Stulu {
 		try {
 			YAML::Node data = YAML::LoadFile(path);
 			std::string SceneName = data["Scene"].as<std::string>();
-
 			if (data["Settings"]) {
 				YAML::Node settings = data["Settings"];
 
@@ -459,18 +490,18 @@ namespace Stulu {
 						DESERIALIZE_PROPERTY(AddedCameraComponent, depth);
 						DESERIALIZE_UUIDPROP(AddedCameraComponent, renderTexture);
 						
-						componentNode = componentNode["Camera Settings"];
-						auto& settings = AddedCameraComponent.settings;
-
-						DESERIALIZE_PROPERTY(settings, clearColor);
-						DESERIALIZE_ENUMPROP(settings, clearType);
-						DESERIALIZE_PROPERTY(settings, fov);
-						DESERIALIZE_PROPERTY(settings, zoom);
-						DESERIALIZE_PROPERTY(settings, zFar);
-						DESERIALIZE_PROPERTY(settings, isRenderTarget);
-						DESERIALIZE_PROPERTY(settings, aspectRatio);
-						DESERIALIZE_PROPERTY(settings, textureWidth);
-						DESERIALIZE_PROPERTY(settings, textureHeight);
+						DESERIALIZE_BEGINMAP("Camera Settings");
+							auto& settings = AddedCameraComponent.settings;
+							DESERIALIZE_PROPERTY(settings, clearColor);
+							DESERIALIZE_ENUMPROP(settings, clearType);
+							DESERIALIZE_PROPERTY(settings, fov);
+							DESERIALIZE_PROPERTY(settings, zoom);
+							DESERIALIZE_PROPERTY(settings, zFar);
+							DESERIALIZE_PROPERTY(settings, isRenderTarget);
+							DESERIALIZE_PROPERTY(settings, aspectRatio);
+							DESERIALIZE_PROPERTY(settings, textureWidth);
+							DESERIALIZE_PROPERTY(settings, textureHeight);
+						DESERIALIZE_ENDMAP();
 						
 						AddedCameraComponent.updateMode();
 						AddedCameraComponent.updateProjection();
@@ -488,12 +519,27 @@ namespace Stulu {
 
 					BEGIN_DESERIALIZE_COMPONENT(PostProcessingComponent);
 					{
-						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.gamma);
-						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.exposure);
-						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.enableGammaCorrection);
-						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.bloomData.bloomIntensity);
-						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.bloomData.bloomTreshold);
-						DESERIALIZE_PROPERTY(AddedPostProcessingComponent, data.bloomData.bloomEnabled);
+						auto& settings = AddedPostProcessingComponent.data.settings;
+
+						DESERIALIZE_BEGINMAP("Gamma Correction");
+							auto& gammaCorrection = settings.gammaCorrection;
+							DESERIALIZE_PROPERTY(gammaCorrection, enabled);
+							DESERIALIZE_PROPERTY(gammaCorrection, gamma);
+							DESERIALIZE_PROPERTY(gammaCorrection, exposure);
+						DESERIALIZE_ENDMAP();
+
+						DESERIALIZE_BEGINMAP("Bloom");
+							auto& bloom = settings.bloom;
+							DESERIALIZE_PROPERTY(bloom, enabled);
+							DESERIALIZE_PROPERTY(bloom, intensity);
+							DESERIALIZE_PROPERTY(bloom, threshold);
+							DESERIALIZE_PROPERTY(bloom, knee);
+							DESERIALIZE_PROPERTY(bloom, clamp);
+							DESERIALIZE_PROPERTY(bloom, resolutionScale);
+							DESERIALIZE_PROPERTY(bloom, diffusion);
+							DESERIALIZE_PROPERTY(bloom, maxSamples);
+						DESERIALIZE_ENDMAP();
+
 					}
 					END_DESERIALIZE_COMPONENT();
 
@@ -528,7 +574,7 @@ namespace Stulu {
 						DESERIALIZE_MESH(AddedMeshFilterComponent, mesh);
 					}
 					END_DESERIALIZE_COMPONENT();
-
+					
 					BEGIN_DESERIALIZE_COMPONENT(SkyBoxComponent);
 					{
 						DESERIALIZE_SKYBOX(AddedSkyBoxComponent, texture);

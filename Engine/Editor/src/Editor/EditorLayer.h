@@ -24,6 +24,8 @@ namespace Stulu {
 		void OpenScene(const std::string& path);
 		inline static bool isRuntime() { return s_runtime; }
 
+		inline SceneCamera& getCamera() { return m_sceneCamera; }
+#
 		void loadPanelConfig();
 		void savePanelConfig();
 	private:
@@ -61,6 +63,7 @@ namespace Stulu {
 			UUID startScene = UUID::null;
 			std::vector<UUID> scenesToBuild;
 			std::string name = "My Project";
+			std::string publisher = "New Publisher";
 			std::string path = "";
 			Version version = Version();
 			uint32_t width = 1920, height = 1080;

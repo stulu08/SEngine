@@ -6,7 +6,7 @@ DataTypes:
   - [1, 0, metallic, 1]
   - [1, 0, roughness, 2]
   - [1, 0, ao, 3]
-  - [4, [0, 0, 0, 0.100000001], emission, 4]
+  - [4, [8, 2, 2, 2], emission, 4]
   - [12, [0, 5873076562288971920, 1, white], albedoMap, 5]
   - [12, [1, 5873076562288971920, 1, black], metallicMap, 6]
   - [12, [2, 5873076562288971920, 1, black], roughnessMap, 7]

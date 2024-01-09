@@ -11,8 +11,7 @@ namespace Stulu::Launcher {
 	LauncherApp* LauncherApp::s_instance = nullptr;
 
 	LauncherApp::LauncherApp()
-		: Application(ApplicationInfo("Stulu Launcher", Version(1,0,0), ".", true, true, false)) {
-		Log::addFileSink("logs/" + Log::generateTimeString() + ".log", Log::Level::warn);
+		: Application(ApplicationInfo("Stulu Launcher", "Stulu", Version(1, 0, 0), ".", true, true, false)) {
 		getWindow().setVSync(true);
 		getWindow().setWindowTitle(std::string("Stulu Launcher V") + ST_ENGINE_VERSION_STR);
 		s_instance = this;

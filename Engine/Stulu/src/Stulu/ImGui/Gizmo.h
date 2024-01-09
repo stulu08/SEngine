@@ -26,7 +26,7 @@ namespace Stulu {
 		ScaleEu = Scale_XU | Scale_YU | Scale_ZU, // universal
 		Universal = Translate | Rotate | ScaleEu
 	};
-	class Gizmo {
+	class STULU_API Gizmo {
 	public:
 		static void init();
 		static void Begin();

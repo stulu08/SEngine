@@ -42,7 +42,7 @@ namespace Stulu {
 		static bool drawIntControl(const std::string& header, int& v);
 		static bool drawInt3Control(const std::string& header, int& x, int& y, int& z);
 		static bool drawIntSliderControl(const std::string& header, int& v, int min = 0, int max = 10);
-		static bool drawUIntControl(const std::string& header, uint32_t& v);
+		static bool drawUIntControl(const std::string& header, uint32_t& v, uint32_t min = 0, uint32_t max = 0);
 		static bool drawUIntSliderControl(const std::string& header, uint32_t& v, uint32_t min = 0, uint32_t max = 10);
 		static bool drawFloatControl(const std::string& header, float& v, float min = .0f, float max = .0f, float speed = .1f);
 		static bool drawFloatSliderControl(const std::string& header, float& v, float min = 0.0f, float max = 1.0f);
@@ -70,8 +70,6 @@ namespace Stulu {
 			return re;
 		}
 
-		static Ref<Texture> getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t textureWidth, uint32_t textureHeight);
-
 		static void drawHelpMarker(const char* desc);
 		static bool drawTextureEdit(const std::string& header, UUID& uuid, bool cubeMap = false);
 		static bool drawGameObjectEdit(const std::string& header, UUID& gameObject);
@@ -79,6 +77,24 @@ namespace Stulu {
 		static bool drawMeshEdit(const std::string& header, UUID& uuid);
 
 		template<typename T>
-		static bool drawControl(const std::string& header, T& value);
+		static bool drawControl(const std::string& header, T& value) {}
+		template<>
+		static bool drawControl(const std::string& header, float& value) { return drawFloatControl(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, int32_t& value) { return drawIntControl(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, uint32_t& value) { return drawUIntControl(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, std::string& value) { return drawStringControl(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, glm::vec2& value) { return drawVector2Control(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, glm::vec3& value) { return drawVector3Control(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, glm::vec4& value) { return drawVector4Control(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, glm::mat4& value) { return drawMat4Control(header, value); }
+		template<>
+		static bool drawControl(const std::string& header, bool& value) { return drawBoolControl(header, value); }
 	};
 }

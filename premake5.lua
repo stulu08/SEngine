@@ -34,7 +34,13 @@ workspace "Stulu"
 	filter "action:vs*"
 		linkoptions {
 			"/ignore:4006",
-			"/ignore:4099"
+			"/ignore:4099",
+			"/ignore:4251"
+		}
+		disablewarnings {
+			"4006",
+			"4099",
+			"4251",
 		}
 
 staticBuild = true

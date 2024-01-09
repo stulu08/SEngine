@@ -50,7 +50,7 @@ namespace Stulu {
 		void ApplyPostProcessing(SceneCamera& camera);
 		void ApplyPostProcessing(CameraComponent& camera);
 		void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data = PostProcessingData());
-		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data = PostProcessingData());
+		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data = PostProcessingData());
 
 		void drawSceneShadow();
 		void drawScene();
@@ -60,15 +60,15 @@ namespace Stulu {
 
 		void drawAll2d(const TransformComponent& camera);
 	private:
-		Ref<Texture> DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, PostProcessingData& data);
+		Ref<Texture> DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data);
 
-		static inline Ref<Shader> s_quadPostProcShader;
+		Ref<Shader> m_postProcShader;
 
 		std::vector<RenderObject> m_drawList;
 		std::vector<RenderObject> m_transparentDrawList;
 
 		//shadows
-		static inline Ref<Shader> s_shadowShader;
+		Ref<Shader> m_shadowShader;
 		Ref<FrameBuffer> m_shadowMap;
 		int32_t m_shadowCaster = -1;
 
@@ -76,6 +76,9 @@ namespace Stulu {
 		const uint32_t m_minWidth = 7;
 		const uint32_t m_minHeight = 5;
 		const uint32_t m_maxSamples = BLOOM_MAX_SAMPLES;
+		Ref<Shader> m_upSampleShader;
+		Ref<Shader> m_downSampleShader;
+		Ref<Shader> m_filterShader;
 
 		LightBufferData m_lightBufferData = LightBufferData();
 		SceneBufferData m_sceneBufferData = SceneBufferData();

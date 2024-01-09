@@ -139,39 +139,31 @@ GameObjects:
       offset: [0, 0, 0])";
 	}
 	Ref<Shader>& EditorResources::getOutlineShader() {
-		static Ref<Shader> s_outlineShader = Shader::create("Editor Outline", R"(
-		##include "Stulu/Vertex"
-		##type fragment
-		#version 460 core
-		out vec4 FragColor;
-		void main()
-		{
-		    FragColor = vec4(1.0f,0.541f,.0f, 1.0f);
-		})");;
-		return s_outlineShader;
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/Outline");
+		}
+		return shader;
 	}
 	Ref<Shader>& EditorResources::getGreenColorShader() {
-		static Ref<Shader> s_shader = Shader::create("Green Color Shader", R"(
-		##include "Stulu/Vertex"
-		##type fragment
-		#version 460 core
-		out vec4 FragColor;
-		void main()
-		{
-		    FragColor = vec4(0.0f,1.0f,.0f, 1.0f);
-		})");
-		return s_shader;
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/Green");
+		}
+		return shader;
 	}
 	Ref<Shader>& EditorResources::getTransparentShader() {
-		static Ref<Shader> s_shader = Shader::create("Green Color Shader", R"(
-		##include "Stulu/Vertex"
-		##type fragment
-		#version 460 core
-		out vec4 FragColor;
-		void main()
-		{
-		    FragColor = vec4(0.0f,0.0f,0.0f,0.0f);
-		})");
-		return s_shader;
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/Transparent");
+		}
+		return shader;
+	}
+	Ref<Shader>& EditorResources::getMipShader() {
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/MipShader");
+		}
+		return shader;
 	}
 }

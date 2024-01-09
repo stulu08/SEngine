@@ -34,27 +34,44 @@ namespace Stulu {
 	}
 	template<>
 	void ComponentsRender::drawComponent<PostProcessingComponent>(GameObject gameObject, PostProcessingComponent& component) {
-		bool enabled = component.data.enableGammaCorrection == 1.0f;
-		drawBoolControl("Gamma Correction", enabled);
-		if (enabled)
-			component.data.enableGammaCorrection = 1.0f;
-		else {
-			component.data.enableGammaCorrection = 0.0f;
-			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-		}
-		drawFloatSliderControl("Exposure", component.data.exposure, .0f, 5.0f);
-		drawFloatSliderControl("Gamma", component.data.gamma, .0f, 5.0f);
-		if (!enabled) {
-			ImGui::PopItemFlag();
-			ImGui::PopStyleVar();
-		}
+		auto& settings = component.data.settings;
+		
+		if (ImGui::CollapsingHeader("Gamma Correction")) {
+			ImGui::PushID("GammaCorrection");
+			auto& gammaCorrection = settings.gammaCorrection;
 
-		if (ImGui::TreeNodeEx("Bloom")) {
-			drawBoolControl("Enabled", component.data.bloomData.bloomEnabled);
-			drawFloatControl("Intensity", component.data.bloomData.bloomIntensity, .001f);
-			drawFloatControl("Treshold", component.data.bloomData.bloomTreshold, .1f);
-			ImGui::TreePop();
+			drawControl("Enabled", gammaCorrection.enabled);
+
+			if (!gammaCorrection.enabled)
+				ImGui::BeginDisabled();
+
+			drawControl("Gamma", gammaCorrection.gamma);
+			drawControl("Exposure", gammaCorrection.exposure);
+
+			if (!gammaCorrection.enabled)
+				ImGui::EndDisabled();
+			ImGui::PopID();
+		}
+		if (ImGui::CollapsingHeader("Bloom")) {
+			ImGui::PushID("Bloom");
+			auto& bloom = settings.bloom;
+
+			drawControl("Enabled", bloom.enabled);
+
+			if (!bloom.enabled)
+				ImGui::BeginDisabled();
+
+			drawControl("Clamp", bloom.clamp);
+			drawFloatControl("Threshold", bloom.threshold, 0.0f, 2000.0f);
+			drawFloatControl("Intensity", bloom.intensity, 0.0f, 2000.0f, 0.01f);
+			drawFloatSliderControl("Knee", bloom.knee);
+			drawUIntControl("Max Samples", bloom.maxSamples, 1);
+			drawUIntSliderControl("Diffusion", bloom.diffusion, 1, bloom.maxSamples);
+			drawControl("Resolution Scale", bloom.resolutionScale);
+
+			if (!bloom.enabled)
+				ImGui::EndDisabled();
+			ImGui::PopID();
 		}
 	}
 	template<>
@@ -550,7 +567,7 @@ namespace Stulu {
 		ImGui::PopID();
 		return change;
 	}
-	bool ComponentsRender::drawUIntControl(const std::string& header, uint32_t& v) {
+	bool ComponentsRender::drawUIntControl(const std::string& header, uint32_t& v, uint32_t min, uint32_t max) {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
@@ -566,8 +583,19 @@ namespace Stulu {
 		ImGui::PopItemWidth();
 		ImGui::PopStyleVar();
 		ImGui::EndColumns();
+
 		if (change)
-			v = glm::max(i,0);
+			v = (uint32_t)glm::max(i, 0);
+
+		if (min != max && change) {
+			if (min > max) {
+				v = (uint32_t)glm::max((int)min, i);
+			}
+			else {
+				v = (uint32_t)glm::clamp(i, (int)min, (int)max);
+			}
+		}
+
 		ImGui::PopID();
 		return change;
 	}
@@ -895,70 +923,7 @@ namespace Stulu {
 		ImGui::Text("Invalid Asset type");
 		return false;
 	}
-	Ref<Texture> ComponentsRender::getTextureMip(const Ref<Texture2D>& texture, float mipLevel, uint32_t resultWidth, uint32_t resultHeight) {
-		FrameBufferSpecs specs;
-		specs.width = resultWidth;
-		specs.height = resultHeight;
-		specs.colorTexture.format = texture->getSettings().format;
-		specs.depthTexture.format = TextureFormat::None;
-		Ref<FrameBuffer> buffer = FrameBuffer::create(specs);
 
-		static Ref<Shader> m_quadShader;
-		if (!m_quadShader) {//shader
-					m_quadShader = Shader::create("ComponentsRender::getTextureMip", R"(
-		#version 460
-		layout (location = 0) in vec3 a_pos;
-		layout (location = 1) in vec2 a_texCoords;
-		out vec2 v_tex;
-		out float v_level;
-		layout(std140, binding = 0) uniform matrices
-		{
-			mat4 viewProjection;
-			mat4 viewMatrix;
-			mat4 projMatrix;
-			vec4 cameraPosition;
-			vec4 cameraRotation;
-			vec4 cameraNearFar;
-		};
-		layout(std140, binding = 1) uniform model
-		{
-			mat4 normal;
-			mat4 transform;
-		};
-		void main() {
-			v_tex = a_texCoords;
-			v_level = transform[0][0];
-			gl_Position=vec4(a_pos,1.0);
-		}
-		)", 
-		R"(
-		#version 460
-		layout (binding = 0) uniform sampler2D texSampler;
-		
-		out vec4 a_color;
-
-		in vec2 v_tex;
-		in float v_level;
-
-		void main()
-		{
-			vec4 color = textureLod(texSampler, v_tex, v_level);
-			a_color = color;
-		}
-		)");
-			}
-
-		RenderCommand::setDepthTesting(false);
-		buffer->bind();
-		texture->bind(0);
-		m_quadShader->bind();
-		glm::mat4 data = glm::mat4(1.0f);
-		data[0][0] = mipLevel;
-		Renderer::submit(Resources::getFullscreenVA(), nullptr, data);
-		buffer->unbind();
-
-		return std::dynamic_pointer_cast<Texture>(buffer->getTexture());
-	}
 	void ComponentsRender::drawHelpMarker(const char* desc) {
 		ImGui::HelpMarker(desc);
 	}
@@ -1115,10 +1080,11 @@ namespace Stulu {
 			for (auto& dataType : materialData) {
 				std::string name = dataType.name;
 				Stulu::ShaderDataType type = dataType.type;
+				auto shaderEntry = mat->getShaderEntry();
 				if (type == Stulu::ShaderDataType::Float) {
 					float v = std::any_cast<float>(dataType.data);
-					if (mat->getShader()->hasProperity(name)) {
-						Ref<ShaderProperity> prop = mat->getShader()->getProperity(name);
+					if (shaderEntry->HasProperity(name)) {
+						Ref<ShaderProperity> prop = shaderEntry->GetProperity(name);
 						if (prop->getType() == ShaderProperity::Type::Range) {
 							Ref<ShaderProperityRange> rangeProp = std::static_pointer_cast<ShaderProperityRange>(prop);
 							if (drawFloatSliderControl(name, v, rangeProp->getMin(), rangeProp->getMax())) {
@@ -1143,8 +1109,8 @@ namespace Stulu {
 				}
 				else if (type == Stulu::ShaderDataType::Float3) {
 					glm::vec3 v = std::any_cast<glm::vec3>(dataType.data);
-					if (mat->getShader()->hasProperity(name)) {
-						Ref<ShaderProperity> prop = mat->getShader()->getProperity(name);
+					if (shaderEntry->HasProperity(name)) {
+						Ref<ShaderProperity> prop = shaderEntry->GetProperity(name);
 						if (prop->getType() == ShaderProperity::Type::Color) {
 							Ref<ShaderProperityColor> rangeProp = std::static_pointer_cast<ShaderProperityColor>(prop);
 							if (ImGui::ColorEdit3(name.c_str(), glm::value_ptr(v))) {
@@ -1161,8 +1127,8 @@ namespace Stulu {
 				}
 				else if (type == Stulu::ShaderDataType::Float4) {
 					glm::vec4 v = std::any_cast<glm::vec4>(dataType.data);
-					if (mat->getShader()->hasProperity(name)) {
-						Ref<ShaderProperity> prop = mat->getShader()->getProperity(name);
+					if (shaderEntry->HasProperity(name)) {
+						Ref<ShaderProperity> prop = shaderEntry->GetProperity(name);
 						if (prop->getType() == ShaderProperity::Type::Color) {
 							Ref<ShaderProperityColor> colorProp = std::static_pointer_cast<ShaderProperityColor>(prop);
 							if (colorProp->isHDR()) {
@@ -1194,8 +1160,8 @@ namespace Stulu {
 				}
 				else if (type == Stulu::ShaderDataType::Int) {
 					int v = std::any_cast<int>(dataType.data);
-					if (mat->getShader()->hasProperity(name)) {
-						Ref<ShaderProperity> prop = mat->getShader()->getProperity(name);
+					if (shaderEntry->HasProperity(name)) {
+						Ref<ShaderProperity> prop = shaderEntry->GetProperity(name);
 						if (prop->getType() == ShaderProperity::Type::Enum) {
 							Ref<ShaderProperityEnum> enumProp = std::static_pointer_cast<ShaderProperityEnum>(prop);
 							if (drawComboControl(name, v, enumProp->getNames())) {
@@ -1222,8 +1188,8 @@ namespace Stulu {
 				else {
 					ST_WARN("Uknown ShaderDataType or not supported: {0}", name);
 				}
-				if (mat->getShader()->hasProperity(name)) {
-					Ref<ShaderProperity> prop = mat->getShader()->getProperity(name);
+				if (shaderEntry->HasProperity(name)) {
+					Ref<ShaderProperity> prop = shaderEntry->GetProperity(name);
 					if (prop->getType() == ShaderProperity::Type::Marker) {
 						ImGui::SameLine(); ComponentsRender::drawHelpMarker(std::static_pointer_cast<ShaderProperityMarker>(prop)->getText().c_str());
 					}
@@ -1267,28 +1233,6 @@ namespace Stulu {
 		return change;
 	}
 
-	template<typename T>
-	bool ComponentsRender::drawControl(const std::string& header, T& value) {}
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, float& value) { return drawFloatControl(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, int32_t& value) { return drawIntControl(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, uint32_t& value) { return drawUIntControl(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, std::string& value) { return drawStringControl(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, glm::vec2& value) { return drawVector2Control(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, glm::vec3& value) { return drawVector3Control(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, glm::vec4& value) { return drawVector4Control(header, value); }
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, glm::mat4& value) { return drawMat4Control(header, value); }
-	//returns true if changed
-	template<>
-	bool ComponentsRender::drawControl(const std::string& header, bool& value) { return drawBoolControl(header, value); }
-
 	Previewing::Previewing()  {
 		
 		scene = createRef<Scene>();
@@ -1306,7 +1250,7 @@ namespace Stulu {
 
 
 		scene->getRenderer()->ApplyPostProcessing(camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer());
-		items[asset.uuid] = camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer()->getTexture();
+		items[asset.uuid] = camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer()->getColorAttachment();
 		scene.reset();
 	}
 	Ref<Texture>& Previewing::get(const UUID& id) {

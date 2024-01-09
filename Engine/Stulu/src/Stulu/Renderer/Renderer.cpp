@@ -3,6 +3,7 @@
 #include "Platform/OpenGL/OpenGLShader.h"
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Core/Resources.h"
+#include "Stulu/Core/Application.h"
 
 namespace Stulu {
 
@@ -11,6 +12,9 @@ namespace Stulu {
 	void Renderer::init() {
 		ST_PROFILING_FUNCTION();
 		RenderCommand::init();
+
+		s_data.shaderSystem = createScope<ShaderSystem>();
+		s_data.shaderSystem->LoadAllShaders(Application::getEngineAssetDir() + "/Shader/");
 
 #ifdef OPENGL
 		if (s_data.cameraDataUniformBuffer == nullptr)
@@ -38,24 +42,25 @@ namespace Stulu {
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
 
-	void Renderer::ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Texture>& source, const Ref<Shader>& shader)  {
-		if (source)
-			source->bind();
-		else
-			destination->getTexture()->bind();
+	void Renderer::ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader)  {
+		if (!destination) {
+			CORE_ASSERT(false, "Renderer::ScreenQuad no destination provided");
+			return;
+		}
+		if (!shader) {
+			CORE_ASSERT(false, "Renderer::ScreenQuad no shader provided");
+			return;
+		}
 
-		if(shader)
-			shader->bind();
 
-		if(destination)
-			destination->bind();
+		shader->bind();
 
 		float z = -1.0f;
 		Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
-		RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
 
-		if (destination)
-			destination->unbind();
+		destination->bind();
+		RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
+		destination->unbind();
 	}
 
 	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {

@@ -11,6 +11,7 @@
 namespace Stulu {
 	struct ApplicationInfo {
 		std::string ApplicationName;
+		std::string Publisher;
 		Version ApplicationVersion;
 		std::string DefaultAssetsPath;
 		bool HideWindowOnSart;
@@ -21,13 +22,14 @@ namespace Stulu {
 
 		ApplicationInfo(
 			const std::string& applicationName = "Stulu Engine", 
+			const std::string& publisher = "Stulu",
 			const Version& applicationVersion = Version(1,0,0),
 			const std::string& defaultAssetsPath = "assets", 
 			bool hideWindowOnSart = false, 
 			bool EnableImgui = true,
 			bool LoadDefaultAssets = true,
 			const WindowProps& windowProps = WindowProps())
-			:	ApplicationName(applicationName), ApplicationVersion(applicationVersion), 
+			:	ApplicationName(applicationName), Publisher(publisher), ApplicationVersion(applicationVersion),
 				DefaultAssetsPath(defaultAssetsPath), HideWindowOnSart(hideWindowOnSart),
 				EnableImgui(EnableImgui), LoadDefaultAssets(LoadDefaultAssets), windowProps(windowProps) { }
 	};

@@ -26,6 +26,8 @@ namespace Stulu {
 				appInfo.ApplicationName = node["App Name"].as<std::string>();
 			if(node["App Verison"])
 				appInfo.ApplicationVersion = *(Version*)&((glm::uvec3)node["App Verison"].as<glm::vec3>());
+			if (node["Publisher"])
+				appInfo.Publisher = node["Publisher"].as<std::string>();
 			appInfo.DefaultAssetsPath = "Data/Stulu";
 			appInfo.EnableImgui = false;
 			appInfo.HideWindowOnSart = false;
@@ -39,6 +41,7 @@ namespace Stulu {
 				appInfo.windowProps.height = node["Window Height"].as<uint32_t>();
 			if (node["Window VSync"])
 				appInfo.windowProps.VSync = node["Window VSync"].as<bool>();
+			
 
 			if(node["debug"])
 				RuntimeLayer::DebugMode = node["debug"].as<bool>();

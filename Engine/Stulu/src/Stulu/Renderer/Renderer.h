@@ -3,7 +3,7 @@
 #include "Stulu/Renderer/Mesh.h"
 #include "Stulu/Renderer/RenderCommand.h"
 #include "Stulu/Renderer/Camera.h"
-#include "Stulu/Renderer/Shader.h"
+#include "Stulu/Renderer/ShaderSystem.h"
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Renderer/Buffer.h"
 
@@ -50,7 +50,7 @@ namespace Stulu{
 		static void init();
 		static void onWindowResize(WindowResizeEvent& e);
 
-		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Texture>& source = nullptr, const Ref<Shader>& shader = nullptr);
+		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader = nullptr);
 
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count = 0);
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t count = 0);
@@ -62,6 +62,7 @@ namespace Stulu{
 		static void uploadBufferData(BufferBinding buffer, const void* data, uint32_t size, uint32_t offset = 0);
 
 		static Ref<UniformBuffer>& getBuffer(BufferBinding buffer);
+		static ShaderSystem* getShaderSystem() { return s_data.shaderSystem.get(); }
 		//16kb
 		static uint32_t getBufferMaxSize() { return 16000u; };
 
@@ -74,6 +75,7 @@ namespace Stulu{
 			Ref<UniformBuffer> sceneDataUniformBuffer = nullptr;
 			Ref<UniformBuffer> postProcessingDataUniformBuffer = nullptr;
 			Ref<UniformBuffer> materialDataUniformBuffer = nullptr;
+			Scope<ShaderSystem> shaderSystem = nullptr;
 		}s_data;
 	};
 

@@ -143,7 +143,8 @@ namespace Stulu {
 		physics->getScene()->addActor(*actor);
 		bCollide.shape = (void*)shape;
 		bCollide.rigidbody = (void*)actor;
-		object.getComponent<RigidbodyComponent>().body = actor;
+		if(object.hasComponent<RigidbodyComponent>())
+			object.getComponent<RigidbodyComponent>().body = actor;
 	}
 	void CapsuleColliderComponent::create(GameObject object, const Scope<PhysX>& physics){
 		auto& tc = object.getComponent<TransformComponent>();

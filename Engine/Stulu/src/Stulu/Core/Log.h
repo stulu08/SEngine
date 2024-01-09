@@ -8,20 +8,20 @@
 #include "Stulu/Core/PlatformConfig.h"
 
 namespace Stulu {
-	class STULU_API Log {
+	class Log {
 	public:
 		enum class Level {
 			trace=0,info=1,warn=2,error=3,critical=4
 		};
 
-		static void init();
-		static void addFileSink(const std::string& logFile, Level flushLevel = Level::trace);
+		STULU_API static void init();
+		STULU_API static void addFileSink(const std::string& logFile, Level flushLevel = Level::trace);
 
-		static std::shared_ptr<spdlog::logger>& GetCoreLogger();
-		static std::shared_ptr<spdlog::logger>& GetClientLogger();
-		static std::string generateTimeString();
+		STULU_API static std::shared_ptr<spdlog::logger>& GetCoreLogger();
+		STULU_API static std::shared_ptr<spdlog::logger>& GetClientLogger();
+		STULU_API static std::string generateTimeString();
 
-		static inline void engine_log(int32_t level, const char* msg) {
+		STULU_API static inline void engine_log(int32_t level, const char* msg) {
 			switch (level)
 			{
 #if ST_ENABLE_TRACE_LOGGING
@@ -43,7 +43,7 @@ namespace Stulu {
 				break;
 			}
 		}
-		static inline void client_log(int32_t level, const char* msg) {
+		STULU_API static inline void client_log(int32_t level, const char* msg) {
 			switch (level)
 			{
 #if ST_ENABLE_TRACE_LOGGING

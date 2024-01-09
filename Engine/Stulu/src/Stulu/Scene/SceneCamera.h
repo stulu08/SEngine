@@ -16,26 +16,26 @@ namespace Stulu {
 		void onEvent(Event& e);
 		void onResize(float width, float height);
 
-		Ref<Camera>& getCamera() { return m_cam; }
-		const Ref<Camera>& getCamera() const { return m_cam; }
+		inline Ref<Camera>& getCamera() { return m_cam; }
+		inline const Ref<Camera>& getCamera() const { return m_cam; }
 
 
-		float getAspectRatio() const { return m_aspectRatio; }
-		float getAspectRatioX() const { return m_aspectRatio; }
-		float getAspectRatioY() const { return 1.0f; }
-		glm::vec2 getAspectRatioXY() const { return { getAspectRatioX(),getAspectRatioY() }; }
-		float getNear() const { return m_zNear; }
-		float getFar() const { return m_zFar; }
-		float getFov() const { return m_fov; }
+		inline float getAspectRatio() const { return m_aspectRatio; }
+		inline float getAspectRatioX() const { return m_aspectRatio; }
+		inline float getAspectRatioY() const { return 1.0f; }
+		inline glm::vec2 getAspectRatioXY() const { return { getAspectRatioX(),getAspectRatioY() }; }
+		inline float getNear() const { return m_zNear; }
+		inline float getFar() const { return m_zFar; }
+		inline float getFov() const { return m_fov; }
 
-		PostProcessingData& getPostProcessingData() { return postProcessingData; }
-		bool getPostProcessingUsingMain() { return m_postProcessingUsingMain; }
-		void setPostProcessingUsingMain(bool v) { m_postProcessingUsingMain = v; }
-		const TransformComponent& getTransform() const { return m_transform; }
-		TransformComponent& getTransform() { return m_transform; }
-		const Frustum& getFrustum() const { return m_frustum; }
-		Frustum& getFrustum() { return m_frustum; }
-		void setTransform(const TransformComponent& transform) { m_transform = transform; }
+		inline PostProcessingData& getPostProcessingData() { return postProcessingData; }
+		inline bool getPostProcessingUsingMain() { return m_postProcessingUsingMain; }
+		inline void setPostProcessingUsingMain(bool v) { m_postProcessingUsingMain = v; }
+		inline const TransformComponent& getTransform() const { return m_transform; }
+		inline TransformComponent& getTransform() { return m_transform; }
+		inline const Frustum& getFrustum() const { return m_frustum; }
+		inline Frustum& getFrustum() { return m_frustum; }
+		inline void setTransform(const TransformComponent& transform) { m_transform = transform; }
 
 	private:
 		glm::vec2 m_mouseDelta = glm::vec2(0.0f);

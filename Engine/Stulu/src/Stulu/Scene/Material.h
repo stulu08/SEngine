@@ -3,6 +3,7 @@
 #include <Stulu/Renderer/Shader.h>
 #include <Stulu/Renderer/Texture.h>
 #include <Stulu/Renderer/Buffer.h>
+#include <Stulu/Renderer/Renderer.h>
 #include "Stulu/Core/UUID.h"
 #include <any>
 
@@ -96,6 +97,7 @@ namespace Stulu {
 
 		UUID& getUUID() { return m_uuid; }
 		Ref<Shader>& getShader() { return m_shader; }
+		Ref<ShaderEntry> getShaderEntry() { return Renderer::getShaderSystem()->GetEntry(m_shader->getName()); }
 		const std::string& getName() { return m_name; }
 		std::vector<MaterialDataType>& getData() { return m_dataTypes; }
 		bool isTransparent() { return m_transparenceMode == TransparencyMode::Transparent || m_transparenceMode == TransparencyMode::Cutout; }

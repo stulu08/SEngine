@@ -47,3 +47,4 @@ namespace Stulu {
 		return std::make_shared<T>(std::forward<Args>(args)...);
 	}
 }
+#include "Utils.h"

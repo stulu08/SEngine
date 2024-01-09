@@ -50,10 +50,10 @@ namespace Stulu {
 			AssetsManager::setProperity<uint32_t>(path, { "resolution" ,resolution });
 		}
 
-		if (path.substr(path.find_last_of('.'), path.npos) == ".hdr")
-			return SkyBox::create(path, resolution);
-		else
+		if (path.substr(path.find_last_of('.'), path.npos) == ".skybox")
 			return SkyBox::createYAML(path, resolution);
+		else
+			return SkyBox::create(path, resolution);
 	}
 	Ref<SkyBox> SkyBox::create(uint32_t resolution, void* data)
 	{
@@ -117,7 +117,7 @@ namespace Stulu {
 		return nullptr;
 	}
 	void SkyBox::update(const std::string& path) {
-		uint32_t resolution = 512;
+		uint32_t resolution = 2048;
 		if (AssetsManager::hasProperity(path, "resolution")) {
 			resolution = AssetsManager::getProperity<uint32_t>(path, "resolution");
 		}
@@ -165,14 +165,11 @@ namespace Stulu {
 		static std::unordered_map<uint32_t, Ref<Texture>> textures;
 
 		if (textures.find(resolution) == textures.end() || textures.at(resolution) == nullptr) {
-			TextureSettings settings;
-			settings.format = TextureFormat::RG;
-			settings.wrap = TextureWrap::ClampToEdge;
 			Ref<Texture> texture = nullptr;
 			switch (Renderer::getRendererAPI())
 			{
 			case RenderAPI::API::OpenGL:
-				texture = createRef<OpenGLTexture2D>(OpenGLSkyBox::genrateBRDFLUT(resolution), resolution, resolution, settings);
+				texture = OpenGLSkyBox::genrateBRDFLUT(resolution);
 				break;
 			case RenderAPI::API::none:
 				CORE_ASSERT(false, "No renderAPI specified");

@@ -2,12 +2,37 @@
 #include "Resources.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/AssetsManager.h"
+#include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
+	/*
+	Default Asset list:
+	7   -> Skybox Shader
+	8   -> Quad Shader
+	9   -> PBRShader
+	10  -> TerrainShader
+	11  -> Default Skybox
+	12  -> Default Material 
+	13  -> Reflective Material
+	14  -> Terrain Material
+
+	301 -> Black Texture
+	302 -> White Texture
+	303 -> Loading Texture
+	304 -> Logo Texture
+
+	401 -> Cube Mesh 
+	402 -> Plane Mesh
+	404 -> Sphere Mesh
+	405 -> Capsule Mesh
+	406 -> IcoSphere Mesh
+	407 -> High Res Sphere Mesh
+	*/
+
 	void Resources::load() {
 		std::string assetPath = Application::getEngineAssetDir();
-		AssetsManager::update(UUID(9), { AssetType::Shader,Shader::create(assetPath + "/Shaders/PBRShader.glsl"),"",UUID(9) });
-		AssetsManager::update(UUID(10), { AssetType::Shader,Shader::create(assetPath + "/Shaders/TerrainShader.glsl"),"",UUID(10) });
+		AssetsManager::update(UUID(9), { AssetType::Shader,Renderer::getShaderSystem()->GetShader("Default/PBR"),"",UUID(9) });
+		AssetsManager::update(UUID(10), { AssetType::Shader,Renderer::getShaderSystem()->GetShader("Default/Terrain"),"",UUID(10) });
 
 		getWhiteTexture();
 		getBlackTexture();
@@ -50,7 +75,6 @@ namespace Stulu {
 		}
 		return std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(302)).data);
 	}
-
 	Ref<Texture> Resources::getLoadingTexture() {
 		static Ref<Texture2D> tex;
 		if (!tex) {
@@ -182,12 +206,6 @@ namespace Stulu {
 		}
 		return getCubeMeshAsset();
 	}
-	MeshAsset& Resources::getHighResSphereMeshAsset() {
-		if (AssetsManager::existsAndType(UUID(407), AssetType::Mesh)) {
-			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(407)).data);
-		}
-		return getCubeMeshAsset();
-	}
 	MeshAsset& Resources::getIcoSphereMeshAsset() {
 		if (AssetsManager::existsAndType(UUID(406), AssetType::Mesh)) {
 			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(406)).data);
@@ -197,6 +215,12 @@ namespace Stulu {
 	MeshAsset& Resources::getCapsuleMeshAsset() {
 		if (AssetsManager::existsAndType(UUID(405), AssetType::Mesh)) {
 			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(405)).data);
+		}
+		return getCubeMeshAsset();
+	}
+	MeshAsset& Resources::getHighResSphereMeshAsset() {
+		if (AssetsManager::existsAndType(UUID(407), AssetType::Mesh)) {
+			return std::any_cast<MeshAsset&>(AssetsManager::get(UUID(407)).data);
 		}
 		return getCubeMeshAsset();
 	}
@@ -230,51 +254,22 @@ namespace Stulu {
 	}
 
 	Ref<Shader>& Resources::getFullscreenShader() {
-		static Ref<Shader> m_quadShader;
-
-		if (!m_quadShader) {
-			m_quadShader = Shader::create("quadFullScreen", R"(
-		#version 460
-		layout (location = 0) in vec3 a_pos;
-		layout (location = 1) in vec2 a_texCoords;
-		out vec2 v_tex;
-		layout(std140, binding = 0) uniform cameraData
-		{
-			mat4 viewProjection;
-			mat4 viewMatrix;
-			mat4 projMatrix;
-			vec4 cameraPosition;
-			vec4 cameraRotation;
-			vec4 cameraNearFar;
-		};
-		layout(std140, binding = 1) uniform model
-		{
-			float z;
-		};
-		void main()
-		{
-			v_tex=a_texCoords;
-			vec3 pos = a_pos;
-			pos.z = z;
-			gl_Position=vec4(pos, 1.0);
+		static Ref<Shader> shader;
+		const UUID id = UUID(8);
+		if (!AssetsManager::exists(id)) {
+			shader = Renderer::getShaderSystem()->GetShader("Renderer/QuadFullScreen");
+			AssetsManager::update(id, Asset{ AssetType::Shader, shader,"",id });
 		}
-		)", R"(
-		#version 460
-		##include "Stulu/Functions"
-		in vec2 v_tex;
-		layout (binding = 0) uniform sampler2D texSampler;
-		out vec4 a_color;
-		void main()
-		{
-			vec4 color = texture2D(texSampler, v_tex);
-			if(color.a == 0.0f)
-				discard;
-			
-			a_color = color;
+		return std::any_cast<Ref<Shader>&>(AssetsManager::get(id).data);
+	}
+	Ref<Shader> Resources::getSkyBoxShader() {
+		static Ref<Shader> shader;
+		const UUID id = UUID(7);
+		if (!AssetsManager::exists(id)) {
+			shader = Renderer::getShaderSystem()->GetShader("Renderer/SkyBox");
+			AssetsManager::update(id, Asset{ AssetType::Shader, shader,"",id });
 		}
-		)");
-		}
-		return m_quadShader;
+		return std::any_cast<Ref<Shader>&>(AssetsManager::get(id).data);
 	}
 
 	Ref<Material> Resources::getDefaultMaterial() {
@@ -295,7 +290,7 @@ namespace Stulu {
 	Ref<Material> Resources::getTerrainMaterial() {
 		static Ref<Material> material;
 		if (!material) {
-			Ref<Material> material = createRef<Material>(AssetsManager::get(UUID(10)), std::vector<MaterialDataType>{}, "TerrainMaterial", TransparencyMode::Opaque, 1.0f);
+			Ref<Material> material = createRef<Material>(AssetsManager::get(UUID(10)), std::vector<MaterialDataType>{}, "Terrain Material", TransparencyMode::Opaque, 1.0f);
 			AssetsManager::update(UUID(14), {AssetType::Material,material,"",UUID(14) });
 			return std::any_cast<Ref<Material>&>(AssetsManager::get(UUID(14)).data);
 		}
@@ -323,74 +318,5 @@ namespace Stulu {
 		return std::any_cast<Ref<Material>&>(AssetsManager::get(uuid).data);
 	}
 
-	Ref<Shader> Resources::getSkyBoxShader() {
-		if (!AssetsManager::exists(UUID(07))) {
-			static std::string src = R"(
-		##type vertex
-		#version 460 core
-		layout (location = 0) in vec3 a_pos;
-		layout (location = 1) in vec3 a_normal;
-		layout (location = 2) in vec2 a_texCoords;
-		layout (location = 3) in vec4 a_color;
-				
 
-		##include "Stulu/Bindings"
-
-		struct vertOutput
-		{
-			vec3 texCoords;
-		};
-		layout (location = 0) out vertOutput _output;
-
-		void main()
-		{
-
-			_output.texCoords = a_pos;
-
-			mat4 view = mat4(mat3(viewMatrix));
-			vec4 pos = projMatrix * view * vec4(a_pos, 1.0);
-			gl_Position = pos.xyww;
-		}
-
-
-		##type fragment
-		#version 460 core
-		out vec4 FragColor;
-
-		##include "Stulu/Functions"
-		##include "Stulu/Bindings"
-
-		struct vertInput
-		{
-			vec3 texCoords;
-		};
-		layout (location = 0) in vertInput vertex;
-
-		void main() {
-			vec3 view = getSkyBoxCoords(vertex.texCoords, skyBoxRotation);
-			vec4 color = vec4(.0f);
-			if(useSkybox){
-				vec3 mapColor = clearColor.xyz;
-				if(skyboxMapType == 0){
-					//acces mip maps if needed
-					if(env_lod == 0)
-						mapColor = texture(environmentMap, view).rgb;
-					else {
-						mapColor = textureLod(environmentMap, view, env_lod).rgb;
-					}
-				}else if(skyboxMapType == 1){
-					mapColor = texture(irradianceMap, view).rgb;
-				}else if(skyboxMapType == 2){
-					mapColor = texture(prefilterMap, view).rgb;
-				}
-				color = vec4(mapColor, 1.0f);
-			}
-			
-			FragColor = color;
-		})";
-			AssetsManager::update(UUID(7), Asset{ AssetType::Shader, Shader::create("SkyBox",src),"",UUID(7) });
-		}
-
-		return std::any_cast<Ref<Shader>&>(AssetsManager::get(UUID(7)).data);
-	}
 }

@@ -223,7 +223,7 @@ namespace Stulu {
 			}
 			else if (selected.type == AssetType::SkyBox) {
 				int type = (int)selected.type - 1;
-				static std::vector<uint32_t> ress = { 64,128,256,512,1024,2048,4096 };
+				static std::vector<uint32_t> ress = { 64,128,256,512,1024,2048,4096,8192 };
 				uint32_t resolution = AssetsManager::getProperity<uint32_t>(selected.path, "resolution");
 
 				auto pos = std::find(ress.begin(), ress.end(), resolution);
@@ -233,7 +233,7 @@ namespace Stulu {
 				else
 					item = 3;
 
-				if (ComponentsRender::drawComboControl("Resolution", item, " 64\0 128\0 256\0 512\0 1024\0 2048\0 4096")) {
+				if (ComponentsRender::drawComboControl("Resolution", item, " 64\0 128\0 256\0 512\0 1024\0 2048\0 4096\0 8192")) {
 					resolution = ress[item];
 					AssetsManager::setProperity<uint32_t>(selected.path, { "resolution" ,ress[item] });
 				}

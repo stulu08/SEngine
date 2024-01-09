@@ -3,10 +3,14 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
+
 #include "ImGuizmo.h"
 #include "Gizmo.h"
+
 #include "Stulu/Core/Application.h"
 #include "Stulu/Core/Input.h"
+#include "Stulu/Core/Utils.h"
+
 #ifdef USING_GLFW
 	#include "backends/imgui_impl_glfw.h"
 	#include <GLFW/glfw3.h>
@@ -186,7 +190,7 @@ bool ImGui::ImageButton(const Stulu::Ref<Stulu::Texture>& texture, const glm::ve
 ImTextureID ImGui::StuluTextureToImGui(const Stulu::Ref<Stulu::Texture>& texture) {
 	ImTextureID id = nullptr;
 	if (Stulu::Renderer::getRendererAPI() == Stulu::RenderAPI::API::OpenGL || Stulu::Renderer::getRendererAPI() == Stulu::RenderAPI::API::GLES)
-		id = reinterpret_cast<void*>((uint64_t)(*(uint32_t*)texture->getNativeRendererObject()));
+		id = reinterpret_cast<void*>((uint64_t)(Stulu::NativeRenderObjectCast<uint32_t>(texture->getNativeRendererObject())));
 
 	return id;
 }

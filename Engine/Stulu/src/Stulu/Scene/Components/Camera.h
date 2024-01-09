@@ -3,19 +3,38 @@
 #include "Stulu/Renderer/PerspectiveCamera.h"
 #include "Component.h"
 namespace Stulu {
-#define BLOOM_MAX_SAMPLES 10u
+#define BLOOM_MAX_SAMPLES 10
+#define BLOOM_NEW
+	struct PostProcessingSettings {
+		struct {
+			bool enabled = true;
+			float gamma = 2.2f;
+			float exposure = 1.0f;
+		} gammaCorrection;
+
+		struct {
+			bool enabled = false;
+			float intensity = .04f;
+			float threshold = 5.0f;
+			float knee = 0.45f;
+			float clamp = 15.0f;
+			float resolutionScale = 1.0f / 2.0f;
+			uint32_t diffusion = 7;
+			uint32_t maxSamples = 10;
+		} bloom;
+
+	};
+
 	struct PostProcessingData {
-		float enableGammaCorrection = 1.0f;
-		float gamma = 2.2f;
-		float exposure = 1.0f;
-		struct Bloom {
-			Ref<Texture2D> downSample[BLOOM_MAX_SAMPLES];
-			Ref<Texture2D> upSample[BLOOM_MAX_SAMPLES];
+		PostProcessingSettings settings;
+
+		struct {
+			Ref<Texture2D> downSample;
+			Ref<Texture2D> upSample;
 			uint32_t samples = 0;
-			float bloomIntensity = .5f;
-			float bloomTreshold = 1.1f;
-			bool bloomEnabled = false;
-		} bloomData;
+			float sampleScale = 0;
+
+		} bloom;
 	};
 	class STULU_API Component;
 	class STULU_API CameraComponent : public Component {
@@ -35,7 +54,7 @@ namespace Stulu {
 
 		const Ref<Camera>& getNativeCamera() const { return cam; }
 		const Ref<FrameBuffer>& getFrameBuffer() const { return cam->getFrameBuffer(); }
-		const Ref<FrameBufferTexture>& getTexture() const { return cam->getFrameBuffer()->getTexture(); }
+		const Ref<Texture2D>& getTexture() const { return cam->getFrameBuffer()->getColorAttachment(); }
 		const Frustum& getFrustum() const { return frustum; }
 
 		enum class ClearType { Color = 0, Skybox = 1 };

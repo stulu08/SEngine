@@ -17,9 +17,10 @@ namespace Stulu {
 			width = (uint32_t)viewportSize.x;
 			height = (uint32_t)viewportSize.y;
 
-			//viewPortTexture = reinterpret_cast<void*>((uint64_t)cam.getCamera()->getFrameBuffer()->getTexture()->getColorAttachmentRendereID());
 			startPos = ImGui::GetCursorPos() + ImGui::GetWindowPos();
-			ImGui::Image(cam.getCamera()->getFrameBuffer()->getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+
+			auto& texture = cam.getCamera()->getFrameBuffer()->getColorAttachment();
+			ImGui::Image(texture, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 
 			if (ImGui::BeginDragDropTarget()) {
 				bool news = false;

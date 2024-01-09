@@ -154,7 +154,6 @@ namespace Stulu {
             return UUID::null;
         };
 
-
         UUID albedo = getTexture(aiTextureType_DIFFUSE);
         UUID metallic = getTexture(aiTextureType_AMBIENT);
         UUID roughness = getTexture(aiTextureType_SHININESS);
@@ -173,9 +172,9 @@ namespace Stulu {
                 if (texture) {
                     TextureFormat format = texture->getSettings().format;
                     static Ref<Texture2D> resultTexture = Texture2D::create(1, 1, TextureSettings(TextureFormat::RGBA));
-                    static Ref<ComputeShader> shader;
+                    static Ref<Shader> shader;
                     if (!shader) {
-                        shader = ComputeShader::create("CheckTransparentShader", R"(
+                        shader = Shader::create("CheckTransparentShader", R"(
 #version 430 core
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
@@ -207,12 +206,13 @@ void main() {
 )");
                     }
                     uint32_t data = 0x00000000;
+                    shader->bind();
                     if (format == TextureFormat::RGBA) {
                         resultTexture->setData(&data, sizeof(uint32_t));
                         shader->setInt("textureType", 1);
                         shader->setTexture("source1", 1, texture, 0, AccesMode::ReadOnly);
                         shader->setTexture("result", 0, resultTexture, 0, AccesMode::WriteOnly);
-                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeShader::Usage::ShaderImageAcces);
+                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeUsage::ShaderImageAcces);
 
                         resultTexture->getData(&data, sizeof(uint32_t));
                         if (data == 0xffffffff)
@@ -223,7 +223,7 @@ void main() {
                         shader->setInt("textureType", 2);
                         shader->setTexture("source2", 2, texture, 0, AccesMode::ReadOnly);
                         shader->setTexture("result", 0, resultTexture, 0, AccesMode::WriteOnly);
-                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeShader::Usage::ShaderImageAcces);
+                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeUsage::ShaderImageAcces);
 
                         resultTexture->getData(&data, sizeof(uint32_t));
                         if (data == 0xffffffff)
@@ -234,12 +234,14 @@ void main() {
                         shader->setInt("textureType", 3);
                         shader->setTexture("source3", 3, texture, 0, AccesMode::ReadOnly);
                         shader->setTexture("result", 0, resultTexture, 0, AccesMode::WriteOnly);
-                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeShader::Usage::ShaderImageAcces);
+                        shader->Dispatch({ texture->getWidth(), texture->getHeight(), 1 }, ComputeUsage::ShaderImageAcces);
 
                         resultTexture->getData(&data, sizeof(uint32_t));
                         if (data == 0xffffffff)
                             tMode = TransparencyMode::Cutout;
                     }
+                    texture->getSettings().filtering = TextureFiltering::Trilinear;
+                    std::dynamic_pointer_cast<Texture2D>(texture)->updateParameters();
                 }
             }
         }

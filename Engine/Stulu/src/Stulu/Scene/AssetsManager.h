@@ -7,7 +7,6 @@
 
 
 namespace Stulu {
-	bool FileExists(const std::string& name);
 	class STULU_API Model;
 	struct MeshAsset;
 	enum class AssetType {
@@ -92,8 +91,6 @@ namespace Stulu {
 		static void loadShaders(const std::string& directory, bool loadNewFiles = true);
 		static void loadTextures(const std::string& directory, bool loadNewFiles = true);
 		static void loadMaterials(const std::string& directory, bool loadNewFiles = true);
-
-		static void reloadShaders(const std::string& directory);
 
 		static UUID getModelFromMesh(UUID mesh);
 		static UUID getModelFromMaterial(UUID material);
