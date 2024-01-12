@@ -74,7 +74,6 @@ namespace Stulu {
 
 		AssetsManager::loadAllFiles(std::string(appInfo.ApplicationName) + "-data/assets");
 
-		
 
 		getWindow().show();
 

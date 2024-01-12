@@ -1,25 +1,25 @@
 #pragma once
+#include "Types.h"
+
 #include "Stulu/Scene/GameObject.h"
 #include <Stulu/Scene/Components/Components.h>
 #include <Stulu/Core/Resources.h>
 
 namespace StuluBindings {
 	class GameObject {
-	public:
-		static inline std::unordered_map<std::string, std::function<void(::Stulu::GameObject)>> addComponentRegister;
-		static inline std::unordered_map<std::string, std::function<bool(::Stulu::GameObject)>> hasComponentRegister;
-		static inline std::unordered_map<std::string, std::function<bool(::Stulu::GameObject)>> removeComponentRegister;
-	
+	public:	
 		static inline void addComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
+				auto& componentRegister = getManager()->GetComponentRegister_Add();
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
-				if (addComponentRegister.find(typeName) != addComponentRegister.end()) {
-					return addComponentRegister[typeName](gameObject);
+				if (componentRegister.find(typeName) != componentRegister.end()) {
+					return componentRegister[typeName](gameObject);
 				}
 
-				auto assemblyManager = Stulu::Application::get().getAssemblyManager();
+				// c# scripts
+				auto assemblyManager = getManager();
 				MonoClass* clazz = mono_type_get_class(type);
 				if (!clazz)
 					return;
@@ -41,12 +41,15 @@ namespace StuluBindings {
 		static inline bool hasComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
+				auto& componentRegister = getManager()->GetComponentRegister_Has();
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
-				if (hasComponentRegister.find(typeName) != hasComponentRegister.end()) {
-					return hasComponentRegister[typeName](gameObject);
+				if (componentRegister.find(typeName) != componentRegister.end()) {
+					return componentRegister[typeName](gameObject);
 				}
-				auto assemblyManager = Stulu::Application::get().getAssemblyManager();
+
+				// c# scripts
+				auto assemblyManager = getManager();
 				MonoClass* clazz = mono_type_get_class(type);
 				if (!clazz)
 					return false;
@@ -70,13 +73,15 @@ namespace StuluBindings {
 		static inline bool removeComponent(uint32_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
+				auto& componentRegister = getManager()->GetComponentRegister_Remove();
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
 				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
-				if (removeComponentRegister.find(typeName) != removeComponentRegister.end()) {
-					return removeComponentRegister[typeName](gameObject);
+				if (componentRegister.find(typeName) != componentRegister.end()) {
+					return componentRegister[typeName](gameObject);
 				}
 
-				auto assemblyManager = Stulu::Application::get().getAssemblyManager();
+				// c# scripts
+				auto assemblyManager = getManager();
 				MonoClass* clazz = mono_type_get_class(type);
 				if (!clazz)
 					return false;

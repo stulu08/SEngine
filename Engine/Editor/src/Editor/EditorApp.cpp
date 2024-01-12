@@ -17,7 +17,7 @@ namespace Stulu {
 	EditorApp::EditorApp() 
 		: Application(ApplicationInfo("Stulu Editor", "Stulu", Version(1, 0, 0), "Data/Stulu", false, true, true, WindowProps("Stulu Editor", 1280, 720))) {
 		ST_PROFILING_FUNCTION();
-
+		
 		if (getStartArgs().size() > 1) {
 			ST_INFO("Loading project: {0}", getStartArgs()[1]);
 			s_project = Project(getStartArgs()[1], true);

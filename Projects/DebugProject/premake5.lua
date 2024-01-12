@@ -11,10 +11,13 @@ newoption {
 
 InstallDir = _OPTIONS["InstallDir"]
 BuildDir = _OPTIONS["BuildDir"] 
+
 dofile (InstallDir .. "/Dependencies/Dependencies.lua")
+print(BuildDir)
+print(InstallDir)
 
 workspace "Assembly"
-
+	startproject "Runtime"
 	configurations
 	{
 		"Debug",
@@ -32,6 +35,9 @@ workspace "Assembly"
 	filter "configurations:Release or Dist"
 		defines     "NDEBUG"
 	
+	filter { "system:windows", "configurations:Dist", "toolset:not mingw" }
+		flags		{ "LinkTimeOptimization" }
+	
 	filter "action:vs*"
 		linkoptions {
 			"/ignore:4006",
@@ -48,11 +54,11 @@ project "Managed Assembly"
 	kind "SharedLib"
 	language "C#"
 	targetname "ManagedAssembly"
-
+	location "Compiler"
 	framework "4.8"
 	
 	targetdir ("Data/")
-	objdir ("Temp/Compiler/Managed")
+	objdir ("Compiler/Temp/Managed")
 	
 	links {
 		"Microsoft.Csharp",
@@ -67,7 +73,7 @@ project "Managed Assembly"
 	}
 	files
 	{
-		"Assets/**.cs"
+		"%{wks.location}/Assets/**.cs"
 	}
 
 	filter "configurations:Debug"
@@ -88,29 +94,30 @@ project "Native Assembly"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "off"
-	
+	location "Compiler"
 	targetname "NativeAssembly"
 	
 	targetdir ("Data/")
-	objdir ("Temp/Compiler/Native")
+	objdir ("Compiler/Temp/Native")
 	
 	defines {
 		"_CRT_SECURE_NO_WARNINGS"
 	}
 	
 	files {
-		"Assets/**.c",
-		"Assets/**.cpp",
-		"Assets/**.h",
-		"Assets/**.inl",
-		"Assets/**.hpp",
+		"%{wks.location}/Assets/**.c",
+		"%{wks.location}/Assets/**.cpp",
+		"%{wks.location}/Assets/**.h",
+		"%{wks.location}/Assets/**.inl",
+		"%{wks.location}/Assets/**.hpp",
 		
-		"Assets/**.glsl",
-		"Assets/**.comp"
+		"%{wks.location}/Assets/**.glsl",
+		"%{wks.location}/Assets/**.comp"
 	}
 	
 	includedirs {
-		"Assets",
+		"%{wks.location}/Assets",
+		"%{wks.location}/Assets/Include",
 		"%{IncludeDir.Stulu}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
@@ -151,4 +158,76 @@ project "Native Assembly"
 		optimize "on"
 		symbols "off"
 		
+project "Runtime"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "off"
+	location "Compiler"
+	targetname ("Runtime-windows-x86_64");
+	targetdir ("Data/")
+	objdir ("Compiler/Temp/Runtime")
+
+	defines
+	{
+		"ST_RUNTIME",
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
+	files
+	{
+		"%{wks.location}/Runtime/**.c",
+		"%{wks.location}/Runtime/**.cpp",
+		"%{wks.location}/Runtime/**.h",
+		"%{wks.location}/Runtime/**.inl",
+		"%{wks.location}/Runtime/**.hpp",
 		
+		"%{wks.location}/Runtime/**.glsl",
+		"%{wks.location}/Runtime/**.comp"
+	}
+
+	includedirs
+	{
+		"%{wks.location}/Runtime",
+		"%{wks.location}/Runtime/Include",
+		"%{wks.location}/Assets",
+		"%{wks.location}/Assets/Include",
+		"%{dependencies}",
+		"%{IncludeDir.Stulu}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.mono}"
+	}
+	links {
+		"Native Assembly",
+		"Stulu.lib"
+		
+	}
+	
+	libdirs {
+		BuildDir .. "/Data/Stulu/Native/",
+	}
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
+		defines "ST_DEBUG"
+		runtime "Debug"
+		optimize "off"
+		symbols "on"
+
+	filter "configurations:Release"
+		defines "ST_RELEASE"
+		runtime "Release"
+		optimize "on"
+		symbols "on"
+
+	filter "configurations:Dist"
+		defines "ST_DIST"
+		kind "WindowedApp"
+		runtime "Release"
+		optimize "on"
+		symbols "off"

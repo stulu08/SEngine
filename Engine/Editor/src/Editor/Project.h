@@ -13,9 +13,13 @@ namespace Stulu {
 		}
 		Project(const std::string& folder)
 #ifdef ST_PLATFORM_WINDOWS
-			:path(folder), assetPath(folder + "\\Assets"), configPath(folder + "\\Config"), dataPath(folder + "\\Data"), windowINI(configPath + "\\windowLayout.ini") {
+			:path(folder), assetPath(folder + "\\Assets"), 
+			configPath(folder + "\\Config"), dataPath(folder + "\\Data"), 
+			windowINI(configPath + "\\windowLayout.ini") {
 #else
-			:path(folder), assetPath(folder + "/Assets"), configPath(folder + "/Config"), dataPath(folder + "/Data"), windowINI(configPath + "/windowLayout.ini") {
+			:path(folder), assetPath(folder + "/Assets"), 
+			configPath(folder + "/Config"), dataPath(folder + "/Data"), 
+			windowINI(configPath + "/windowLayout.ini") {
 #endif
 			size_t lastS = path.find_last_of("/\\");
 			lastS = lastS == std::string::npos ? 0 : lastS + 1;
@@ -36,7 +40,6 @@ namespace Stulu {
 		std::string windowINI;
 
 		struct BuildSettings{
-			uint32_t threads = 2;
 			enum Config {
 				Debug = 1,
 				Release = 2,

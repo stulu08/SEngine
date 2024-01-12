@@ -1,6 +1,11 @@
 #pragma once
-#include "Stulu/Math/Math.h"
+#include "Stulu/Core/Application.h"
+#include "Stulu/ScriptCore/AssemblyManager.h"
+
 namespace StuluBindings {
+	inline Stulu::Ref<Stulu::AssemblyManager> getManager() {
+		return Stulu::Application::get().getAssemblyManager();
+	}
 	inline MonoDomain* getCoreDomain() {
 		return Stulu::Application::get().getAssemblyManager()->getScriptCoreAssembly()->getDomain();
 	}

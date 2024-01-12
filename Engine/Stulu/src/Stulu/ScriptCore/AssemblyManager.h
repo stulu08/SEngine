@@ -1,18 +1,6 @@
 #pragma once
 #include "MonoObjectInstance.h"
-
-#include "Bindings/Log.h"
-#include "Bindings/Time.h"
-#include "Bindings/Input.h"
-#include "Bindings/GameObject.h"
-#include "Bindings/Transform.h"
-#include "Bindings/GameObject.h"
-#include "Bindings/Rigidbody.h"
-#include "Bindings/Graphics2D.h"
-#include "Bindings/Texture2D.h"
-#include "Bindings/Gizmo.h"
-#include "Bindings/Folders.h"
-#include "Bindings/SpriteRenderer.h"
+#include "Stulu/Scene/GameObject.h"
 
 namespace Stulu {
 	class STULU_API AssemblyManager {
@@ -26,9 +14,9 @@ namespace Stulu {
 
 		template<class T>
 		void RegisterComponent(const std::string& managedName) {
-			StuluBindings::GameObject::addComponentRegister[managedName] = [](GameObject go) { go.addComponent<T>(); };
-			StuluBindings::GameObject::hasComponentRegister[managedName] = [](GameObject go) { return go.hasComponent<T>(); };
-			StuluBindings::GameObject::removeComponentRegister[managedName] = [](GameObject go) { return go.removeComponent<T>(); };
+			m_addComponentRegister[managedName] = [](GameObject go) { go.addComponent<T>(); };
+			m_hasComponentRegister[managedName] = [](GameObject go) { return go.hasComponent<T>(); };
+			m_removeComponentRegister[managedName] = [](GameObject go) { return go.removeComponent<T>(); };
 		}
 		template<class T>
 		void RegisterProperty(const std::string& managedName) {
@@ -36,11 +24,19 @@ namespace Stulu {
 		}
 		// eg "NameSpace.Class::Function(uint,string,single)"
 		void RegisterFunction(const std::string& fullManagedStaticFuncName, const void* func);
+
+		inline auto& GetComponentRegister_Add() { return m_addComponentRegister; }
+		inline auto& GetComponentRegister_Has() { return m_hasComponentRegister; }
+		inline auto& GetComponentRegister_Remove() { return m_removeComponentRegister; }
 	private:
 		void loadScriptCore(const std::string& assemblyPath, const std::string& coreAssemblyPath);
 
 		Ref<ScriptAssembly> m_assembly = nullptr;
 		Ref<ScriptAssembly> m_scriptCoreAssembly = nullptr;
 		MonoDomain* m_monoDomain = nullptr;
+
+		std::unordered_map<std::string, std::function<void(GameObject)>> m_addComponentRegister;
+		std::unordered_map<std::string, std::function<bool(GameObject)>> m_hasComponentRegister;
+		std::unordered_map<std::string, std::function<bool(GameObject)>> m_removeComponentRegister;
 	};
 }

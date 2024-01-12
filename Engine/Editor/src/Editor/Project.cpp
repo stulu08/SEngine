@@ -42,6 +42,7 @@ namespace Stulu {
 		const char* options[2];
 		options[0] = buildDir.c_str();
 		options[1] = installDir.c_str();
+
 		stulu_premake_exec_options(path.c_str(), ST_PREMAKE_ACTION_VS2022, options, 2);
 	}
 
@@ -97,7 +98,9 @@ namespace Stulu {
 	}
 	std::string Project::createBuildFile() {
 		ST_PROFILING_FUNCTION();
-		const std::string file = path + "/build.bat";
+		if (!std::filesystem::exists(path + "/Compiler"))
+			std::filesystem::create_directories(path + "/Compiler");
+		const std::string file = path + "/Compiler/Build.bat";
 		std::ofstream fileStream;
 		fileStream.open(file, std::ios::out);
 
@@ -124,7 +127,7 @@ namespace Stulu {
 			break;
 		}
 
-		fileStream << " -verbosity:minimal -maxcpucount:" << buildSettings.threads;
+		fileStream << " -verbosity:minimal -maxcpucount:" << std::max(std::thread::hardware_concurrency() / 2u, 1u);
 		fileStream << " -nologo";
 
 		fileStream.close();

@@ -3,6 +3,18 @@
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/YAML.h"
 
+#include "Bindings/Log.h"
+#include "Bindings/Time.h"
+#include "Bindings/Input.h"
+#include "Bindings/GameObject.h"
+#include "Bindings/Transform.h"
+#include "Bindings/GameObject.h"
+#include "Bindings/Rigidbody.h"
+#include "Bindings/Graphics2D.h"
+#include "Bindings/Texture2D.h"
+#include "Bindings/Gizmo.h"
+#include "Bindings/Folders.h"
+#include "Bindings/SpriteRenderer.h"
 
 namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) {
