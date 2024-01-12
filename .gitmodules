@@ -13,9 +13,6 @@
 [submodule "Stulu/vendor/assimp"]
 	path = Dependencies/assimp
 	url = https://github.com/stulu08/assimp
-[submodule "Editor/vendor/discord-rpc"]
-	path = Dependencies/discord-rpc
-	url = https://github.com/stulu08/discord-rpc
 [submodule "Stulu/vendor/ImGuizmo"]
 	path = Dependencies/ImGuizmo
 	url = https://github.com/stulu08/ImGuizmo
