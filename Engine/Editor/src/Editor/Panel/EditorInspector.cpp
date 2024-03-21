@@ -55,8 +55,8 @@ namespace Stulu {
 			drawComponent<PostProcessingComponent>(gameObject, "Post Processing");
 			drawComponent<ParticleSystemComponent>(gameObject, "Particle System");
 
-			if (gameObject.hasComponent<NativeBehaviourComponent>())
-				drawComponent<NativeBehaviourComponent>(gameObject, gameObject.getComponent<NativeBehaviourComponent>().behaviorName);
+			if (gameObject.hasComponent<NativeScriptComponent>())
+				drawComponent<NativeScriptComponent>(gameObject, gameObject.getComponent<NativeScriptComponent>().name);
 
 
 			if (gameObject.hasComponent<ScriptingComponent>()) {
@@ -135,14 +135,11 @@ namespace Stulu {
 					ImGui::EndMenu();
 				}
 				if (ImGui::BeginMenu("Scripts")) {
-					for (auto& cl : getEditorApp().getProject().assembly->getClasses()) {
-						std::string name = (cl.nameSpace.empty() ? "" : cl.nameSpace + ".") + cl.name;
+					auto& manager = Application::get().getAssemblyManager();
+					for (auto& cl : manager->GetComponents()) {
+						std::string name = (cl.GetNamespace().empty() ? "" : cl.GetNamespace() + ".") + cl.GetName();
 						if (ImGui::MenuItem(name.c_str())) {
-							auto& comp = gameObject.saveAddComponent<ScriptingComponent>();
-
-							Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(cl.nameSpace, cl.name, getEditorApp().getProject().assembly.get());
-							object->loadAll();
-							comp.runtimeScripts.push_back(object);
+							manager->ManagedAddComponent(gameObject, cl);
 						}
 					}
 					ImGui::EndMenu();
@@ -260,23 +257,16 @@ namespace Stulu {
 	MonoClass* showInEditorAttrb;
 	void EditorInspectorPanel::drawScriptingComponent(GameObject gameObject) {
 		if (!showInEditorAttrb)
-			showInEditorAttrb = Application::get().getAssemblyManager()->getScriptCoreAssembly()->createClass("Stulu", "ShowInEditorAttribute");
+			showInEditorAttrb = Application::get().getAssemblyManager()->getScriptCoreAssembly()->CreateClass("Stulu", "ShowInEditorAttribute");
 
 		ScriptingComponent& comp = gameObject.getComponent<ScriptingComponent>();
 		for (auto script : comp.runtimeScripts) {
-			if (ImGui::TreeNodeEx(script->getClassName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-				for (auto& name : script->getFieldOrder()) {
-					Ref<Property> prop;
-					for (auto f : script->getFields()) {
-						if (f->getName() == name) {
-							prop = f;
-							break;
-						}
-					}
+			if (ImGui::TreeNodeEx(script->getClass().GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+				for (auto prop : script->getFields()) {
 
 					if (!prop || !MonoObjectInstance::FieldHasAttribute(prop, showInEditorAttrb))
 						continue;
-
+					const std::string name = prop->getName();
 
 					switch (prop->getType()) {
 					case PropertyType::Int_t:{

@@ -96,7 +96,7 @@ namespace Stulu {
     void StyleEditor::loadFonts() {
         //we need to make sure everytime the fonts have the same index, so we create a file to store the index
         ST_PROFILING_FUNCTION();
-        ST_TRACE("Loading all Fonts from {0}{1}", Application::getStartDirectory(), getEditorDataPath() + "/Fonts/");
+        ST_TRACE("Loading all Fonts from {0}", getEditorDataPath() + "/Fonts/");
         std::string file = getEditorDataPath() + "/Fonts/fonts.txt";
         std::vector<std::string> fonts;
         
@@ -447,7 +447,7 @@ namespace Stulu {
         }
         ImGui::SameLine();
         ComponentsRender::drawHelpMarker(
-            (std::string("- You can use additional fonts by placing TrueType Font files (.ttf) in ") + Application::getStartDirectory().c_str() + getEditorDataPath() + "/Fonts/").c_str()
+            (std::string("- You can use additional fonts by placing TrueType Font files (.ttf) in ") + getEditorDataPath() + "/Fonts/").c_str()
         );
         /*ComponentsRender::drawHelpMarker(
             "- Load additional fonts with io.Fonts->AddFontFromFileTTF().\n"

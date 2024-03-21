@@ -7,36 +7,20 @@
 namespace Stulu {
 	class Project {
 	public:
+		static inline Scope<Project> Main = nullptr;
 
-		Project()
-			:windowINI(configPath + "/windowLayout.ini") {
-		}
-		Project(const std::string& folder)
-#ifdef ST_PLATFORM_WINDOWS
-			:path(folder), assetPath(folder + "\\Assets"), 
-			configPath(folder + "\\Config"), dataPath(folder + "\\Data"), 
-			windowINI(configPath + "\\windowLayout.ini") {
-#else
-			:path(folder), assetPath(folder + "/Assets"), 
-			configPath(folder + "/Config"), dataPath(folder + "/Data"), 
-			windowINI(configPath + "/windowLayout.ini") {
-#endif
-			size_t lastS = path.find_last_of("/\\");
-			lastS = lastS == std::string::npos ? 0 : lastS + 1;
-			name = path.substr(lastS, path.size() - lastS);
-		}
-		Project(const std::string& file, bool loadFolderIfFail);
+		Project() {}
+		Project(const std::string& folder);
 
 		void generateProjectFiles();
-		void rebuildAssembly();
-		void buildAssembly(const std::string & m_assembly);
+		void compileAssembly();
 		std::string createBuildFile();
+		std::string getBinariesDir() const;
 
 		std::string path = "";
 		std::string name = "A Project";
 		std::string assetPath = "";
 		std::string configPath = "";
-		std::string dataPath = "";
 		std::string windowINI;
 
 		struct BuildSettings{
@@ -53,7 +37,5 @@ namespace Stulu {
 			Config config = Config::Dist;
 #endif
 		}buildSettings;
-
-		Ref<ScriptAssembly> assembly;
 	};
 }

@@ -7,9 +7,9 @@
 namespace Stulu {
 	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
 	std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
+	std::shared_ptr<spdlog::sinks::sink> Log::s_sink;
 
-	void Log::init()
-	{
+	void Log::init() {
 		spdlog::set_pattern("%^[%T][%n]: %v%$");
 		s_CoreLogger = spdlog::stdout_color_mt("STULU");
 		s_CoreLogger->set_level(spdlog::level::trace);
@@ -18,14 +18,14 @@ namespace Stulu {
 		CORE_INFO("Created Core and Client Logger");
 	}
 
-	void Log::addFileSink(const std::string& logFile, Level level) {
-		std::shared_ptr<spdlog::sinks::sink> sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true);
-		sink->set_level(spdlog::level::trace);
+	void Log::AddFileSink(const std::string& logFile, Level level) {
+		s_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true);
+		s_sink->set_level(spdlog::level::trace);
 
 		s_CoreLogger->flush_on((spdlog::level::level_enum)level);
 		s_ClientLogger->flush_on((spdlog::level::level_enum)level);
-		s_CoreLogger->sinks().push_back(sink);
-		s_ClientLogger->sinks().push_back(sink);
+		s_CoreLogger->sinks().push_back(s_sink);
+		s_ClientLogger->sinks().push_back(s_sink);
 		CORE_INFO("Added file sink: {0}", logFile);
 	}
 

@@ -1,20 +1,20 @@
 #pragma once
 #include "Stulu/Scene/GameObject.h"
 namespace Stulu {
-	class STULU_API Behavior {
+	class STULU_API NativeScript {
 	public:
-		virtual ~Behavior() { };
+		virtual ~NativeScript() { };
 
 		template<typename T>
-		T& getComponent() {
+		inline T& getComponent() {
 			return gameObject.getComponent<T>();
 		}
 		template<typename T>
-		T& addComponent() {
+		inline T& addComponent() {
 			return gameObject.addComponent<T>();
 		}
 		template<typename T>
-		bool hasComponent() {
+		inline bool hasComponent() {
 			return gameObject.hasComponent<T>();
 		}
 
@@ -40,13 +40,15 @@ namespace Stulu {
 		/// <summary>
 		/// Before every 3D GameObject is drawn
 		/// </summary>
-		/// <param name="timestep">Last Frametime without scaling</param>
-		virtual void onRender(Timestep timestep) { }
+		virtual void onRender() { }
 		/// <summary>
 		/// Before every 2D GameObject is drawn
 		/// </summary>
-		/// <param name="timestep">Last Frametime without scaling</param>
-		virtual void onRender2D(Timestep timestep) { }
+		virtual void onRender2D() { }
+		/// <summary>
+		/// On Gizmos draw
+		/// </summary>
+		virtual void onDrawGizmos() { }
 		/// <summary>
 		/// When the Component is destroyed
 		/// </summary>
@@ -56,6 +58,6 @@ namespace Stulu {
 		/// </summary>
 		virtual void onSceneExit() {}
 	private:
-		friend class Scene;
+		friend class EventCaller;
 	};
 }

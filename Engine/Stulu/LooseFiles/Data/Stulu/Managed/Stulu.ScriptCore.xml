@@ -1,0 +1,1109 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Stulu.ScriptCore</name>
+    </assembly>
+    <members>
+        <member name="T:Stulu.Component">
+            scripting components
+        </member>
+        <member name="M:Stulu.Component.onAwake">
+            <summary>
+            On Script initilization
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onStart">
+            <summary>
+            On Scene initilization
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onUpdate">
+            <summary>
+            On Update 
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onRender">
+            <summary>
+            Befor every 3D Object is drawn
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onRender2D">
+            <summary>
+            Before every 2D Object is drawn
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onDrawGizmos">
+            <summary>
+            On Gizmos Draw
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onDestroy">
+            <summary>
+            When the Component is destroyed
+            </summary>
+        </member>
+        <member name="M:Stulu.Component.onSceneExit">
+            <summary>
+            When the scene exits
+            </summary>
+        </member>
+        <member name="T:Stulu.TransformComponent">
+            <summary>
+            Holds information about the transform of a gameobject
+            </summary>
+        </member>
+        <member name="P:Stulu.TransformComponent.position">
+            World position of the gameobject
+        </member>
+        <member name="P:Stulu.TransformComponent.worldPosition">
+            Local position of the gameobject to the parent
+        </member>
+        <member name="P:Stulu.TransformComponent.rotation">
+            World rotation of the gameobject
+        </member>
+        <member name="P:Stulu.TransformComponent.worldRotation">
+            Local rotation of the gameobject to the parent
+        </member>
+        <member name="P:Stulu.TransformComponent.eulerAngles">
+            World rotation of the gameobjectin euler angles
+        </member>
+        <member name="P:Stulu.TransformComponent.scale">
+            World scale of the gameobject
+        </member>
+        <member name="P:Stulu.TransformComponent.worldScale">
+            Local scale of the gameobject to the parent
+        </member>
+        <member name="P:Stulu.TransformComponent.up">
+            Up vector for the gameobject
+        </member>
+        <member name="P:Stulu.TransformComponent.right">
+            Right vector for the gameobject
+        </member>
+        <member name="P:Stulu.TransformComponent.forward">
+            Forward vector for the gameobject
+        </member>
+        <member name="M:Stulu.TransformComponent.setRotation(Stulu.Quaternion)">
+             Sets the objects rotation
+        </member>
+        <member name="T:Stulu.Application">
+            <summary>
+            You can acces important application data with
+            </summary>
+        </member>
+        <member name="P:Stulu.Application.width">
+            <summary>
+            The width of the main window
+            </summary>
+        </member>
+        <member name="P:Stulu.Application.height">
+            <summary>
+            The height of the main window
+            </summary>
+        </member>
+        <member name="P:Stulu.Application.aspectRatio">
+            <summary>
+            The aspectRatio of the main window (width/height)
+            </summary>
+        </member>
+        <member name="M:Stulu.Application.exit(System.Int32)">
+            <summary>
+            Exits the Application, exits scene and closes window
+            </summary>
+        </member>
+        <member name="T:Stulu.AssetHandle">
+            <summary>
+            Refrence to an Asset
+            </summary>
+        </member>
+        <member name="P:Stulu.AssetHandle.ID">
+            <summary>
+            The actual id
+            </summary>
+        </member>
+        <member name="T:Stulu.Color">
+            <summary>
+            Some Colors are here
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.White">
+            <summary>
+            White
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Black">
+            <summary>
+            Black
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Red">
+            <summary>
+            Red
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Green">
+            <summary>
+            Green
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Blue">
+            <summary>
+            Blue
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Yellow">
+            <summary>
+            Yellow
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Cyan">
+            <summary>
+            Cyan
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Purple">
+            <summary>
+            Purple
+            </summary>
+        </member>
+        <member name="P:Stulu.Color.Orange">
+            <summary>
+            Orange
+            </summary>
+        </member>
+        <member name="T:Stulu.Folders">
+            <summary>
+            Importatnt folders
+            </summary>
+        </member>
+        <member name="P:Stulu.Folders.Assets">
+            <summary>
+            Path to assets folder
+            </summary>
+        </member>
+        <member name="T:Stulu.Gizmo">
+            <summary>
+            Direct Acces to the Engine Editor Gizmo Renderer, can not be seen in the Game Window, only in Editor Window
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawRay(Stulu.Vector3,Stulu.Vector3,System.Single,Stulu.Vector4)">
+            <summary>
+            Draws a Ray
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawLine(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a Line
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawLine(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a Line
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedCube(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a cube out of 10 lines
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedCube(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a cube out of 10 lines
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedCube(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a cube out of 10 lines
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawQuad(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawQuad(Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawQuad(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawQuad(Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedQuad(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedQuad(Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedQuad(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawOutlinedQuad(Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCircle(Stulu.Vector3,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCircle(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCircle(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCircle(Stulu.Vector2,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCircle(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCircle(Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCube(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a cube
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCube(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a cube
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawCube(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a cube
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawSphere(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a sphere
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawSphere(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a sphere
+            </summary>
+        </member>
+        <member name="M:Stulu.Gizmo.drawSphere(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a sphere
+            </summary>
+        </member>
+        <member name="T:Stulu.Graphics2D">
+            <summary>
+            Direct Acces to the Engine Renderer, can not be seen in the Editor Window, only in Game Window
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawRay(Stulu.Vector3,Stulu.Vector3,System.Single,Stulu.Vector4)">
+            <summary>
+            Draws a Ray
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawLine(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a Line
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawLine(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a Line
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedCube(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a cube out of 10 lines
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedCube(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a cube out of 10 lines
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedCube(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a cube out of 10 lines
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawQuad(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawQuad(Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawQuad(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawQuad(Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector3,Stulu.Vector3,Stulu.Vector4,Stulu.Vector2)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4,Stulu.Vector2)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector2,Stulu.Vector2,Stulu.Vector4,Stulu.Vector2)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawTexturedQuad(Stulu.Texture2D,Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4,Stulu.Vector2)">
+            <summary>
+            Draws a 2D Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedQuad(Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedQuad(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedQuad(Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedQuad(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawOutlinedQuad(Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4)">
+            <summary>
+            Draws a 2D Outlined Quad
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawCircle(Stulu.Vector3,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawCircle(Stulu.Vector3,Stulu.Vector3,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawCircle(Stulu.Vector3,Stulu.Vector3,Stulu.Quaternion,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawCircle(Stulu.Vector2,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawCircle(Stulu.Vector2,Stulu.Vector2,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="M:Stulu.Graphics2D.drawCircle(Stulu.Vector2,Stulu.Vector2,System.Single,Stulu.Vector4,System.Single,System.Single)">
+            <summary>
+            Draws a 2D Circle
+            </summary>
+        </member>
+        <member name="T:Stulu.Input">
+            <summary>
+            Get Input data from the engine
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getKeyDown(Stulu.KeyCode)">
+            <summary>
+            True during the frame the user starts pressing down the key
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getKeyDown(System.Int32)">
+            <summary>
+            True during the frame the user starts pressing down the key
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getKeyUp(Stulu.KeyCode)">
+            <summary>
+            True during the frame the user releases the key
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getKeyUp(System.Int32)">
+            <summary>
+            True during the frame the user releases the key
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getKey(Stulu.KeyCode)">
+            <summary>
+            True if the key is pressed
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getKey(System.Int32)">
+            <summary>
+            True if the key is pressed
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseButtonDown(Stulu.MouseButton)">
+            <summary>
+            True during the frame the user starts pressing down the button
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseButtonDown(System.Int32)">
+            <summary>
+            True during the frame the user starts pressing down the button
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseButtonUp(Stulu.MouseButton)">
+            <summary>
+            True during the frame the user releases the button
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseButtonUp(System.Int32)">
+            <summary>
+            True during the frame the user releases the button
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseButton(Stulu.MouseButton)">
+            <summary>
+            True if the button is pressed
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseButton(System.Int32)">
+            <summary>
+            True if the button is pressed
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.setCursorMode(Stulu.CursorMode)">
+            <summary>
+            Sets the Cursor mode
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getCursorMode">
+            <summary>
+            Return the current Cursor mode
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMousePos">
+            <summary>
+            Gets the mouse position
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getMouseDelta">
+            <summary>
+            Gets the mouse movement in this frame
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getAxis(Stulu.KeyCode,Stulu.KeyCode)">
+            <summary>
+            Gets a 1D axis between two keys
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getAxis(Stulu.KeyCode,Stulu.KeyCode,Stulu.KeyCode,Stulu.KeyCode)">
+            <summary>
+            Gets a 2D axis between two keys for each direction
+            </summary>
+        </member>
+        <member name="M:Stulu.Input.getAxis(Stulu.KeyCode,Stulu.KeyCode,Stulu.KeyCode,Stulu.KeyCode,Stulu.KeyCode,Stulu.KeyCode)">
+            <summary>
+            Gets a 3D axis between two keys for each direction
+            </summary>
+        </member>
+        <member name="T:Stulu.CursorMode">
+            <summary>
+            How the cursor behaves
+            </summary>
+        </member>
+        <member name="F:Stulu.CursorMode.Normal">
+            <summary>
+            Normal Cursor
+            </summary>
+        </member>
+        <member name="F:Stulu.CursorMode.Hidden">
+            <summary>
+            Only Hidden but can interacts with other stuff
+            </summary>
+        </member>
+        <member name="F:Stulu.CursorMode.Disabled">
+            <summary>
+            Hidden and disabled, but you can still get the movement
+            </summary>
+        </member>
+        <member name="T:Stulu.MouseButton">
+            <summary>
+            Defines values that specify the buttons on a mouse device
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Button1">
+            <summary>
+            Left Mouse button
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Button2">
+            <summary>
+            Right Mouse button
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Button3">
+            <summary>
+            Middle Mouse button
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Button4">
+            <summary>
+            The side button in the back
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Button5">
+            <summary>
+            The side button in the front
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Left">
+            <summary>
+            Left Mouse button
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Right">
+            <summary>
+            Right Mouse button
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.Middle">
+            <summary>
+            Middle Mouse button
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.X1">
+            <summary>
+            The side button in the back
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.SideButtonBack">
+            <summary>
+            The side button in the back
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.X2">
+            <summary>
+            The side button in the front
+            </summary>
+        </member>
+        <member name="F:Stulu.MouseButton.SideButtonFront">
+            <summary>
+            The side button in the front
+            </summary>
+        </member>
+        <member name="T:Stulu.KeyCode">
+            <summary>
+            Defines values that specify the keys on a keyboard device
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Apostroph">
+            <summary>
+            '
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Comma">
+            <summary>
+            ,
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Minus">
+            <summary>
+            -
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Period">
+            <summary>
+            .
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Slash">
+            <summary>
+            /
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Semicolon">
+            <summary>
+            ;
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Equal">
+            <summary>
+            =
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.LeftBracket">
+            <summary>
+            [
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.Backslash">
+            <summary>
+            \
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.RightBracket">
+            <summary>
+            ]
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.GraveAccent">
+            <summary>
+            `
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.World1">
+            <summary>
+            non-US #1
+            </summary>
+        </member>
+        <member name="F:Stulu.KeyCode.World2">
+            <summary>
+            non-US #2
+            </summary>
+        </member>
+        <member name="T:Stulu.Log">
+            <summary>
+            Use it to log any data to the console while debugging
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Critical(System.String)">
+             <summary>
+            Prints the message to the console as a critical message
+             </summary>
+        </member>
+        <member name="M:Stulu.Log.Error(System.String)">
+            <summary>
+            Prints the message to the console as a error message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Warn(System.String)">
+            <summary>
+            Prints the message to the console as a warn message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Info(System.String)">
+            <summary>
+            Prints the message to the console as a info message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Trace(System.String)">
+            <summary>
+            Prints the message to the console as a trace message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Critical(System.Object)">
+            <summary>
+            Convertes the object to a string using Object.ToString and prints it to the console as a critical message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Error(System.Object)">
+            <summary>
+            Convertes the object to a string using Object.ToString and prints it to the console as a error message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Warn(System.Object)">
+            <summary>
+            Convertes the object to a string using Object.ToString and prints it to the console as a warn message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Info(System.Object)">
+            <summary>
+            Convertes the object to a string using Object.ToString and prints it to the console as a info message
+            </summary>
+        </member>
+        <member name="M:Stulu.Log.Trace(System.Object)">
+            <summary>
+            Convertes the object to a string using Object.ToString and prints it to the console as a trace message
+            </summary>
+        </member>
+        <member name="T:Stulu.Texture">
+            <summary>
+            Refrence to an Texture in the Engine
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture.width">
+            <summary>
+            Texture Width
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture.height">
+            <summary>
+            Texture Height
+            </summary>
+        </member>
+        <member name="T:Stulu.Texture2D">
+            <summary>
+            Refrence to a 2D texture
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture2D.White">
+            <summary>
+            1x1 White Texture
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture2D.Black">
+            <summary>
+            1x1 Black Texture
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture2D.width">
+            <summary>
+            Texture Width
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture2D.height">
+            <summary>
+            Texture Height
+            </summary>
+        </member>
+        <member name="P:Stulu.Texture2D.path">
+            <summary>
+            Path to the texture file, empty or null if created without file
+            </summary>
+        </member>
+        <member name="M:Stulu.Texture2D.FromPath(System.String)">
+            <summary>
+            Relative to the assets folder, for Editor {ProjDir}/assets and for Runtime {appname}-data/assets
+            </summary>
+        </member>
+        <member name="T:Stulu.Time">
+            <summary>
+            You can acces time information with it
+            </summary>
+        </member>
+        <member name="P:Stulu.Time.frameTime">
+            <summary>
+            The duration of the last update in seconds
+            </summary>
+        </member>
+        <member name="P:Stulu.Time.deltaTime">
+            <summary>
+            The duration of the last update in seconds scaled by Time.Scale
+            </summary>
+        </member>
+        <member name="P:Stulu.Time.time">
+            <summary>
+            The time passed since the scene started
+            </summary>
+        </member>
+        <member name="P:Stulu.Time.applicationRuntime">
+            <summary>
+            The time passed since the application started
+            </summary>
+        </member>
+        <member name="P:Stulu.Time.Scale">
+            <summary>
+            The Scale how fast time passes, affects only Time.deltaTime
+            </summary>
+        </member>
+        <member name="T:Stulu.Mathf">
+            <summary>
+            Contains Floating Point math functions
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.zero">
+            <summary>
+            Just 0
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.E">
+            <summary>
+            Represents the natural logarithmic base, specified by the constant, e
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.PI">
+            <summary>
+            Represents the ratio of the circumference of a circle to its diameter, specified by the constant, π
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.PI_2">
+            <summary>
+            Represents π divided by 2
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.TwoPI">
+            <summary>
+            Represents π multiplied by 2
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.Epsilon">
+            <summary>
+            A tiny floating point value
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.Deg2Rad">
+            <summary>
+            Degrees-to-radians conversion constant, equal to (PI * 2) / 360.
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.Rad2Deg">
+            <summary>
+            Radians-to-degrees conversion constant, equal to 360 / (PI * 2).
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.MinValue">
+            <summary>
+            Represents the smallest floating point value
+            </summary>
+        </member>
+        <member name="F:Stulu.Mathf.MaxValue">
+            <summary>
+            Represents the biggest floating point value
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Radians(System.Single)">
+            <summary>
+            Converts degrees to radians
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Radians(Stulu.Vector2)">
+            <summary>
+            Converts degrees to radians
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Radians(Stulu.Vector3)">
+            <summary>
+            Converts degrees to radians
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Radians(Stulu.Vector4)">
+            <summary>
+            Converts degrees to radians
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Degrees(System.Single)">
+            <summary>
+            Converts radians to degrees
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Degrees(Stulu.Vector2)">
+            <summary>
+            Converts radians to degrees
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Degrees(Stulu.Vector3)">
+            <summary>
+            Converts radians to degrees
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Degrees(Stulu.Vector4)">
+            <summary>
+            Converts radians to degrees
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Sin(System.Single)">
+            <summary>
+            Returns sine of the angle
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Cos(System.Single)">
+            <summary>
+            Returns cosine of the angle
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Tan(System.Single)">
+            <summary>
+            Returns tangent of the angle
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Asin(System.Single)">
+            <summary>
+            Returns the angle whose sine is the specified number
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Acos(System.Single)">
+            <summary>
+            Returns the angle whose cosine is the specified number
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Atan(System.Single)">
+            <summary>
+            Returns the angle whose tangent is the specified number
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Atan2(System.Single,System.Single)">
+            <summary>
+            Returns the angle whose tangent is the quotient of two specified number
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Clamp(System.Single,System.Single,System.Single)">
+            <summary>
+            Returns value clamped to the inclusive range of min and max
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Min(System.Single,System.Single)">
+            <summary>
+            Returns the number, which is smaller
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Max(System.Single,System.Single)">
+            <summary>
+            Returns the number, which is bigger
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Floor(System.Single)">
+            <summary>
+            Returns the largest integral value less than or equal to x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Ceil(System.Single)">
+            <summary>
+            Returns the smallest integral value less than or equal to x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Round(System.Single,System.Int32)">
+            <summary>
+            Rounds a decimal value to a specified number of fractional digits
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Sqrt(System.Single)">
+            <summary>
+            Return the square root of x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Exp(System.Single)">
+            <summary>
+            Returns E raised to x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Pow(System.Single,System.Single)">
+            <summary>
+            Returns x raised to y
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Log(System.Single)">
+            <summary>
+            Returns the logarithm of x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Log10(System.Single)">
+            <summary>
+            Returns the base 10 logarithm of x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.LogBase(System.Single,System.Single)">
+            <summary>
+            Returns the logarithm of x with a specified base.
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Abs(System.Single)">
+            <summary>
+            Returns the absolute value of x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Abs(System.Int32)">
+            <summary>
+            Returns the absolute value of x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Abs(Stulu.Vector3)">
+            <summary>
+            Returns the absolute value of x
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Lerp(System.Single,System.Single,System.Single)">
+            <summary>
+            Return the linear interpolation, equals to a + (b - a) * t.
+            </summary>
+        </member>
+        <member name="M:Stulu.Mathf.Lerp(Stulu.Vector3,Stulu.Vector3,System.Single)">
+            <summary>
+            Return the linear interpolation, equals to a + (b - a) * t.
+            </summary>
+        </member>
+    </members>
+</doc>

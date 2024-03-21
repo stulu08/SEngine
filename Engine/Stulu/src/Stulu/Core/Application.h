@@ -10,30 +10,23 @@
 
 namespace Stulu {
 	struct ApplicationInfo {
-		std::string ApplicationName;
+		std::string Name;
 		std::string Publisher;
-		Version ApplicationVersion;
-		std::string DefaultAssetsPath;
+		Version Version;
+		WindowProps WindowProps;
+
+		std::string DataPath = "Data/";
+		std::string AppPath;
+		std::string AppAssetPath;
+		std::string AppAssembly;
+
 		bool HideWindowOnSart;
 		bool EnableImgui;
 		// this includes default assets, gizmo and renderer
 		bool LoadDefaultAssets;
-		WindowProps windowProps;
-
-		ApplicationInfo(
-			const std::string& applicationName = "Stulu Engine", 
-			const std::string& publisher = "Stulu",
-			const Version& applicationVersion = Version(1,0,0),
-			const std::string& defaultAssetsPath = "assets", 
-			bool hideWindowOnSart = false, 
-			bool EnableImgui = true,
-			bool LoadDefaultAssets = true,
-			const WindowProps& windowProps = WindowProps())
-			:	ApplicationName(applicationName), Publisher(publisher), ApplicationVersion(applicationVersion),
-				DefaultAssetsPath(defaultAssetsPath), HideWindowOnSart(hideWindowOnSart),
-				EnableImgui(EnableImgui), LoadDefaultAssets(LoadDefaultAssets), windowProps(windowProps) { }
 	};
 	class STULU_API AssemblyManager;
+	class STULU_API ScriptAssembly;
 	class STULU_API Application {
 	public:
 		Application(const ApplicationInfo& appInfo);
@@ -48,21 +41,20 @@ namespace Stulu {
 
 		inline const Ref<AssemblyManager>& getAssemblyManager() const { return m_assembly; }
 		inline Ref<AssemblyManager>& getAssemblyManager() { return m_assembly; }
+		const Ref<ScriptAssembly>& getScriptCoreAssembly() const;
 		inline ImGuiLayer* getImGuiLayer() const { return m_imguiLayer; }
 		inline Window& getWindow() const { return *m_window; }
 		
 		static inline Application& get() { return *s_instance; }
 		inline const ApplicationInfo& getApplicationInfo() const { return m_appInfo; }
 		
-		static inline uint32_t getWidth() { return s_instance->m_window->getWidth(); }
-		static inline uint32_t getHeight() { return s_instance->m_window->getHeight(); }
-		static inline float getAspectRatio() { return (float)getWidth() / (float)getHeight(); }
+		inline uint32_t getWidth() const { return s_instance->m_window->getWidth(); }
+		inline uint32_t getHeight() const { return s_instance->m_window->getHeight(); }
+		inline float getAspectRatio() const { return (float)getWidth() / (float)getHeight(); }
 		
-		static inline std::vector<std::string>& getStartArgs() { return s_startArgs; }
-		static inline const std::string& getEngineAssetDir() { return s_instance->m_appInfo.DefaultAssetsPath; }
-		static inline const std::string getStartDirectory() { return Platform::getCurrentWorkingDirectory(); }
+		std::string getWorkingDirectory() const;
 
-		static void exit(int32_t code = 0);
+		void exit(int32_t code = 0);
 	protected:
 		Ref<AssemblyManager> m_assembly = nullptr;
 	private:
@@ -83,6 +75,6 @@ namespace Stulu {
 	};
 
 	//defined in Client
-	Application* CreateApplication();
+	Application* CreateApplication(int argc, char** argv);
 }
 

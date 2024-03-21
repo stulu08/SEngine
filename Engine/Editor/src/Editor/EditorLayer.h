@@ -39,7 +39,6 @@ namespace Stulu {
 		bool m_showSceneSettingsPanel = true;
 		bool m_showDebugWindow = true;
 		bool m_showLicensesWindow = false;
-		bool m_showBuildWindow = false;
 
 		//used for displaying the scene
 		Ref<FrameBuffer> m_sceneFrameBuffer;
@@ -59,22 +58,10 @@ namespace Stulu {
 		EditorInspectorPanel m_inspectorPanel;
 		ProfilingPanel m_profilingPanel;
 
-		struct BuildData {
-			UUID startScene = UUID::null;
-			std::vector<UUID> scenesToBuild;
-			std::string name = "My Project";
-			std::string publisher = "New Publisher";
-			std::string path = "";
-			Version version = Version();
-			uint32_t width = 1920, height = 1080;
-			bool debug = false;
-		} m_buildData;
-
 		void drawObjectOutlines();
 		void onDrawGizmoSelected(GameObject gameObject);
 		void drawMenuBar();
 		void drawLicenseWindow();
-		void drawBuildWindow();
 		bool onShortCut(KeyDownEvent& e);
 		bool onApplicationQuit(WindowCloseEvent& e);
 		bool onGameObjectPick(MouseButtonDownEvent& e);
@@ -84,8 +71,6 @@ namespace Stulu {
 		void onRuntimeStart();
 		void onRuntimeStop();
 
-		void buildProject(const std::string& dir = "testbuildDir");
-		
 		Ref<Scene> m_activeScene = nullptr;
 		Ref<Scene> m_editorScene = nullptr, m_runtimeScene = nullptr;
 

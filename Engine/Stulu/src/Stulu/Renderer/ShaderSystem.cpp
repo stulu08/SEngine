@@ -1,6 +1,7 @@
 #include "st_pch.h"
 #include "ShaderSystem.h"
 #include "Stulu/Core/Application.h"
+#include "Stulu/Core/Resources.h"
 
 namespace Stulu {
 	static ShaderType ShaderTypeFromString(const std::string& type) {
@@ -15,7 +16,7 @@ namespace Stulu {
 	}
 
 	ShaderSystem::ShaderSystem() {
-		AddIncludePath(Application::getEngineAssetDir() + "/Shader/");
+		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
 		AddInternalIncludeFile("Stulu/Internals.glsl",
 
 			std::string("#ifndef _STULU_INTERNALS_GLSL_\n") +

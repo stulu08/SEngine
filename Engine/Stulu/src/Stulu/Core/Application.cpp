@@ -9,7 +9,7 @@
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Core/Input.h"
 #include "Stulu/Core/Resources.h"
-#include "Stulu/ScriptCore/AssemblyManager.h"
+#include "Stulu/Scripting/Managed/AssemblyManager.h"
 #include "Stulu/ImGui/Gizmo.h"
 
 namespace Stulu {
@@ -30,7 +30,11 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		s_instance = this;
 
-		m_window = Window::create(m_appInfo.windowProps);
+		Resources::EngineDataDir = appInfo.DataPath;
+		Resources::AppDataDir = appInfo.AppPath;
+		Resources::AppAssetDir = appInfo.AppAssetPath;
+
+		m_window = Window::create(m_appInfo.WindowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
 		if (appInfo.LoadDefaultAssets) {
@@ -42,10 +46,10 @@ namespace Stulu {
 		}
 		else if(appInfo.LoadDefaultAssets){
 			//Load Texture for loading
-			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.windowProps.width, m_appInfo.windowProps.height));
+			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.WindowProps.width, m_appInfo.WindowProps.height));
 
 			const float zoom = 0.75f;
-			const float aspectRatio = (float)m_appInfo.windowProps.width / (float)m_appInfo.windowProps.height;
+			const float aspectRatio = (float)m_appInfo.WindowProps.width / (float)m_appInfo.WindowProps.height;
 			const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
 			const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
 			
@@ -64,9 +68,12 @@ namespace Stulu {
 		}
 
 		if (appInfo.LoadDefaultAssets) {
-			CORE_INFO("Loading all Engine assets from: {0}/{1}", getStartDirectory(), appInfo.DefaultAssetsPath);
+			CORE_INFO("Loading all Engine assets: {0}", appInfo.DataPath);
 			Resources::load();
 		}
+
+		if(!appInfo.AppAssembly.empty())
+			m_assembly = createRef<AssemblyManager>(appInfo.AppAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
 
 		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
@@ -77,7 +84,6 @@ namespace Stulu {
 			Gizmo::init();
 		}
 
-		Resources::GameAssetDirectory = appInfo.DefaultAssetsPath;
 	}
 	Application::~Application() {
 		ST_PROFILING_FUNCTION();
@@ -95,6 +101,10 @@ namespace Stulu {
 	}
 	void Application::popOverlay(Layer* layer) {
 		m_layerStack.popOverlay(layer);
+	}
+
+	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
+		return m_assembly->getScriptCoreAssembly();
 	}
 
 	void Application::onEvent(Event& e) {
@@ -172,5 +182,8 @@ namespace Stulu {
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
 		m_minimized ? 0 : Renderer::onWindowResize(e);
 		return m_minimized;
+	}
+	std::string Application::getWorkingDirectory() const {
+		return CleanPath(Platform::getCurrentWorkingDirectory());
 	}
 }

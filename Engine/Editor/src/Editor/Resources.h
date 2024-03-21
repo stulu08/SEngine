@@ -4,7 +4,7 @@
 #define getEditorApp() Stulu::EditorApp::get()
 #define getEditorLayer() Stulu::EditorApp::getLayer()
 #define getEditorScene() Stulu::EditorApp::getLayer().getActiveScene()
-#define getEditorProject() Stulu::EditorApp::getProject()
+#define getEditorProject() ((Stulu::Project&)(*Stulu::Project::Main))
 #define getEditorDataPath() Stulu::EditorApp::getDataPath()
 
 namespace Stulu {

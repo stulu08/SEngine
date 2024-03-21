@@ -13,6 +13,7 @@
 #include "Stulu/Core/LayerStack.h"
 #include "Stulu/Core/Resources.h"
 #include "Stulu/Core/Timestep.h"
+#include "Stulu/Core/Utils.h"
 #include "Stulu/Core/Version.h"
 
 ////////////////////Debug////////////////////
@@ -66,4 +67,4 @@
 #include "Stulu/Scene/Scene.h"
 
 //Scripting
-#include "Stulu/ScriptCore/AssemblyManager.h"
+#include "Stulu/Scripting/EventCaller.h"

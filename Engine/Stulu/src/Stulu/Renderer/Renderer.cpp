@@ -14,7 +14,7 @@ namespace Stulu {
 		RenderCommand::init();
 
 		s_data.shaderSystem = createScope<ShaderSystem>();
-		s_data.shaderSystem->LoadAllShaders(Application::getEngineAssetDir() + "/Shader/");
+		s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
 
 #ifdef OPENGL
 		if (s_data.cameraDataUniformBuffer == nullptr)

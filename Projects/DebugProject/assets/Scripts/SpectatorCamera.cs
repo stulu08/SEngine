@@ -52,7 +52,10 @@ public class SpectatorCamera : Component {
 				GameObject projectile = GameObject.CreateSphere("Projectile_" + projectileCount, transform.position);
 				RigidbodyComponent rb = projectile.addComponent<RigidbodyComponent>();
 				rb.kinematic = false;
-				rb.addForce(transform.forward * 50, ForceMode.Impulse);
+				rb.addForce(transform.forward * BulletForce, ForceMode.Impulse);
+
+				//projectile.addComponent<TestScript>().camera = this.gameObject;
+
 				projectileCount++;
 				nextTimeToFire = Time.time + (1.0f / FireRate);
 			}

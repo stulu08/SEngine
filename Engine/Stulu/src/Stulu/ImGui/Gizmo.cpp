@@ -72,8 +72,8 @@ namespace Stulu {
 	void Gizmo::init() {
 		ST_PROFILING_FUNCTION();
 		FrameBufferSpecs specs;
-		specs.width = Application::getWidth();
-		specs.height = Application::getHeight();
+		specs.width = Application::get().getWidth();
+		specs.height = Application::get().getHeight();
 
 		TextureSettings colorBuffer;
 		colorBuffer.format = TextureFormat::RGBA;

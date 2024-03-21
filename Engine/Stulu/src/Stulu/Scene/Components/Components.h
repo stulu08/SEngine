@@ -10,7 +10,7 @@
 #include "Stulu/Scene/Material.h"
 
 #include "Stulu/Scene/Components/Component.h"
-#include "Stulu/ScriptCore/MonoObjectInstance.h"
+#include "Stulu/Scripting/Managed/MonoObjectInstance.h"
 #include "Stulu/Scene/Components/Camera.h"
 #include "Stulu/Scene/physx/Collider.h"
 #include "ParticleSystem.h"
@@ -169,25 +169,25 @@ namespace Stulu {
 	inline void MeshRendererComponent::onComponentAdded(Scene* scene) {
 		gameObject.saveAddComponent<MeshFilterComponent>();
 	}
-	class Behavior;
-	class NativeBehaviourComponent : public Component {
+	class NativeScript;
+	class NativeScriptComponent : public Component {
 	public:
-		Behavior* instance = nullptr;
-		std::string behaviorName = "";
+		NativeScript* instance = nullptr;
+		std::string name = "";
 
-		Behavior*(*InstantiateBehaviour)();
-		void(*DestroyBehaviour)(NativeBehaviourComponent*);
+		NativeScript*(*Instantiate)();
+		void(*Destroy)(NativeScriptComponent*);
 
 		template<typename T>
 		void bind() {
-			InstantiateBehaviour = []() { return static_cast<Behavior*>(new T()); };
-			DestroyBehaviour = [](NativeBehaviourComponent* behaviour) { delete behaviour->instance; behaviour->instance = nullptr; };
+			Instantiate = []() { return static_cast<NativeScript*>(new T()); };
+			Destroy = [](NativeScriptComponent* script) { delete script->instance; script->instance = nullptr; };
 			
-			behaviorName = typeid(T).name();
+			name = typeid(T).name();
 
-			if (behaviorName.find("::") != std::string::npos) {
-				size_t last = behaviorName.find_last_of("::");
-				behaviorName.erase(0, last);
+			if (name.find("::") != std::string::npos) {
+				size_t last = name.find_last_of("::");
+				name.erase(0, last);
 			}
 		}
 	};
@@ -205,8 +205,6 @@ namespace Stulu {
 	public:
 		ScriptingComponent() = default;
 		ScriptingComponent(const ScriptingComponent& origin) {
-		//entt calls the copy constructor also when the registry is cleared an this will rigister an instance without deleting it
-		//void copyScriptsFrom(const ScriptingComponent& origin) {
 			for (auto& script : origin.runtimeScripts) {
 				runtimeScripts.push_back(createRef<MonoObjectInstance>(*script));
 			}
@@ -226,7 +224,7 @@ namespace Stulu {
 		SkyBoxComponent,
 		MeshRendererComponent,
 		MeshFilterComponent,
-		NativeBehaviourComponent,
+		NativeScriptComponent,
 		CameraComponent,
 		RigidbodyComponent,
 		BoxColliderComponent,

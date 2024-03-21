@@ -4,7 +4,7 @@
 namespace Stulu::Launcher {
 	class LauncherApp : public Application {
 	public:
-		LauncherApp();
+		LauncherApp(const ApplicationInfo& info);
 		virtual ~LauncherApp();
 
 		inline static LauncherApp& get() { return *s_instance; }

@@ -5,8 +5,7 @@
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/Components/Components.h"
-#include "Stulu/ScriptCore/MonoObjectInstance.h"
-#include "Stulu/ScriptCore/AssemblyManager.h"
+#include "Stulu/Scripting/Managed/AssemblyManager.h"
 
 #include <entt.hpp>
 //_*
@@ -157,8 +156,8 @@ namespace Stulu {
 			out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
 			for (Ref<MonoObjectInstance> instance : SerializedScriptingComponent.runtimeScripts) {
 				out << YAML::BeginMap;
-				out << YAML::Key << "Name" << YAML::Value << instance->getClassName();
-				out << YAML::Key << "Namespace" << YAML::Value << instance->getNameSpace();
+				out << YAML::Key << "Name" << YAML::Value << instance->getClass().GetName();
+				out << YAML::Key << "Namespace" << YAML::Value << instance->getClass().GetNamespace();
 
 				out << YAML::Key << "Fields" << YAML::Value << YAML::BeginSeq;
 				for (auto& field : instance->getFields()) {
@@ -670,13 +669,12 @@ namespace Stulu {
 
 					BEGIN_DESERIALIZE_COMPONENT(ScriptingComponent);
 					{
+						auto manager = Application::get().getAssemblyManager();
 						for (auto inst : componentNode["Scripts"]) {
-							MonoClass* exists = mono_class_from_name(Application::get().getAssemblyManager()->getAssembly()->getImage(), inst["Namespace"].as<std::string>().c_str(), inst["Name"].as<std::string>().c_str());
+							Mono::Class exists = Mono::Class::FromName(manager->getAppAssembly()->getImage(), inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>());
 							if (exists) {
-								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>(), Application::get().getAssemblyManager()->getAssembly().get());
-								object->loadAll();
+								Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(exists, manager->getAppAssembly().get());
 								for (YAML::detail::iterator_value field : inst["Fields"]) {
-
 									std::string name = field["Name"].as<std::string>();
 									PropertyType type = (PropertyType)field["Type"].as<uint32_t>();
 

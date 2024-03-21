@@ -43,5 +43,7 @@ namespace Stulu::Launcher {
 		float m_userHeight = 0.0f;
 		float m_menuBarWidth = 0.0f;
 		float m_contentAreaWidth = 0.0f;
+
+		Ref<Texture2D> m_logoTexture;
 	};
 }

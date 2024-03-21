@@ -1,6 +1,7 @@
 #include "Layer.h"
 #include "App.h"
-#include <Stulu/ScriptCore/Bindings/Input.h>
+
+#include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
 namespace Stulu {
 
@@ -72,12 +73,12 @@ namespace Stulu {
 				return;
 			}
 		}
+		Input::setEnabled(true);
+		StuluBindings::Input::s_enabled = true;
 
 	}
 
 	void RuntimeLayer::onUpdate(Timestep timestep) {
-		Input::setEnabled(true);
-		StuluBindings::Input::s_enabled = true;
 		m_activeScene->onUpdateRuntime(timestep);
 		//draw texture to screen
 		{
@@ -89,35 +90,6 @@ namespace Stulu {
 			m_fbDrawData.m_quadShader->bind();
 			m_fbDrawData.m_quadVertexArray->bind();
 			RenderCommand::drawIndexed(m_fbDrawData.m_quadVertexArray);
-		}
-		m_activeScene->updateAllTransforms();
-
-		static uint64_t frameCounter = 0;
-		frameCounter++;
-		if(DebugMode) {
-			//fps logging
-			static float elapsed = 0;
-			if (elapsed >= 5.0f) {
-				auto& memoryInfo = Platform::getMemoryUsage();
-				float virt = static_cast<float>(memoryInfo.virtualUsedByProcess) / 1048576;
-				float phys = static_cast<float>(memoryInfo.physicalUsedByProcess) / 1048576;
-				
-				ST_INFO("Debug Frame Info:");
-				ST_INFO("	Frame: {0}", frameCounter);
-				ST_INFO("	Time: {0}", Time::time);
-				ST_INFO("	FPS: {0}", 1.0f / timestep.getSeconds());
-				ST_INFO("	Frametime: {0}", timestep.getMilliseconds());
-				ST_INFO("	Virtual Memory used: {0}mb", (int)virt);
-				ST_INFO("	Physical Memory used: {0}mb", (int)phys);
-				ST_INFO("	Draw Calls: {0}", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
-				ST_INFO("	Vertices drawn: {0}", ST_PROFILING_RENDERDATA_GETVERTICES());
-				ST_INFO("	Indices drawn: {0}", ST_PROFILING_RENDERDATA_GETINDICES());
-				
-				
-
-				elapsed = 0.0f;
-			}
-			elapsed += timestep.getSeconds();
 		}
 	}
 	void RuntimeLayer::onEvent(Event& e) {

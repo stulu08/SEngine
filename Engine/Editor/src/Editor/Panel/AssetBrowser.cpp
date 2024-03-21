@@ -31,12 +31,7 @@ namespace Stulu {
 		if (ImGui::Begin("Assets"), open) {
 			if (m_path != getEditorProject().assetPath) {
 				if (ImGui::Button("<-")) {
-					if (m_path.parent_path() == std::filesystem::path(Application::getEngineAssetDir())) {
-						m_path = getEditorProject().assetPath;
-					}
-					else {
-						m_path = m_path.parent_path();
-					}
+					m_path = m_path.parent_path();
 				}
 				ImGui::SameLine();
 			}
@@ -147,7 +142,7 @@ namespace Stulu {
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Reload Assembly")) {
-					getEditorProject().rebuildAssembly();
+					Application::get().getAssemblyManager()->Reload();
 				}
 				ImGui::EndPopup();
 			}

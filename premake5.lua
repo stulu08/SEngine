@@ -15,9 +15,11 @@ workspace "Stulu"
 	solution_items 
 	{
 		"premake5.lua",
-		"Engine/Editor/premake5.lua",
-		"Engine/Stulu/premake5.lua",
-		"Engine/Runtime/premake5.lua",
+		"Dependencies/Dependencies.lua",
+		"Engine/Stulu/Stulu.lua",
+		"Engine/Editor/Editor.lua",
+		"Engine/ScripCore/ScripCore.lua",
+		"Engine/Launcher/Launcher.lua",
 		"README.md"
 	}
 	architecture "x86_64"
@@ -45,9 +47,6 @@ workspace "Stulu"
 
 staticBuild = true
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-builddir = "%{wks.location}/Engine/Build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
 include "Dependencies/Dependencies.lua"
 
 include "Dependencies/PhysX"
@@ -58,12 +57,11 @@ include "Dependencies/imgui"
 include "Dependencies/assimp"
 include "Dependencies/yaml-cpp"
 include "Dependencies/ImGuizmo"
-include "Dependencies/discord-rpc"
 include "Dependencies/premake-core-static-lib/premake5-proj.lua"
+include "Dependencies/discord-game-sdk/CPP SDK.lua"
 group "Engine"
-include "Engine/Stulu"
-include "Engine/Editor"
-include "Engine/Runtime"
-include "Engine/Scripting"
-include "Engine/Launcher"
+include "Engine/Stulu/Stulu.lua"
+include "Engine/Editor/Editor.lua"
+include "Engine/ScriptCore/ScriptCore.lua"
+include "Engine/Launcher/Launcher.lua"
 group ""

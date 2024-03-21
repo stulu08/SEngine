@@ -186,7 +186,7 @@ namespace Stulu {
 		drawFloatControl("Fade", component.fade, .0f, 1.0f, 0.00025f);
 	}
 	template<>
-	void ComponentsRender::drawComponent<NativeBehaviourComponent>(GameObject gameObject, NativeBehaviourComponent& component) {
+	void ComponentsRender::drawComponent<NativeScriptComponent>(GameObject gameObject, NativeScriptComponent& component) {
 		if(component.instance)
 			component.instance->uiFunc();
 	}

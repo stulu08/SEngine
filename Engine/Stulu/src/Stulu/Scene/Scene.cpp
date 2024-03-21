@@ -11,7 +11,7 @@
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Core/Input.h"
-#include "Stulu/ScriptCore/AssemblyManager.h"
+#include "Stulu/Scripting/EventCaller.h"
 #include "GameObject.h"
 
 #include "PxConfig.h"
@@ -21,10 +21,14 @@ namespace Stulu {
 	Scene::Scene() {
 		ST_PROFILING_FUNCTION();
 		m_renderer = createScope<SceneRenderer>(this);
+		if(Application::get().getAssemblyManager())
+			m_caller = createRef<EventCaller>(this);
 	}
 	Scene::Scene(const SceneData data) 
 		: m_data(data) {
 		m_renderer = createScope<SceneRenderer>(this);
+		if (Application::get().getAssemblyManager())
+			m_caller = createRef<EventCaller>(this);
 	}
 	Scene::~Scene() {
 		ST_PROFILING_FUNCTION();
@@ -53,14 +57,9 @@ namespace Stulu {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
 		}
-		updateAssemblyScripts("onDestroy()");
-		if (gameObject.hasComponent<NativeBehaviourComponent>()) {
-			auto& b = gameObject.getComponent<NativeBehaviourComponent>();
-			if (b.instance) {
-				b.instance->onDestroy();
-				gameObject.getComponent<NativeBehaviourComponent>().DestroyBehaviour(&b);
-			}
-		}
+		m_caller->onDestroy(gameObject);
+		if(gameObject.hasComponent<NativeScriptComponent>())
+			m_caller->DestructNative(gameObject);
 
 		if (m_data.enablePhsyics3D && gameObject.hasComponent<RigidbodyComponent>()) {
 			gameObject.removeComponent<RigidbodyComponent>();
@@ -93,17 +92,11 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		Time::time += ts;
-		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-			if (!behaviour.instance) {
-				behaviour.instance = behaviour.InstantiateBehaviour();
-				behaviour.instance->gameObject = GameObject{ gameObject, this };
-				behaviour.instance->onAwake();
-			}
-			behaviour.instance->onUpdate();
-		});
-		if(m_firstRuntimeUpdate)
-			updateAssemblyScripts("onStart()");
-		updateAssemblyScripts("onUpdate()");
+
+		if (m_firstRuntimeUpdate)
+			m_caller->onStart();
+		m_caller->onUpdate();
+
 		//calculations
 		if (m_data.enablePhsyics3D)
 			updatePhysics();
@@ -149,11 +142,7 @@ namespace Stulu {
 			}
 		}
 		if(callEvents) {
-			m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-				if (behaviour.instance)
-					behaviour.instance->onRender(Time::frameTime);
-				});
-			updateAssemblyScripts("onRender()");
+			m_caller->onRender();
 		}
 	}
 
@@ -185,11 +174,7 @@ namespace Stulu {
 		cameraComp.getNativeCamera()->bindFrameBuffer();
 		Renderer2D::begin();
 		if (callEvents) {
-			m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-				if (behaviour.instance)
-					behaviour.instance->onRender2D(Time::frameTime);
-				});
-			updateAssemblyScripts("onRender2D()");
+			m_caller->onRender2D();
 		}
 
 		m_renderer->drawAll2d(transformComp);
@@ -263,20 +248,8 @@ namespace Stulu {
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
-		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-			behaviour.instance = behaviour.InstantiateBehaviour();
-			behaviour.instance->gameObject = GameObject{ gameObject, this };
-			behaviour.instance->onAwake();
-		});
-		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-			if (!behaviour.instance) {
-				behaviour.instance = behaviour.InstantiateBehaviour();
-				behaviour.instance->gameObject = GameObject{ gameObject, this };
-			}
-			behaviour.instance->onStart();
-		});
-
-		updateAssemblyScripts("", true);
+		m_caller->ConstructNative();
+		m_caller->ConstructManaged();
 
 		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
 			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
@@ -292,15 +265,12 @@ namespace Stulu {
 	void Scene::onRuntimeStop() {
 		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
-		m_registry.view<NativeBehaviourComponent>().each([=](auto gameObject, NativeBehaviourComponent& behaviour) {
-			if (behaviour.instance) {
-				behaviour.instance->onSceneExit();
-				behaviour.instance->onDestroy();
-				behaviour.DestroyBehaviour(&behaviour);
-			}
-			});
-		updateAssemblyScripts("onSceneExit()");
-		updateAssemblyScripts("onDestroy()");
+
+		m_caller->onSceneExit();
+		m_caller->onDestroy();
+		m_caller->DestructNative();
+
+
 		Input::setCursorMode(Input::CursorMode::Normal);
 		if (m_data.enablePhsyics3D) {
 			m_physics->releasePhysics();
@@ -501,46 +471,6 @@ namespace Stulu {
 		
 	}
 
-	
-
-	bool Scene::initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& i) {
-		ST_PROFILING_FUNCTION();
-		Ref<ScriptAssembly> assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
-		MonoClass* goAttachClass = mono_class_from_name(assembly->getImage(), "Stulu", "GameObjectAttached");
-		if (goAttachClass) {
-			MonoMethod* func = i->getVirtualFunction("initilize", goAttachClass);
-			if (func) {
-				void* args[1];
-				args[0] = &gameObject;
-				assembly->invokeFunction(func, i->getObjectPtr(), args);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	void Scene::updateAssemblyScripts(const std::string& function, bool forceConstructNew) {
-		s_activeScene = this;
-		for (auto& [gameObject, comp] : m_registry.storage<ScriptingComponent>().each()) {
-			for (Ref<Stulu::MonoObjectInstance>& i : comp.runtimeScripts) {
-				if (!i->isContructed() || forceConstructNew) {
-					initScriptRuntime(i, { gameObject, this });
-				}
-				if (!function.empty())
-					i->call(function);
-			}
-		}
-	}
-
-	void Scene::initScriptRuntime(Ref<MonoObjectInstance>& script, GameObject gameobject) {
-		script->backup_fields();
-		script->callDefaultConstructor();
-		script->load_fields_backup();
-		//initilize component
-		if (initlizeGameObjectAttachedClass(gameobject, script))
-			script->call("onAwake()");
-	}
-
 	GameObject Scene::addModel(Model& model) {
 		ST_PROFILING_FUNCTION();
 		std::vector<MeshAsset>& vec = model.getMeshes();
@@ -626,7 +556,6 @@ namespace Stulu {
 				for (auto srcGameObject : view)
 				{
 					entt::entity dstGameObject = enttMap.at(src.get<GameObjectBaseComponent>(srcGameObject).getUUID());
-
 					auto& srcComponent = src.get<Component>(srcGameObject);
 					dst.emplace_or_replace<Component>(dstGameObject, srcComponent);
 					dst.get<Component>(dstGameObject).gameObject = GameObject(dstGameObject, Scene::activeScene());
@@ -733,13 +662,6 @@ namespace Stulu {
 		for (auto& [objUUID, parUUID] : parentMap) {
 			GameObject::getById(objUUID, newScene.get()).getComponent<TransformComponent>().parent = GameObject::getById(parUUID, newScene.get());
 		}
-		//copy scripts
-		//for (auto entID : scene->getAllGameObjectsWith<ScriptingComponent>()) {
-		//	GameObject src = GameObject(entID, scene.get());
-		//	GameObject dst = GameObject::getById(src.getId(), newScene.get());
-		//
-		//	dst.getComponent<ScriptingComponent>().copyScriptsFrom(src.getComponent<ScriptingComponent>());
-		//}
 
 		return newScene;
 	}

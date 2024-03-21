@@ -1,11 +1,9 @@
 #include "EditorLayer.h"
 #include "Editor/EditorApp.h"
-#include "Editor/DiscordRPC.h"
-
-#include "Stulu/ScriptCore/Bindings/Input.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/imgui.h>
+#include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
 
 namespace Stulu {
@@ -22,7 +20,7 @@ namespace Stulu {
 		fspecs.height = Stulu::Application::get().getHeight();
 		m_sceneFrameBuffer = FrameBuffer::create(fspecs);
 
-		m_assetBrowser = AssetBrowserPanel(EditorApp::getProject().assetPath);
+		m_assetBrowser = AssetBrowserPanel(Project::Main->assetPath);
 		StyleEditor::init();
 		Previewing::init();
 
@@ -322,14 +320,8 @@ namespace Stulu {
 		if (m_showLicensesWindow) {
 			drawLicenseWindow();
 		}
-		if (m_showBuildWindow) {
-			drawBuildWindow();
-		}
-
 		Application::get().getImGuiLayer()->blockEvents(!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing());
 		StuluBindings::Input::s_enabled = m_gameViewport.focused;
-
-		m_editorScene->updateAssemblyScripts("onDrawEditorGUI()");
 	}
 	void EditorLayer::drawMenuBar() {
 		ST_PROFILING_FUNCTION();
@@ -348,11 +340,8 @@ namespace Stulu {
 				if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S")) {
 					SaveScene();
 				}
-				if (ImGui::MenuItem("Build Project")) {
-					m_showBuildWindow = true;
-				}
 				if (ImGui::MenuItem("Exit", "Alt+F4")) {
-					Application::exit(0);
+					Application::get().exit(0);
 				}
 
 				ImGui::EndMenu();
@@ -480,62 +469,6 @@ namespace Stulu {
 		}
 		ImGui::End();
 	}
-	void EditorLayer::drawBuildWindow() {
-		ST_PROFILING_FUNCTION();
-		if (ImGui::Begin("Build", &m_showBuildWindow)) {
-			ComponentsRender::drawStringControl("Name", m_buildData.name);
-			ComponentsRender::drawInt3Control("Version", (int&)m_buildData.version.major, (int&)m_buildData.version.minor, (int&)m_buildData.version.patch);
-			ComponentsRender::drawUIntControl("Width", m_buildData.width);
-			ComponentsRender::drawUIntControl("Height", m_buildData.height);
-			ComponentsRender::drawBoolControl("Debug", m_buildData.debug); ImGui::SameLine();
-			ComponentsRender::drawHelpMarker("Currently only enables debug fps logging");
-			ImGui::Separator();
-			if (ImGui::TreeNodeEx("Scenes", ImGuiTreeNodeFlags_DefaultOpen)) {
-				for (auto& sceneUUID : m_buildData.scenesToBuild) {
-					Asset& asset = AssetsManager::get(sceneUUID);
-					if (ImGui::RadioButton(asset.path.c_str(), m_buildData.startScene == sceneUUID)) {
-						m_buildData.startScene = sceneUUID;
-					}
-				}
-				ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-				ImVec4 bgColor = { 0,0,0,0 };
-				//ImGui::Image(reinterpret_cast<void*>((uint64_t)EditorResources::getSceneTexture()->getRendererID()), ImVec2(30, 30), { 0, 1 }, { 1, 0 }, icoColor, bgColor);
-				ImGui::Image(EditorResources::getSceneTexture(), ImVec2(30, 30), { 0, 1 }, { 1, 0 }, icoColor, bgColor);
-				if (ImGui::BeginDragDropTarget()) {
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload((std::string("DRAG_DROP_ASSET_") + std::to_string((int)AssetType::Scene)).c_str())) {
-						UUID id = *(UUID*)payload->Data;
-						if (AssetsManager::existsAndType(id, AssetType::Scene)) {
-							m_buildData.scenesToBuild.push_back(id);
-						}
-					}
-					ImGui::EndDragDropTarget();
-				}
-				ImGui::Text("Drag Scene here to add");
-				ImGui::TreePop();
-			}
-			ImGui::Separator();
-			ComponentsRender::drawStringControl("Path", m_buildData.path);
-			if (ImGui::Button("Select Path"))
-				m_buildData.path = Platform::browseFolder();
-
-			bool disabled = !(std::filesystem::exists(m_buildData.path) && m_buildData.startScene != UUID::null);
-			if (disabled) {
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Build")) {
-				buildProject(m_buildData.path + "/" + m_buildData.name);
-			}
-			if (disabled)
-			{
-				ImGui::PopItemFlag();
-				ImGui::PopStyleVar();
-			}
-
-			ImGui::End();
-		}
-	}
 #pragma endregion
 #pragma region Scene
 	void EditorLayer::onUpdate(Timestep timestep) {
@@ -609,7 +542,7 @@ namespace Stulu {
 		m_runtimeScene = nullptr;
 	}
 	void EditorLayer::SaveScene() {
-		std::string path = Platform::saveFile("Scene File (*.scene)\0 *.scene\0Stulu Scene File (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0", EditorApp::getProject().path.c_str());
+		std::string path = Platform::saveFile("Scene File (*.scene)\0 *.scene\0Stulu Scene File (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0", Project::Main->path.c_str());
 		if (!path.empty())
 			SaveScene(path);
 	}
@@ -620,8 +553,8 @@ namespace Stulu {
 		}
 	
 		std::string path = Platform::openFile(
-			"Scene Files (*.scene)\0 *.scene\0Stulu Scene Files (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0"
-			, EditorApp::getProject().path.c_str());
+			"Scene Files (*.scene)\0 *.scene\0Stulu Scene Files (*.ssc)\0 *.ssc\0All Files (*.*)\0*.*\0" 
+			, Project::Main->path.c_str());
 		if (!path.empty())
 			OpenScene(path);
 	}
@@ -633,7 +566,6 @@ namespace Stulu {
 		m_currentScenePath = path;
 		SceneSerializer ss(m_activeScene);
 		ss.serialze(path);
-		DiscordRPC::setState("Editing " + path.substr(path.find_last_of("/\\")+1, path.npos));
 		ST_TRACE("Saved Scene {0}", path);
 	}
 	void EditorLayer::OpenScene(const std::string& path) {
@@ -654,7 +586,6 @@ namespace Stulu {
 			m_editorHierarchy.setScene(m_activeScene);
 			m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.height);
 			ST_TRACE("Opened Scene {0}", path);
-			DiscordRPC::setState("Editing " + path.substr(path.find_last_of("/\\") + 1, path.npos));
 		}
 		else {
 			newScene();
@@ -668,7 +599,6 @@ namespace Stulu {
 		m_activeScene = m_editorScene;
 		m_activeScene->onViewportResize(m_gameViewport.width, m_gameViewport.width);
 		m_editorHierarchy.setScene(m_activeScene);
-		DiscordRPC::setState("Editing a scene");
 		ST_TRACE("New Scene loaded");
 	}
 #pragma endregion
@@ -761,7 +691,7 @@ namespace Stulu {
 					GameObject selected = m_editorHierarchy.getCurrentObject();
 					onDrawGizmoSelected(selected);
 				}
-				m_activeScene->updateAssemblyScripts("onDrawGizmos()");
+				m_activeScene->m_caller->onDrawGizmos();
 				Gizmo::End();
 				
 			}
@@ -903,7 +833,6 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		newScene();
 		loadPanelConfig();
-		DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 	}
 	void EditorLayer::onEvent(Event& e) {
 		ST_PROFILING_FUNCTION();
@@ -933,19 +862,15 @@ namespace Stulu {
 
 			case Keyboard::Q:
 				m_gizmoEditType = GizmoTransformEditMode::None;
-				DiscordRPC::setDetails("Idling in " + getEditorProject().name);
 				break;
 			case Keyboard::G:
 				m_gizmoEditType = GizmoTransformEditMode::Translate;
-				DiscordRPC::setDetails("Transforming in " + getEditorProject().name);
 				break;
 			case Keyboard::R:
 				m_gizmoEditType = GizmoTransformEditMode::Rotate;
-				DiscordRPC::setDetails("Rotation in " + getEditorProject().name);
 				break;
 			case Keyboard::U:
 				m_gizmoEditType = GizmoTransformEditMode::Universal;
-				DiscordRPC::setDetails("Using Universal mode in " + getEditorProject().name);
 				break;
 			case Keyboard::S:
 				if (control) {
@@ -957,7 +882,6 @@ namespace Stulu {
 					break;
 				}
 				m_gizmoEditType = GizmoTransformEditMode::Scale;
-				DiscordRPC::setDetails("Scaling in " + getEditorProject().name);
 				break;
 			case Keyboard::O:
 				if (control) {
@@ -991,7 +915,6 @@ namespace Stulu {
 	}
 	bool EditorLayer::onApplicationQuit(WindowCloseEvent& e) {
 		ST_PROFILING_FUNCTION();
-		DiscordRPC::shutdown();
 		if (s_runtime)
 			m_activeScene->onRuntimeStop();
 		return false;
@@ -1059,22 +982,6 @@ namespace Stulu {
 					OpenScene(values["setting.lastScene"]);
 				}
 			}
-			if (values.find("build.name") != values.end())
-				m_buildData.name = values["build.name"];
-			if (values.find("build.publisher") != values.end())
-				m_buildData.publisher = values["build.publisher"];
-			if (values.find("build.width") != values.end())
-				m_buildData.width = stoi(values["build.width"]);
-			if (values.find("build.height") != values.end())
-				m_buildData.height = stoi(values["build.height"]);
-			if (values.find("build.major") != values.end())
-				m_buildData.version.major = stoi(values["build.major"]);
-			if (values.find("build.minor") != values.end())
-				m_buildData.version.minor = stoi(values["build.minor"]);
-			if (values.find("build.patch") != values.end())
-				m_buildData.version.patch = stoi(values["build.patch"]);
-
-
 
 			ST_TRACE("Loaded Editor panel config from {0}", file);
 		}
@@ -1126,16 +1033,6 @@ namespace Stulu {
 
 			stream << "setting.vsync=" << (int)getEditorApp().getWindow().isVSync() << "\n";
 			stream << "setting.lastScene=" << m_currentScenePath << "\n";
-
-			stream << "build.name=" << m_buildData.name << "\n";
-			stream << "build.width=" << m_buildData.width << "\n";
-			stream << "build.publisher=" << m_buildData.publisher << "\n";
-			stream << "build.height=" << m_buildData.height << "\n";
-			stream << "build.major=" << m_buildData.version.major << "\n";
-			stream << "build.minor=" << m_buildData.version.minor << "\n";
-			stream << "build.patch=" << m_buildData.version.patch << "\n";
-
-
 			stream.close();
 			ST_TRACE("Saved Editor Camera config to {0}", file);
 		}
@@ -1150,83 +1047,4 @@ namespace Stulu {
 		
 	}
 #pragma endregion
-
-	void EditorLayer::buildProject(const std::string& dir) {
-		ST_PROFILING_FUNCTION();
-		if (std::filesystem::exists(dir))
-			std::filesystem::remove_all(dir);
-
-		SaveScene(m_currentScenePath);
-
-		getEditorProject().rebuildAssembly();
-		const std::string projectDataPath = dir + "/" + m_buildData.name + "-data";
-		if (!std::filesystem::exists(dir)) {
-			std::filesystem::create_directory(dir);
-		}
-		if (!std::filesystem::exists(projectDataPath)) {
-			std::filesystem::create_directories(projectDataPath + "/Managed");
-			std::filesystem::create_directories(projectDataPath + "/assets");
-			std::filesystem::create_directories(projectDataPath + "/Licenses");
-		}
-
-		std::filesystem::copy(getEditorProject().dataPath + "/ManagedAssembly.dll", projectDataPath + "/Managed", std::filesystem::copy_options::overwrite_existing);
-
-		copyAllFilesFromDir("Data/Stulu/Runtime", dir);
-		std::vector<std::string> AllScnenesToBuild;
-		for (auto& id : m_buildData.scenesToBuild) {
-			if (AssetsManager::existsAndType(id, AssetType::Scene))
-				AllScnenesToBuild.push_back(AssetsManager::get(id).path);
-		}
-
-		copyAllFilesFromDir(getEditorProject().assetPath, projectDataPath + "/assets/");
-
-		if (std::filesystem::exists(dir + "/Build")) {
-			std::filesystem::remove_all(dir + "/Build");
-		}
-		//copy engine stuff
-		copyAllFilesFromDir("Data", dir + "/Data");
-		copyAllFilesFromDir("Licenses", dir + "/Licenses");
-
-		std::filesystem::copy("mono-2.0-sgen.dll", dir + "/mono-2.0-sgen.dll", std::filesystem::copy_options::overwrite_existing);
-
-		//generate app file
-		std::string name(m_buildData.name);
-		Version version(m_buildData.version);
-		WindowProps window;
-		window.title = name;
-		window.width = m_buildData.width;
-		window.height = m_buildData.height;
-		window.VSync = false;
-
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "App Name" << YAML::Value << name;
-		out << YAML::Key << "App Verison" << YAML::Value << (glm::vec3) * ((glm::uvec3*)&version);
-		out << YAML::Key << "Publisher" << YAML::Value << m_buildData.publisher;
-		out << YAML::Key << "Window Title" << YAML::Value << window.title;
-		out << YAML::Key << "Window Width" << YAML::Value << window.width;
-		out << YAML::Key << "Window Height" << YAML::Value << window.height;
-		out << YAML::Key << "Window VSync" << YAML::Value << window.VSync;
-		out << YAML::Key << "Start Scene" << YAML::Value << (uint64_t)m_buildData.startScene;
-		out << YAML::Key << "debug" << YAML::Value << m_buildData.debug;
-		out << YAML::EndMap;
-
-
-		FILE* file = fopen((dir + "/Stulu/app").c_str(), "w");
-		fprintf(file, out.c_str());
-		fclose(file);
-
-
-#ifdef ST_PLATFORM_WINDOWS
-		std::filesystem::rename(dir + "/Stulu Runtime.exe", dir + "/" + name + ".exe");
-#endif // ST_PLATFORM_WINDOWS
-
-		ST_INFO("Finished building {0} in {1}\a", name, dir)
-	}
-	void copyAllFilesFromDir(const std::string& from, const std::string& to) {
-		if (!std::filesystem::exists(to)) {
-			std::filesystem::create_directories(to);
-		}
-		std::filesystem::copy(from, to, std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
-	}
 }

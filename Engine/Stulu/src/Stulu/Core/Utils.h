@@ -40,4 +40,13 @@ namespace Stulu {
 	inline const T& NativeRenderObjectCast(const void* obj) {
 		return *(T*)obj;
 	}
+	inline std::string CleanPath(std::string& newString) {
+		std::transform(newString.begin(), newString.end(), newString.begin(), [](char c) { return c == '\\' ? '/' : c; });
+		return newString;
+	}
+	inline std::string CleanPath(const std::string& string) {
+		std::string newString = string;
+		std::transform(newString.begin(), newString.end(), newString.begin(), [](char c) { return c == '\\' ? '/' : c; });
+		return newString;
+	}
 }

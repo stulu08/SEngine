@@ -19,6 +19,7 @@ namespace Stulu::Launcher {
 		ImGuiIO& io = ImGui::GetIO();
 		io.IniFilename = NULL;
 		ImGui::StyleColorsOceanDark();
+		m_logoTexture = Texture2D::create("Textures/PNG - Logo - White.png");
 	}
 
 	void LauncherLayer::onImguiRender(Timestep timestep) {
@@ -142,12 +143,11 @@ namespace Stulu::Launcher {
 		}
 	}
 	void LauncherLayer::drawHomeWindow() {
-		auto tex = Resources::getLogoTexture();
-		const float aspect = (float)tex->getHeight() / (float)tex->getWidth();
+		const float aspect = (float)m_logoTexture->getHeight() / (float)m_logoTexture->getWidth();
 		const float width = m_contentAreaWidth / 2.0f;
 		const float height = m_contentAreaWidth / 2.0f * aspect;
 		ImGui::SetCursorPosX((ImGui::GetWindowSize().x - width) * 0.5f);
-		ImGui::Image(tex, { width, height }, { 0,1 }, { 1,0 });
+		ImGui::Image(m_logoTexture, { width, height }, { 0,1 }, { 1,0 });
 	}
 	void LauncherLayer::drawMainWindow() {
 		if (m_showHome) {

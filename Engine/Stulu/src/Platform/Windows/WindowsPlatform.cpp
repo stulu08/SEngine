@@ -73,7 +73,7 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		char szTitle[MAX_PATH];
 		BROWSEINFOA bi;
-		bi.hwndOwner = glfwGetWin32Window((GLFWwindow*)Application::get().getWindow().getNativeWindow());
+		bi.hwndOwner = NULL;
 		bi.pidlRoot = NULL;
 		bi.pszDisplayName = szTitle;
 		bi.lpszTitle = "Select a folder";

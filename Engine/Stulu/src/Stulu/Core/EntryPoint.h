@@ -2,15 +2,12 @@
 
 
 namespace Stulu {
-	extern Application* Stulu::CreateApplication();
+	extern Application* Stulu::CreateApplication(int argc, char** argv);
 
 	int main_entry(int argc, char** argv) {
-
 		ST_PROFILING_BEGIN("Startup", "Profiling-Startup.json");
 		Stulu::Log::init();
-		for (int i = 0; i < argc; i++)
-			Stulu::Application::getStartArgs().push_back(argv[i]);
-		auto application = Stulu::CreateApplication();
+		auto application = Stulu::CreateApplication(argc, argv);
 		ST_PROFILING_END();
 
 		ST_PROFILING_BEGIN("Runtime", "Profiling-Runtime.json");

@@ -28,6 +28,7 @@ namespace Stulu {
 	class STULU_API GameObject;
 	class STULU_API MonoObjectInstance;
 	class STULU_API SceneRenderer;
+	class STULU_API EventCaller;
 
 	class STULU_API Scene {
 	public:
@@ -53,9 +54,8 @@ namespace Stulu {
 
 		GameObject getMainCamera();
 		GameObject getMainLight();
-		SceneData& getData() { return m_data; }
-
-		bool initlizeGameObjectAttachedClass(entt::entity gameObject, Ref<MonoObjectInstance>& instance);
+		inline SceneData& getData() { return m_data; }
+		inline Ref<EventCaller>& getCaller() { return m_caller; }
 
 		static inline void setActiveScene(Scene* scne) { s_activeScene = scne; }
 
@@ -73,8 +73,6 @@ namespace Stulu {
 		void clearAllParticles();
 		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
 		GameObject findGameObjectByName(const std::string& name);
-		void initScriptRuntime(Ref<MonoObjectInstance>& script, GameObject gameobject);
-
 
 		template<typename... Components>
 		auto getAllGameObjectsWith() {
@@ -100,6 +98,8 @@ namespace Stulu {
 		SceneData m_data;
 		Scope<PhysX> m_physics = nullptr;
 		Scope<SceneRenderer> m_renderer = nullptr;
+		Ref<EventCaller> m_caller = nullptr;
+
 		bool m_firstRuntimeUpdate = false;
 
 		entt::registry m_registry;
@@ -108,8 +108,6 @@ namespace Stulu {
 		void setupPhysics();
 		void updatePhysics();
 		void renderSceneEditor(SceneCamera& camera);
-
-		void updateAssemblyScripts(const std::string& function, bool forceConstructNew = false);
 
 		template<typename T>
 		void onComponentAdded(GameObject gameObject, T& component) {
@@ -129,6 +127,7 @@ namespace Stulu {
 		friend class EditorHierarchyPanel;
 		friend class ComponentsRender;
 		friend class GameObjectBaseComponent;
+		friend class EventCaller;
 
 
 		static inline Scene* s_activeScene = nullptr;
