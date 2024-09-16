@@ -11,8 +11,8 @@ from urllib.request import urlopen
 
 class VulkanConfiguration:
     requiredVulkanVersion = "1.3."
-    latesVulkanVersion = "1.3.216.0"
-    vulkanDirectory = "./Stulu/vendor/VulkanSDK"
+    latesVulkanVersion = "1.3.290.0"
+    vulkanDirectory = "./Dependencies/VulkanSDK"
 
     @classmethod
     def Validate(cls):

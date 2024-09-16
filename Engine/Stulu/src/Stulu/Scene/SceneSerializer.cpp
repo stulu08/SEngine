@@ -406,6 +406,9 @@ namespace Stulu {
 
 
 	bool SceneSerializer::deSerialze(const std::string& path) {
+		if (!FileExists(path.c_str()))
+			return false;
+
 		Scene::setActiveScene(m_scene.get());
 		try {
 			YAML::Node data = YAML::LoadFile(path);

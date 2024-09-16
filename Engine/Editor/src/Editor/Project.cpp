@@ -21,6 +21,9 @@ namespace Stulu {
 		options[0] = installDir.c_str();
 
 		stulu_premake_exec_options(path.c_str(), ST_PREMAKE_ACTION_VS2022, options, 1);
+
+		// had a bug only in debug mode, where the premake func didnt change the path back
+		std::filesystem::current_path(cPath);
 	}
 
 	void Project::compileAssembly() {
@@ -64,8 +67,8 @@ namespace Stulu {
 		switch (buildSettings.config)
 		{
 		case BuildSettings::Debug:
-				fileStream << "Debug";
-				break;
+			fileStream << "Debug";
+			break;
 		case BuildSettings::Release:
 			fileStream << "Release";
 			break;

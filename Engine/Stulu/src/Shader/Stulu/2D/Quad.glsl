@@ -43,7 +43,7 @@ layout (location = 3) in flat float textureIndex;
 layout (binding = 0) uniform sampler2D u_textures[32];
 
 void main() {
-	vec4 color = vec4(0f);
+	vec4 color = vec4(0.0);
 	switch(int(textureIndex))
 	{
 		case  0: color = texture(u_textures[ 0], Input.texCoord * Input.textureTiling) * Input.color; break;

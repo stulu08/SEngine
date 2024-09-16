@@ -112,9 +112,10 @@ namespace Stulu {
 		GLenum wrap = TextureWrapToGLenum(m_settings.wrap);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenumMinification(m_settings.filtering));
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenumMagnification(m_settings.filtering));
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, wrap);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, wrap);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_R, wrap);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, wrap);
 		if (m_settings.wrap == TextureWrap::ClampToBorder) {
 			float borderColor[] = { m_settings.border.x,  m_settings.border.y,  m_settings.border.z,  m_settings.border.w };
 			glTextureParameterfv(m_rendererID, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -239,7 +240,7 @@ namespace Stulu {
 		switch (wrap)
 		{
 		case TextureWrap::ClampToEdge:
-			return GL_CLAMP;
+			return GL_CLAMP_TO_EDGE;
 		case TextureWrap::Repeat:
 			return GL_REPEAT;
 		case TextureWrap::ClampToBorder:

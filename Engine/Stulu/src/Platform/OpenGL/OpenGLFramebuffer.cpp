@@ -67,12 +67,12 @@ namespace Stulu {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		
-		for (uint32_t i = 0; i < m_colorAttachments.size(); i++) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, 0, 0, 0);
-		}
-		if (m_depthAttachment) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, getDepthAttachmentTypeByFormat(m_depthAttachment->getSettings().format), 0, 0, 0);
-		}
+		//for (uint32_t i = 0; i < m_colorAttachments.size(); i++) {
+		//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, 0, 0, 0);
+		//}
+		//if (m_depthAttachment) {
+		//	glFramebufferTexture2D(GL_FRAMEBUFFER, getDepthAttachmentTypeByFormat(m_depthAttachment->getSettings().format), 0, 0, 0);
+		//}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

@@ -10,14 +10,14 @@ func(int);		\
 func(uint);		\
 func(double);
 
-#define st_when_eq_impl(type) type when_eq(type x, type y) { return type(1.0) - abs(sign(x-y));}
-#define st_when_neq_impl(type) type when_neq(type x, type y) { return abs(sign(x-y));}
-#define st_when_gt_impl(type) type when_gt(type x, type y) { return max(sign(x-y), type(0.0));}
-#define st_when_lt_impl(type) type when_lt(type x, type y) { return max(sign(y-x), type(0.0));}
-#define st_when_ge_impl(type) type when_ge(type x, type y) { return type(1.0)-when_gt(x,y);}
-#define st_when_le_impl(type) type when_le(type x, type y) { return type(1.0)-when_lt(x,y);}
-#define st_and_impl(type) type and(type a, type b) { return a*b;}
-#define st_or_impl(type) type or(type a, type b) { return min(a+b, type(1.0));}
+#define st_when_eq_impl(type) type when_eq(type x, type y) { return type(type(1.0) - abs(sign(x-y)));}
+#define st_when_neq_impl(type) type when_neq(type x, type y) { return type(abs(sign(x-y)));}
+#define st_when_gt_impl(type) type when_gt(type x, type y) { return type(max(sign(x-y), type(0.0)));}
+#define st_when_lt_impl(type) type when_lt(type x, type y) { return type(max(sign(y-x), type(0.0)));}
+#define st_when_ge_impl(type) type when_ge(type x, type y) { return type(type(1.0)-when_gt(x,y));}
+#define st_when_le_impl(type) type when_le(type x, type y) { return type(type(1.0)-when_lt(x,y));}
+#define st_and_impl(type) type and(type a, type b) { return type(a*b);}
+#define st_or_impl(type) type or(type a, type b) { return type(min(a+b, type(1.0)));}
 #define st_not_impl(type) type not(type a, type b) { return type(1.0)-a;}
 
 st_impl_for_all_types(st_when_eq_impl);

@@ -65,7 +65,7 @@ namespace Stulu {
 		GLuint rendererID = glCreateProgram();
 		
 		std::vector<GLenum> shaderIds;
-		shaderIds.reserve(sources.Size());
+		shaderIds.resize(sources.Size(), 0);
 
 		for (uint32_t i = 0; i < sources.Size(); i++) {
 			const auto& kv = sources.Get(i);

@@ -20,7 +20,7 @@ namespace Stulu {
 			path.pop_back();
 
 		Log::AddFileSink(path + "/Logs/" + Log::generateTimeString() + ".log");
-
+		
 		ST_INFO("Loading project: {0}", path);
 		Project::Main = createScope<Project>(path);
 		Project::Main->compileAssembly();

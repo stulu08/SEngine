@@ -73,7 +73,7 @@ namespace Stulu {
 					if (directory.is_directory())
 						m_path /= filename;
 				}
-				if ((ImGui::IsMouseReleased(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Right)) && ImGui::IsItemHovered(ImGuiMouseButton_Right)) {
+				if ((ImGui::IsMouseReleased(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Right)) && ImGui::IsItemHovered()) {
 					selected = AssetsManager::get(AssetsManager::getFromPath(path.string(), AssetsManager::getAssetTypeByPath(path.string())));
 					EditorInspectorPanel::AssetMode = true;
 				}

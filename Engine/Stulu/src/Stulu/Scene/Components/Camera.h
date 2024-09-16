@@ -40,7 +40,7 @@ namespace Stulu {
 	class STULU_API CameraComponent : public Component {
 	public:
 		CameraComponent() {
-			cam = createRef<PerspectiveCamera>(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);
+			cam = createRef<PerspectiveCamera>(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar, FrameBufferSpecs(settings.textureWidth, settings.textureHeight));
 		}
 		CameraComponent(const CameraComponent&) = default;
 		CameraComponent(const CameraMode mode);

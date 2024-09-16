@@ -68,15 +68,15 @@ namespace Stulu {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDepthFunc(GL_LESS);
-		glLineWidth(2.0f);
+		glLineWidth(1.0f);
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 		glViewport(x, y, width, height);
 	}
 	void OpenGLRenderAPI::setWireFrame(bool value) {
-		glPolygonMode(GL_FRONT, value ? GL_LINE : GL_FILL);
-		glPolygonMode(GL_BACK, value ? GL_LINE : GL_FILL);
+		//glPolygonMode(GL_FRONT, value ? GL_LINE : GL_FILL);
+		//glPolygonMode(GL_BACK, value ? GL_LINE : GL_FILL);
 	}
 
 	void OpenGLRenderAPI::setCullMode(CullMode v) {

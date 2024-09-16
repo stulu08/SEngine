@@ -81,7 +81,7 @@ project "Stulu"
 		
 		"%{Library.OpenGL}",
 		"%{Library.Vulkan}",
-		"%{Library.VulkanLayerUtils}",
+		--"%{Library.VulkanLayerUtils}",
 		"%{Library.mono}",
 		"Ws2_32.lib", -- mono dependencies
 		"Winmm.lib", -- mono dependencies

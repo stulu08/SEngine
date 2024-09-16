@@ -12,7 +12,7 @@ layout (binding = 0) uniform sampler2D texSampler;
 
 void main()
 {
-	vec4 color = texture2D(texSampler, v_tex);
+	vec4 color = texture(texSampler, v_tex);
 	a_color = color;
 	if(color.a == 0.0f)
 		discard;

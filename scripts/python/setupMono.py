@@ -13,7 +13,7 @@ class MonoConfiguration:
     #https://download.mono-project.com/archive/6.12.0/windows-installer/mono-6.12.0.182-x64-0.msi
     requiredMonoVersion = "6.12.0"
     latestBuild = "182"
-    monoInstallerDirectory = "./Stulu/vendor/Mono"
+    monoInstallerDirectory = "./Dependencies/Mono"
     defaultMonoDir = "C:/Program Files/Mono"
     
     @classmethod

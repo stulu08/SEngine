@@ -8,10 +8,10 @@ namespace Stulu {
 	CameraComponent::CameraComponent(const CameraMode mode)
 		: mode(mode) {
 		if (mode == CameraMode::Perspective) {
-			cam = createRef<PerspectiveCamera>(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar);
+			cam = createRef<PerspectiveCamera>(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar, FrameBufferSpecs(settings.textureWidth, settings.textureHeight));
 		}
 		else if (mode == CameraMode::Orthographic) {
-			cam = createRef<OrthographicCamera>(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar);
+			cam = createRef<OrthographicCamera>(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar, FrameBufferSpecs(settings.textureWidth, settings.textureHeight));
 		}
 	}
 	void CameraComponent::onResize(uint32_t width, uint32_t height) {
@@ -48,12 +48,10 @@ namespace Stulu {
 	}
 	void CameraComponent::updateMode() {
 		if (mode == CameraMode::Orthographic) {
-			cam.reset(new OrthographicCamera(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar));
-			cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);
+			cam.reset(new OrthographicCamera(-settings.aspectRatio * settings.zoom, settings.aspectRatio * settings.zoom, -settings.zoom, settings.zoom, settings.zNear, settings.zFar, FrameBufferSpecs(settings.textureWidth, settings.textureHeight)));
 		}
 		else if (mode == CameraMode::Perspective) {
-			cam.reset(new PerspectiveCamera(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar));
-			cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);
+			cam.reset(new PerspectiveCamera(settings.fov, settings.aspectRatio, settings.zNear, settings.zFar, FrameBufferSpecs(settings.textureWidth, settings.textureHeight)));
 		}
 	}
 }

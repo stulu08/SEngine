@@ -16,13 +16,15 @@ layout (binding = 1) uniform sampler2D bloom;
 out vec4 a_color;
 
 void main() {
-	vec4 color = texture2D(texSampler, v_tex);
+	vec4 sourceColor = texture(texSampler, v_tex);
 	
-	color = apply_bloom(color, bloomStrength, v_tex, bloom);
+	// gamma correction
+	vec4 outColor = gammaCorrect(sourceColor, gamma, toneMappingExposure);
+	outColor += sourceColor * when_neq(enableGammaCorrection, 1.0);
 
-	a_color += gammaCorrect(color, gamma, toneMappingExposure) * when_eq(enableGammaCorrection, 1.0);
-	a_color += color * when_neq(enableGammaCorrection, 1.0);
-
-	if(color.a == 0.0)
+	// applay bloom
+	a_color = apply_bloom(outColor, bloomStrength, v_tex, bloom);
+	
+	if(a_color.a == 0.0)
 		discard;
 }

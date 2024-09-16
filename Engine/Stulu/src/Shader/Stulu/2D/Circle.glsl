@@ -57,6 +57,6 @@ void main() {
     a_color = Input.color;
 	a_color.a *= circle;
 
-	if (circle == 0.0 || Input.color == 0.0)
+	if (circle == 0.0 || Input.color == vec4(0.0))
 		discard;
 }
