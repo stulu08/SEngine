@@ -284,9 +284,31 @@ namespace Stulu {
 		return UUID::null;
 	}
 
+	int AssetsManager::maxProgress = 0;
+	int AssetsManager::currentProgress = 0;
+	AssetsManager::ProgessCallback AssetsManager::progressCallback = nullptr;
+
+	void AssetsManager::updateProgress() {
+		currentProgress++;
+
+		const int step = glm::max((int)(maxProgress / 100), 1);
+
+		if (progressCallback && currentProgress % step == 0) {
+			progressCallback((float)currentProgress / (float)maxProgress);
+		}
+	}
+
 	void AssetsManager::loadAllFiles(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading all files from directory: {0}", directory);
+
+		if (progressCallback) {
+			for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
+				maxProgress++;
+			}
+			maxProgress *= 4;
+		}
+
 		//at first shaders and textures need to be loaded for the materials and other
 		loadShaders(directory, loadNewFiles);
 		loadTextures(directory, loadNewFiles);
@@ -296,14 +318,16 @@ namespace Stulu {
 	void AssetsManager::loadDirectory(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Files: {0}", directory);
-		for (auto& dir : std::filesystem::directory_iterator(directory)) {
+		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
+			
+			updateProgress();
+
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
 				if (FileExists(path.string() + ".meta"))
 					addDirectory(path.string());
 				else if (loadNewFiles)
 					addDirectory(path.string());
-				loadDirectory(path.string());
 				continue;
 			}
 			if (path.extension() != ".meta") {
@@ -317,10 +341,12 @@ namespace Stulu {
 	void AssetsManager::loadShaders(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Shaders: {0}", directory);
-		for (auto& dir : std::filesystem::directory_iterator(directory)) {
+		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
+			
+			updateProgress();
+
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
-				loadShaders(path.string());
 				continue;
 			}
 			if (assetTypeFromExtension(path.extension().string()) == AssetType::Shader) {
@@ -329,18 +355,20 @@ namespace Stulu {
 				else if(loadNewFiles)
 					add(path.string());
 			}
-				
 		}
 	}
 	void AssetsManager::loadTextures(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Textures: {0}", directory);
-		for (auto& dir : std::filesystem::directory_iterator(directory)) {
+		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
+			
+			updateProgress();
+
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
-				loadTextures(path.string());
 				continue;
 			}
+
 			if ((assetTypeFromExtension(path.extension().string()) == AssetType::Texture2D)) {
 				if (FileExists(path.string() + ".meta"))
 					add(path.string());
@@ -348,10 +376,9 @@ namespace Stulu {
 					add(path.string());
 			}
 		}
-		for (auto& dir : std::filesystem::directory_iterator(directory)) {
+		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
-				loadTextures(path.string());
 				continue;
 			}
 			if (assetTypeFromExtension(path.extension().string()) == AssetType::SkyBox) {
@@ -366,10 +393,12 @@ namespace Stulu {
 	void AssetsManager::loadMaterials(const std::string& directory, bool loadNewFiles) {
 		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Material: {0}", directory);
-		for (auto& dir : std::filesystem::directory_iterator(directory)) {
+		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
+			
+			updateProgress();
+
 			const auto& path = dir.path();
 			if (dir.is_directory()) {
-				loadMaterials(path.string());
 				continue;
 			}
 			if (assetTypeFromExtension(path.extension().string()) == AssetType::Material) {

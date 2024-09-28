@@ -8,9 +8,9 @@ namespace Stulu {
 	Ref<FrameBuffer> FrameBuffer::create(const FrameBufferSpecs& frameBufferdata, const TextureSettings& defaultCB, const TextureSettings& defaultDB) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLFramebuffer>(frameBufferdata, defaultCB, defaultDB);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
 		default:
@@ -25,9 +25,9 @@ namespace Stulu {
 	Ref<FrameBuffer> FrameBuffer::createEmpty(const FrameBufferSpecs& frameBufferdata) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLFramebuffer>(frameBufferdata);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
 		default:

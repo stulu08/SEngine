@@ -21,7 +21,10 @@ namespace Stulu {
 		glfwMakeContextCurrent(m_windowHandle);
 		int32_t status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 		CORE_ASSERT(status, "Failed glad initialization");
-		CORE_INFO("Renderer Data:\nVendor: {0}\nRenderer: {1}\nVersion: {2}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION))
+		CORE_INFO("Renderer Data:\nVendor: {0}\nRenderer: {1}\nVersion: {2}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+	}
+
+	void OpenGLContext::beginBuffer() {
 	}
 
 	void OpenGLContext::swapBuffers() {

@@ -1,7 +1,6 @@
 #SShader "Renderer/ShadowCaster"
 
 #type vertex
-#version 460 core
 
 #include "Stulu/MeshLayout.glsl"
 #include "Stulu/Scene.glsl"
@@ -16,7 +15,6 @@ void main(){
 }
 
 #type fragment
-#version 460
 
 #include "Stulu/Renderer/Lighting.glsl"
 

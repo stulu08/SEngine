@@ -1,18 +1,10 @@
 #pragma once
 #define USING_GLFW 1
-#define OPENGL 1
 
 #define ST_ENGINE_NAME ("Stulu Engine")
 #define ST_ENGINE_VERSION_MAJOR 23
 #define ST_ENGINE_VERSION_MINOR 12
 #define ST_ENGINE_VERSION_PATCH 16
-
-#if OPENGL == 0
-	#define VULKAN
-	#undef OPENGL
-#else
-	#define IMGUI_OPENGL_4 1
-#endif
 
 #ifdef ST_DEBUG
 	#define ST_PROFILING 1

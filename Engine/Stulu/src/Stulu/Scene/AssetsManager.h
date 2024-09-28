@@ -164,6 +164,13 @@ namespace Stulu {
 		template <typename T>
 		static inline void setProperity(const std::string path, const std::pair<std::string, T>& s) { setProperitys<T>(path, std::vector<std::pair<std::string, T>>{s}); }
 		static void createMeta(const UUID& uuid, const std::string& path, const AssetType type);
+
+		typedef void(*ProgessCallback)(float);
+
+		static void setProgessCallback(ProgessCallback callback) {
+			progressCallback = callback;
+		}
+
 	private:
 		//uuid ,<data, path>
 		static std::unordered_map<UUID, Asset> assets;
@@ -171,6 +178,12 @@ namespace Stulu {
 
 		static void createMeshesFromModel(const Asset uuid);
 		static void _createMeshesFromModel(const Asset uuid, Model& model);
+
+		static ProgessCallback progressCallback;
+		static int maxProgress;
+		static int currentProgress;
+
+		static void updateProgress();
 
 		friend class SceneSerializer;
 	};

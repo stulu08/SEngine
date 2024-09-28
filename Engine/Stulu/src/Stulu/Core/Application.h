@@ -7,6 +7,7 @@
 #include "Stulu/Core/Version.h"
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Platform.h"
+#include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
 	struct ApplicationInfo {
@@ -17,8 +18,11 @@ namespace Stulu {
 
 		std::string DataPath = "Data/";
 		std::string AppPath;
+		std::string AppCachePath;
 		std::string AppAssetPath;
 		std::string AppAssembly;
+
+		Renderer::API api = Renderer::API::OpenGL;
 
 		bool HideWindowOnSart;
 		bool EnableImgui;
@@ -54,6 +58,8 @@ namespace Stulu {
 		
 		std::string getWorkingDirectory() const;
 
+		static void LoadingScreen(float progress);
+
 		void exit(int32_t code = 0);
 	protected:
 		Ref<AssemblyManager> m_assembly = nullptr;
@@ -71,7 +77,6 @@ namespace Stulu {
 		float m_lastFrameTime = 0.0f;
 
 		static Application* s_instance;
-		static inline std::vector<std::string> s_startArgs;
 	};
 
 	//defined in Client

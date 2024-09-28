@@ -28,3 +28,6 @@
 [submodule "Dependencies/discord-game-sdk"]
 	path = Dependencies/discord-game-sdk
 	url = https://github.com/stulu08/discord-game-sdk
+[submodule "Dependencies/glslang-xs"]
+	path = Dependencies/glslang-xs
+	url = https://github.com/stulu08/glslang-xs

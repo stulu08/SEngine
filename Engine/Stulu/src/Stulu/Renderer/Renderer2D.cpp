@@ -413,4 +413,10 @@ namespace Stulu {
 		drawLine(lineVertices[2], lineVertices[3], color);
 		drawLine(lineVertices[3], lineVertices[0], color);
 	}
+	void Renderer2D::drawSlider(const glm::vec3& pos, const glm::vec3& size, float progress, const glm::vec4& color, const glm::vec4& fillColor) {
+		drawLineRect(Math::createMat4(pos, size), color);
+		const glm::vec3 barSize = size * glm::vec3{ progress, 1.0, 1.0 };
+		const glm::vec3 barPos = pos - glm::vec3{ (1.0f - progress) * size.x / 2.0f, 0.0f, 0.0f };
+		drawQuad(Math::createMat4(barPos, barSize), fillColor);
+	}
 }

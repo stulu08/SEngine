@@ -1,17 +1,16 @@
 #include "st_pch.h"
-#include "GraphicsContext.h"
+#include "ShaderCompiler.h"
+
+#include "Platform/Vulkan/SpirvShaderCompiler.h"
 #include "Renderer.h"
-#include "Platform/OpenGL/OpenGLContext.h"
-#include "Platform/Vulkan/WindowsVulkanContext.h"
 
 namespace Stulu {
-	Scope<GraphicsContext> GraphicsContext::create() {
+    Ref<ShaderCompiler> Stulu::ShaderCompiler::Create() {
 		switch (Renderer::getRendererAPI())
 		{
 		case Renderer::API::OpenGL:
-			return createScope<OpenGLContext>();
 		case Renderer::API::Vulkan:
-			return createScope<WindowsVulkanContext>();
+			return std::make_shared<SpirVShaderCompiler>();
 		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
@@ -21,6 +20,6 @@ namespace Stulu {
 		}
 
 		CORE_ASSERT(false, "Unknown error in Shader creation")
-			return nullptr;
-	}
+		return nullptr;
+    }
 }

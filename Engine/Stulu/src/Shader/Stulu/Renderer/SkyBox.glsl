@@ -1,7 +1,6 @@
 #SShader "Renderer/SkyBox"
 
 #type vertex
-#version 460 core
 		
 #include "Stulu/MeshLayout.glsl"
 #include "Stulu/Scene.glsl"
@@ -23,9 +22,8 @@ void main() {
 }
 
 #type fragment
-#version 460 core
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 #include "Stulu/Utils.glsl"
 #include "Stulu/Scene.glsl"

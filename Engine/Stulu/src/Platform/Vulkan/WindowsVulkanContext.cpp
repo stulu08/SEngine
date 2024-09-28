@@ -3,6 +3,10 @@
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Renderer/GraphicsContext.h"
+
+#include "VulkanFramebuffer.h"
+#include "VulkanImage2D.h"
+
 namespace Stulu {
 	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
 		ST_PROFILING_FUNCTION();
@@ -51,9 +55,26 @@ namespace Stulu {
 	}
 	WindowsVulkanContext::~WindowsVulkanContext() {
 		ST_PROFILING_FUNCTION();
-		for (auto view : device.swapChainImageViews) {
-			vkDestroyImageView(device.device, view, nullptr);
-		}	
+		vkDeviceWaitIdle(device.device);
+
+		vkDestroySemaphore(device.device, renderFinishedSemaphore, nullptr);
+		vkDestroySemaphore(device.device, imageAvailableSemaphore, nullptr);
+		vkDestroyFence(device.device, inFlightFence, nullptr);
+
+		vkDestroyCommandPool(device.device, device.commandPool, nullptr);
+
+		for (size_t i = 0; i < device.swapChainFrameBuffers.size(); i++) {
+			device.swapChainFrameBuffers[i].reset();
+		}
+
+		vkDestroyRenderPass(device.device, device.renderPass, nullptr);
+
+		vkDestroyPipelineLayout(device.device, pipelineLayout, nullptr);
+		
+		for (size_t i = 0; i < device.swapChainFrameBuffers.size(); i++) {
+			device.swapChainImages[i].reset();
+		}
+
 		vkDestroySwapchainKHR(device.device, device.swapChain, nullptr);
 		vkDestroySurfaceKHR(instance, surface, nullptr);
 		vkDestroyDevice(device.device, nullptr);
@@ -71,6 +92,8 @@ namespace Stulu {
 			CORE_ASSERT(windowHandle, "Window handle is null");
 			m_windowHandle = windowHandle;
 		}
+		VulkanRenderAPI::setDevice(&device);
+
 		createVulkanInstance();
 		setupDebugMessenger();
 		createSurface();
@@ -78,11 +101,102 @@ namespace Stulu {
 		createLogicalDevice();
 		getPhysicalDeviceProps();
 		createSwapChain();
-		createImageViews();
-		VulkanRenderAPI::setDevice(&device);
+		createRenderPass();
+		createFrameBuffers();
+		createGraphicsPipeline();
+		createCommandBuffer();
+		createSemaphores();
+
+
+		glfwSetFramebufferSizeCallback(m_windowHandle, [](GLFWwindow* window, int width, int height) {
+			((WindowsVulkanContext*)Application::get().getWindow().getContext().get())->requestResize();
+		});
 	}
+
+	void WindowsVulkanContext::beginBuffer() {
+		// wait for fences
+		vkWaitForFences(device.device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device.device, 1, &inFlightFence);
+
+		// Acquire an image from the swap chain
+		VkResult result = vkAcquireNextImageKHR(device.device, device.swapChain, UINT64_MAX, imageAvailableSemaphore, NULL, &device.imageIndex);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			resized = false;
+			recreateSwapChain();
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			CORE_ASSERT(false, "failed vkAcquireNextImageKHR!");
+		}
+
+		// reset command buffer and begin new
+		vkResetCommandBuffer(device.getCommandBuffer(), 0);
+
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		vkBeginCommandBuffer(device.getCommandBuffer(), &beginInfo);
+
+		// begin render pass
+		device.getFrameBuffer()->bind();
+	}
+
 	void WindowsVulkanContext::swapBuffers() {
-		glfwSwapBuffers(m_windowHandle);
+		// end render pass
+		device.getFrameBuffer()->unbind();
+		// end command buffer
+		vkEndCommandBuffer(device.getCommandBuffer());
+
+		// Submit rendering work
+		{
+			VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+			VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+
+			VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &device.getCommandBuffer();
+
+			// Wait for the image to become available before rendering
+			VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+			submitInfo.waitSemaphoreCount = 1;
+			submitInfo.pWaitSemaphores = waitSemaphores;
+			submitInfo.pWaitDstStageMask = waitStages;
+
+			// Signal when rendering is complete
+			submitInfo.signalSemaphoreCount = 1;
+			submitInfo.pSignalSemaphores = signalSemaphores;
+
+			if (vkQueueSubmit(device.graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS) {
+				CORE_ASSERT(false, "failed vkQueueSubmit!");
+				return;
+			}
+		}
+		
+
+		// Present the image
+		{
+			VkSemaphore waitSemaphores[] = { renderFinishedSemaphore };
+
+			VkPresentInfoKHR presentInfo = {};
+			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			presentInfo.swapchainCount = 1;
+			presentInfo.pSwapchains = &device.swapChain;
+			presentInfo.pImageIndices = &device.imageIndex;
+			// Wait until rendering is finished before presenting
+			presentInfo.waitSemaphoreCount = 1;
+			presentInfo.pWaitSemaphores = waitSemaphores;
+
+			VkResult result = vkQueuePresentKHR(device.presentQueue, &presentInfo);
+
+			if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || resized) {
+				resized = false;
+				recreateSwapChain();
+			}
+			else if (result != VK_SUCCESS) {
+				CORE_ASSERT(false, "failed vkQueuePresentKHR!");
+			}
+		}
+		
+
 	}
 
 	void WindowsVulkanContext::setVSync(bool enabled) {
@@ -96,7 +210,6 @@ namespace Stulu {
 		}
 
 		createSwapChain();
-		createImageViews();
 	}
 
 	void WindowsVulkanContext::createVulkanInstance() {
@@ -264,20 +377,23 @@ namespace Stulu {
 			CORE_ASSERT(false,"failed to create swap chain!");
 		}
 
+		std::vector<VkImage> images;
+
 		vkGetSwapchainImagesKHR(device.device, device.swapChain, &imageCount, nullptr);
-		device.swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(device.device, device.swapChain, &imageCount, device.swapChainImages.data());
+		images.resize(imageCount);
+		vkGetSwapchainImagesKHR(device.device, device.swapChain, &imageCount, images.data());
 
 		device.swapChainImageFormat = surfaceFormat.format;
 		device.swapChainExtent = extent;
-	}
-	void WindowsVulkanContext::createImageViews() {
-		ST_PROFILING_FUNCTION();
-		device.swapChainImageViews.resize(device.swapChainImages.size());
+
+		// create image views
+		device.swapChainImages.resize(imageCount);
 		for (int i = 0; i < device.swapChainImages.size(); i++) {
+			VkImageView imageView = {};
+
 			VkImageViewCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = device.swapChainImages[i];
+			createInfo.image = images[i];
 			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			createInfo.format = device.swapChainImageFormat;
 			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -289,14 +405,218 @@ namespace Stulu {
 			createInfo.subresourceRange.baseMipLevel = 0;
 			createInfo.subresourceRange.levelCount = 1;
 			createInfo.subresourceRange.layerCount = 1;
-			CORE_ASSERT(vkCreateImageView(device.device, &createInfo,nullptr,&device.swapChainImageViews[i]) == VK_SUCCESS, "failed to create Image views!");
+			CORE_ASSERT(vkCreateImageView(device.device, &createInfo, nullptr, &imageView) == VK_SUCCESS, "failed to create Image views!");
+
+			device.swapChainImages[i] = createRef<VulkanImage2D>(imageView, device.swapChainExtent.width, device.swapChainExtent.height);
 		}
+		
+	}
+	void WindowsVulkanContext::createCommandBuffer() {
+		ST_PROFILING_FUNCTION();
+		device.commandBuffers.resize(device.swapChainImages.size());
+		QueueFamilyIndices indices = findQueueFamilies(device.physicalDevice);
+
+		VkCommandPoolCreateInfo poolCreateInfo = {};
+		poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+		poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		if (vkCreateCommandPool(device.device, &poolCreateInfo, NULL, &device.commandPool) != VK_SUCCESS) {
+			CORE_ASSERT(false, "failed to create command pool!");
+		}
+
+		VkCommandBufferAllocateInfo bufferAllocateInfo = {};
+		bufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		bufferAllocateInfo.commandPool = device.commandPool;
+		bufferAllocateInfo.commandBufferCount = (uint32_t)device.commandBuffers.size();
+		bufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		if (vkAllocateCommandBuffers(device.device, &bufferAllocateInfo, &device.commandBuffers[0]) != VK_SUCCESS) {
+			CORE_ASSERT(false, "failed to create command buffers!");
+		}
+
+	}
+	void WindowsVulkanContext::createSemaphores() {
+		VkSemaphoreCreateInfo semaphoreInfo = {};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		if (vkCreateSemaphore(device.device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS) {
+			CORE_ASSERT(false, "failed to create semaphore!");
+		}
+		if(vkCreateSemaphore(device.device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS){
+			CORE_ASSERT(false, "failed to create semaphore!");
+		}
+
+		VkFenceCreateInfo fenceInfo = {};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+		if (vkCreateFence(device.device, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+			CORE_ASSERT(false, "failed to create fence!");
+		}
+	}
+	void WindowsVulkanContext::createRenderPass() {
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = device.swapChainImageFormat;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = 1;
+		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+
+		if (vkCreateRenderPass(device.device, &renderPassInfo, nullptr, &device.renderPass) != VK_SUCCESS) {
+			CORE_ASSERT(false, "failed to create render pass");
+		}
+	}
+	void WindowsVulkanContext::createFrameBuffers() {
+		device.swapChainFrameBuffers.resize(device.swapChainImages.size());
+
+		for (size_t i = 0; i < device.swapChainImages.size(); i++) {
+
+
+			FrameBufferSpecs specs;
+			specs.width = device.swapChainExtent.width;
+			specs.height = device.swapChainExtent.height;
+			specs.swapChainTarget = true;
+
+			device.swapChainFrameBuffers[i] = createScope<VulkanFramebuffer>(specs, device.swapChainImages[i]);
+			/*
+			ImageView attachments[] = {
+				device.swapChainImageViews[i]
+			};
+			 
+			VkFramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = device.renderPass;
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.width = device.swapChainExtent.width;
+			framebufferInfo.height = device.swapChainExtent.height;
+			framebufferInfo.layers = 1;
+
+			if (vkCreateFramebuffer(device.device, &framebufferInfo, nullptr, &device.swapChainFrameBuffers[i]) != VK_SUCCESS) {
+				CORE_ASSERT(false, "failed to create framebuffer!");
+			}
+			*/
+		}
+	}
+
+	struct PiplelineInfo {
+		VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL;
+		VkCullModeFlagBits cullMode = VK_CULL_MODE_BACK_BIT;
+		VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE;
+	};
+
+	void WindowsVulkanContext::createGraphicsPipeline() {
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputInfo.vertexBindingDescriptionCount = 0;
+		vertexInputInfo.vertexAttributeDescriptionCount = 0;
+
+		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+		VkPipelineViewportStateCreateInfo viewportState{};
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		viewportState.viewportCount = 1;
+		viewportState.scissorCount = 1;
+
+		VkPipelineRasterizationStateCreateInfo rasterizer{};
+		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		rasterizer.depthClampEnable = VK_FALSE;
+		rasterizer.rasterizerDiscardEnable = VK_FALSE;
+		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+		rasterizer.lineWidth = 1.0f;
+		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizer.depthBiasEnable = VK_FALSE;
+
+		VkPipelineMultisampleStateCreateInfo multisampling{};
+		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		multisampling.sampleShadingEnable = VK_FALSE;
+		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.blendEnable = VK_FALSE;
+
+		VkPipelineColorBlendStateCreateInfo colorBlending{};
+		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		colorBlending.logicOpEnable = VK_FALSE;
+		colorBlending.logicOp = VK_LOGIC_OP_COPY;
+		colorBlending.attachmentCount = 1;
+		colorBlending.pAttachments = &colorBlendAttachment;
+		colorBlending.blendConstants[0] = 0.0f;
+		colorBlending.blendConstants[1] = 0.0f;
+		colorBlending.blendConstants[2] = 0.0f;
+		colorBlending.blendConstants[3] = 0.0f;
+
+		std::vector<VkDynamicState> dynamicStates = {
+			VK_DYNAMIC_STATE_VIEWPORT,
+			VK_DYNAMIC_STATE_SCISSOR
+		};
+		VkPipelineDynamicStateCreateInfo dynamicState{};
+		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+		dynamicState.pDynamicStates = dynamicStates.data();
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 0;
+		pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+		if (vkCreatePipelineLayout(device.device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+			CORE_ASSERT(false, "failed to create graphics pipeline layout");
+		}
+	}
+
+	void WindowsVulkanContext::cleanupSwapChain() {
+		for (size_t i = 0; i < device.swapChainFrameBuffers.size(); i++) {
+			device.swapChainFrameBuffers[i].reset();
+		}
+		for (size_t i = 0; i < device.swapChainFrameBuffers.size(); i++) {
+			device.swapChainImages[i].reset();
+		}
+		vkDestroySwapchainKHR(device.device, device.swapChain, nullptr);
+
+	}
+
+	void WindowsVulkanContext::recreateSwapChain() {
+		int width = 0, height = 0;
+		glfwGetFramebufferSize(m_windowHandle, &width, &height);
+		if (width == 0 || height == 0) {
+			return;
+		}
+
+		vkDeviceWaitIdle(device.device);
+
+		cleanupSwapChain();
+
+		createSwapChain();
+		createFrameBuffers();
 	}
 
 	VkSurfaceFormatKHR WindowsVulkanContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availFormats) {
 		ST_PROFILING_FUNCTION();
 		for (const auto& availFormat : availFormats) {
-			if(availFormat.format == VK_FORMAT_R8G8B8A8_SRGB && availFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			if(availFormat.format == VK_FORMAT_R8G8B8A8_SRGB || availFormat.format == VK_FORMAT_B8G8R8A8_SRGB || availFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 				return availFormat;
 		}
 		return availFormats[0];
@@ -518,6 +838,7 @@ namespace Stulu {
 			deviceType = "CPU";
 			break;
 		default:
+			deviceType = "Unknown Device Type";
 			break;
 		}
 		CORE_INFO("Physical Device Data({3}):\nVendor: {0}\nDevice Name: {1}\nVersion: {2}",

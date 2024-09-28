@@ -1,7 +1,6 @@
 #include "Stulu/Default/Vertex.glsl"
 
 #type fragment
-#version 460 core
 
 #include "Stulu/PBR.glsl"
 #include "Stulu/Out.glsl"

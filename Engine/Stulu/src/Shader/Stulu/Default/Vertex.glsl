@@ -1,5 +1,4 @@
 #type vertex
-#version 460 core
 
 #include "Stulu/MeshLayout.glsl"
 #include "Stulu/Scene.glsl"

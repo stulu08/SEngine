@@ -12,14 +12,7 @@ namespace Stulu {
 	};
 	class STULU_API RenderAPI {
 	public:
-		enum class API {
-			none = 0,
-			OpenGL = 1, Vulkan = 2,
-			Direct3D11 = 3, Direct3D12 = 4,
-			Metal = 5, GLES = 6
-		};
 		virtual ~RenderAPI() = default;
-
 
 		virtual void init() = 0;
 		virtual void setDefault() = 0;
@@ -36,9 +29,5 @@ namespace Stulu {
 		virtual const glm::ivec3 getMaxComputeWorkGroupCount() const = 0;
 		virtual const glm::ivec3 getMaxComputeWorkGroupSizes() const = 0;
 		virtual const uint32_t getMaxComputeWorkGroupInvocationCount() const = 0;
-
-		inline static API getAPI() { return s_api; };
-	private:
-		static API s_api;
 	};
 }

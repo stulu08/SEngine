@@ -11,16 +11,9 @@
 #include "Stulu/Core/Input.h"
 #include "Stulu/Core/Utils.h"
 
-#ifdef USING_GLFW
-	#include "backends/imgui_impl_glfw.h"
-	#include <GLFW/glfw3.h>
-#endif
-#if IMGUI_OPENGL_3
-	#include "backends/imgui_impl_opengl3.h"
-#endif
-#if IMGUI_OPENGL_4
-	#include "backends/imgui_impl_opengl4.h"
-#endif
+#include "backends/imgui_impl_glfw.h"
+#include <GLFW/glfw3.h>
+#include "backends/imgui_impl_opengl4.h"
 
 
 namespace Stulu {
@@ -55,44 +48,22 @@ namespace Stulu {
 		Application& app = Application::get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.getWindow().getNativeWindow());
 
-#ifdef USING_GLFW
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
-	#if IMGUI_OPENGL_3
-		ImGui_ImplOpenGL3_Init("#version 460");
-	#endif
-	#if IMGUI_OPENGL_4
 		ImGui_ImplOpenGL4_Init("#version 460");
-	#endif
-#endif
 
 	}
 
 	void ImGuiLayer::onDetach() {
 		ST_PROFILING_FUNCTION();
-#ifdef USING_GLFW
-#if IMGUI_OPENGL_3
-		ImGui_ImplOpenGL3_Shutdown();
-#endif
-#if IMGUI_OPENGL_4
 		ImGui_ImplOpenGL4_Shutdown();
-#endif
 		ImGui_ImplGlfw_Shutdown();
-#endif
 		ImGui::DestroyContext();
 	}
 
 	void ImGuiLayer::Begin() {
 		ST_PROFILING_FUNCTION();
-#ifdef USING_GLFW
-#if IMGUI_OPENGL_3
-		ImGui_ImplOpenGL3_NewFrame();
-#endif
-#if IMGUI_OPENGL_4
 		ImGui_ImplOpenGL4_NewFrame();
-#endif
 		ImGui_ImplGlfw_NewFrame();
-#endif
-
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
@@ -104,21 +75,15 @@ namespace Stulu {
 		io.DisplaySize = ImVec2((float)app.getWindow().getWidth(), (float)app.getWindow().getHeight());
 		// Rendering
 		ImGui::Render();
-#ifdef USING_GLFW
-#if IMGUI_OPENGL_3
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#endif
-#if IMGUI_OPENGL_4
-			ImGui_ImplOpenGL4_RenderDrawData(ImGui::GetDrawData());
-#endif
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		ImGui_ImplOpenGL4_RenderDrawData(ImGui::GetDrawData());
+		
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-#endif
 	}
 	void ImGuiLayer::onImguiRender(Timestep timestep) {
 		
@@ -189,7 +154,7 @@ bool ImGui::ImageButton(const Stulu::Ref<Stulu::Texture>& texture, const glm::ve
 
 ImTextureID ImGui::StuluTextureToImGui(const Stulu::Ref<Stulu::Texture>& texture) {
 	ImTextureID id = nullptr;
-	if (Stulu::Renderer::getRendererAPI() == Stulu::RenderAPI::API::OpenGL || Stulu::Renderer::getRendererAPI() == Stulu::RenderAPI::API::GLES)
+	if (Stulu::Renderer::getRendererAPI() == Stulu::Renderer::API::OpenGL || Stulu::Renderer::getRendererAPI() == Stulu::Renderer::API::GLES)
 		id = reinterpret_cast<void*>((uint64_t)(Stulu::NativeRenderObjectCast<uint32_t>(texture->getNativeRendererObject())));
 
 	return id;

@@ -59,6 +59,7 @@ project "Stulu"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.mono}",
+		"%{IncludeDir.glslang}",
 		
 	}
 
@@ -70,7 +71,10 @@ project "Stulu"
 		"assimp",
 		"yaml-cpp",
 		"ImGuizmo",
-		
+		"glslang",
+		"SPIRV-Tools-opt",
+		"SPIRV-Tools-static",
+
 		"PhysX",
 		"PhysXCommon",
 		"PhysXFoundation",

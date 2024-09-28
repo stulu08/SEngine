@@ -1,7 +1,6 @@
 #SShader "2D/Quad"
 
 #type vertex
-#version 460 core
 layout(location = 0) in vec3 a_pos;
 layout(location = 1) in vec2 a_texCoord;
 layout(location = 2) in vec4 a_color;
@@ -28,7 +27,6 @@ void main() {
 	gl_Position = viewProjection * vec4(a_pos, 1.0);
 }
 #type fragment
-#version 460 core
 layout(location = 0) out vec4 a_color;
 
 struct VertData{

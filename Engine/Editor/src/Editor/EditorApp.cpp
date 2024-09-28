@@ -54,7 +54,9 @@ namespace Stulu {
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION_STR + " - " + apiInfos.name + " " + apiInfos.version + " - " + apiInfos.device + " - " + Project::Main->path);
 
 		ST_INFO("Loading all Project assets from: {0}", Project::Main->assetPath);
+		AssetsManager::setProgessCallback(Application::LoadingScreen);
 		AssetsManager::loadAllFiles(Project::Main->assetPath);
+		AssetsManager::setProgessCallback(nullptr);
 
 		editorLayer = new EditorLayer();
 		pushLayer(editorLayer);

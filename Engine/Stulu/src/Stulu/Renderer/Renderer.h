@@ -46,7 +46,13 @@ namespace Stulu{
 	};
 	class STULU_API Renderer {
 	public:
-		
+		enum class API {
+			none = 0,
+			OpenGL = 1, Vulkan = 2,
+			Direct3D11 = 3, Direct3D12 = 4,
+			Metal = 5, GLES = 6
+		};
+
 		static void init();
 		static void onWindowResize(WindowResizeEvent& e);
 
@@ -66,7 +72,7 @@ namespace Stulu{
 		//16kb
 		static uint32_t getBufferMaxSize() { return 16000u; };
 
-		inline static RenderAPI::API getRendererAPI() { return RenderAPI::getAPI(); }
+		inline static API getRendererAPI() { return s_data.api; }
 	private:
 		static struct Data {
 			Ref<UniformBuffer> cameraDataUniformBuffer = nullptr;
@@ -76,7 +82,10 @@ namespace Stulu{
 			Ref<UniformBuffer> postProcessingDataUniformBuffer = nullptr;
 			Ref<UniformBuffer> materialDataUniformBuffer = nullptr;
 			Scope<ShaderSystem> shaderSystem = nullptr;
+			API api;
 		}s_data;
+
+		friend class Application;
 	};
 
 }

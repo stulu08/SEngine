@@ -8,6 +8,7 @@ namespace Stulu {
 
 	class STULU_API ShaderEntry {
 	public:
+		ShaderEntry(const Ref<Shader>& shader, const std::string& path);
 		ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<ShaderProperity>>& props, const std::string& path);
 
 		bool HasProperity(std::string name) const;
@@ -36,6 +37,14 @@ namespace Stulu {
 		
 		void ProcessShader(std::string& source) const;
 
+		Ref<Shader> CreateShader(const std::string& name, const ShaderSource& source, const std::vector<Ref<ShaderProperity>>& properties = {}, const std::string& path = "");
+
+		inline Ref<Shader> CreateShader(const std::string& name, const std::string& vertex, const std::string& fragment) {
+			return CreateShader(name, ShaderSource{ vertex, fragment });
+		}
+		inline Ref<Shader> CreateShader(const std::string& name, const std::string& compute) {
+			return CreateShader(name, ShaderSource{ compute });
+		}
 		inline void AddInternalIncludeFile(const std::string& name, const std::string& content) { m_internalFiles[name] = content; }
 		inline void AddIncludePath(const std::string& path) { m_includeDirs.push_back(path); }
 
@@ -48,11 +57,21 @@ namespace Stulu {
 
 		void ReloadShaders();
 		void ReloadShader(const std::string& name);
+
+		inline void SetCacheFolder(const std::string& cache) {
+			m_cacheFolder = cache;
+		}
+
+		inline std::string BuildCacheFile(const std::string& name) const {
+			return m_cacheFolder + "/" + name + ".cached-shader";
+		}
 	private:
 		std::string GetShaderName(const std::string& source) const;
 		std::vector<Ref<ShaderProperity>> ProcessProperties(std::string& source) const;
 		ShaderSource ProcessRegions(std::string& source) const;
 
+		Ref<ShaderCompiler> m_compiler;
+		std::string m_cacheFolder;
 		std::map<std::string, Ref<ShaderEntry>> m_shaders;
 		std::vector<std::string> m_includeDirs;
 		std::unordered_map<std::string, std::string> m_internalFiles;

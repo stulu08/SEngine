@@ -1,7 +1,7 @@
 #ifndef _STULU_OUT_GLSL_
 #define _STULU_OUT_GLSL_
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 #ifdef ST_PBR
 void WriteDefaultOut(PBRResult result) {

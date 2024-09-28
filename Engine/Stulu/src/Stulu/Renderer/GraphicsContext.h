@@ -13,6 +13,7 @@ namespace Stulu {
 		virtual ~GraphicsContext() = default;
 
 		virtual void init(Window* window) = 0;
+		virtual void beginBuffer() = 0;
 		virtual void swapBuffers() = 0;
 		virtual void setVSync(bool enabled) = 0;
 

@@ -7,12 +7,10 @@ namespace Stulu {
 	class STULU_API OpenGLShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& name, const ShaderSource& sources);
+		OpenGLShader(const std::string& name, const ShaderCompileResult& sources);
 		virtual ~OpenGLShader();
 
-		virtual void reload(const ShaderSource& sources) override;
-		virtual void reload(const std::string& vertex, const std::string& fragment) override { reload(ShaderSource{ vertex, fragment }); }
-		virtual void reload(const std::string& compute) override { reload(ShaderSource{ compute }); } 
+		virtual void reload(const ShaderCompileResult& sources) override;
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
@@ -41,6 +39,7 @@ namespace Stulu {
 		std::string m_name;
 
 		void compile(const ShaderSource& sources);
+		void link(const ShaderCompileResult& sources);
 	};
 }
 

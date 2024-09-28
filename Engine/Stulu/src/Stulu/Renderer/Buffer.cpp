@@ -8,9 +8,9 @@ namespace Stulu{
 	Ref<VertexBuffer> VertexBuffer::create(uint32_t size, BufferDrawMode mode) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLVertexBuffer>(size, mode);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -24,9 +24,9 @@ namespace Stulu{
 	Ref<VertexBuffer> VertexBuffer::create(uint32_t size, float* vertices, BufferDrawMode mode) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLVertexBuffer>(size, vertices, mode);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -40,9 +40,9 @@ namespace Stulu{
 	Ref<VertexBuffer> VertexBuffer::create(uint32_t size, const void* data, BufferDrawMode mode) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLVertexBuffer>(size, data, mode);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -57,9 +57,9 @@ namespace Stulu{
 	Ref<IndexBuffer> IndexBuffer::create(uint32_t count, uint32_t* indices, BufferDrawMode mode) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLIndexBuffer>(count, indices, mode);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 				return nullptr;
 		default:
@@ -73,9 +73,9 @@ namespace Stulu{
 	Ref<UniformBuffer> UniformBuffer::create(uint32_t size, uint32_t binding) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLUniformBuffer>(size, binding);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -89,9 +89,9 @@ namespace Stulu{
 	Ref<ShaderStorageBuffer> ShaderStorageBuffer::create(uint32_t size, uint32_t binding, BufferDrawMode mode) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLShaderStorageBuffer>(size, binding, mode);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:

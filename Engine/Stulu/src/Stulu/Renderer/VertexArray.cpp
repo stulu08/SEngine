@@ -8,9 +8,9 @@ namespace Stulu {
 	Ref<VertexArray> VertexArray::create() {
 		switch (Renderer::getRendererAPI())
 		{
-			case RenderAPI::API::OpenGL:
+			case Renderer::API::OpenGL:
 				return std::make_shared<OpenGLVertexArray>();
-			case RenderAPI::API::none:
+			case Renderer::API::none:
 				CORE_ASSERT(false, "No renderAPI specified");
 				return nullptr;
 			default:

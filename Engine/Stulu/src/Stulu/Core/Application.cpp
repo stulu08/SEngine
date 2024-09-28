@@ -34,37 +34,20 @@ namespace Stulu {
 		Resources::AppDataDir = appInfo.AppPath;
 		Resources::AppAssetDir = appInfo.AppAssetPath;
 
+		Renderer::s_data.api = appInfo.api;
+		
 		m_window = Window::create(m_appInfo.WindowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
+		RenderCommand::init();
+
 		if (appInfo.LoadDefaultAssets) {
 			Renderer::init();
+			LoadingScreen(0.0f);
 		}
 
 		if (appInfo.HideWindowOnSart) {
 			m_window->hide();
-		}
-		else if(appInfo.LoadDefaultAssets){
-			//Load Texture for loading
-			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.WindowProps.width, m_appInfo.WindowProps.height));
-
-			const float zoom = 0.75f;
-			const float aspectRatio = (float)m_appInfo.WindowProps.width / (float)m_appInfo.WindowProps.height;
-			const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
-			const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
-			
-			Ref<Texture> texture = Resources::getLoadingTexture();
-
-			RenderCommand::setClearColor({ 0,0,0,1 });
-			RenderCommand::clear();
-
-			Renderer::uploadCameraBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
-			Renderer2D::begin();
-			Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .0f, .0f), glm::vec3(1.0f)), texture);
-			Renderer2D::flush();
-
-
-			m_window->onUpdate();
 		}
 
 		if (appInfo.LoadDefaultAssets) {
@@ -127,18 +110,30 @@ namespace Stulu {
 		m_runnig = true;
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Run Loop");
+			// update input
+			m_window->onUpdate();
+			Input::update();
+
+			// begin render command buffer
+			m_window->getContext()->beginBuffer();
+
+			// update timing
 			float time = Platform::getTime();
 			Timestep delta = time - m_lastFrameTime;
 			Time::applicationRuntime = time;
 			m_lastFrameTime = time;
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
+			
 			if (!m_minimized) {
 				ST_PROFILING_RENDERDATA_BEGIN();
+				// update every layer
 				for (Layer* layer : m_layerStack) {
 					layer->onUpdate(delta);
 				}
+
 				if (m_appInfo.EnableImgui) {
+					// update imgui
 					ST_PROFILING_SCOPE("ImGui - Update");
 					m_imguiLayer->Begin();
 					for (Layer* layer : m_layerStack) {
@@ -151,8 +146,9 @@ namespace Stulu {
 				}
 				ST_PROFILING_RENDERDATA_END();
 			}
-			Input::update();
-			m_window->onUpdate();
+
+			// update events, end render buffer and swap buffers
+			m_window->getContext()->swapBuffers();
 		}
 	}
 	void Application::exit(int32_t code) {
@@ -185,5 +181,36 @@ namespace Stulu {
 	}
 	std::string Application::getWorkingDirectory() const {
 		return CleanPath(Platform::getCurrentWorkingDirectory());
+	}
+	void Application::LoadingScreen(float progress) {
+		const auto& app = s_instance;
+
+		if (app->getApplicationInfo().HideWindowOnSart)
+			return;
+
+		app->getWindow().getContext()->beginBuffer();
+
+		//Load Texture for loading
+		Renderer::onWindowResize(WindowResizeEvent(app->getWidth(), app->getHeight()));
+
+		const float zoom = 0.75f;
+		const float aspectRatio = (float)app->getWidth() / (float)app->getHeight();
+		const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
+		const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
+
+		Ref<Texture> texture = Resources::getLoadingTexture();
+
+		RenderCommand::setClearColor({ 0,0,0,1 });
+		RenderCommand::clear();
+
+		Renderer::uploadCameraBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
+		Renderer2D::begin();
+		Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .1f, .0f), glm::vec3(.75f)), texture);
+		Renderer2D::drawSlider(glm::vec3(.0f, -.3f, .0f), glm::vec3(1.f, .1f, 1.0f), progress);
+		Renderer2D::flush();
+
+
+		app->getWindow().onUpdate();
+		app->getWindow().getContext()->swapBuffers();
 	}
 }

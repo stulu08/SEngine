@@ -4,9 +4,8 @@
 namespace Stulu{
 	class STULU_API RenderCommand {
 	public:
-		inline static void init() {
-			s_renderAPI->init();
-		}
+		static void init();
+
 		inline static void setDefault() {
 			s_renderAPI->setDefault();
 		}

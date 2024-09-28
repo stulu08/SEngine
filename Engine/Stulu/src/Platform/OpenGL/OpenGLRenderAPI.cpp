@@ -57,7 +57,6 @@ namespace Stulu {
 #endif
 		
 #endif
-
 	}
 
 	void OpenGLRenderAPI::setDefault() {

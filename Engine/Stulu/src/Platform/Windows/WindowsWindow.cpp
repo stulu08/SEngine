@@ -52,7 +52,7 @@ namespace Stulu {
 			glfwSetErrorCallback(glfwErrorCallback);
 			s_glfwInitilized = true;
 		}
-		if (Renderer::getRendererAPI() == RenderAPI::API::OpenGL) {
+		if (Renderer::getRendererAPI() == Renderer::API::OpenGL) {
 #ifndef ST_DIST
 			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
@@ -62,15 +62,14 @@ namespace Stulu {
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 		}
-		else if (Renderer::getRendererAPI() == RenderAPI::API::GLES) {
+		else if (Renderer::getRendererAPI() == Renderer::API::GLES) {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
 		}
-		else if (Renderer::getRendererAPI() == RenderAPI::API::Vulkan){
+		else if (Renderer::getRendererAPI() == Renderer::API::Vulkan){
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		}
 		m_graphicsContext = GraphicsContext::create();
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
@@ -152,8 +151,6 @@ namespace Stulu {
 	void WindowsWindow::onUpdate() {
 		ST_PROFILING_FUNCTION();
 		glfwPollEvents();
-		if(m_graphicsContext)
-			m_graphicsContext->swapBuffers();
 	}
 
 	glm::vec2 WindowsWindow::getWindowPos() const {

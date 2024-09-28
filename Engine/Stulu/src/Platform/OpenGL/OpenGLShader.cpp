@@ -10,21 +10,7 @@
 #include "OpenGLTexture.h"
 
 namespace Stulu {
-	static std::string stringFromShaderType(GLenum type) {
-		switch (type) {
-		case GL_VERTEX_SHADER:
-			return "Vertex";
-			break;
-		case GL_FRAGMENT_SHADER:
-			return "Fragment";
-			break;
-		case GL_COMPUTE_SHADER:
-			return "Compute";
-			break;
-		}
-		CORE_ERROR("Unknown Shadertype: {0}", type);
-		return "";
-	}
+	
 	static GLenum shaderTypeToGl(ShaderType type) {
 		switch (type) {
 		case ShaderType::Vertex:
@@ -40,10 +26,12 @@ namespace Stulu {
 		CORE_ERROR("Unknown Shadertype: {0}", type);
 		return GL_NONE;
 	}
-	OpenGLShader::OpenGLShader(const std::string& name, const ShaderSource& sources)
+
+	OpenGLShader::OpenGLShader(const std::string& name, const ShaderCompileResult& sources)
 		: m_name(name) {
 		ST_PROFILING_FUNCTION();
-		compile(sources);
+		link(sources);
+		//compile(sources);
 	}
 
 	OpenGLShader::~OpenGLShader() {
@@ -51,13 +39,14 @@ namespace Stulu {
 		glDeleteProgram(m_rendererID);
 	}
 
-	void OpenGLShader::reload(const ShaderSource& sources) {
+	void OpenGLShader::reload(const ShaderCompileResult& sources) {
 		ST_PROFILING_FUNCTION();
 
 		glDeleteProgram(m_rendererID);
 		m_rendererID = 0;
 
-		compile(sources);
+		link(sources);
+		//compile(sources);
 	}
 	void OpenGLShader::compile(const ShaderSource& sources){
 		ST_PROFILING_FUNCTION();
@@ -68,12 +57,9 @@ namespace Stulu {
 		shaderIds.resize(sources.Size(), 0);
 
 		for (uint32_t i = 0; i < sources.Size(); i++) {
-			const auto& kv = sources.Get(i);
+			const auto[type, src] = sources.Get(i);
 
-			GLenum type = shaderTypeToGl(kv.first);
-			const std::string& src = kv.second;
-
-			GLuint shader = glCreateShader(type);
+			GLuint shader = glCreateShader(shaderTypeToGl(type));
 			const GLchar* source = src.c_str();
 			glShaderSource(shader, 1, &source, 0);
 			glCompileShader(shader);
@@ -85,14 +71,15 @@ namespace Stulu {
 				std::vector<GLchar> infoLog(maxLength);
 				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
 				glDeleteShader(shader);
-				CORE_ERROR("GLSL {1} Shader compilation error:\n{0}", infoLog.data(), stringFromShaderType(type));
-				CORE_ASSERT(false, stringFromShaderType(type) + " Shader compilation of \"" + m_name + "\" failed");
+				CORE_ERROR("GLSL {1} Shader compilation error:\n{0}", infoLog.data(), std::to_string(type));
+				CORE_ASSERT(false, std::to_string(type) + " Shader compilation of \"" + m_name + "\" failed");
 				break;
 			}
 			glAttachShader(rendererID, shader);
 			shaderIds[i] = shader;
 		}
 		glLinkProgram(rendererID);
+		
 
 		GLint isLinked = 0;
 		glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
@@ -116,6 +103,57 @@ namespace Stulu {
 		}
 		m_rendererID = rendererID;
 
+	}
+
+	void OpenGLShader::link(const ShaderCompileResult& sources) {
+		ST_PROFILING_FUNCTION();
+
+		std::vector<GLenum> shaderIds;
+		shaderIds.resize(sources.Size(), 0);
+
+		for (uint32_t i = 0; i < sources.Size(); i++) {
+			const auto& [type, result] = sources.Get(i);
+			GLuint shader = glCreateShader(shaderTypeToGl(type));
+			
+			glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, &result.data[0], (GLsizei)(result.data.size() * sizeof(result.data[0])));
+			glSpecializeShaderARB(shader, "main", 0, nullptr, nullptr);
+
+			shaderIds[i] = shader;
+		}
+
+
+		GLuint rendererID = glCreateProgram();
+		for (auto id : shaderIds) {
+			glAttachShader(rendererID, id);
+		}
+		glLinkProgram(rendererID);
+
+
+		GLint isLinked = 1;
+		//glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
+		if (isLinked == GL_FALSE) {
+			GLint maxLength = 512;
+			glGetProgramiv(rendererID, GL_INFO_LOG_LENGTH, &maxLength);
+
+			maxLength = glm::max(maxLength, 512);
+			std::vector<GLchar> infoLog(maxLength);
+			
+			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
+			glDeleteProgram(rendererID);
+
+			for (auto id : shaderIds)
+				glDeleteShader(id);
+
+			CORE_ERROR("GLSL linking error:\n{0}", infoLog.data());
+			CORE_ASSERT(false, "Could not link shader program");
+			return;
+		}
+
+		for (auto id : shaderIds) {
+			glDetachShader(rendererID, id);
+			glDeleteShader(id);
+		}
+		m_rendererID = rendererID;
 	}
 
 	void OpenGLShader::bind() const {

@@ -4,12 +4,12 @@
 #include "Platform/OpenGL/OpenGLShader.h"
 
 namespace Stulu{
-	Ref<Shader> Shader::create(const std::string& name, const ShaderSource& sources) {
+	Ref<Shader> Shader::create(const std::string& name, const ShaderCompileResult& sources) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLShader>(name, sources);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
 		default:

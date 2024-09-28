@@ -11,32 +11,33 @@ namespace Stulu {
 
 	void Renderer::init() {
 		ST_PROFILING_FUNCTION();
-		RenderCommand::init();
+		if (getRendererAPI() == Renderer::API::OpenGL) {
+			s_data.shaderSystem = createScope<ShaderSystem>();
+			// .../ShaderCache/{API-ID}/...
+			std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
+			s_data.shaderSystem->SetCacheFolder(shaderCache);
+			s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
 
-		s_data.shaderSystem = createScope<ShaderSystem>();
-		s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
+			if (s_data.cameraDataUniformBuffer == nullptr)
+				s_data.cameraDataUniformBuffer = UniformBuffer::create(sizeof(CameraBufferData), (uint32_t)BufferBinding::Camera);
 
-#ifdef OPENGL
-		if (s_data.cameraDataUniformBuffer == nullptr)
-			s_data.cameraDataUniformBuffer = UniformBuffer::create(sizeof(CameraBufferData), (uint32_t)BufferBinding::Camera);
+			if (s_data.lightDataUniformBuffer == nullptr)
+				s_data.lightDataUniformBuffer = UniformBuffer::create(sizeof(LightBufferData), (uint32_t)BufferBinding::Light);
 
-		if (s_data.lightDataUniformBuffer == nullptr)
-			s_data.lightDataUniformBuffer = UniformBuffer::create(sizeof(LightBufferData), (uint32_t)BufferBinding::Light);
+			if (s_data.postProcessingDataUniformBuffer == nullptr)
+				s_data.postProcessingDataUniformBuffer = UniformBuffer::create(sizeof(PostProcessingBufferData), (uint32_t)BufferBinding::PostProcessing);
 
-		if (s_data.postProcessingDataUniformBuffer == nullptr)
-			s_data.postProcessingDataUniformBuffer = UniformBuffer::create(sizeof(PostProcessingBufferData), (uint32_t)BufferBinding::PostProcessing);
+			if (s_data.sceneDataUniformBuffer == nullptr)
+				s_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(SceneBufferData), (uint32_t)BufferBinding::Scene);
 
-		if (s_data.sceneDataUniformBuffer == nullptr)
-			s_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(SceneBufferData), (uint32_t)BufferBinding::Scene);
+			if (s_data.materialDataUniformBuffer == nullptr)
+				s_data.materialDataUniformBuffer = UniformBuffer::create(getBufferMaxSize(), (uint32_t)BufferBinding::Material);
 
-		if (s_data.materialDataUniformBuffer == nullptr)
-			s_data.materialDataUniformBuffer = UniformBuffer::create(getBufferMaxSize(), (uint32_t)BufferBinding::Material);
+			if (s_data.modelDataUniformBuffer == nullptr)
+				s_data.modelDataUniformBuffer = UniformBuffer::create(getBufferMaxSize(), (uint32_t)BufferBinding::Model);
 
-		if (s_data.modelDataUniformBuffer == nullptr)
-			s_data.modelDataUniformBuffer = UniformBuffer::create(getBufferMaxSize(), (uint32_t)BufferBinding::Model);
-
-		Renderer2D::init();
-#endif
+			Renderer2D::init();
+		}
 	}
 	void Renderer::onWindowResize(WindowResizeEvent& e) {
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());

@@ -4,18 +4,9 @@
 #include "Stulu/Core/Resources.h"
 
 namespace Stulu {
-	static ShaderType ShaderTypeFromString(const std::string& type) {
-		if (type == "VERTEX" || type == "VERT")
-			return ShaderType::Vertex;
-		else if (type == "FRAGMENT" || type == "FRAG")
-			return ShaderType::Fragment;
-		else if (type == "COMPUTE" || type == "COMP")
-			return ShaderType::Compute;
-		CORE_ERROR("Unknown Shadertype: {0}", type);
-		return ShaderType::None;
-	}
-
 	ShaderSystem::ShaderSystem() {
+		m_compiler = ShaderCompiler::Create();
+
 		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
 		AddInternalIncludeFile("Stulu/Internals.glsl",
 
@@ -65,10 +56,7 @@ namespace Stulu {
 		auto sources = ProcessRegions(source);
 		auto props = ProcessProperties(source);
 
-		auto shader = Shader::create(name, sources);
-
-		m_shaders.insert({ name, createRef<ShaderEntry>(shader, props, path) });
-		return shader;
+		return CreateShader(name, sources, props);
 	}
 	
 	void ShaderSystem::LoadAllShaders(const std::string& path) {
@@ -93,6 +81,10 @@ namespace Stulu {
 		}
 		auto& entry = GetEntry(name);
 
+		// not loaded by path
+		if (entry->m_path.empty())
+			return;
+
 		if (!FileExists(entry->m_path)) {
 			CORE_ERROR("File not found: \"{0}\"", entry->m_path);
 			return;
@@ -111,14 +103,14 @@ namespace Stulu {
 		if (newName.empty())
 			return; // no #SShader 
 
-
-
 		ProcessShader(source);
 		auto sources = ProcessRegions(source);
 		auto props = ProcessProperties(source);
 
+		auto compileResult = m_compiler->CompileToCache(sources, BuildCacheFile(name));
+
 		m_shaders[name]->m_props = props;
-		m_shaders[name]->m_shader->reload(sources);
+		m_shaders[name]->m_shader->reload(compileResult);
 	}
 	std::string ShaderSystem::GetShaderName(const std::string& source) const{
 		const std::string shaderToken = "#SShader ";
@@ -143,6 +135,7 @@ namespace Stulu {
 		}
 	}
 	void ShaderSystem::ProcessShader(std::string& source) const{
+		// includes
 		const char* token = "#include ";
 		for (size_t pos = source.find(token); pos != source.npos; pos = source.find(token, pos + 1)) {
 			if (source[pos - 1] != '\n' && source[pos - 1] != '\r')
@@ -184,6 +177,15 @@ namespace Stulu {
 
 			source.replace(pos, end - pos + 1, content);
 		}
+	}
+
+	Ref<Shader> ShaderSystem::CreateShader(const std::string& name, const ShaderSource& sources, const std::vector<Ref<ShaderProperity>>& properties, const std::string& path) {
+		auto compileResult = m_compiler->CompileToCache(sources, BuildCacheFile(name));
+
+		auto shader = Shader::create(name, compileResult);
+		
+		m_shaders.insert({ name, createRef<ShaderEntry>(shader, properties, path.empty() ? name : path)});
+		return m_shaders[name]->GetShader();
 	}
 
 	std::vector<Ref<ShaderProperity>> ShaderSystem::ProcessProperties(std::string& source) const {
@@ -250,7 +252,6 @@ namespace Stulu {
 			CORE_ASSERT(eol != std::string::npos, "Syntax error");
 			size_t begin = pos + typeTokenLength + 1;
 			std::string type = source.substr(begin, eol - begin);
-			std::transform(type.begin(), type.end(), type.begin(), [](char c) -> char { return std::toupper(c); });
 
 			size_t nextLinePos = source.find_first_not_of("\r\n", eol);
 			CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
@@ -330,6 +331,10 @@ namespace Stulu {
 					m_hdr = true;
 			}
 		}
+	}
+
+	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::string& path)
+		: m_shader(shader), m_props({}), m_path(path) {
 	}
 
 	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<ShaderProperity>>& props, const std::string& path)

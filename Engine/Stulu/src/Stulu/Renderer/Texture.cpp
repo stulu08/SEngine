@@ -11,9 +11,9 @@ namespace Stulu {
 	{
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLTexture2D>(path,settings);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -28,9 +28,9 @@ namespace Stulu {
 	{
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return std::make_shared<OpenGLTexture2D>(width, height, settings);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -59,9 +59,9 @@ namespace Stulu {
 	{
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return createRef<OpenGLSkyBox>(resolution, data);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -76,9 +76,9 @@ namespace Stulu {
 	{
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return createRef<OpenGLSkyBox>(faces, resolution);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -103,9 +103,9 @@ namespace Stulu {
 	{
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return createRef<OpenGLSkyBox>(hdrTexturePath, resolution);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -145,9 +145,9 @@ namespace Stulu {
 	Ref<CubeMap> CubeMap::create(uint32_t resolution, TextureSettings settings) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return createRef<OpenGLCubeMap>(resolution, settings);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
@@ -168,10 +168,10 @@ namespace Stulu {
 			Ref<Texture> texture = nullptr;
 			switch (Renderer::getRendererAPI())
 			{
-			case RenderAPI::API::OpenGL:
+			case Renderer::API::OpenGL:
 				texture = OpenGLSkyBox::genrateBRDFLUT(resolution);
 				break;
-			case RenderAPI::API::none:
+			case Renderer::API::none:
 				CORE_ASSERT(false, "No renderAPI specified");
 			default:
 				CORE_ASSERT(false, "RenderAPI not suported");
@@ -186,9 +186,9 @@ namespace Stulu {
 	Ref<ReflectionMap> ReflectionMap::create(uint32_t resolution, TextureSettings settings) {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return createRef<OpenGLReflectionMap>(resolution, settings);
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified");
 			return nullptr;
 		default:
