@@ -62,16 +62,9 @@ namespace Stulu {
 	}
 
 	void RuntimeLayer::onAttach() {
-		YAML::Node node = YAML::LoadFile("Stulu/app");
-		if (node) {
-			UUID sceneID = node["Start Scene"].as<uint64_t>();
-			OpenScene(AssetsManager::get(sceneID).path);
-		}
-		else {
-			for (auto asset : AssetsManager::getAllByType(AssetType::Scene)) {
-				OpenScene(AssetsManager::get(asset).path);
-				return;
-			}
+		for (auto asset : AssetsManager::getAllByType(AssetType::Scene)) {
+			OpenScene(AssetsManager::get(asset).path);
+			return;
 		}
 		Input::setEnabled(true);
 		StuluBindings::Input::s_enabled = true;
@@ -120,7 +113,7 @@ namespace Stulu {
 				m_activeScene->onRuntimeStop();
 
 			m_activeScene = nScene;
-			onResize(WindowResizeEvent(Application::getWidth(), Application::getHeight()));
+			onResize(WindowResizeEvent(Application::get().getWidth(), Application::get().getHeight()));
 			Scene::setActiveScene(m_activeScene.get());
 			onRuntimeStart();
 			ST_TRACE("Opened Scene {0}", path);
@@ -134,7 +127,7 @@ namespace Stulu {
 		if (m_activeScene)
 			m_activeScene->onRuntimeStop();
 		m_activeScene = createRef<Scene>();
-		onResize(WindowResizeEvent(Application::getWidth(), Application::getHeight()));
+		onResize(WindowResizeEvent(Application::get().getWidth(), Application::get().getHeight()));
 		Scene::setActiveScene(m_activeScene.get());
 		onRuntimeStart();
 		ST_TRACE("New Scene loaded");

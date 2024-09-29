@@ -5,6 +5,8 @@
 #include <Stulu/Renderer/Texture.h>
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Core/UUID.h"
+#include "YAMLHelper.h"
+
 namespace Stulu {
 	class AssetsManager;
 }

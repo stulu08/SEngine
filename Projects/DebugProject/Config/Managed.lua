@@ -5,7 +5,7 @@ project "Managed Assembly"
 	location "%{ObjectDir}"
 	framework "4.8"
 	
-	targetdir ("%{TargetDir}/" .. outputdir .. "")
+	targetdir ("%{TargetDir}/" .. outputdir .. "/Managed")
 	objdir ("%{ObjectDir}/" .. outputdir .. "/Managed")
 	
 	links {

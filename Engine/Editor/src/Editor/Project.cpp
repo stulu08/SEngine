@@ -26,15 +26,15 @@ namespace Stulu {
 		std::filesystem::current_path(cPath);
 	}
 
-	void Project::compileAssembly() {
+	void Project::compileAssembly(bool fullbuild) {
 		generateProjectFiles();
-		const std::string target = getBinariesDir() + "/ManagedAssembly.dll";
+		const std::string target = getBinariesDir() + "/Managed/ManagedAssembly.dll";
 
 		if (std::filesystem::exists(target))
 			std::filesystem::remove(target);
 
 		CORE_INFO("Compiling {0}", target);
-		if (system(createBuildFile().c_str())) {
+		if (system(createBuildFile(fullbuild).c_str())) {
 			CORE_ERROR("Compiling failed: {0}", target);
 		}
 		if (std::filesystem::exists(target)) {
@@ -46,7 +46,7 @@ namespace Stulu {
 			}
 		}
 	}
-	std::string Project::createBuildFile() {
+	std::string Project::createBuildFile(bool fullbuild) {
 		ST_PROFILING_FUNCTION();
 		if (!std::filesystem::exists(path + "/Compiler"))
 			std::filesystem::create_directories(path + "/Compiler");
@@ -76,7 +76,8 @@ namespace Stulu {
 			fileStream << "Dist";
 			break;
 		}
-		fileStream << " /target:\"Managed Assembly\"";
+		if(!fullbuild)
+			fileStream << " /target:\"Managed Assembly\"";
 		fileStream << " -verbosity:minimal -maxcpucount:" << std::max(std::thread::hardware_concurrency() / 2u, 1u);
 		fileStream << " -nologo";
 

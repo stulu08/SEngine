@@ -10,7 +10,7 @@
 #include "Stulu/Core/Window.h"
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Layer.h"
-#include "Stulu/Core/LayerStack.h"
+#include "Stulu/Core/Stack.h"
 #include "Stulu/Core/Resources.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Core/Utils.h"
@@ -55,7 +55,6 @@
 
 ////////////////////Scene////////////////////
 #include "Stulu/Scene/AssetsManager.h"
-#include "Stulu/Scene/Behavior.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Scene/SceneCamera.h"
@@ -68,3 +67,7 @@
 
 //Scripting
 #include "Stulu/Scripting/EventCaller.h"
+#include "Stulu/Scripting/Native/SceneLayer.h"
+
+// Modules
+#include "Stulu/Modules/ParticleSystem/ParticleSystemModule.h"

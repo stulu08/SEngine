@@ -1,7 +1,8 @@
 #pragma once
+#include "Core.h"
 #include <Stulu.h>
 
-class FreeCamera : public Stulu::Component {
+class APP_API FreeCamera : public Stulu::Component {
 public:
 private:
 };

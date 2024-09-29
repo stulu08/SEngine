@@ -34,7 +34,8 @@ namespace Stulu {
 		info.DataPath = "Data";
 		info.AppPath = path;
 		info.AppAssetPath = Project::Main->assetPath;
-		info.AppAssembly = Project::Main->getBinariesDir() + "/ManagedAssembly.dll";
+		info.AppManagedAssembly = Project::Main->getBinariesDir() + "/Managed/ManagedAssembly.dll";
+		info.AppNativeAssembly = Project::Main->getBinariesDir() + "/Native/NativeAssembly.dll";
 		info.HideWindowOnSart = false;
 		info.EnableImgui = true;
 		info.LoadDefaultAssets = true;

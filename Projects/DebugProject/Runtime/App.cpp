@@ -4,7 +4,7 @@
 #include "Stulu/Scene/YAML.h"
 
 namespace Stulu {
-	Application* Stulu::CreateApplication() {
+	Application* Stulu::CreateApplication(int argc, char** argv) {
 		Log::AddFileSink("Logs/" + Log::generateTimeString() + ".log", Log::Level::warn);
 		
 		ApplicationInfo info;
@@ -13,9 +13,9 @@ namespace Stulu {
 		info.Version = Version(1, 0, 0);
 		info.WindowProps.width = 1280;
 		info.WindowProps.height = 720;
-		info.DataPath = "/Data/";
-		info.AppPath = info.DataPath + info.Name;
-		info.AppAssembly = info.DataPath + "Stulu/Managed/ManagedAssembly.dll";
+		info.DataPath = "Data";
+		info.AppPath = info.DataPath + "/Assets";
+		info.AppManagedAssembly = info.DataPath + "/Stulu/Managed/ManagedAssembly.dll";
 		info.HideWindowOnSart = false;
 		info.EnableImgui = false;
 		info.LoadDefaultAssets = true;

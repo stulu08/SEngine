@@ -55,10 +55,6 @@ namespace Stulu {
 			drawComponent<PostProcessingComponent>(gameObject, "Post Processing");
 			drawComponent<ParticleSystemComponent>(gameObject, "Particle System");
 
-			if (gameObject.hasComponent<NativeScriptComponent>())
-				drawComponent<NativeScriptComponent>(gameObject, gameObject.getComponent<NativeScriptComponent>().name);
-
-
 			if (gameObject.hasComponent<ScriptingComponent>()) {
 				drawScriptingComponent(gameObject);
 			}

@@ -3,51 +3,21 @@
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/Components/Components.h"
-#include "Stulu/Scene/Behavior.h"
 
 namespace Stulu {
+
+	std::unordered_map<size_t, std::function<SceneLayer* (Scene*)>> EventCaller::s_registeredSceneLayers;
+
+
 	EventCaller::EventCaller(Scene* scene)
 		: m_scene(scene) {
+
+		for (auto& [id, func] : s_registeredSceneLayers) {
+			m_layer.push(func(scene));
+		}
+
 		m_manager = Application::get().getAssemblyManager();
 	}
-#define IMPL_EVENT(name) \
-	void EventCaller::name(const GameObject& object) { \
-		if (object) { \
-			if (object.hasComponent<NativeScriptComponent>()) { \
-				NativeScriptComponent& script = object.getComponent<NativeScriptComponent>(); \
-				if (!script.instance) { \
-					ConstructNative(object); \
-				} \
-				if (script.instance) { \
-					script.instance->name(); \
-				} \
-			} \
-			if (object.hasComponent<ScriptingComponent>()) { \
-				CallManagedEvent(m_manager->getEvents().name, object); \
-			} \
-			return; \
-		} \
-		m_scene->m_registry.view<NativeScriptComponent>().each([this](auto goID, NativeScriptComponent& script) { \
-			if (!script.instance) { \
-				ConstructNative({ goID , m_scene}); \
-			} \
-			if (script.instance) { \
-				script.instance->onAwake(); \
-			} \
-		}); \
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) { \
-			const GameObject gameObject = { id, m_scene }; \
-			CallManagedEvent(m_manager->getEvents().name, gameObject); \
-		} \
-	}
-	IMPL_EVENT(onAwake);
-	IMPL_EVENT(onStart);
-	IMPL_EVENT(onUpdate);
-	IMPL_EVENT(onRender);
-	IMPL_EVENT(onRender2D);
-	IMPL_EVENT(onDrawGizmos);
-	IMPL_EVENT(onDestroy);
-	IMPL_EVENT(onSceneExit);
 
 	void EventCaller::ConstructManaged(const GameObject& object) {
 		if (object) {
@@ -104,32 +74,82 @@ namespace Stulu {
 			CallManagedEvent(method, gameObject);
 		}
 	}
-	void EventCaller::ConstructNative(const GameObject& object) {
-		if (object) {
-			NativeScriptComponent& script = object.getComponent<NativeScriptComponent>();
-			script.instance = script.Instantiate();
-			script.instance->gameObject = object;
-			script.instance->onAwake();
-			return;
-		}
-		m_scene->m_registry.view<NativeScriptComponent>().each([=](auto gameObject, NativeScriptComponent& script) {
-			script.instance = script.Instantiate();
-			script.instance->gameObject = GameObject{ gameObject, m_scene };
-			script.instance->onAwake();
-			});
+
+#define DEFAULT_HANDLE_MANAGED(name) \
+	if (object) { \
+		if (object.hasComponent<ScriptingComponent>()) { \
+			CallManagedEvent(m_manager->getEvents().name, object); \
+		} \
+		return; \
+	} \
+	for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) { \
+		const GameObject gameObject = { id, m_scene }; \
+		CallManagedEvent(m_manager->getEvents().name, gameObject); \
 	}
-	void EventCaller::DestructNative(const GameObject& object) {
-		if (object) {
-			NativeScriptComponent& script = object.getComponent<NativeScriptComponent>();
-			if (script.instance) {
-				script.Destroy(&script);
-			}
-			return;
+#define DEFAULT_HANDLE_LAYER(name, ...) \
+	for (auto layer : m_layer) { \
+		layer->name(__VA_ARGS__); \
+	}
+
+	void EventCaller::onAwake(const GameObject& object) {
+		DEFAULT_HANDLE_MANAGED(onAwake);
+	}
+	void EventCaller::onDestroy(const GameObject& object) {
+		DEFAULT_HANDLE_MANAGED(onDestroy);
+	}
+
+	void EventCaller::onStart(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Start);
 		}
-		m_scene->m_registry.view<NativeScriptComponent>().each([=](auto gameObject, NativeScriptComponent& script) {
-			if (script.instance) {
-				script.Destroy(&script);
-			}
-		});
+
+		DEFAULT_HANDLE_MANAGED(onStart);
+	}
+	void EventCaller::onUpdate(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Update);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onUpdate);
+	}
+	void EventCaller::onRender(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Render);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onRender);
+	}
+	void EventCaller::onRender2D(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Render2D);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onRender2D);
+	}
+	void EventCaller::onDrawGizmos(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(DrawGizmos);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onDrawGizmos);
+	}
+	void EventCaller::onSceneExit(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(SceneExit);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onSceneExit);
+	}
+	void EventCaller::GameObjectCreate(const GameObject& object) {
+		DEFAULT_HANDLE_LAYER(GameObjectCreate, object);
+	}
+	void EventCaller::GameObjectDestory(const GameObject& object) {
+		DEFAULT_HANDLE_LAYER(GameObjectDestory, object);
+	}
+	void EventCaller::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {
+		DEFAULT_HANDLE_LAYER(SerializerGameObject, out, gameObject);
+	}
+	void EventCaller::DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {
+		DEFAULT_HANDLE_LAYER(DeserializerGameObject, gameObject, deserialized, path);
 	}
 }

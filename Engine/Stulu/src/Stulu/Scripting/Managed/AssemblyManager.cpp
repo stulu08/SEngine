@@ -59,10 +59,6 @@ namespace Stulu {
 		RegisterProperty<Texture2DProperty>("Stulu.Texture2D");
 		RegisterProperty<GameObjectProperty>("Stulu.GameObject");
 
-		RegisterComponent<TransformComponent>("Stulu.TransformComponent");
-		RegisterComponent<RigidbodyComponent>("Stulu.RigidbodyComponent");
-		RegisterComponent<SpriteRendererComponent>("Stulu.SpriteRendererComponent");
-
 		m_gameObjectAttachedClass = m_scriptCoreAssembly->CreateClass("Stulu", "GameObjectAttached");
 		m_componentClass = m_scriptCoreAssembly->CreateClass("Stulu", "Component");
 

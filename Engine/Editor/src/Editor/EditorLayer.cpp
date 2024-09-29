@@ -7,7 +7,6 @@
 
 
 namespace Stulu {
-	void copyAllFilesFromDir(const std::string& from, const std::string& to);
 
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1) {
@@ -88,6 +87,18 @@ namespace Stulu {
 				if (ImGui::TreeNodeEx("Shadows")) {
 					Ref<Texture> tex = m_activeScene->getRenderer()->m_shadowMap->getDepthAttachment();
 					ImGui::Image(tex, glm::vec2(256.0f), {0,1}, {1, 0});
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNodeEx("Build")) {
+					if (ImGui::Button("Build App")) {
+						getEditorProject().compileAssembly(true);
+						
+						const auto targetPath = getEditorProject().path + "/Build/Data/Assets";
+						if (std::filesystem::exists(targetPath))
+							std::filesystem::remove_all(targetPath);
+						std::filesystem::create_directories(targetPath);
+						std::filesystem::copy(getEditorProject().assetPath, targetPath, std::filesystem::copy_options::create_hard_links | std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
+					}
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Display Only:")) {
@@ -321,7 +332,6 @@ namespace Stulu {
 			drawLicenseWindow();
 		}
 		Application::get().getImGuiLayer()->blockEvents(!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing());
-		StuluBindings::Input::s_enabled = m_gameViewport.focused;
 	}
 	void EditorLayer::drawMenuBar() {
 		ST_PROFILING_FUNCTION();
@@ -339,6 +349,14 @@ namespace Stulu {
 				}
 				if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S")) {
 					SaveScene();
+				}
+				if (ImGui::MenuItem("Switch Play Mode", "Ctrl+P")) {
+					if (s_runtime) {
+						onRuntimeStop();
+					}
+					else {
+						onRuntimeStart();
+					}
 				}
 				if (ImGui::MenuItem("Exit", "Alt+F4")) {
 					Application::get().exit(0);
@@ -473,8 +491,21 @@ namespace Stulu {
 #pragma region Scene
 	void EditorLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_FUNCTION();
+		StuluBindings::Input::s_enabled = m_gameViewport.focused;
+
+		if (m_gameViewport.focused) {
+			Input::s_enabled = true;
+			if (Input::getKeyDown(Keyboard::Escape)) {
+				Input::setCursorMode(Input::CursorMode::Normal);
+			}
+		}
+		if (m_sceneViewport.focused) {
+			Input::setCursorMode(Input::CursorMode::Normal);
+		}
+		
+
 		if (!Gizmo::IsUsing()) {
-			Input::s_enabled = m_sceneViewport.hovered || m_sceneViewport.focused;
+			Input::s_enabled = m_sceneViewport.focused;
 			m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
 			m_activeScene->updateTransform(m_sceneCamera.getTransform());
@@ -486,6 +517,7 @@ namespace Stulu {
 			if (m_gameViewport.drawn) {
 				m_runtimeScene->getRenderer()->GenSceneTexture(m_sceneFrameBuffer);
 			}
+
 		}
 		else if (m_gameViewport.drawn) {
 			GameObject mainCamObj = m_activeScene->getMainCamera();
@@ -505,9 +537,6 @@ namespace Stulu {
 						m_activeScene->getRenderer()->ApplyPostProcessing(m_sceneFrameBuffer, cam.getFrameBuffer()->getColorAttachment());
 				}
 			}
-		}
-		else {
-			m_editorScene->clearAllParticles();
 		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera, m_sceneViewport.drawn);
@@ -862,6 +891,16 @@ namespace Stulu {
 
 			case Keyboard::Q:
 				m_gizmoEditType = GizmoTransformEditMode::None;
+				break;
+			case Keyboard::P:
+				if (control) {
+					if (s_runtime) {
+						onRuntimeStop();
+					}
+					else {
+						onRuntimeStart();
+					}
+				}
 				break;
 			case Keyboard::G:
 				m_gizmoEditType = GizmoTransformEditMode::Translate;

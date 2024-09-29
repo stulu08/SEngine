@@ -6,12 +6,16 @@ project "Runtime"
 	location "%{ObjectDir}"
 	targetname ("Runtime");
 	
-	targetdir ("%{TargetDir}/" .. outputdir .. "")
-	objdir ("%{ObjectDir}/Native/" .. outputdir .. "")
+	targetdir ("%{TargetDir}/" .. outputdir .. "/Runtime")
+	objdir ("%{ObjectDir}/" .. outputdir .. "/Runtime")
+
+	debugdir ("" .. RuntimeBuildDir .. "")
 
 	defines
 	{
 		"ST_RUNTIME",
+		"ST_DYNAMIC_LINK",
+		"APP_DYNAMIC_LINK",
 		"_CRT_SECURE_NO_WARNINGS"
 	}
 
@@ -27,31 +31,56 @@ project "Runtime"
 		"%{RuntimeDir}/**.comp"
 	}
 
-	includedirs
-	{
+	includedirs {
 		"%{RuntimeDir}",
 		"%{RuntimeDir}/Include",
 		"%{AssetDir}",
 		"%{AssetDir}/Include",
+
 		"%{Dependencies}",
 		"%{IncludeDir.Stulu}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.mono}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Discord}",
 	}
+	
 	links {
 		"Native Assembly",
-		
-		"%{Library.Stulu}"
-		
+		"%{Library.Stulu}",
+
+		"ImGui",
+		"yaml-cpp",
+		"Discord C++ Game SDK",
 	}
 	
 	libdirs {
 		"%{LibraryDir.StuluNative}"
 	}
+
+	prebuildcommands {
+		"{RMDIR} \"" .. RuntimeBuildDir .. "/\"",
+	}
+
+	postbuildcommands {
+		"{MKDIR} \"" .. RuntimeBuildDir .. "\"",
+		-- copy discord game sdk dll
+		"{COPYFILE} \"%{LibraryDir.Discord}/%{Library.Discord}\" \"".. RuntimeBuildDir .. "/%{Library.Discord}\"",
+		-- copy Stulu.dll
+		"{COPYFILE} \"%{LibraryDir.StuluNative}/%{Library.StuluDynamic}\" \"" .. RuntimeBuildDir .. "/%{Library.StuluDynamic}\"",
+		-- copy engine files
+		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles\" \"" .. RuntimeBuildDir .. "\"",
+		-- copy Managed Assembly
+		"{COPYDIR} \"%{cfg.targetdir}/../Managed\" \"".. RuntimeBuildDir .. "/Data/Stulu/Managed\"",
+		-- copy Native Assembly
+		"{COPYDIR} \"%{cfg.targetdir}/../Native\" \"".. RuntimeBuildDir .. "\"",
+		-- copy Runtime Binaries
+		"{COPYDIR} \"%{cfg.targetdir}/\" \"".. RuntimeBuildDir .. "\"",
+	}
+
+
 	filter "system:windows"
 		systemversion "latest"
 

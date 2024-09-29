@@ -3,16 +3,20 @@
 #include "Stulu/Math/Math.h"
 
 namespace Stulu {
-	class STULU_API UUID {
+	class UUID {
 	public:
-		UUID();
-		UUID(uint64_t uuid);
-		operator uint64_t() const { return m_uuid; }
+		STULU_API UUID();
+		inline UUID(uint64_t uuid)
+			: m_uuid(uuid) {
+		}
+		inline operator uint64_t() const { return m_uuid; }
 
 		static UUID null;
 	private:
 		uint64_t m_uuid;
 	};
+
+	inline UUID UUID::null = UUID(0);
 }
 
 namespace std {

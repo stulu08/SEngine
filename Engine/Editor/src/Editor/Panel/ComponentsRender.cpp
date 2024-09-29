@@ -186,11 +186,6 @@ namespace Stulu {
 		drawFloatControl("Fade", component.fade, .0f, 1.0f, 0.00025f);
 	}
 	template<>
-	void ComponentsRender::drawComponent<NativeScriptComponent>(GameObject gameObject, NativeScriptComponent& component) {
-		if(component.instance)
-			component.instance->uiFunc();
-	}
-	template<>
 	void ComponentsRender::drawComponent<ParticleSystemComponent>(GameObject gameObject, ParticleSystemComponent& component) {
 		ParticleSystemData& data = component.getData();
 		drawEnumComboControl("Emit Type", data.emitStart);

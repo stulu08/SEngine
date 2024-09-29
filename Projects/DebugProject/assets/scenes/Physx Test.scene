@@ -11,37 +11,6 @@ Settings:
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
-  - GameObject: 6633816691701224313
-    GameObjectBaseComponent:
-      tag: default
-      name: Cube_0_0_4
-    TransformComponent:
-      position: [0, 0, 4]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-      parent: 1800405635975325011
-    MeshRendererComponent:
-      material: 2121327959942640585
-      cullmode: 0
-    MeshFilterComponent:
-      mesh: 401
-    BoxColliderComponent:
-      dynamicFriction: 0.100000001
-      staticFriction: 0.100000001
-      restitution: 0
-      size: [0.5, 0.5, 0.5]
-      offset: [0, 0, 0]
-    RigidbodyComponent:
-      useGravity: true
-      rotationX: true
-      rotationY: true
-      moveX: true
-      moveY: true
-      moveZ: true
-      kinematic: false
-      retainAccelaration: false
-      mass: 1
-      massCenterPos: [0, 0, 0]
   - GameObject: 1800405635975325011
     GameObjectBaseComponent:
       tag: default
@@ -31100,6 +31069,9 @@ GameObjects:
             - Name: nextTimeToFire
               Type: 4
               Value: 0
+            - Name: <gameObject>k__BackingField
+              Type: 9
+              Value: 0
     CameraComponent:
       Camera Settings:
         clearColor: [0, 0, 0, 1]
@@ -31138,6 +31110,37 @@ GameObjects:
       name: Cube_0_0_5
     TransformComponent:
       position: [0, 0, 5]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 1800405635975325011
+    MeshRendererComponent:
+      material: 2121327959942640585
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 401
+    BoxColliderComponent:
+      dynamicFriction: 0.100000001
+      staticFriction: 0.100000001
+      restitution: 0
+      size: [0.5, 0.5, 0.5]
+      offset: [0, 0, 0]
+    RigidbodyComponent:
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      moveX: true
+      moveY: true
+      moveZ: true
+      kinematic: false
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]
+  - GameObject: 6633816691701224313
+    GameObjectBaseComponent:
+      tag: default
+      name: Cube_0_0_4
+    TransformComponent:
+      position: [0, 0, 4]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
       parent: 1800405635975325011

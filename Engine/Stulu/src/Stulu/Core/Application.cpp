@@ -34,6 +34,8 @@ namespace Stulu {
 		Resources::AppDataDir = appInfo.AppPath;
 		Resources::AppAssetDir = appInfo.AppAssetPath;
 
+		Module::LoadBaseModules();
+
 		m_window = Window::create(m_appInfo.WindowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
@@ -72,12 +74,18 @@ namespace Stulu {
 			Resources::load();
 		}
 
-		if(!appInfo.AppAssembly.empty())
-			m_assembly = createRef<AssemblyManager>(appInfo.AppAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
+		if(!appInfo.AppManagedAssembly.empty())
+			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
+
+		Component::RegisterBaseComponents();
 
 		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
+		}
+
+		for (auto& module : m_moduleStack) {
+			m_layerStack.pushLayer(module->GetLayer());
 		}
 
 		if (appInfo.LoadDefaultAssets) {
@@ -89,6 +97,10 @@ namespace Stulu {
 		ST_PROFILING_FUNCTION();
 		Renderer2D::shutdown();
 		m_window.reset();
+
+		m_layerStack.deleteAll();
+		m_layerStack.clear();
+		m_moduleStack.clear();
 	}
 	void Application::pushLayer(Layer* layer) {
 		m_layerStack.pushLayer(layer);
@@ -102,7 +114,9 @@ namespace Stulu {
 	void Application::popOverlay(Layer* layer) {
 		m_layerStack.popOverlay(layer);
 	}
-
+	Application& Application::get() {
+		return *s_instance;
+	}
 	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
 		return m_assembly->getScriptCoreAssembly();
 	}

@@ -6,7 +6,6 @@
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Scene/SceneCamera.h"
 #include "Stulu/Scene/Components/Components.h"
-#include "Stulu/Scene/Behavior.h"
 #include "Stulu/Math/Math.h"
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Application.h"
@@ -50,6 +49,7 @@ namespace Stulu {
 		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject", uuid);
 		base.updateUUID(uuid);
 		go.addComponent<TransformComponent>();
+		m_caller->GameObjectCreate(go);
 		return go;
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
@@ -57,9 +57,8 @@ namespace Stulu {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
 		}
+		m_caller->GameObjectDestory(gameObject);
 		m_caller->onDestroy(gameObject);
-		if(gameObject.hasComponent<NativeScriptComponent>())
-			m_caller->DestructNative(gameObject);
 
 		if (m_data.enablePhsyics3D && gameObject.hasComponent<RigidbodyComponent>()) {
 			gameObject.removeComponent<RigidbodyComponent>();
@@ -95,7 +94,6 @@ namespace Stulu {
 
 		if (m_firstRuntimeUpdate)
 			m_caller->onStart();
-		m_caller->onUpdate();
 
 		//calculations
 		if (m_data.enablePhsyics3D)
@@ -106,15 +104,12 @@ namespace Stulu {
 		if(render) {
 			renderScene();
 		}
-		//particle system updates while rendering
-		else {
-			updateParticles(false, true);
-		}
 		m_firstRuntimeUpdate = false;
 	}
 	void Scene::runtime_updatesetups() {
-		s_activeScene = this;
 		updateAllTransforms();
+		m_caller->onUpdate();
+		
 		m_renderer->LoadLights();
 		setupSceneForRendering(true);
 	}
@@ -178,7 +173,6 @@ namespace Stulu {
 		}
 
 		m_renderer->drawAll2d(transformComp);
-		updateParticles(true, true);
 		Renderer2D::flush();
 		cameraComp.getNativeCamera()->unbindFrameBuffer();
 	}
@@ -227,7 +221,6 @@ namespace Stulu {
 		camera.getCamera()->bindFrameBuffer();
 		Renderer2D::begin();
 		m_renderer->drawAll2d(camera.getTransform());
-		updateParticles(true, false);
 		Renderer2D::flush();
 		camera.getCamera()->unbindFrameBuffer();
 
@@ -248,7 +241,6 @@ namespace Stulu {
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
-		m_caller->ConstructNative();
 		m_caller->ConstructManaged();
 
 		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
@@ -268,8 +260,6 @@ namespace Stulu {
 
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
-		m_caller->DestructNative();
-
 
 		Input::setCursorMode(Input::CursorMode::Normal);
 		if (m_data.enablePhsyics3D) {
@@ -390,35 +380,7 @@ namespace Stulu {
 		}
 		st_transform_updated.clear();
 	}
-	void Scene::updateParticles(bool render, bool update) {
-		auto particleView = m_registry.view<TransformComponent, ParticleSystemComponent>();
-		for (auto gameObject : particleView)
-		{
-			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
-			if (update) {
-				if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneUpdate) {
-					particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
-				}
-				else if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneStart && m_firstRuntimeUpdate) {
-					particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
-				}
-			}
-			if(render && update)
-				particle.updateDraw(Time::deltaTime);
-			else if(update)
-				particle.update(Time::deltaTime);
-			else if(render)
-				particle.draw();
-		}
-	}
-	void Scene::clearAllParticles() {
-		auto particleView = m_registry.view<TransformComponent, ParticleSystemComponent>();
-		for (auto gameObject : particleView)
-		{
-			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
-			particle.clear();
-		}
-	}
+	
 	void Scene::updateTransform(TransformComponent& tc) {
 		if (tc.parent) {
 			TransformComponent& ptc = tc.parent.getComponent<TransformComponent>();
@@ -548,48 +510,6 @@ namespace Stulu {
 		return otherResult;
 	}
 
-	template<typename... Component>
-	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap) {
-		([&]()
-			{
-				auto view = src.view<Component>();
-				for (auto srcGameObject : view)
-				{
-					entt::entity dstGameObject = enttMap.at(src.get<GameObjectBaseComponent>(srcGameObject).getUUID());
-					auto& srcComponent = src.get<Component>(srcGameObject);
-					dst.emplace_or_replace<Component>(dstGameObject, srcComponent);
-					dst.get<Component>(dstGameObject).gameObject = GameObject(dstGameObject, Scene::activeScene());
-				}
-			}(), ...);
-	}
-
-	template<typename... Component>
-	static void CopyComponent(ComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap) {
-		CopyComponent<Component...>(dst, src, enttMap);
-	}
-
-	template<typename... Component>
-	static void CopyComponentIfExists(GameObject dst, GameObject src) {
-		([&]()
-			{
-				if (src.hasComponent<Component>())
-					dst.addOrReplaceComponent<Component>(src.getComponent<Component>());
-			}(), ...);
-	}
-
-	template<typename... Component>
-	static void CopyComponentIfExists(ComponentGroup<Component...>, GameObject dst, GameObject src) {
-		CopyComponentIfExists<Component...>(dst, src);
-	}
-
-	static void CopyAllComponents(entt::registry& dstSceneRegistry, entt::registry& srcSceneRegistry, const std::unordered_map<UUID, entt::entity>& enttMap) {
-		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
-	}
-
-	static void CopyAllExistingComponents(GameObject dst, GameObject src) {
-		CopyComponentIfExists(AllComponents{}, dst, src);
-	}
-
 	void Scene::updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent) {
 		auto& view = m_registry.view<TransformComponent>();
 		for (auto goId : view) {
@@ -655,7 +575,10 @@ namespace Stulu {
 		Scene* temp = s_activeScene;
 		s_activeScene = newScene.get();
 		// Copy components (except GameObjectBaseComponent)
-		CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
+		for (auto& [id, func] : Component::m_componentCopyList) {
+			func(dstSceneRegistry, srcSceneRegistry, enttMap);
+		}
+		//CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
 
 		s_activeScene = temp;
 

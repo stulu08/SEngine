@@ -58,6 +58,7 @@ namespace Stulu {
 			glm::vec2 windowPos = glm::vec2(ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Min.y);
 			Gizmo::setRect(windowPos.x, windowPos.y, (float)width, (float)height);
 			Gizmo::setCamData(cam.getCamera()->getProjectionMatrix(), glm::inverse(cam.getTransform().transform));
+
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();

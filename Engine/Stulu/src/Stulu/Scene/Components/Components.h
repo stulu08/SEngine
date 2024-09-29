@@ -13,7 +13,6 @@
 #include "Stulu/Scripting/Managed/MonoObjectInstance.h"
 #include "Stulu/Scene/Components/Camera.h"
 #include "Stulu/Scene/physx/Collider.h"
-#include "ParticleSystem.h"
 
 namespace Stulu {
 
@@ -169,28 +168,6 @@ namespace Stulu {
 	inline void MeshRendererComponent::onComponentAdded(Scene* scene) {
 		gameObject.saveAddComponent<MeshFilterComponent>();
 	}
-	class NativeScript;
-	class NativeScriptComponent : public Component {
-	public:
-		NativeScript* instance = nullptr;
-		std::string name = "";
-
-		NativeScript*(*Instantiate)();
-		void(*Destroy)(NativeScriptComponent*);
-
-		template<typename T>
-		void bind() {
-			Instantiate = []() { return static_cast<NativeScript*>(new T()); };
-			Destroy = [](NativeScriptComponent* script) { delete script->instance; script->instance = nullptr; };
-			
-			name = typeid(T).name();
-
-			if (name.find("::") != std::string::npos) {
-				size_t last = name.find_last_of("::");
-				name.erase(0, last);
-			}
-		}
-	};
 	class PostProcessingComponent : public Component {
 	public:
 		PostProcessingComponent() {
@@ -213,26 +190,5 @@ namespace Stulu {
 	};
 
 
-	template<typename... Component>
-	struct ComponentGroup {};
-	using AllComponents = ComponentGroup
-		<
-		TransformComponent,
-		SpriteRendererComponent,
-		CircleRendererComponent,
-		LightComponent,
-		SkyBoxComponent,
-		MeshRendererComponent,
-		MeshFilterComponent,
-		NativeScriptComponent,
-		CameraComponent,
-		RigidbodyComponent,
-		BoxColliderComponent,
-		SphereColliderComponent,
-		CapsuleColliderComponent,
-		MeshColliderComponent,
-		PostProcessingComponent,
-		ParticleSystemComponent,
-		ScriptingComponent
-		>;
+	
 }

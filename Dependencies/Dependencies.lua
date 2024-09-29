@@ -4,7 +4,7 @@ if InstallDir == nil or InstallDir == '' then
 end
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-BuildDir = "%{InstallDir}Engine/Build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+BuildDir = "%{InstallDir}/Engine/Build/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 Dependencies = "%{InstallDir}/Dependencies"
 
 ProjectDir = {}
@@ -27,6 +27,7 @@ LibraryDir["Discord"] = "%{ProjectDir.Discord}/lib/%{cfg.architecture}"
 
 Library = {}
 Library["Stulu"] = "Stulu.lib"
+Library["StuluDynamic"] = "Stulu.dll"
 Library["OpenGL"] = "opengl32.lib"
 Library["Vulkan"] = "vulkan-1.lib"
 Library["VulkanLayerUtils"] = "VkLayer_utils.lib"

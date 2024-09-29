@@ -29,13 +29,6 @@ namespace Stulu {
 		CORE_INFO("Added file sink: {0}", logFile);
 	}
 
-	std::shared_ptr<spdlog::logger>& Log::GetCoreLogger() {
-		return s_CoreLogger;
-	}
-	std::shared_ptr<spdlog::logger>& Log::GetClientLogger() {
-		return s_ClientLogger;
-	}
-
 	std::string Log::generateTimeString() {
 		std::time_t t = std::time(0);
 		std::tm* now = std::localtime(&t);

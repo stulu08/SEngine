@@ -1,4 +1,6 @@
 #include "st_pch.h"
+
+#define PX_PHYSX_STATIC_LIB
 #include "PhysX.h"
 #include "PxPhysicsAPI.h"
 

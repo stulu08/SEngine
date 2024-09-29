@@ -1,5 +1,5 @@
 #pragma once
-#include "Component.h"
+#include <Stulu.h>
 
 namespace Stulu {
 	struct ParticleSystemData {

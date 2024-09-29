@@ -6,11 +6,14 @@ project "Native Assembly"
 	location "%{ObjectDir}"
 	targetname "NativeAssembly"
 	
-	targetdir ("%{TargetDir}/" .. outputdir .. "")
+	targetdir ("%{TargetDir}/" .. outputdir .. "/Native")
 	objdir ("%{ObjectDir}/" .. outputdir .. "/Native")
 	
 	defines {
-		"_CRT_SECURE_NO_WARNINGS"
+		"ST_DYNAMIC_LINK",
+		"APP_DLL_BUILD",
+		"APP_DYNAMIC_LINK",
+		"_CRT_SECURE_NO_WARNINGS",
 	}
 	
 	files {
@@ -27,19 +30,23 @@ project "Native Assembly"
 	includedirs {
 		"%{AssetDir}",
 		"%{AssetDir}/Include",
+
 		"%{Dependencies}",
 		"%{IncludeDir.Stulu}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.mono}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Discord}",
 	}
 	
 	links {
-		"%{Library.Stulu}"
+		"%{Library.Stulu}",
+
+		"ImGui",
+		"yaml-cpp",
+		"Discord C++ Game SDK",
 	}
 	
 	libdirs {

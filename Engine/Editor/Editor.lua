@@ -16,12 +16,6 @@ project "Editor"
 		"ST_EDITOR",
 		"_CRT_SECURE_NO_WARNINGS"
 	}
-	if(staticBuild == false) then
-		defines
-		{
-			"ST_DYNAMIC_LINK",
-		}
-	end
 
 	files
 	{
@@ -38,9 +32,8 @@ project "Editor"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.mono}",
+		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.premake}",
 		"%{IncludeDir.Discord}",
 	}
@@ -48,6 +41,8 @@ project "Editor"
 	{
 		"Stulu", 
 		"Premake5",
+		"ImGui",
+		"yaml-cpp",
 		"Discord C++ Game SDK",
 	}
 	prebuildcommands {
@@ -66,6 +61,17 @@ project "Editor"
 		"{COPYDIR} \"%{ProjectDir.Editor}/LooseFiles\" \"" .. BuildDir .. "/Editor\"",
 		"{COPYDIR} \"%{ProjectDir.Stulu}/LooseFiles\" \"" .. BuildDir .. "/Editor\"",
 	}
+
+	if(staticBuild == false) then
+		defines
+		{
+			"ST_DYNAMIC_LINK",
+		}
+		-- copy Stulu.dll to Editor.exe
+		postbuildcommands {
+			"{COPYFILE} \"%{LibraryDir.StuluNative}/%{Library.StuluDynamic}\" \"" .. BuildDir .. "/Editor/%{Library.StuluDynamic}\"",
+		}
+	end
 
 	filter "system:windows"
 		systemversion "latest"

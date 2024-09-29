@@ -11,17 +11,21 @@ namespace Stulu {
 	class Log {
 	public:
 		enum class Level {
-			trace=0,info=1,warn=2,error=3,critical=4
+			trace = 0, info = 1, warn = 2, error = 3, critical = 4
 		};
 
 		STULU_API static void init();
 		STULU_API static void AddFileSink(const std::string& logFile, Level flushLevel = Level::trace);
 
-		STULU_API static std::shared_ptr<spdlog::logger>& GetCoreLogger();
-		STULU_API static std::shared_ptr<spdlog::logger>& GetClientLogger();
+		static inline std::shared_ptr<spdlog::logger>& GetCoreLogger() {
+			return s_CoreLogger;
+		}
+		static inline std::shared_ptr<spdlog::logger>& GetClientLogger() {
+			return s_ClientLogger;
+		}
 		STULU_API static std::string generateTimeString();
 
-		STULU_API static inline void engine_log(int32_t level, const std::string& msg) {
+		static inline void engine_log(int32_t level, const std::string& msg) {
 			switch (level)
 			{
 #if ST_ENABLE_TRACE_LOGGING
@@ -43,7 +47,7 @@ namespace Stulu {
 				break;
 			}
 		}
-		STULU_API static inline void client_log(int32_t level, const std::string& msg) {
+		static inline void client_log(int32_t level, const std::string& msg) {
 			switch (level)
 			{
 #if ST_ENABLE_TRACE_LOGGING
@@ -67,9 +71,9 @@ namespace Stulu {
 		}
 
 	private:
-		static std::shared_ptr<spdlog::logger> s_CoreLogger;
-		static std::shared_ptr<spdlog::logger> s_ClientLogger;
-		static std::shared_ptr<spdlog::sinks::sink> s_sink;
+		STULU_API static std::shared_ptr<spdlog::logger> s_CoreLogger;
+		STULU_API static std::shared_ptr<spdlog::logger> s_ClientLogger;
+		STULU_API static std::shared_ptr<spdlog::sinks::sink> s_sink;
 	};
 }
 //Core Log

@@ -3,18 +3,20 @@
 #include "Scene.h"
 
 namespace Stulu {
-	class STULU_API GameObject {
+	class GameObject {
 	public:
-		GameObject() = default;
-		GameObject(entt::entity entity, Scene* scene);
-		GameObject(const GameObject& other) = default;
+		inline GameObject() = default;
+		inline GameObject(entt::entity entity, Scene* scene)
+			: m_entity(entity), m_scene(scene) {
+		}
+		inline GameObject(const GameObject& other) = default;
 
 		template<typename T>
-		bool hasComponent() const {
+		inline bool hasComponent() const {
 			return m_scene->m_registry.storage<T>().contains(m_entity);
 		}
 		template<typename T, typename... Args>
-		T& addComponent(Args&&... args) {
+		inline T& addComponent(Args&&... args) {
 			if (hasComponent<T>()) {
 				CORE_WARN("GameObject already has component, returning component");
 				return getComponent<T>();
@@ -25,7 +27,7 @@ namespace Stulu {
 			return component;
 		}
 		template<typename T, typename... Args>
-		T& saveAddComponent(Args&&... args) {
+		inline T& saveAddComponent(Args&&... args) {
 			if (hasComponent<T>())
 				return getComponent<T>();
 			T& component = m_scene->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
@@ -34,19 +36,19 @@ namespace Stulu {
 			return component;
 		}
 		template<typename T, typename... Args>
-		T& addOrReplaceComponent(Args&&... args) {
+		inline T& addOrReplaceComponent(Args&&... args) {
 			T& component = m_scene->m_registry.emplace_or_replace<T>(m_entity, std::forward<Args>(args)...);
 			component.gameObject = { m_entity,m_scene };
 			m_scene->onComponentAdded<T>(*this, component);
 			return component;
 		}
 		template<typename T>
-		T& getComponent() const {
+		inline T& getComponent() const {
 			CORE_ASSERT(hasComponent<T>(), "GameObject does not have component");
 			return m_scene->m_registry.get<T>(m_entity);
 		}
 		template<typename T>
-		bool saveGetComponent(T& t) const {
+		inline bool saveGetComponent(T& t) const {
 			if (m_scene->m_registry.storage<T>().contains(m_entity)) {
 				t = m_scene->m_registry.get<T>(m_entity);
 				return true;
@@ -54,7 +56,7 @@ namespace Stulu {
 			return false;
 		}
 		template<typename T>
-		bool removeComponent() {
+		inline bool removeComponent() {
 			if (!hasComponent<T>()) {
 				CORE_ERROR("GameObject does not have component");
 				return false;
@@ -64,7 +66,7 @@ namespace Stulu {
 			return true;
 		}
 		template<typename T>
-		bool saveRemoveComponent() {
+		inline bool saveRemoveComponent() {
 			if (!hasComponent<T>()) {
 				return false;
 			}
@@ -72,25 +74,25 @@ namespace Stulu {
 			m_scene->m_registry.remove<T>(m_entity);
 			return true;
 		}
-		bool isValid() const;
 
-		Scene* getScene() const { return m_scene; }
+		inline Scene* getScene() const { return m_scene; }
 
-		UUID getId() const;
-		static GameObject getById(const UUID& id, Scene* scene);
+		STULU_API bool isValid() const;
+		STULU_API UUID getId() const;
+		STULU_API static GameObject getById(const UUID& id, Scene* scene);
 
-		operator bool() const { 
+		inline operator bool() const { 
 			return isValid(); 
 		}
-		operator entt::entity() const { return m_entity; }
-		operator uint32_t() const { return (uint32_t)m_entity; }
-		operator UUID() const { return getId(); }
-		operator void*() const { return (void*)(uint64_t)m_entity; }
+		inline operator entt::entity() const { return m_entity; }
+		inline operator uint32_t() const { return (uint32_t)m_entity; }
+		inline operator UUID() const { return getId(); }
+		inline operator void*() const { return (void*)(uint64_t)m_entity; }
 
-		bool operator==(const GameObject& other) const {
+		inline bool operator==(const GameObject& other) const {
 			return m_entity == other.m_entity && m_scene == other.m_scene;
 		}
-		bool operator!=(const GameObject& other) const {
+		inline bool operator!=(const GameObject& other) const {
 			return !(*this == other);
 		}
 
@@ -102,5 +104,7 @@ namespace Stulu {
 		friend class EditorInspectorPanel;
 		friend class Scene;
 	};
+
+	inline GameObject GameObject::null = { entt::entity{ entt::null }, nullptr };
 }
 
