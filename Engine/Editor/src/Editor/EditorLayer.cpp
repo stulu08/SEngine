@@ -267,8 +267,7 @@ namespace Stulu {
 								if (ComponentsRender::drawUIntControl("Map Size", gData.shadowMapSize)) {
 									m_activeScene->getRenderer()->resizeShadowMap();
 								}
-
-								
+								ImGui::TreePop();
 							}
 							ComponentsRender::drawFloatSliderControl("Environment Lod", gData.env_lod, 0.0f, 4.0f);
 							ImGui::TreePop();

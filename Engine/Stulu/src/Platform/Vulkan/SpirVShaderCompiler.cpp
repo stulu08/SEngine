@@ -35,7 +35,7 @@ namespace Stulu {
 //#extension GL_ARB_separate_shader_objects : enable
 )";
 
-	ShaderCompileResult SpirVShaderCompiler::Compile(const ShaderSource& sources) const {
+	void SpirVShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
 		EShMessages messages = EShMsgDebugInfo;
 		glslang::TProgram program;
 		std::vector<std::pair<ShaderType, Scope<glslang::TShader>>> shaders;
@@ -59,7 +59,7 @@ namespace Stulu {
 				messages = EShMsgVulkanRules;
 			}
 			
-			shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_6);
+			shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_4);
 			shader->setStrings(shadersSource.data(), 1);
 			shader->setEntryPoint("main");
 			shader->setSourceEntryPoint("main");
@@ -67,7 +67,7 @@ namespace Stulu {
 			if (!shader->parse(GetDefaultResources(), 450, true, messages)) {
 				CORE_ERROR("Shader spirv parsing failed: {0}", shader->getInfoLog());
 				CORE_ASSERT(false, "Spirv failed");
-				return {};
+				return;
 			}
 			log = shader->getInfoDebugLog();
 			if (!log.empty())
@@ -81,15 +81,12 @@ namespace Stulu {
 			if (!program.link(messages)) {
 				CORE_ERROR("Shader spirv linking failed: {0}", program.getInfoLog());
 				CORE_ASSERT(false, "Spirv failed");
-				return {};
+				return;
 			}
 			log = program.getInfoDebugLog();
 			if (!log.empty())
 				CORE_INFO(log);
 		}
-
-
-		ShaderCompileResult result;
 
 		for (auto& [stage, shader] : shaders) {
 			glslang::TIntermediate* intermediate;
@@ -104,14 +101,16 @@ namespace Stulu {
 			std::vector<uint32_t> dat;
 			glslang::GlslangToSpv(*intermediate, dat);
 			result.Add(stage, CompiledShaderData{ dat });
+
+			shader.release();
 		}
 
 
-		return result;
+		return;
 	}
 
-	ShaderCompileResult SpirVShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile) const {
-		ShaderCompileResult result = Compile(sources);
+	void SpirVShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
+		Compile(sources, result);
 
 		std::filesystem::path path = cacheFile;
 
@@ -132,11 +131,11 @@ namespace Stulu {
 			fclose(file);
 		}
 
-		return result;
+		return;
 	}
 
-	ShaderCompileResult SpirVShaderCompiler::LoadFromCache(const std::string& cacheFile) const {
-		return {};
+	void SpirVShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
+		return;
 	}
 
 	bool SpirVShaderCompiler::isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const {

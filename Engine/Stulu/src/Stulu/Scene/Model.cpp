@@ -172,39 +172,8 @@ namespace Stulu {
                 if (texture) {
                     TextureFormat format = texture->getSettings().format;
                     static Ref<Texture2D> resultTexture = Texture2D::create(1, 1, TextureSettings(TextureFormat::RGBA));
-                    static Ref<Shader> shader;
-                    if (!shader) {
-                        shader = Renderer::getShaderSystem()->CreateShader("CheckTransparentShader", R"(
-#version 430 core
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+                    Ref<Shader> shader = Renderer::getShaderSystem()->GetShader("Tools/CheckTransparent");
 
-layout(rgba8, binding = 0) uniform writeonly image2D result;
-
-layout(rgba8,   binding = 1) uniform readonly image2D source1;
-layout(rgba16f, binding = 2) uniform readonly image2D source2;
-layout(rgba32f, binding = 3) uniform readonly image2D source3;
-
-layout(location = 1) uniform int textureType;
-
-void main() {
-	ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
-
-	vec4 color = vec4(1.0);
-    if(textureType == 1) {
-        color = imageLoad(source1, pixelCoord).rgba;
-    }
-    else if(textureType == 2) {
-        color = imageLoad(source2, pixelCoord).rgba;
-    }
-    else if(textureType == 3) {
-        color = imageLoad(source2, pixelCoord).rgba;
-    }
-
-    if(color.a < 0.99)
-	    imageStore(result, ivec2(0, 0), vec4(1.0));
-}
-)");
-                    }
                     uint32_t data = 0x00000000;
                     shader->bind();
                     if (format == TextureFormat::RGBA) {

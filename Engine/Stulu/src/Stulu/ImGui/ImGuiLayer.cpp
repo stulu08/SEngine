@@ -12,8 +12,8 @@
 #include "Stulu/Core/Utils.h"
 
 #include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
-#include "backends/imgui_impl_opengl4.h"
 
 
 namespace Stulu {
@@ -49,20 +49,20 @@ namespace Stulu {
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.getWindow().getNativeWindow());
 
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL4_Init("#version 460");
+		ImGui_ImplOpenGL3_Init("#version 460");
 
 	}
 
 	void ImGuiLayer::onDetach() {
 		ST_PROFILING_FUNCTION();
-		ImGui_ImplOpenGL4_Shutdown();
+		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
 	void ImGuiLayer::Begin() {
 		ST_PROFILING_FUNCTION();
-		ImGui_ImplOpenGL4_NewFrame();
+		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 
 		ImGui::NewFrame();
@@ -75,7 +75,7 @@ namespace Stulu {
 		io.DisplaySize = ImVec2((float)app.getWindow().getWidth(), (float)app.getWindow().getHeight());
 		// Rendering
 		ImGui::Render();
-		ImGui_ImplOpenGL4_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

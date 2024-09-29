@@ -115,8 +115,8 @@ namespace Stulu {
 			const auto& [type, result] = sources.Get(i);
 			GLuint shader = glCreateShader(shaderTypeToGl(type));
 			
-			glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, &result.data[0], (GLsizei)(result.data.size() * sizeof(result.data[0])));
-			glSpecializeShaderARB(shader, "main", 0, nullptr, nullptr);
+			glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, &result.data[0], (GLsizei)(result.data.size() * sizeof(result.data[0])));
+			glSpecializeShader(shader, "main", 0, nullptr, nullptr);
 
 			shaderIds[i] = shader;
 		}

@@ -107,7 +107,8 @@ namespace Stulu {
 		auto sources = ProcessRegions(source);
 		auto props = ProcessProperties(source);
 
-		auto compileResult = m_compiler->CompileToCache(sources, BuildCacheFile(name));
+		ShaderCompileResult compileResult;
+		m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult);
 
 		m_shaders[name]->m_props = props;
 		m_shaders[name]->m_shader->reload(compileResult);
@@ -180,7 +181,8 @@ namespace Stulu {
 	}
 
 	Ref<Shader> ShaderSystem::CreateShader(const std::string& name, const ShaderSource& sources, const std::vector<Ref<ShaderProperity>>& properties, const std::string& path) {
-		auto compileResult = m_compiler->CompileToCache(sources, BuildCacheFile(name));
+		ShaderCompileResult compileResult;
+		m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult);
 
 		auto shader = Shader::create(name, compileResult);
 		

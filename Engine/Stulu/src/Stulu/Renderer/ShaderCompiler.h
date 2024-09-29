@@ -41,9 +41,9 @@ namespace Stulu {
 
 	struct ShaderCompileResult {
 	public:
-		ShaderCompileResult() {
-
-		}
+		ShaderCompileResult() = default;
+		ShaderCompileResult(ShaderCompileResult&) = default;
+		ShaderCompileResult(ShaderCompileResult&&) = default;
 
 		inline void Add(ShaderType type, const CompiledShaderData& source) {
 			m_data.push_back({ type, source });
@@ -89,10 +89,10 @@ namespace Stulu {
 		virtual ~ShaderCompiler() = default;
 
 
-		virtual ShaderCompileResult Compile(const ShaderSource& sources) const = 0;
-		virtual ShaderCompileResult CompileToCache(const ShaderSource& sources, const std::string& cacheFile) const = 0;
+		virtual void Compile(const ShaderSource& sources, ShaderCompileResult& result) const = 0;
+		virtual void CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const = 0;
 
-		virtual ShaderCompileResult LoadFromCache(const std::string& cacheFile) const = 0;
+		virtual void LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const = 0;
 		
 		virtual bool isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const = 0;
 		
