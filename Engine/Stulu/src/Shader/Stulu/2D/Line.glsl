@@ -1,8 +1,8 @@
 #SShader "2D/Line"
 
 #type vertex
-layout(location = 0) in vec3 a_pos;
-layout(location = 1) in vec4 a_color;
+layout (location = 0) in vec3 a_pos;
+layout (location = 1) in vec4 a_color;
 
 #include "Stulu/Scene.glsl"
 
@@ -14,7 +14,7 @@ void main() {
 }
 #type fragment
 
-layout(location = 0) out vec4 a_color;
+layout (location = 0) out vec4 a_color;
 layout (location = 0) in vec4 color;
 
 void main() {

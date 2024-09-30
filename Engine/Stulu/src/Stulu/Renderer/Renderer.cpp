@@ -11,13 +11,14 @@ namespace Stulu {
 
 	void Renderer::init() {
 		ST_PROFILING_FUNCTION();
-		if (getRendererAPI() == Renderer::API::OpenGL) {
-			s_data.shaderSystem = createScope<ShaderSystem>();
-			// .../ShaderCache/{API-ID}/...
-			std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
-			s_data.shaderSystem->SetCacheFolder(shaderCache);
-			s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
 
+		s_data.shaderSystem = createScope<ShaderSystem>();
+		// .../ShaderCache/{API-ID}/...
+		std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
+		s_data.shaderSystem->SetCacheFolder(shaderCache);
+		s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
+
+		if (getRendererAPI() == Renderer::API::OpenGL) {
 			if (s_data.cameraDataUniformBuffer == nullptr)
 				s_data.cameraDataUniformBuffer = UniformBuffer::create(sizeof(CameraBufferData), (uint32_t)BufferBinding::Camera);
 

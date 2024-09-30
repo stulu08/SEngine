@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Renderer/FrameBuffer.h"
-#include "VulkanRenderAPI.h"
+
+#include "VulkanImage2D.h"
 
 namespace Stulu {
 	class STULU_API VulkanFramebuffer : public FrameBuffer {

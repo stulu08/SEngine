@@ -51,7 +51,6 @@ namespace Stulu {
 		VkSemaphore imageAvailableSemaphore;
 		VkSemaphore renderFinishedSemaphore;
 		VkFence inFlightFence;
-		VkPipelineLayout pipelineLayout;
 
 		Device device;
 
@@ -76,7 +75,6 @@ namespace Stulu {
 		void createLogicalDevice();
 		void pickPhysicalDevice();
 		void createSwapChain();
-		void createGraphicsPipeline();
 		void createRenderPass();
 		void createFrameBuffers();
 		void createSemaphores();

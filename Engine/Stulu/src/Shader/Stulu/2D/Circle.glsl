@@ -15,34 +15,34 @@ layout(std140, binding = 1) uniform modelData
 	mat4 transform;
 };
 
-struct VertexOutput
+struct VertexInfo
 {
-	vec3 localPos;
-	vec4 color;
-	float thickness;
-	float fade;
+    vec3 localPos;
+    vec4 color;
+    float thickness;
+    float fade;
 };
-
-layout (location = 0) out VertexOutput Output;
+layout (location = 0) out VertexInfo Input;
 
 void main() {
-	Output.localPos = a_localPos;
-	Output.color = a_color;
-	Output.thickness = a_thickness;
-	Output.fade = a_fade;
+	Input.localPos = a_localPos;
+	Input.color = a_color;
+	Input.thickness = a_thickness;
+	Input.fade = a_fade;
 	gl_Position = viewProjection * vec4(a_pos, 1.0);
 }
 #type fragment
-layout(location = 0) out vec4 a_color;
 
-struct VertexInput
+struct VertexInfo
 {
-	vec3 localPos;
-	vec4 color;
-	float thickness;
-	float fade;
+    vec3 localPos;
+    vec4 color;
+    float thickness;
+    float fade;
 };
-layout (location = 0) in VertexInput Input;
+layout (location = 0) in VertexInfo Input;
+
+layout (location = 0) out vec4 a_color;
 
 
 void main() {

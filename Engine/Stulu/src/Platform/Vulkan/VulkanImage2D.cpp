@@ -1,5 +1,6 @@
 #include "st_pch.h"
 #include "VulkanImage2D.h"
+#include "VulkanRenderAPI.h"
 
 namespace Stulu {
 	VulkanImage2D::VulkanImage2D(uint32_t width, uint32_t height, const TextureSettings& settings) {

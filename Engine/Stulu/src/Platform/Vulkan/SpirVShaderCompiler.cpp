@@ -32,7 +32,8 @@ namespace Stulu {
 	constexpr bool combined_shader_modules = true;
 	const std::string version_string = R"(
 #version 450
-//#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
 )";
 
 	void SpirVShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
@@ -40,33 +41,36 @@ namespace Stulu {
 		glslang::TProgram program;
 		std::vector<std::pair<ShaderType, Scope<glslang::TShader>>> shaders;
 		std::string log;
-
+		
 		for (int i = 0; i < sources.Size(); i++) {
 			auto& [stage, source] = sources.Get(i);
+			auto shaderStage = ShaderTypeToLang(stage);
 
-			shaders.push_back({ stage, createScope<glslang::TShader>(ShaderTypeToLang(stage)) });
+			shaders.push_back({ stage, createScope<glslang::TShader>(shaderStage) });
 			glslang::TShader* shader = shaders.back().second.get();
 
 			std::string glslSource = (version_string + source);
 			std::array<const char*, 1> shadersSource = { glslSource.c_str() };
-			
+			shader->setStrings(shadersSource.data(), 1);
+
 			if (Renderer::getRendererAPI() == Renderer::API::OpenGL) {
+				shader->setEnvInput(glslang::EShSourceGlsl, shaderStage, glslang::EShClientOpenGL, 450);
 				shader->setEnvClient(glslang::EShClient::EShClientOpenGL, glslang::EShTargetOpenGL_450);
 			}
-
+			
 			if (Renderer::getRendererAPI() == Renderer::API::Vulkan) {
+				shader->setEnvInput(glslang::EShSourceGlsl, shaderStage, glslang::EShClientVulkan, 100);
 				shader->setEnvClient(glslang::EShClient::EShClientVulkan, glslang::EShTargetVulkan_1_3);
 				messages = EShMsgVulkanRules;
 			}
 			
-			shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_4);
-			shader->setStrings(shadersSource.data(), 1);
+			shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_5);
+
 			shader->setEntryPoint("main");
 			shader->setSourceEntryPoint("main");
 
 			if (!shader->parse(GetDefaultResources(), 450, true, messages)) {
-				CORE_ERROR("Shader spirv parsing failed: {0}", shader->getInfoLog());
-				CORE_ASSERT(false, "Spirv failed");
+				CORE_ASSERT(false, shader->getInfoLog());
 				return;
 			}
 			log = shader->getInfoDebugLog();
@@ -79,8 +83,7 @@ namespace Stulu {
 
 		if constexpr (combined_shader_modules) {
 			if (!program.link(messages)) {
-				CORE_ERROR("Shader spirv linking failed: {0}", program.getInfoLog());
-				CORE_ASSERT(false, "Spirv failed");
+				CORE_ASSERT(false, program.getInfoLog());
 				return;
 			}
 			log = program.getInfoDebugLog();

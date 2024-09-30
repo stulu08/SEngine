@@ -1,11 +1,14 @@
 #pragma once
 #include "Stulu/Renderer/RenderAPI.h"
+#include "Stulu/Renderer/RenderCommand.h"
+
+#include "VulkanFramebuffer.h"
+#include "VulkanShader.h"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-namespace Stulu {
-	class STULU_API VulkanFramebuffer;
-	class STULU_API VulkanImage2D;
 
+namespace Stulu {
 	struct Device {
 		VkDevice device;
 
@@ -65,6 +68,11 @@ namespace Stulu {
 			device = vkDevice;
 		}
 
+		inline static VulkanRenderAPI* Get() {
+			return (VulkanRenderAPI*)RenderCommand::GetApi();
+		}
+
+		void CreateGraphicsPipeline(VkPipeline& pipeline, VkPipelineLayout& pipelinelayout, const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) const;
 	private:
 		static Device* device;
 

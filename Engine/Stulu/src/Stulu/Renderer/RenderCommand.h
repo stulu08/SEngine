@@ -61,6 +61,10 @@ namespace Stulu{
 				return s_renderAPI->getMaxComputeWorkGroupInvocationCount();
 			}
 		};
+
+		static inline RenderAPI* GetApi() {
+			return s_renderAPI.get();
+		}
 	private:
 		static Scope<RenderAPI> s_renderAPI;
 	};

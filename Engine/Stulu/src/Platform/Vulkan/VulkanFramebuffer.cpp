@@ -1,6 +1,6 @@
 #include "st_pch.h"
 #include "VulkanFramebuffer.h"
-#include "VulkanImage2D.h"
+#include "VulkanRenderAPI.h"
 
 namespace Stulu {
 	VulkanFramebuffer::VulkanFramebuffer(const FrameBufferSpecs& specs) 

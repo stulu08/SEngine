@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Renderer/Texture.h"
-#include "VulkanRenderAPI.h"
+
+#include <vulkan/vulkan.h>
 
 namespace Stulu {
 	class STULU_API VulkanImage2D : public Texture2D {
