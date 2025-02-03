@@ -8,8 +8,8 @@ layout (location = 3) in vec4 a_color;
 
 layout (location = 0) out vec3 WorldPos;
 
-uniform mat4 projection;
-uniform mat4 view;
+layout (location = 0) uniform mat4 projection;
+layout (location = 1) uniform mat4 view;
 
 void main()
 {

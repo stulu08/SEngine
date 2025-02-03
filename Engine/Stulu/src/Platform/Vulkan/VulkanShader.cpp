@@ -37,11 +37,13 @@ namespace Stulu {
     }
 
     void VulkanShader::unbind() const {
-
+        
     }
 
     void VulkanShader::Dispatch(const glm::uvec3& numWorkGroups, uint32_t usage) {
+        // 
         
+        vkCmdDispatch(VulkanRenderAPI::getDevice().getCommandBuffer(), numWorkGroups.x, numWorkGroups.y, numWorkGroups.z);
     }
 
     void VulkanShader::cleanup() {
@@ -59,7 +61,7 @@ namespace Stulu {
         modules.resize(sources.Size());
 
         for (int i = 0; i < sources.Size(); i++) {
-            auto& [type, compileResult] = sources.Get(i);
+            const auto& [type, compileResult] = sources.Get(i);
 
             VkShaderModuleCreateInfo createInfo{};
             createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -76,7 +78,6 @@ namespace Stulu {
             vertShaderStageInfo.stage = shaderTypeToVk(type);
             vertShaderStageInfo.module = shaderModule;
             vertShaderStageInfo.pName = "main";
-
         }
 
         VulkanRenderAPI::Get()->CreateGraphicsPipeline(m_pipeLine, m_pipelineLayout, stages);

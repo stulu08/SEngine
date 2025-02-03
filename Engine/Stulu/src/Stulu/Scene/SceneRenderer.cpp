@@ -353,7 +353,7 @@ namespace Stulu {
 		else
 			m_drawList.push_back(RenderObject{ material,vertexArray,transform, glm::transpose(glm::inverse(transform)), CullMode::Back,transformedBoundingBox });
 	}
-	void SceneRenderer::RegisterObject(const RenderObject& object) {
+	void SceneRenderer::RegisterObject(RenderObject&& object) {
 		m_drawList.push_back(object);
 	}
 

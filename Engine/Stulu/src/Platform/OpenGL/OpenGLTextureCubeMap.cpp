@@ -626,13 +626,6 @@ namespace Stulu {
 		}
 		return shader;
 	}
-	Ref<Shader> OpenGLSkyBox::getCubeMapShader() {
-		static Ref<Shader> shader;
-		if (!shader) {
-			shader = Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/DefaultShader");
-		}
-		return shader;
-	}
 	Ref<Shader> OpenGLSkyBox::getBRDFLUTShader() {
 		static Ref<Shader> shader;
 		if (!shader) {

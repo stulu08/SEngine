@@ -28,13 +28,11 @@ namespace Stulu {
 			glslang::InitializeProcess();
 			s_glslangInitlized = true;
 		}
+
+		AddHeader("#extension GL_ARB_separate_shader_objects : enable");
+		AddHeader("#extension GL_ARB_shading_language_420pack : enable");
 	}
 	constexpr bool combined_shader_modules = true;
-	const std::string version_string = R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_shading_language_420pack : enable
-)";
 
 	void SpirVShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
 		EShMessages messages = EShMsgDebugInfo;
@@ -43,13 +41,13 @@ namespace Stulu {
 		std::string log;
 		
 		for (int i = 0; i < sources.Size(); i++) {
-			auto& [stage, source] = sources.Get(i);
+			const auto& [stage, source] = sources.Get(i);
 			auto shaderStage = ShaderTypeToLang(stage);
 
 			shaders.push_back({ stage, createScope<glslang::TShader>(shaderStage) });
 			glslang::TShader* shader = shaders.back().second.get();
 
-			std::string glslSource = (version_string + source);
+			std::string glslSource = ApplyHeaders(source);
 			std::array<const char*, 1> shadersSource = { glslSource.c_str() };
 			shader->setStrings(shadersSource.data(), 1);
 
@@ -122,7 +120,7 @@ namespace Stulu {
 
 
 		for (int i = 0; i < result.Size(); i++) {
-			auto& [type, res] = result.Get(i);
+			const auto& [type, res] = result.Get(i);
 
 			const std::string name = path.string() + "." + std::to_string(type);
 
@@ -153,5 +151,8 @@ namespace Stulu {
 		}
 
 		return false;
+	}
+	std::string SpirVShaderCompiler::ApplyHeaders(const std::string& src) const {
+		return std::string();
 	}
 }

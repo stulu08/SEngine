@@ -27,11 +27,129 @@ namespace Stulu {
 		return GL_NONE;
 	}
 
+	OpenGLShaderCompiler::OpenGLShaderCompiler() {}
+
+	void OpenGLShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
+		GLuint rendererID = glCreateProgram();
+
+		std::vector<GLenum> shaderIds;
+		shaderIds.resize(sources.Size(), 0);
+
+		for (uint32_t i = 0; i < sources.Size(); i++) {
+			const auto& [type, strSrc] = sources.Get(i);
+
+			GLuint shader = glCreateShader(shaderTypeToGl(type));
+
+			const std::string src = ApplyHeaders(strSrc);
+			const GLchar* source = src.c_str();
+
+			glShaderSource(shader, 1, &source, 0);
+			glCompileShader(shader);
+			
+			GLint isCompiled = 0;
+			glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+			if (isCompiled == GL_FALSE) {
+				GLint maxLength = 0;
+				glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
+				glDeleteShader(shader);
+				CORE_ERROR("GLSL {1} Shader compilation error:\n{0}", infoLog.data(), std::to_string(type));
+				break;
+			}
+
+			glAttachShader(rendererID, shader);
+			shaderIds[i] = shader;
+		}
+		glLinkProgram(rendererID);
+
+		GLint isLinked = 0;
+		glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
+		if (isLinked == GL_FALSE) {
+			GLint maxLength = 0;
+			glGetProgramiv(rendererID, GL_INFO_LOG_LENGTH, &maxLength);
+			std::vector<GLchar> infoLog(maxLength);
+			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
+			glDeleteProgram(rendererID);
+			for (auto id : shaderIds)
+				glDeleteShader(id);
+
+			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
+			CORE_ASSERT(false, "Could not link shader program");
+			return;
+		}
+
+		for (auto id : shaderIds) {
+			glDetachShader(rendererID, id);
+			glDeleteShader(id);
+		}
+
+
+		// Retrieve the binary format and binary length
+		GLint bufferLength = 0;
+		GLenum binaryFormat = 0;
+		GLsizei programSize = 0;
+		glGetProgramiv(rendererID, GL_PROGRAM_BINARY_LENGTH, &bufferLength);
+		
+		size_t uint32_count = (bufferLength + sizeof(uint32_t) - 1) / sizeof(uint32_t);
+		std::vector<uint32_t> binary(uint32_count + 2);
+
+		unsigned char* binaryData = reinterpret_cast<unsigned char*>(&binary[2]);
+
+		glGetProgramBinary(rendererID, bufferLength, &programSize, &binaryFormat, binaryData);
+		CORE_ASSERT(bufferLength == programSize, "Error while retrieving program binary")
+
+		binary[0] = (uint32_t)binaryFormat;
+		binary[1] = (uint32_t)bufferLength;
+
+		result.Add(Stulu::ShaderType::Vertex, { std::move(binary) });
+
+		glDeleteProgram(rendererID);
+	}
+	void OpenGLShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
+		Compile(sources, result);
+
+		std::filesystem::path path = cacheFile;
+		if (path.has_parent_path() && !std::filesystem::exists(path.parent_path()))
+			std::filesystem::create_directories(path.parent_path());
+
+		if (result.Size() != 1) {
+			CORE_ASSERT(false, "Invalid compilation result of OpenGLShaderCompiler");
+			return;
+		}
+
+		const auto& [type, res] = result.Get(0);
+		const std::string name = path.string();
+		FILE* file = fopen(name.c_str(), "wb");
+
+		fwrite(&res.data[0], sizeof(res.data[0]), res.data.size(), file);
+		fclose(file);
+
+		return;
+
+	}
+	void OpenGLShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
+	
+	}
+	bool OpenGLShaderCompiler::isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const {
+		return false;
+	}
+
+	std::string OpenGLShaderCompiler::ApplyHeaders(const std::string& src) const {
+		std::stringstream result;
+		
+		for (auto& header : m_headers) {
+			result << header << "\n";
+		}
+		result << src;
+		return result.str();
+	}
+
+
 	OpenGLShader::OpenGLShader(const std::string& name, const ShaderCompileResult& sources)
 		: m_name(name) {
 		ST_PROFILING_FUNCTION();
 		link(sources);
-		//compile(sources);
 	}
 
 	OpenGLShader::~OpenGLShader() {
@@ -46,91 +164,55 @@ namespace Stulu {
 		m_rendererID = 0;
 
 		link(sources);
-		//compile(sources);
-	}
-	void OpenGLShader::compile(const ShaderSource& sources){
-		ST_PROFILING_FUNCTION();
-
-		GLuint rendererID = glCreateProgram();
-		
-		std::vector<GLenum> shaderIds;
-		shaderIds.resize(sources.Size(), 0);
-
-		for (uint32_t i = 0; i < sources.Size(); i++) {
-			const auto[type, src] = sources.Get(i);
-
-			GLuint shader = glCreateShader(shaderTypeToGl(type));
-			const GLchar* source = src.c_str();
-			glShaderSource(shader, 1, &source, 0);
-			glCompileShader(shader);
-			GLint isCompiled = 0;
-			glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
-			if (isCompiled == GL_FALSE) {
-				GLint maxLength = 0;
-				glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-				std::vector<GLchar> infoLog(maxLength);
-				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
-				glDeleteShader(shader);
-				CORE_ERROR("GLSL {1} Shader compilation error:\n{0}", infoLog.data(), std::to_string(type));
-				CORE_ASSERT(false, std::to_string(type) + " Shader compilation of \"" + m_name + "\" failed");
-				break;
-			}
-			glAttachShader(rendererID, shader);
-			shaderIds[i] = shader;
-		}
-		glLinkProgram(rendererID);
-		
-
-		GLint isLinked = 0;
-		glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
-		if (isLinked == GL_FALSE) {
-			GLint maxLength = 0;
-			glGetProgramiv(rendererID, GL_INFO_LOG_LENGTH, &maxLength);
-			std::vector<GLchar> infoLog(maxLength);
-			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
-			glDeleteProgram(rendererID);
-			for(auto id : shaderIds)
-				glDeleteShader(id);
-
-			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
-			CORE_ASSERT(false, "Could not link shader program");
-			return;
-		}
-
-		for (auto id : shaderIds) {
-			glDetachShader(rendererID, id);
-			glDeleteShader(id);
-		}
-		m_rendererID = rendererID;
-
 	}
 
 	void OpenGLShader::link(const ShaderCompileResult& sources) {
 		ST_PROFILING_FUNCTION();
-
-		std::vector<GLenum> shaderIds;
-		shaderIds.resize(sources.Size(), 0);
-
-		for (uint32_t i = 0; i < sources.Size(); i++) {
-			const auto& [type, result] = sources.Get(i);
-			GLuint shader = glCreateShader(shaderTypeToGl(type));
-			
-			glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, &result.data[0], (GLsizei)(result.data.size() * sizeof(result.data[0])));
-			glSpecializeShader(shader, "main", 0, nullptr, nullptr);
-
-			shaderIds[i] = shader;
-		}
-
-
 		GLuint rendererID = glCreateProgram();
-		for (auto id : shaderIds) {
-			glAttachShader(rendererID, id);
+		std::vector<GLenum> shaderIds;
+
+		if (!Renderer::getShaderSystem()->SpirvSupported()) {
+			// opengl compiled shaders
+
+			if (sources.Size() != 1) {
+				CORE_ASSERT(false, "Invalid compilation result of OpenGLShaderCompiler");
+				return;
+			}
+
+			const auto& result = sources.Get(0).second;
+
+			uint32_t format = result.data[0];  
+			uint32_t binSize = result.data[1]; 
+
+			const unsigned char* bin = reinterpret_cast<const unsigned char*>(&result.data[2]);
+
+			glProgramBinary(rendererID, (GLenum)format, bin, (GLsizei)binSize);
 		}
-		glLinkProgram(rendererID);
+		else {
+			shaderIds.resize(sources.Size(), 0);
+
+			// SPIRV compiled shaders
+			for (uint32_t i = 0; i < sources.Size(); i++) {
+				const auto& [type, result] = sources.Get(i);
+				GLuint shader = glCreateShader(shaderTypeToGl(type));
+
+				glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, &result.data[0], (GLsizei)(result.data.size() * sizeof(result.data[0])));
+				glSpecializeShader(shader, "main", 0, nullptr, nullptr);
+
+				shaderIds[i] = shader;
+			}
 
 
-		GLint isLinked = 1;
-		//glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
+			for (auto id : shaderIds) {
+				glAttachShader(rendererID, id);
+			}
+
+			glLinkProgram(rendererID);
+		}
+
+
+		GLint isLinked = 0;
+		glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
 		if (isLinked == GL_FALSE) {
 			GLint maxLength = 512;
 			glGetProgramiv(rendererID, GL_INFO_LOG_LENGTH, &maxLength);

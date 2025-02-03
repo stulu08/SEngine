@@ -42,7 +42,7 @@ namespace Stulu {
 
 		void RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
 		void RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& material, const glm::mat4& transform, const Ref<BoundingBox>& transformedBoundingBox = nullptr);
-		void RegisterObject(const RenderObject& object);
+		void RegisterObject(RenderObject&& object);
 
 		//combines all the textures of the cameras, sorting by layer index
 		void GenSceneTexture(const Ref<FrameBuffer>& sceneFbo);

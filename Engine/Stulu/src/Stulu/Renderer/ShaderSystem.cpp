@@ -5,7 +5,10 @@
 
 namespace Stulu {
 	ShaderSystem::ShaderSystem() {
+		m_spirvSupported = CheckSpirv();
+
 		m_compiler = ShaderCompiler::Create();
+		m_compiler->AddHeader("#version 450");
 
 		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
 		AddInternalIncludeFile("Stulu/Internals.glsl",
@@ -112,6 +115,18 @@ namespace Stulu {
 
 		m_shaders[name]->m_props = props;
 		m_shaders[name]->m_shader->reload(compileResult);
+	}
+	bool ShaderSystem::CheckSpirv() {
+		if (Renderer::getRendererAPI() == Renderer::API::Vulkan) {
+			return true;
+		}
+
+		if (Renderer::getRendererAPI() == Renderer::API::OpenGL) {
+			auto api = Application::get().getWindow().getContext()->getApiInfos();
+			// intel integrated gpu's have a problem with loading sprv, despite having support for the extension
+			 return !(api.vendor.rfind("Intel", 0) == 0);
+		}
+		return false;
 	}
 	std::string ShaderSystem::GetShaderName(const std::string& source) const{
 		const std::string shaderToken = "#SShader ";

@@ -9,8 +9,8 @@ layout (location = 3) in vec4 a_color;
 
 layout (location = 0) out vec3 WorldPos;
 
-uniform mat4 projection;
-uniform mat4 view;
+layout (location = 0) uniform mat4 projection;
+layout (location = 1) uniform mat4 view;
 
 void main()
 {
@@ -25,7 +25,7 @@ layout (location = 0) out vec4 FragColor;
 layout (location = 0) in vec3 WorldPos;
 
 layout (binding = 0) uniform samplerCube environmentMap;
-uniform float roughness;
+layout (location = 2) uniform float roughness;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------

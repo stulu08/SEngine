@@ -28,7 +28,7 @@ namespace Stulu {
 		ApplicationInfo info;
 		info.DataPath = "Data";
 
-		info.api = Renderer::API::Vulkan;
+		info.api = Renderer::API::OpenGL;
 		info.EnableImgui = false;
 		info.LoadDefaultAssets = false;
 		info.HideWindowOnSart = false;

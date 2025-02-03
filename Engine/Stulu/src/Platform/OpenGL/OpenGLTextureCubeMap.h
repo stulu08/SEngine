@@ -105,7 +105,6 @@ namespace Stulu {
 		static Ref<Shader> getEquirectangularToCubemapShader();
 		static Ref<Shader> getIrradianceShader();
 		static Ref<Shader> getPrefilterShader();
-		static Ref<Shader> getCubeMapShader();
 		static Ref<Shader> getBRDFLUTShader();
 	};
 }

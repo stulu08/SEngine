@@ -35,7 +35,7 @@ namespace Stulu {
 		info.AppPath = path;
 		info.AppAssetPath = Project::Main->assetPath;
 		info.AppAssembly = Project::Main->getBinariesDir() + "/ManagedAssembly.dll";
-		info.AppCachePath = Project::Main->path + "/Compiler/Shader-Cache/";
+		info.AppCachePath = Project::Main->path + "/Compiler/";
 		info.HideWindowOnSart = false;
 		info.EnableImgui = true;
 		info.LoadDefaultAssets = true;

@@ -58,6 +58,9 @@ namespace Stulu {
 		void ReloadShaders();
 		void ReloadShader(const std::string& name);
 
+		static bool CheckSpirv();
+		inline bool SpirvSupported() const { return m_spirvSupported; }
+
 		inline void SetCacheFolder(const std::string& cache) {
 			m_cacheFolder = cache;
 		}
@@ -75,6 +78,7 @@ namespace Stulu {
 		std::map<std::string, Ref<ShaderEntry>> m_shaders;
 		std::vector<std::string> m_includeDirs;
 		std::unordered_map<std::string, std::string> m_internalFiles;
+		bool m_spirvSupported;
 	};
 
 	class STULU_API ShaderProperity {

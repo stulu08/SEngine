@@ -1,4 +1,5 @@
 #pragma once
+#define _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
 
 #include "Log.h"
 

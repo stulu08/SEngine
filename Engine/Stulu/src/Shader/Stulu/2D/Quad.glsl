@@ -33,43 +33,43 @@ layout (location = 3) in flat float textureIndex;
 layout (binding = 0) uniform sampler2D u_textures[32];
 
 void main() {
-	vec4 color = vec4(0.0);
+	a_color = vec4(0.0);
+
 	switch(int(textureIndex))
 	{
-		case  0: color = texture(u_textures[ 0], texCoord * textureTiling) * color; break;
-		case  1: color = texture(u_textures[ 1], texCoord * textureTiling) * color; break;
-		case  2: color = texture(u_textures[ 2], texCoord * textureTiling) * color; break;
-		case  3: color = texture(u_textures[ 3], texCoord * textureTiling) * color; break;
-		case  4: color = texture(u_textures[ 4], texCoord * textureTiling) * color; break;
-		case  5: color = texture(u_textures[ 5], texCoord * textureTiling) * color; break;
-		case  6: color = texture(u_textures[ 6], texCoord * textureTiling) * color; break;
-		case  7: color = texture(u_textures[ 7], texCoord * textureTiling) * color; break;
-		case  8: color = texture(u_textures[ 8], texCoord * textureTiling) * color; break;
-		case  9: color = texture(u_textures[ 9], texCoord * textureTiling) * color; break;
-		case 10: color = texture(u_textures[10], texCoord * textureTiling) * color; break;
-		case 11: color = texture(u_textures[11], texCoord * textureTiling) * color; break;
-		case 12: color = texture(u_textures[12], texCoord * textureTiling) * color; break;
-		case 13: color = texture(u_textures[13], texCoord * textureTiling) * color; break;
-		case 14: color = texture(u_textures[14], texCoord * textureTiling) * color; break;
-		case 15: color = texture(u_textures[15], texCoord * textureTiling) * color; break;
-		case 16: color = texture(u_textures[16], texCoord * textureTiling) * color; break;
-		case 17: color = texture(u_textures[17], texCoord * textureTiling) * color; break;
-		case 18: color = texture(u_textures[18], texCoord * textureTiling) * color; break;
-		case 19: color = texture(u_textures[19], texCoord * textureTiling) * color; break;
-		case 20: color = texture(u_textures[20], texCoord * textureTiling) * color; break;
-		case 21: color = texture(u_textures[21], texCoord * textureTiling) * color; break;
-		case 22: color = texture(u_textures[22], texCoord * textureTiling) * color; break;
-		case 23: color = texture(u_textures[23], texCoord * textureTiling) * color; break;
-		case 24: color = texture(u_textures[24], texCoord * textureTiling) * color; break;
-		case 25: color = texture(u_textures[25], texCoord * textureTiling) * color; break;
-		case 26: color = texture(u_textures[26], texCoord * textureTiling) * color; break;
-		case 27: color = texture(u_textures[27], texCoord * textureTiling) * color; break;
-		case 28: color = texture(u_textures[28], texCoord * textureTiling) * color; break;
-		case 29: color = texture(u_textures[29], texCoord * textureTiling) * color; break;
-		case 30: color = texture(u_textures[30], texCoord * textureTiling) * color; break;
-		case 31: color = texture(u_textures[31], texCoord * textureTiling) * color; break;
+		case  0: a_color = texture(u_textures[ 0], texCoord * textureTiling) * color; break;
+		case  1: a_color = texture(u_textures[ 1], texCoord * textureTiling) * color; break;
+		case  2: a_color = texture(u_textures[ 2], texCoord * textureTiling) * color; break;
+		case  3: a_color = texture(u_textures[ 3], texCoord * textureTiling) * color; break;
+		case  4: a_color = texture(u_textures[ 4], texCoord * textureTiling) * color; break;
+		case  5: a_color = texture(u_textures[ 5], texCoord * textureTiling) * color; break;
+		case  6: a_color = texture(u_textures[ 6], texCoord * textureTiling) * color; break;
+		case  7: a_color = texture(u_textures[ 7], texCoord * textureTiling) * color; break;
+		case  8: a_color = texture(u_textures[ 8], texCoord * textureTiling) * color; break;
+		case  9: a_color = texture(u_textures[ 9], texCoord * textureTiling) * color; break;
+		case 10: a_color = texture(u_textures[10], texCoord * textureTiling) * color; break;
+		case 11: a_color = texture(u_textures[11], texCoord * textureTiling) * color; break;
+		case 12: a_color = texture(u_textures[12], texCoord * textureTiling) * color; break;
+		case 13: a_color = texture(u_textures[13], texCoord * textureTiling) * color; break;
+		case 14: a_color = texture(u_textures[14], texCoord * textureTiling) * color; break;
+		case 15: a_color = texture(u_textures[15], texCoord * textureTiling) * color; break;
+		case 16: a_color = texture(u_textures[16], texCoord * textureTiling) * color; break;
+		case 17: a_color = texture(u_textures[17], texCoord * textureTiling) * color; break;
+		case 18: a_color = texture(u_textures[18], texCoord * textureTiling) * color; break;
+		case 19: a_color = texture(u_textures[19], texCoord * textureTiling) * color; break;
+		case 20: a_color = texture(u_textures[20], texCoord * textureTiling) * color; break;
+		case 21: a_color = texture(u_textures[21], texCoord * textureTiling) * color; break;
+		case 22: a_color = texture(u_textures[22], texCoord * textureTiling) * color; break;
+		case 23: a_color = texture(u_textures[23], texCoord * textureTiling) * color; break;
+		case 24: a_color = texture(u_textures[24], texCoord * textureTiling) * color; break;
+		case 25: a_color = texture(u_textures[25], texCoord * textureTiling) * color; break;
+		case 26: a_color = texture(u_textures[26], texCoord * textureTiling) * color; break;
+		case 27: a_color = texture(u_textures[27], texCoord * textureTiling) * color; break;
+		case 28: a_color = texture(u_textures[28], texCoord * textureTiling) * color; break;
+		case 29: a_color = texture(u_textures[29], texCoord * textureTiling) * color; break;
+		case 30: a_color = texture(u_textures[30], texCoord * textureTiling) * color; break;
+		case 31: a_color = texture(u_textures[31], texCoord * textureTiling) * color; break;
 	}
-	a_color = color;
-	if(color.a == 0.0)
+	if(a_color.a == 0.0)
 		discard;
 }
