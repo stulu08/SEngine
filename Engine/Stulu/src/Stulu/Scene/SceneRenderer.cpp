@@ -7,8 +7,6 @@
 namespace Stulu {
 	SceneRenderer::SceneRenderer(Scene* scene)
 		: m_scene(scene) {
-		ST_PROFILING_FUNCTION();
-		
 		m_postProcShader = Renderer::getShaderSystem()->GetShader("Renderer/PostProcessing/Shader");
 		m_shadowShader = Renderer::getShaderSystem()->GetShader("Renderer/ShadowCaster");
 
@@ -20,19 +18,16 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::Begin() {
-		ST_PROFILING_FUNCTION();
 		for (int i = 0; i < 32; i++) {
 			Resources::getWhiteTexture()->bind(i);
 		}
 	}
 	void SceneRenderer::End() {
-		ST_PROFILING_FUNCTION();
 		m_drawList.clear();
 		m_transparentDrawList.clear();
 	}
 
 	void SceneRenderer::LoadLights() {
-		ST_PROFILING_FUNCTION();
 		for (auto& goID : m_scene->getAllGameObjectsWith<LightComponent, TransformComponent>()) {
 			GameObject go(goID, m_scene);
 			if (go == m_scene->getMainLight()) {
@@ -81,7 +76,8 @@ namespace Stulu {
 		DrawSceneToCamera(sceneCam.m_transform, camComp);
 	}
 	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Renderer - Main Pass");
+
 		const Ref<Camera>& cam = cameraComp.getNativeCamera();
 		const glm::mat4& view = glm::inverse(transform.transform);
 		const glm::mat4& proj = cameraComp.getProjection();
@@ -183,7 +179,8 @@ namespace Stulu {
 
 
 	void SceneRenderer::drawSceneShadow() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Renderer - Schadow Pass");
+
 		//opaque
 		RenderCommand::setCullMode(CullMode::BackAndFront);
 		m_shadowShader->bind();
@@ -199,7 +196,8 @@ namespace Stulu {
 		}
 	}
 	void SceneRenderer::drawScene() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Renderer - 3D Pass");
+
 		UUID last = UUID();
 		
 		//opaque
@@ -240,7 +238,6 @@ namespace Stulu {
 		}
 	}
 	void SceneRenderer::drawSkyBox(const Ref<CubeMap>& skybox) {
-		ST_PROFILING_FUNCTION();  
 		if (skybox && !(m_sceneBufferData.shaderFlags & ST_ShaderViewFlags_DisplayDepth)) {
 			RenderCommand::setWireFrame(false);
 			auto& shader = Resources::getSkyBoxShader();
@@ -261,10 +258,12 @@ namespace Stulu {
 
 		TextureSettings colorBuffer;
 		colorBuffer.format = TextureFormat::None;
+		colorBuffer.wrap = TextureWrap::ClampToBorder;
+		colorBuffer.border = COLOR_WHITE;
 
 		TextureSettings depthBuffer;
 		depthBuffer.format = TextureFormat::Depth32F;
-		depthBuffer.filtering = TextureFiltering::Trilinear;
+		depthBuffer.filtering = TextureFiltering::Bilinear;
 		depthBuffer.wrap = TextureWrap::ClampToBorder;
 		depthBuffer.border = COLOR_WHITE;
 
@@ -273,6 +272,8 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::drawAll2d(const TransformComponent& camera) {
+		ST_PROFILING_SCOPE("Renderer - 2D Pass");
+
 		struct Entry {
 			entt::entity id;
 			enum Type {
@@ -358,7 +359,8 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::GenSceneTexture(const Ref<FrameBuffer>& sceneFbo) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Renderer - Generating Texture");
+
 		auto& cams = m_scene->getAllGameObjectsAsGroupWith<TransformComponent, CameraComponent>();
 
 		cams.sort([&](const entt::entity a, const entt::entity b) {
@@ -409,7 +411,7 @@ namespace Stulu {
 		ApplyPostProcessing(frameBuffer, frameBuffer->getColorAttachment(), data);
 	}
 	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Renderer - PostProcessing");
 		const auto& settings = data.settings;
 
 		m_postProcessingBufferData.time = Time::time;
@@ -436,7 +438,7 @@ namespace Stulu {
 		}
 	}
 	Ref<Texture> SceneRenderer::DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& postProcData) {
-		ST_PROFILING_SCOPE("Bloom Pass");
+		ST_PROFILING_SCOPE("Renderer - Bloom");
 		auto& data = postProcData.bloom;
 		const auto& settings = postProcData.settings.bloom;
 
@@ -501,7 +503,7 @@ namespace Stulu {
 		for (int i = (int)data.samples - 2; i >= 0; i--) {
 			Ref<Texture2D> sourceTex = (i == (int)data.samples - 2) ? data.downSample : data.upSample;
 
-			updata.desRes = glm::vec2(data.upSample->getMipWidth(i), data.upSample->getMipHeight(i)) - glm::vec2(1,1);
+			updata.desRes = glm::vec2(data.upSample->getMipWidth(i), data.upSample->getMipHeight(i)) - glm::vec2(1, 1);
 			storageBuffer->setData(&updata, sizeof(Data));
 
 			sourceTex->bind(0);
@@ -511,6 +513,7 @@ namespace Stulu {
 
 			updata.iteration = i;
 		}
+
 		return data.upSample;
 	}
 

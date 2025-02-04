@@ -8,7 +8,7 @@
 
 namespace Stulu {
 	void SceneViewportPanel::draw(SceneCamera& cam, bool* open) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("ImGui - Scene Viewport");
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 		drawn = false;
 		if (ImGui::Begin("Scene", open)) {
@@ -58,6 +58,7 @@ namespace Stulu {
 			glm::vec2 windowPos = glm::vec2(ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Min.y);
 			Gizmo::setRect(windowPos.x, windowPos.y, (float)width, (float)height);
 			Gizmo::setCamData(cam.getCamera()->getProjectionMatrix(), glm::inverse(cam.getTransform().transform));
+
 		}
 		ImGui::End();
 		ImGui::PopStyleVar();

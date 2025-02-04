@@ -31,6 +31,7 @@ public class SpectatorCamera : Component {
 
 	public override void onStart() {
 		mouse = transform.eulerAngles;
+		Input.setCursorMode(CursorMode.Disabled);
 	}
 	public override void onUpdate() {
 		Vector3 inputDiagonal = Input.getAxis(front, back) * transform.forward;
@@ -44,11 +45,8 @@ public class SpectatorCamera : Component {
 		mouse.z -= Input.getMouseDelta().y * (MouseVertical * Time.deltaTime);
 		transform.setRotation(new Quaternion(mouse));
 
-		if (Input.getMouseButtonDown(MouseButton.Left)) {
-			Input.setCursorMode(CursorMode.Disabled);
-		}
-		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) { 
-			if(nextTimeToFire < Time.time) {
+		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) {
+			if (nextTimeToFire < Time.time) {
 				GameObject projectile = GameObject.CreateSphere("Projectile_" + projectileCount, transform.position);
 				RigidbodyComponent rb = projectile.addComponent<RigidbodyComponent>();
 				rb.kinematic = false;

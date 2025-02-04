@@ -10,7 +10,6 @@ namespace Stulu {
 	SceneCamera::SceneCamera(float aspectRatio, float fov, float zNear, float zFar, uint32_t samples)
 		:m_aspectRatio(aspectRatio), m_fov(fov), m_zNear(zNear), m_zFar(zFar) {
 
-		ST_PROFILING_FUNCTION();
 		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar, FrameBufferSpecs(1, 1, samples));
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {

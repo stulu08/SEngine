@@ -73,8 +73,6 @@ namespace Stulu {
 
 	static Renderer2DData s_renderer2Ddata;
 	void Renderer2D::init() {
-		ST_PROFILING_FUNCTION();
-
 		Ref<IndexBuffer> indexBuffer;
 		{//indices
 			uint32_t* quadIndices = new uint32_t[s_renderer2Ddata.maxIndices];
@@ -154,7 +152,6 @@ namespace Stulu {
 	void Renderer2D::shutdown() {
 	}
 	void Renderer2D::begin() {
-		ST_PROFILING_FUNCTION();
 		resetQuadBatch();
 		resetCircleBatch();
 		resetLineBatch();
@@ -162,7 +159,6 @@ namespace Stulu {
 		s_renderer2Ddata.camera = nullptr;
 	}
 	void Renderer2D::begin(const Ref<Camera>& cam) {
-		ST_PROFILING_FUNCTION();
 		resetQuadBatch();
 		resetCircleBatch();
 		resetLineBatch();
@@ -170,7 +166,6 @@ namespace Stulu {
 		s_renderer2Ddata.camera = cam;
 	}
 	void Renderer2D::flush() {
-		ST_PROFILING_FUNCTION();
 		if(s_renderer2Ddata.camera)
 			s_renderer2Ddata.camera->bindFrameBuffer();
 
@@ -183,7 +178,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::flushQuads(bool bindCam) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.quadIndexCount > 0) {
 			uint32_t dataSize = uint32_t((uint8_t*)s_renderer2Ddata.quadVertexBufferPtr - (uint8_t*)s_renderer2Ddata.quadVertexBufferBase);
 			s_renderer2Ddata.quadVertexBuffer->setData(s_renderer2Ddata.quadVertexBufferBase, dataSize);
@@ -204,7 +198,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::flushCircles(bool bindCam) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.circleIndexCount > 0) {
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.circleVertexBufferPtr - (uint8_t*)s_renderer2Ddata.circleVertexBufferBase);
 			s_renderer2Ddata.circleVertexBuffer->setData(s_renderer2Ddata.circleVertexBufferBase, dataSize);
@@ -223,7 +216,6 @@ namespace Stulu {
 	}
 
 	void Renderer2D::flushLines(bool bindCam) {
-		ST_PROFILING_FUNCTION();
 		if (s_renderer2Ddata.lineVertexCount > 0) {
 			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.lineVertexBufferPtr - (uint8_t*)s_renderer2Ddata.lineVertexBufferBase);
 			s_renderer2Ddata.lineVertexBuffer->setData(s_renderer2Ddata.lineVertexBufferBase, dataSize);

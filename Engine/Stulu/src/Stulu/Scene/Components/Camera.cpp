@@ -20,7 +20,6 @@ namespace Stulu {
 		updateSize();
 	}
 	void CameraComponent::updateSize() {
-		ST_PROFILING_FUNCTION();
 		settings.aspectRatio = (float)settings.textureWidth / (float)settings.textureHeight;
 		cam->getFrameBuffer()->resize(settings.textureWidth, settings.textureHeight);
 		updateProjection();

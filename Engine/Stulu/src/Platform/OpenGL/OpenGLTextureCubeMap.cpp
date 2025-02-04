@@ -22,7 +22,6 @@ namespace Stulu {
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
 	};
 	void OpenGLSkyBox::update(uint32_t resolution, void* data) {
-		ST_PROFILING_FUNCTION();
 		uint32_t m_captureFBO = 0, m_captureRBO = 0;
 		if (m_envCubemap)
 			glDeleteTextures(1, &m_envCubemap);
@@ -61,7 +60,6 @@ namespace Stulu {
 		glDeleteRenderbuffers(1, &m_captureRBO);
 	}
 	void OpenGLSkyBox::update(const std::vector<std::string>& faces, uint32_t resolution) {
-		ST_PROFILING_FUNCTION();
 		uint32_t m_captureFBO = 0, m_captureRBO = 0;
 
 
@@ -78,10 +76,8 @@ namespace Stulu {
 		for (uint32_t i = 0; i < faces.size(); i++) {
 			GLenum type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
 			float* textureData;
-			{
-				ST_PROFILING_SCOPE("reading file - OpenGLSkyBox::OpenGLSkyBox(const std::vector<std::string>&, uint32_t)");
-				textureData = stbi_loadf(faces[i].c_str(), &width, &height, &channels, 0);
-			}
+			textureData = stbi_loadf(faces[i].c_str(), &width, &height, &channels, 0);
+			
 			CORE_ASSERT(textureData, std::string("Texture failed to load: ") + faces[i]);
 			glTexImage2D(type, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, textureData);
 			stbi_image_free(textureData);
@@ -111,7 +107,6 @@ namespace Stulu {
 		glDeleteRenderbuffers(1, &m_captureRBO);
 	}
 	void OpenGLSkyBox::update(const std::string& hdrTexturePath, uint32_t resolution) {
-		ST_PROFILING_FUNCTION();
 		uint32_t m_captureFBO = 0, m_captureRBO = 0;
 
 		if(m_envCubemap)
@@ -135,10 +130,8 @@ namespace Stulu {
 		stbi_set_flip_vertically_on_load(true);
 		int32_t width, height, nrComponents;
 		float* data;
-		{
-			ST_PROFILING_SCOPE("reading file - OpenGLSkyBox::OpenGLSkyBox(const std::string&, uint32_t)");
-			data = stbi_loadf(hdrTexturePath.c_str(), &width, &height, &nrComponents, 0);
-		}
+		data = stbi_loadf(hdrTexturePath.c_str(), &width, &height, &nrComponents, 0);
+		
 		if (data)
 		{
 			glGenTextures(1, &m_hdrTexture);
@@ -201,14 +194,12 @@ namespace Stulu {
 		glDeleteRenderbuffers(1, &m_captureRBO);
 	}
 	OpenGLSkyBox::~OpenGLSkyBox() {
-		ST_PROFILING_FUNCTION();
 		glDeleteTextures(1, &m_envCubemap);
 		glDeleteTextures(1, &m_irradianceMap);
 		glDeleteTextures(1, &m_prefilterMap);
 
 	}
 	void OpenGLSkyBox::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
-		ST_PROFILING_FUNCTION();
 		m_settings.wrap = TextureWrap::ClampToEdge;
 		m_settings.tiling = glm::vec2(1.0f);
 		m_settings.format = TextureFormat::RGB16F;
@@ -338,7 +329,6 @@ namespace Stulu {
 
 	OpenGLCubeMap::OpenGLCubeMap(uint32_t resolution, TextureSettings settings)
 		: m_resolution(resolution),m_settings(settings) {
-		ST_PROFILING_FUNCTION();
 		glGenTextures(1, &m_map);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
 
@@ -368,7 +358,6 @@ namespace Stulu {
 	}
 
 	OpenGLCubeMap::~OpenGLCubeMap() {
-		ST_PROFILING_FUNCTION();
 		glDeleteTextures(1, &m_map);
 	}
 
@@ -455,7 +444,6 @@ namespace Stulu {
 	}
 
 	Ref<Texture2D> OpenGLSkyBox::genrateBRDFLUT(uint32_t resolution) {
-		ST_PROFILING_FUNCTION();
 		uint32_t texture, captureFBO, captureRBO;
 		glGenFramebuffers(1, &captureFBO);
 		glGenRenderbuffers(1, &captureRBO);

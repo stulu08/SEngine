@@ -8,7 +8,6 @@
 namespace Stulu {
 	MonoObjectInstance::MonoObjectInstance(Mono::Class clasz, ScriptAssembly* assembly)
 		: m_class(clasz), m_assembly(assembly), m_initilized(false) {
-		ST_PROFILING_FUNCTION();
 		if (m_class) {
 			CreateObject();
 			m_assembly->RegisterObject(m_objectID, this);
@@ -20,7 +19,6 @@ namespace Stulu {
 		CORE_ERROR("Could not create MonoObjectInstance");
 	}
 	MonoObjectInstance::MonoObjectInstance(const MonoObjectInstance& other) {
-		ST_PROFILING_FUNCTION();
 		this->m_assembly = other.m_assembly;
 		this->m_initilized = false;
 
@@ -52,8 +50,6 @@ namespace Stulu {
 	}
 
 	MonoObjectInstance::~MonoObjectInstance() {
-		ST_PROFILING_FUNCTION();
-
 		if (m_reloadFieldsChache) {
 			// in case there are still cache field buffers allocated
 			const auto chache = *m_reloadFieldsChache;

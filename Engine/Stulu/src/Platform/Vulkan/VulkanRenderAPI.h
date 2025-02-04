@@ -10,6 +10,12 @@
 
 namespace Stulu {
 	struct Device {
+		Device() {};
+		Device(Device&&) = default;
+
+		Device(const Device&) = delete;
+		Device& operator=(const Device&) = delete;
+
 		VkDevice device;
 
 		VkPhysicalDeviceProperties physicalDeviceProps;

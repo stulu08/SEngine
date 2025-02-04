@@ -9,7 +9,6 @@
 
 namespace Stulu {
 	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-		ST_PROFILING_FUNCTION();
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -19,7 +18,6 @@ namespace Stulu {
 		}
 	}
 	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-		ST_PROFILING_FUNCTION();
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			func(instance, debugMessenger, pAllocator);
@@ -54,7 +52,6 @@ namespace Stulu {
 		: applicationInfo(Application::get().getApplicationInfo()) {
 	}
 	WindowsVulkanContext::~WindowsVulkanContext() {
-		ST_PROFILING_FUNCTION();
 		vkDeviceWaitIdle(device.device);
 
 		vkDestroySemaphore(device.device, renderFinishedSemaphore, nullptr);
@@ -83,8 +80,6 @@ namespace Stulu {
 		glfwTerminate();
 	}
 	void WindowsVulkanContext::init(Window* window) {
-		ST_PROFILING_FUNCTION();
-		
 		{
 			GLFWwindow* windowHandle = static_cast<GLFWwindow*>(window->getNativeWindow());
 			CORE_ASSERT(windowHandle, "Window handle is null");
@@ -111,6 +106,7 @@ namespace Stulu {
 	}
 
 	void WindowsVulkanContext::beginBuffer() {
+		ST_PROFILING_SCOPE("Renderer - Begin Buffers");
 		// wait for fences
 		vkWaitForFences(device.device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(device.device, 1, &inFlightFence);
@@ -137,6 +133,7 @@ namespace Stulu {
 	}
 
 	void WindowsVulkanContext::swapBuffers() {
+		ST_PROFILING_SCOPE("Renderer - Swap Buffers");
 		// end render pass
 		device.getFrameBuffer()->unbind();
 		// end command buffer
@@ -210,7 +207,6 @@ namespace Stulu {
 	}
 
 	void WindowsVulkanContext::createVulkanInstance() {
-		ST_PROFILING_FUNCTION();
 
 		if (!getVulkanVersion()) {
 			CORE_ASSERT(false, "Can't get Vulkan version");
@@ -254,13 +250,11 @@ namespace Stulu {
 		}
 	}
 	void WindowsVulkanContext::createSurface() {
-		ST_PROFILING_FUNCTION();
 		if (glfwCreateWindowSurface(instance, m_windowHandle, NULL, &surface)) {
 			CORE_ASSERT(false, "Could not create Vulkan Surface");
 		}
 	}
 	void WindowsVulkanContext::createLogicalDevice() {
-		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices = findQueueFamilies(device.physicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -305,7 +299,6 @@ namespace Stulu {
 		vkGetDeviceQueue(device.device, indices.presentFamily.value(), 0, &device.presentQueue);
 	}
 	void WindowsVulkanContext::pickPhysicalDevice() {
-		ST_PROFILING_FUNCTION();
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -328,7 +321,6 @@ namespace Stulu {
 		}
 	}
 	void WindowsVulkanContext::createSwapChain() {
-		ST_PROFILING_FUNCTION();
 		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device.physicalDevice);
 
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -409,7 +401,6 @@ namespace Stulu {
 		
 	}
 	void WindowsVulkanContext::createCommandBuffer() {
-		ST_PROFILING_FUNCTION();
 		device.commandBuffers.resize(device.swapChainImages.size());
 		QueueFamilyIndices indices = findQueueFamilies(device.physicalDevice);
 
@@ -546,7 +537,6 @@ namespace Stulu {
 	}
 
 	VkSurfaceFormatKHR WindowsVulkanContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availFormats) {
-		ST_PROFILING_FUNCTION();
 		for (const auto& availFormat : availFormats) {
 			if(availFormat.format == VK_FORMAT_R8G8B8A8_SRGB || availFormat.format == VK_FORMAT_B8G8R8A8_SRGB || availFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 				return availFormat;
@@ -554,7 +544,6 @@ namespace Stulu {
 		return availFormats[0];
 	}
 	VkPresentModeKHR WindowsVulkanContext::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availModes) {
-		ST_PROFILING_FUNCTION();
 		for (const auto& availMode : availModes) {
 			if (availMode == preferedPresentMode)
 				return availMode;
@@ -562,7 +551,6 @@ namespace Stulu {
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 	VkExtent2D WindowsVulkanContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-		ST_PROFILING_FUNCTION();
 		if (capabilities.currentExtent.width != UINT32_MAX) {
 			return capabilities.currentExtent;
 		}
@@ -583,7 +571,6 @@ namespace Stulu {
 	}
 
 	bool WindowsVulkanContext::isDeviceSuitable(VkPhysicalDevice device) {
-		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices = findQueueFamilies(device);
 		bool extensionsSupport = checkDeviceExtensionSupport(device);
 		bool swapChainAdequate = false;
@@ -595,7 +582,6 @@ namespace Stulu {
 	}
 	
 	bool WindowsVulkanContext::checkValidationLayerSupport() {
-		ST_PROFILING_FUNCTION();
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -620,7 +606,6 @@ namespace Stulu {
 		return true;
 	}
 	bool WindowsVulkanContext::checkDeviceExtensionSupport(VkPhysicalDevice device) {
-		ST_PROFILING_FUNCTION();
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -637,7 +622,6 @@ namespace Stulu {
 	}
 
 	SwapChainSupportDetails WindowsVulkanContext::querySwapChainSupport(VkPhysicalDevice device) {
-		ST_PROFILING_FUNCTION();
 		SwapChainSupportDetails details;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 		uint32_t formatCount;
@@ -660,7 +644,6 @@ namespace Stulu {
 	}
 
 	QueueFamilyIndices WindowsVulkanContext::findQueueFamilies(VkPhysicalDevice device) {
-		ST_PROFILING_FUNCTION();
 		QueueFamilyIndices indices;
 
 		uint32_t queueFamilyCount = 0;
@@ -693,7 +676,6 @@ namespace Stulu {
 	}
 
 	std::vector<const char*> WindowsVulkanContext::getRequiredExtensions() {
-		ST_PROFILING_FUNCTION();
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -708,7 +690,6 @@ namespace Stulu {
 	}
 
 	bool WindowsVulkanContext::getVulkanVersion() {
-		ST_PROFILING_FUNCTION();
 		auto FN_vkEnumerateInstanceVersion = PFN_vkEnumerateInstanceVersion(vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
 		if (FN_vkEnumerateInstanceVersion != nullptr) {
 			uint32_t api_version;
@@ -733,7 +714,6 @@ namespace Stulu {
 		return true;
 	}
 	void WindowsVulkanContext::getPhysicalDeviceProps() {
-		ST_PROFILING_FUNCTION();
 		vkGetPhysicalDeviceProperties(device.physicalDevice, &device.physicalDeviceProps);
 		const char* vendor;
 		switch (device.physicalDeviceProps.vendorID)
@@ -778,7 +758,6 @@ namespace Stulu {
 	}
 	
 	void WindowsVulkanContext::setupDebugMessenger() {
-		ST_PROFILING_FUNCTION();
 		if (!enableValidationLayers) return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo;
@@ -789,7 +768,6 @@ namespace Stulu {
 		}
 	}
 	void WindowsVulkanContext::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
-		ST_PROFILING_FUNCTION();
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;

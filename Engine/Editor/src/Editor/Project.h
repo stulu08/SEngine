@@ -13,8 +13,8 @@ namespace Stulu {
 		Project(const std::string& folder);
 
 		void generateProjectFiles();
-		void compileAssembly();
-		std::string createBuildFile();
+		void compileAssembly(bool fullbuild = false);
+		std::string createBuildFile(bool fullbuild = false);
 		std::string getBinariesDir() const;
 
 		std::string path = "";

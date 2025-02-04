@@ -10,8 +10,6 @@ namespace Stulu {
 	Renderer::Data Renderer::s_data;
 
 	void Renderer::init() {
-		ST_PROFILING_FUNCTION();
-
 		s_data.shaderSystem = createScope<ShaderSystem>();
 		// .../ShaderCache/{API-ID}/...
 		std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "ShaderCache/API-" + std::to_string((int)s_data.api) + "/";

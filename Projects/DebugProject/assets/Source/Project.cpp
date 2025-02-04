@@ -1,12 +1,21 @@
 #include <Stulu.h>
+#include "Core.h"
 #include "Component/FreeCamera.h"
 
-class MyProject : public Stulu::Layer {
+class APP_API ProjectLayer : public Stulu::SceneLayer {
+public:
+    virtual void Initlize(Stulu::Scene* scene) override {
+
+    }
+
+};
+
+class APP_API MyProject : public Stulu::Layer {
 public:
 	virtual void onAttach() override {
-		auto& assembly = Stulu::Application::get().getAssemblyManager();
+        Stulu::EventCaller::RegisterLayer<ProjectLayer>();
 
-		assembly->RegisterComponent<FreeCamera>("FreeCameraComponent");
+        Stulu::Component::Register<FreeCamera>("FreeCameraComponent");
 	}
 	virtual void onUpdate(Stulu::Timestep ts) override {
 		

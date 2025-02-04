@@ -15,8 +15,7 @@ namespace Stulu {
 			EditorInspectorPanel::AssetMode = false;
 	}
 	void EditorHierarchyPanel::render(bool* open) {
-		ST_PROFILING_FUNCTION();
-		
+		ST_PROFILING_SCOPE("ImGui - Hierarchy");
 		if (ImGui::Begin("Hierarchy", open)) {
 			if (m_scene == nullptr)
 				return noScene();

@@ -12,7 +12,6 @@ namespace Stulu {
 	{ }
 
 	void OpenGLContext::init(Window* window) {
-		ST_PROFILING_FUNCTION();
 		{
 			GLFWwindow* windowHandle = static_cast<GLFWwindow*>(window->getNativeWindow());
 			CORE_ASSERT(windowHandle, "Window handle is null");
@@ -25,10 +24,11 @@ namespace Stulu {
 	}
 
 	void OpenGLContext::beginBuffer() {
+		ST_PROFILING_SCOPE("Renderer - Begin Buffer");
 	}
 
 	void OpenGLContext::swapBuffers() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Renderer - Swap Buffers");
 		glfwSwapBuffers(m_windowHandle);
 	}
 	void OpenGLContext::setVSync(bool enabled) {

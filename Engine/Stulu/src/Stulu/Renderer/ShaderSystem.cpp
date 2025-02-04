@@ -8,7 +8,7 @@ namespace Stulu {
 		m_spirvSupported = CheckSpirv();
 
 		m_compiler = ShaderCompiler::Create();
-		m_compiler->AddHeader("#version 450");
+		m_compiler->AddHeaderFront("#version 450");
 
 		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
 		AddInternalIncludeFile("Stulu/Internals.glsl",

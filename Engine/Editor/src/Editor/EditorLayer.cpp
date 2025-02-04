@@ -7,12 +7,9 @@
 
 
 namespace Stulu {
-	void copyAllFilesFromDir(const std::string& from, const std::string& to);
 
 	EditorLayer::EditorLayer()
 		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1) {
-		ST_PROFILING_FUNCTION();
-
 		RenderCommand::setClearColor(glm::vec4(glm::vec3(.0f), 1.0f));
 
 		FrameBufferSpecs fspecs;
@@ -49,7 +46,7 @@ namespace Stulu {
 
 #pragma region GUI
 	void EditorLayer::onImguiRender(Timestep timestep) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Editor - ImGui");
 		ImGui::DockSpaceOverViewport();
 		drawMenuBar();
 
@@ -88,6 +85,12 @@ namespace Stulu {
 				if (ImGui::TreeNodeEx("Shadows")) {
 					Ref<Texture> tex = m_activeScene->getRenderer()->m_shadowMap->getDepthAttachment();
 					ImGui::Image(tex, glm::vec2(256.0f), {0,1}, {1, 0});
+					ImGui::TreePop();
+				}
+				if (ImGui::TreeNodeEx("Build")) {
+					if (ImGui::Button("Build App")) {
+						getEditorProject().compileAssembly(true);
+					}
 					ImGui::TreePop();
 				}
 				if (ImGui::TreeNodeEx("Display Only:")) {
@@ -320,10 +323,8 @@ namespace Stulu {
 			drawLicenseWindow();
 		}
 		Application::get().getImGuiLayer()->blockEvents(!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing());
-		StuluBindings::Input::s_enabled = m_gameViewport.focused;
 	}
 	void EditorLayer::drawMenuBar() {
-		ST_PROFILING_FUNCTION();
 		if (ImGui::BeginMainMenuBar()) {
 			if (ImGui::BeginMenu("File")) {
 
@@ -338,6 +339,14 @@ namespace Stulu {
 				}
 				if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S")) {
 					SaveScene();
+				}
+				if (ImGui::MenuItem("Switch Play Mode", "Ctrl+P")) {
+					if (s_runtime) {
+						onRuntimeStop();
+					}
+					else {
+						onRuntimeStart();
+					}
 				}
 				if (ImGui::MenuItem("Exit", "Alt+F4")) {
 					Application::get().exit(0);
@@ -418,8 +427,7 @@ namespace Stulu {
 		const auto& buttonActive = colors[ImGuiCol_ButtonActive];
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar);
-
+		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration);
 		float size = ImGui::GetWindowHeight() - 4.0f;
 		ImVec4 icoColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 
@@ -435,7 +443,8 @@ namespace Stulu {
 					onRuntimeStart();
 				}
 			}
-		}ImGui::SameLine();
+		}
+		ImGui::SameLine();
 		{
 			bool paused = Time::Scale == 0.0f;
 			if (paused)
@@ -455,10 +464,10 @@ namespace Stulu {
 
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
+		ImGui::Spacing();
 		ImGui::End();
 	}
 	void EditorLayer::drawLicenseWindow() {
-		ST_PROFILING_FUNCTION();
 		if (ImGui::Begin("Licenses/3rd Party/Dependencies", &m_showLicensesWindow)) {
 			for (auto& [name, content] : m_licenses) {
 				if (ImGui::CollapsingHeader(name.c_str())) {
@@ -471,13 +480,21 @@ namespace Stulu {
 #pragma endregion
 #pragma region Scene
 	void EditorLayer::onUpdate(Timestep timestep) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Editor - Update");
+
+		// will only trigger once, imgui says no when cursor disabled, exit is inside shortcut events
+		if (m_gameViewport.focused) {
+			//Input::setCursorMode(Input::CursorMode::Disabled);
+			StuluBindings::Input::SetEnabled(true);
+		}
+		
+
 		if (!Gizmo::IsUsing()) {
-			Input::s_enabled = m_sceneViewport.hovered || m_sceneViewport.focused;
+ 			Input::setEnabled(m_sceneViewport.focused);
 			m_sceneCamera.updateMove(timestep);
 			m_sceneCamera.onUpdate(timestep);
 			m_activeScene->updateTransform(m_sceneCamera.getTransform());
-			Input::s_enabled = true;
+			Input::setEnabled(true);
 		}
 
 		if (s_runtime) {
@@ -485,6 +502,7 @@ namespace Stulu {
 			if (m_gameViewport.drawn) {
 				m_runtimeScene->getRenderer()->GenSceneTexture(m_sceneFrameBuffer);
 			}
+
 		}
 		else if (m_gameViewport.drawn) {
 			GameObject mainCamObj = m_activeScene->getMainCamera();
@@ -505,16 +523,14 @@ namespace Stulu {
 				}
 			}
 		}
-		else {
-			m_editorScene->clearAllParticles();
-		}
 
 		m_activeScene->onUpdateEditor(timestep, m_sceneCamera, m_sceneViewport.drawn);
 
 		drawObjectOutlines();
 	}
 	void EditorLayer::onRuntimeStart() {
-		ST_PROFILING_FUNCTION();
+		ImGui::SetWindowFocus("Game");
+
 		Time::Scale = 1.0f;
 		s_runtime = true;
 		m_runtimeScene = Scene::copy(m_editorScene);
@@ -528,7 +544,7 @@ namespace Stulu {
 			m_editorHierarchy.setSelectedGameObject(GameObject::getById(selected.getComponent<GameObjectBaseComponent>().getUUID(), m_activeScene.get()));
 	}
 	void EditorLayer::onRuntimeStop() {
-		ST_PROFILING_FUNCTION();
+		ImGui::SetWindowFocus("Scene");
 		s_runtime = false;
 		m_activeScene->onRuntimeStop();
 		m_activeScene = m_editorScene;
@@ -558,7 +574,6 @@ namespace Stulu {
 			OpenScene(path);
 	}
 	void EditorLayer::SaveScene(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		if (path.empty()) {
 			SaveScene();
 		}
@@ -568,7 +583,6 @@ namespace Stulu {
 		ST_TRACE("Saved Scene {0}", path);
 	}
 	void EditorLayer::OpenScene(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		if (path.empty()) {
 			OpenScene();
 		}
@@ -592,7 +606,6 @@ namespace Stulu {
 
 	}
 	void EditorLayer::newScene() {
-		ST_PROFILING_FUNCTION();
 		m_currentScenePath = "";
 		m_editorScene = createRef<Scene>();
 		m_activeScene = m_editorScene;
@@ -603,7 +616,6 @@ namespace Stulu {
 #pragma endregion
 #pragma region Gizmos
 	void EditorLayer::drawObjectOutlines() {
-		ST_PROFILING_FUNCTION();
 		GameObject selected = m_editorHierarchy.getCurrentObject();
 		if (selected) {
 			auto& tc = selected.getComponent<TransformComponent>();
@@ -643,7 +655,8 @@ namespace Stulu {
 		}
 	}
 	void EditorLayer::onRenderGizmo() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Editor - Gizmo Pass");
+
 		if (m_showSceneViewport) {
 			if (ImGui::Begin("Scene", &m_showSceneViewport)) {
 				Gizmo::Begin();
@@ -698,7 +711,6 @@ namespace Stulu {
 		}
 	}
 	void EditorLayer::onDrawGizmoSelected(GameObject selected) {
-		ST_PROFILING_FUNCTION();
 		auto& tc = selected.getComponent<TransformComponent>();
 		{
 			float snapValue = .0f;
@@ -829,12 +841,11 @@ namespace Stulu {
 #pragma endregion
 #pragma region Events
 	void EditorLayer::onAttach() {
-		ST_PROFILING_FUNCTION();
 		newScene();
 		loadPanelConfig();
 	}
 	void EditorLayer::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Editor - Event Pass");
 		if(m_sceneViewport.focused && m_sceneViewport.hovered)
 			m_sceneCamera.onEvent(e);
 		else if (e.getEventType() == EventType::WindowResize) {
@@ -849,7 +860,6 @@ namespace Stulu {
 		//dispacther.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(EditorLayer::onGameObjectPick));
 	}
 	bool EditorLayer::onShortCut(KeyDownEvent& e) {
-		ST_PROFILING_FUNCTION();
 		if (e.getRepeatCount() > 0)
 			return false;
 
@@ -858,9 +868,23 @@ namespace Stulu {
 
 		switch (e.getKeyCode())
 		{
-
+			case Keyboard::Escape:
+				Input::setCursorMode(Input::CursorMode::Normal);
+				StuluBindings::Input::SetEnabled(false);
+				m_gameViewport.focused = false;
+				break;
 			case Keyboard::Q:
 				m_gizmoEditType = GizmoTransformEditMode::None;
+				break;
+			case Keyboard::P:
+				if (control) {
+					if (s_runtime) {
+						onRuntimeStop();
+					}
+					else {
+						onRuntimeStart();
+					}
+				}
 				break;
 			case Keyboard::G:
 				m_gizmoEditType = GizmoTransformEditMode::Translate;
@@ -913,19 +937,16 @@ namespace Stulu {
 		return false;
 	}
 	bool EditorLayer::onApplicationQuit(WindowCloseEvent& e) {
-		ST_PROFILING_FUNCTION();
 		if (s_runtime)
 			m_activeScene->onRuntimeStop();
 		return false;
 	}
 	bool EditorLayer::onGameObjectPick(MouseButtonDownEvent& e) {
-		ST_PROFILING_FUNCTION();
 		return false;
 	}
 #pragma endregion
 #pragma region Config
 	void EditorLayer::loadPanelConfig() {
-		ST_PROFILING_FUNCTION();
 		{
 			std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
 			if (!FileExists(file)) {
@@ -1009,7 +1030,6 @@ namespace Stulu {
 		return;
 	}
 	void EditorLayer::savePanelConfig() {
-		ST_PROFILING_FUNCTION();
 		{
 			std::string file = getEditorProject().configPath + "/editor-panel-config.ini";
 			std::remove(file.c_str());

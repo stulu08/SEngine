@@ -8,7 +8,7 @@ namespace Stulu {
 	/// <param name="gameObject"></param>
 	/// <returns></returns>
 	bool EditorInspectorPanel::render(bool* open) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("ImGui - Inspector");
 		if (ImGui::Begin("Inspector", open)) {
 			if (AssetMode) {
 				renderAssetInspector();
@@ -32,7 +32,6 @@ namespace Stulu {
 		return true;
 	}
 	void EditorInspectorPanel::renderGameObjectInspector() {
-		ST_PROFILING_FUNCTION();
 		GameObject& gameObject = EditorHierarchyPanel::getCurrentObject();
 		auto base = gameObject.getComponent<GameObjectBaseComponent>();
 
@@ -54,10 +53,6 @@ namespace Stulu {
 			drawComponent<MeshColliderComponent>(gameObject, "Mesh Collider");
 			drawComponent<PostProcessingComponent>(gameObject, "Post Processing");
 			drawComponent<ParticleSystemComponent>(gameObject, "Particle System");
-
-			if (gameObject.hasComponent<NativeScriptComponent>())
-				drawComponent<NativeScriptComponent>(gameObject, gameObject.getComponent<NativeScriptComponent>().name);
-
 
 			if (gameObject.hasComponent<ScriptingComponent>()) {
 				drawScriptingComponent(gameObject);
@@ -155,7 +150,6 @@ namespace Stulu {
 	}
 
 	void EditorInspectorPanel::renderAssetInspector() {
-		ST_PROFILING_FUNCTION();
 		Asset& selected = AssetBrowserPanel::GetSelected();
 		ImGui::TextWrapped("Asset %s", selected.path.c_str());
 		ImGui::Text("UUID %llu", selected.uuid);

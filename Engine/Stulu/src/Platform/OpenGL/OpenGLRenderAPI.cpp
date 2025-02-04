@@ -33,7 +33,6 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::init() {
-		ST_PROFILING_FUNCTION();
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		glEnable(GL_MULTISAMPLE);
@@ -60,7 +59,6 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setDefault() {
-		ST_PROFILING_FUNCTION();
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glEnable(GL_DEPTH_TEST);

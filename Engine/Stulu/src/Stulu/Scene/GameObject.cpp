@@ -3,10 +3,6 @@
 #include "Stulu/Scene/Components/Components.h"
 
 namespace Stulu {
-	GameObject GameObject::null = { entt::entity{ entt::null }, nullptr};
-	GameObject::GameObject(entt::entity entity, Scene* scene)
-		: m_entity(entity), m_scene(scene){
-	}
 	bool GameObject::isValid() const {
 		if (m_entity == entt::null || m_scene == nullptr)
 			return false;

@@ -12,29 +12,24 @@
 #include <Stulu/Core/Resources.h>
 namespace Stulu {
     void Stulu::Model::load(const std::string& path) {
-        ST_PROFILING_FUNCTION();
-
         Assimp::Importer importt;
         const aiScene* scene;
-        {
-            ST_PROFILING_SCOPE("reading file - Stulu::Model::load(const std::string&)");
-            scene = importt.ReadFile(path, 
-                aiProcess_Triangulate |
-                aiProcess_JoinIdenticalVertices |
-                aiProcess_GenUVCoords |
-                //aiProcess_SortByPType |
-                //aiProcess_RemoveRedundantMaterials |
-                //aiProcess_FlipWindingOrder | reverse backface culling
-                aiProcess_FindInvalidData |
-                //aiProcess_FlipUVs |
-                //aiProcess_CalcTangentSpace |
-                aiProcess_GenSmoothNormals |
-                aiProcess_ImproveCacheLocality |
-                aiProcess_OptimizeMeshes
-                //aiProcess_OptimizeGraph
-                //aiProcess_SplitLargeMeshes 
-            );
-        }
+        scene = importt.ReadFile(path,
+            aiProcess_Triangulate |
+            aiProcess_JoinIdenticalVertices |
+            aiProcess_GenUVCoords |
+            //aiProcess_SortByPType |
+            //aiProcess_RemoveRedundantMaterials |
+            //aiProcess_FlipWindingOrder | reverse backface culling
+            aiProcess_FindInvalidData |
+            //aiProcess_FlipUVs |
+            //aiProcess_CalcTangentSpace |
+            aiProcess_GenSmoothNormals |
+            aiProcess_ImproveCacheLocality |
+            aiProcess_OptimizeMeshes
+            //aiProcess_OptimizeGraph
+            //aiProcess_SplitLargeMeshes 
+        );
         
         if (!scene || scene->mFlags || !scene->mRootNode) {
             CORE_ERROR(importt.GetErrorString());
@@ -58,7 +53,6 @@ namespace Stulu {
     }
     
     void Stulu::Model::processNode(aiNode* node, const aiScene* scene, UUID& parent) {
-        ST_PROFILING_FUNCTION();
         MeshAsset mesh = { std::string(node->mName.data)};
         if (node->mNumMeshes > 0) {
             Mesh m;
@@ -121,7 +115,6 @@ namespace Stulu {
     }
 
     bool Model::loadMaterial(const aiScene* scene, uint32_t material) {
-        ST_PROFILING_FUNCTION();
         if (scene->mNumMaterials < material)
             return false;
         aiMaterial* aMat = scene->mMaterials[material];
@@ -291,11 +284,9 @@ namespace Stulu {
     }
     
     Mesh Stulu::Model::processMesh(aiMesh* mesh, const aiScene* scene) {
-        ST_PROFILING_FUNCTION();
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         {
-            ST_PROFILING_SCOPE("Vertices loading - Stulu::Model::processMesh(aiMesh*, const aiScene*)");
             for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
                 Vertex vertex;
                 glm::vec3 vector;
@@ -325,7 +316,6 @@ namespace Stulu {
             }
         }
         {
-            ST_PROFILING_SCOPE("Indices loading - Stulu::Model::processMesh(aiMesh*, const aiScene*)");
             for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
                 aiFace face = mesh->mFaces[i];
                 for (unsigned int j = 0; j < face.mNumIndices; j++) {
@@ -336,11 +326,9 @@ namespace Stulu {
         return Mesh(vertices, indices);
     }
     SubMesh Stulu::Model::processSubMesh(aiMesh* mesh, const aiScene* scene) {
-        ST_PROFILING_FUNCTION();
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         {
-            ST_PROFILING_SCOPE("Vertices loading - Stulu::Model::processMesh(aiMesh*, const aiScene*)");
             for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
                 Vertex vertex;
                 glm::vec3 vector;
@@ -367,7 +355,6 @@ namespace Stulu {
             }
         }
         {
-            ST_PROFILING_SCOPE("Indices loading - Stulu::Model::processMesh(aiMesh*, const aiScene*)");
             for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
                 aiFace face = mesh->mFaces[i];
                 for (unsigned int j = 0; j < face.mNumIndices; j++) {

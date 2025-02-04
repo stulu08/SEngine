@@ -6,7 +6,6 @@
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Scene/SceneCamera.h"
 #include "Stulu/Scene/Components/Components.h"
-#include "Stulu/Scene/Behavior.h"
 #include "Stulu/Math/Math.h"
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Application.h"
@@ -19,7 +18,6 @@
 
 namespace Stulu {
 	Scene::Scene() {
-		ST_PROFILING_FUNCTION();
 		m_renderer = createScope<SceneRenderer>(this);
 		if(Application::get().getAssemblyManager())
 			m_caller = createRef<EventCaller>(this);
@@ -31,7 +29,6 @@ namespace Stulu {
 			m_caller = createRef<EventCaller>(this);
 	}
 	Scene::~Scene() {
-		ST_PROFILING_FUNCTION();
 		m_uuidGameObjectMap.clear();
 		m_registry.clear();
 	}
@@ -50,6 +47,7 @@ namespace Stulu {
 		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject", uuid);
 		base.updateUUID(uuid);
 		go.addComponent<TransformComponent>();
+		m_caller->GameObjectCreate(go);
 		return go;
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
@@ -57,9 +55,8 @@ namespace Stulu {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
 		}
+		m_caller->GameObjectDestory(gameObject);
 		m_caller->onDestroy(gameObject);
-		if(gameObject.hasComponent<NativeScriptComponent>())
-			m_caller->DestructNative(gameObject);
 
 		if (m_data.enablePhsyics3D && gameObject.hasComponent<RigidbodyComponent>()) {
 			gameObject.removeComponent<RigidbodyComponent>();
@@ -80,7 +77,7 @@ namespace Stulu {
 	}
 
 	void Scene::onUpdateEditor(Timestep ts, SceneCamera& camera, bool render) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Scene - Editor Update");
 		s_activeScene = this;
 		updateAllTransforms();
 		m_renderer->LoadLights();
@@ -89,13 +86,12 @@ namespace Stulu {
 		}
 	}
 	void Scene::onUpdateRuntime(Timestep ts, bool render) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Scene - Runtime Update");
 		s_activeScene = this;
 		Time::time += ts;
 
 		if (m_firstRuntimeUpdate)
 			m_caller->onStart();
-		m_caller->onUpdate();
 
 		//calculations
 		if (m_data.enablePhsyics3D)
@@ -106,20 +102,18 @@ namespace Stulu {
 		if(render) {
 			renderScene();
 		}
-		//particle system updates while rendering
-		else {
-			updateParticles(false, true);
-		}
 		m_firstRuntimeUpdate = false;
 	}
 	void Scene::runtime_updatesetups() {
-		s_activeScene = this;
 		updateAllTransforms();
+		m_caller->onUpdate();
+		
 		m_renderer->LoadLights();
 		setupSceneForRendering(true);
 	}
 	void Scene::renderScene(bool callEvents) {
 		s_activeScene = this;
+		ST_PROFILING_SCOPE("Scene - Runtime Render");
 		//setupSceneForRendering(callEvents); //we do it while waiting for physx
 		auto& view = m_registry.view<CameraComponent>();
 		for (auto goID : view) {
@@ -129,7 +123,6 @@ namespace Stulu {
 	}
 
 	void Scene::setupSceneForRendering(bool callEvents) {
-		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		m_renderer->Begin();
 		//register all objects
@@ -147,7 +140,6 @@ namespace Stulu {
 	}
 
 	void Scene::renderSceneForCamera(GameObject go, bool callEvents) {
-		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		CameraComponent& cameraComp = go.getComponent<CameraComponent>();
 		TransformComponent& transformComp = go.getComponent<TransformComponent>();
@@ -178,18 +170,17 @@ namespace Stulu {
 		}
 
 		m_renderer->drawAll2d(transformComp);
-		updateParticles(true, true);
 		Renderer2D::flush();
 		cameraComp.getNativeCamera()->unbindFrameBuffer();
 	}
 	void Scene::closeSceneForRendering() {
-		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		m_renderer->End();
 	}
 
 	void Scene::renderSceneEditor(SceneCamera& camera) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Scene - Editor Render");
+
 		s_activeScene = this;
 		m_renderer->Begin();
 		{
@@ -227,7 +218,6 @@ namespace Stulu {
 		camera.getCamera()->bindFrameBuffer();
 		Renderer2D::begin();
 		m_renderer->drawAll2d(camera.getTransform());
-		updateParticles(true, false);
 		Renderer2D::flush();
 		camera.getCamera()->unbindFrameBuffer();
 
@@ -240,7 +230,6 @@ namespace Stulu {
 	}
 
 	void Scene::onRuntimeStart() {
-		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 		Time::time = .0f;
 		m_firstRuntimeUpdate = true;
@@ -248,7 +237,6 @@ namespace Stulu {
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
-		m_caller->ConstructNative();
 		m_caller->ConstructManaged();
 
 		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
@@ -263,13 +251,10 @@ namespace Stulu {
 		Time::deltaTime = .0f;
 	}
 	void Scene::onRuntimeStop() {
-		ST_PROFILING_FUNCTION();
 		s_activeScene = this;
 
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
-		m_caller->DestructNative();
-
 
 		Input::setCursorMode(Input::CursorMode::Normal);
 		if (m_data.enablePhsyics3D) {
@@ -278,7 +263,6 @@ namespace Stulu {
 	}
 
 	void Scene::setupPhysics() {
-		ST_PROFILING_FUNCTION();
 		if (!PhysX::started())
 			PhysX::startUp();
 		m_physics = createScope<PhysX>();
@@ -309,9 +293,9 @@ namespace Stulu {
 		if (Time::deltaTime == 0.0f || m_firstRuntimeUpdate) {
 			return;
 		}
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Scene - PhysX Update");
 		{
-			ST_PROFILING_SCOPE("Waiting for PhysX");
+			ST_PROFILING_SCOPE("Scene - Waiting for PhysX");
 			bool alreadyRun = false;
 			m_physics->getScene()->simulate(Time::deltaTime);
 			//we do as much as possible here
@@ -378,7 +362,8 @@ namespace Stulu {
 
 	std::unordered_map<entt::entity, bool> st_transform_updated;
 	void Scene::updateAllTransforms() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Scene - Transform Update");
+
 		st_transform_updated.clear();
 		auto view = m_registry.view<TransformComponent>();
 		for (auto id : view) {
@@ -390,35 +375,7 @@ namespace Stulu {
 		}
 		st_transform_updated.clear();
 	}
-	void Scene::updateParticles(bool render, bool update) {
-		auto particleView = m_registry.view<TransformComponent, ParticleSystemComponent>();
-		for (auto gameObject : particleView)
-		{
-			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
-			if (update) {
-				if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneUpdate) {
-					particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
-				}
-				else if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneStart && m_firstRuntimeUpdate) {
-					particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
-				}
-			}
-			if(render && update)
-				particle.updateDraw(Time::deltaTime);
-			else if(update)
-				particle.update(Time::deltaTime);
-			else if(render)
-				particle.draw();
-		}
-	}
-	void Scene::clearAllParticles() {
-		auto particleView = m_registry.view<TransformComponent, ParticleSystemComponent>();
-		for (auto gameObject : particleView)
-		{
-			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
-			particle.clear();
-		}
-	}
+	
 	void Scene::updateTransform(TransformComponent& tc) {
 		if (tc.parent) {
 			TransformComponent& ptc = tc.parent.getComponent<TransformComponent>();
@@ -450,7 +407,6 @@ namespace Stulu {
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
-		ST_PROFILING_FUNCTION();
 		m_viewportWidth = width;
 		m_viewportHeight = height;
 		auto view = m_registry.view<CameraComponent>();
@@ -472,7 +428,6 @@ namespace Stulu {
 	}
 
 	GameObject Scene::addModel(Model& model) {
-		ST_PROFILING_FUNCTION();
 		std::vector<MeshAsset>& vec = model.getMeshes();
 		GameObject root = createGameObject(std::filesystem::path(model.getDirectory()).filename().string());
 		for (MeshAsset& mesh : vec) {
@@ -486,7 +441,6 @@ namespace Stulu {
 		return root;
 	}
 	GameObject Scene::addMeshAssetsToScene(MeshAsset& mesh, Model& model) {
-		ST_PROFILING_FUNCTION();
 		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
 		auto& tc = go.getComponent<TransformComponent>();
 		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
@@ -509,7 +463,6 @@ namespace Stulu {
 		return go;
 	}
 	GameObject Scene::addMeshAssetToScene(MeshAsset& mesh) {
-		ST_PROFILING_FUNCTION();
 		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
 		if (mesh.hasMesh) {
 			go.addComponent<MeshFilterComponent>().mesh = mesh;
@@ -546,48 +499,6 @@ namespace Stulu {
 				}
 		}
 		return otherResult;
-	}
-
-	template<typename... Component>
-	static void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap) {
-		([&]()
-			{
-				auto view = src.view<Component>();
-				for (auto srcGameObject : view)
-				{
-					entt::entity dstGameObject = enttMap.at(src.get<GameObjectBaseComponent>(srcGameObject).getUUID());
-					auto& srcComponent = src.get<Component>(srcGameObject);
-					dst.emplace_or_replace<Component>(dstGameObject, srcComponent);
-					dst.get<Component>(dstGameObject).gameObject = GameObject(dstGameObject, Scene::activeScene());
-				}
-			}(), ...);
-	}
-
-	template<typename... Component>
-	static void CopyComponent(ComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& enttMap) {
-		CopyComponent<Component...>(dst, src, enttMap);
-	}
-
-	template<typename... Component>
-	static void CopyComponentIfExists(GameObject dst, GameObject src) {
-		([&]()
-			{
-				if (src.hasComponent<Component>())
-					dst.addOrReplaceComponent<Component>(src.getComponent<Component>());
-			}(), ...);
-	}
-
-	template<typename... Component>
-	static void CopyComponentIfExists(ComponentGroup<Component...>, GameObject dst, GameObject src) {
-		CopyComponentIfExists<Component...>(dst, src);
-	}
-
-	static void CopyAllComponents(entt::registry& dstSceneRegistry, entt::registry& srcSceneRegistry, const std::unordered_map<UUID, entt::entity>& enttMap) {
-		CopyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
-	}
-
-	static void CopyAllExistingComponents(GameObject dst, GameObject src) {
-		CopyComponentIfExists(AllComponents{}, dst, src);
 	}
 
 	void Scene::updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent) {
@@ -627,7 +538,6 @@ namespace Stulu {
 	}
 
 	Ref<Scene> Scene::copy(Ref<Scene> scene) {
-		ST_PROFILING_FUNCTION();
 		Ref<Scene> newScene = createRef<Scene>(scene->m_data);
 
 		newScene->m_viewportWidth = scene->m_viewportWidth;
@@ -655,7 +565,10 @@ namespace Stulu {
 		Scene* temp = s_activeScene;
 		s_activeScene = newScene.get();
 		// Copy components (except GameObjectBaseComponent)
-		CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
+		for (auto& [id, func] : Component::m_componentCopyList) {
+			func(dstSceneRegistry, srcSceneRegistry, enttMap);
+		}
+		//CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
 
 		s_activeScene = temp;
 

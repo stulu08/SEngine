@@ -10,7 +10,6 @@ namespace Stulu {
 	};
 
 	SubMesh::SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
-		ST_PROFILING_FUNCTION();
 		m_vertices = vertices;
 		m_indices = indices;
 		m_verticesCount = vertices.size();
@@ -26,21 +25,18 @@ namespace Stulu {
 		m_vertexArray->setIndexBuffer(indexBuffer);
 	}
 	Mesh::Mesh() {
-		ST_PROFILING_FUNCTION();
 		m_vertexArray = Stulu::VertexArray::create();
 		recalculate();
 	}
 	Mesh::~Mesh() {
 	}
 	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
-		ST_PROFILING_FUNCTION();
 		m_vertexArray = Stulu::VertexArray::create();
 		setVertices(vertices);
 		setIndices(indices);
 		recalculate();
 	}
 	Mesh::Mesh(Vertex* vertices, uint32_t verticesCount, uint32_t* indices, uint32_t indicesCount) {
-		ST_PROFILING_FUNCTION();
 		m_vertexArray = Stulu::VertexArray::create();
 		std::vector<Vertex> vertVec(vertices, vertices + verticesCount);
 		std::vector<uint32_t> indicVec(indices, indices + indicesCount);
@@ -50,7 +46,6 @@ namespace Stulu {
 	}
 
 	void Mesh::setVertices(const std::vector<Vertex>& vertices, const BufferLayout& layout) {
-		ST_PROFILING_FUNCTION();
 		if (!m_vertexArray->getVertexBuffers().empty())
 			m_vertexArray->clearVertexBuffers();
 
@@ -63,7 +58,6 @@ namespace Stulu {
 		m_vertexArray->addVertexBuffer(vertexBuffer);
 	}
 	void Mesh::setIndices(const std::vector<uint32_t>& indices) {
-		ST_PROFILING_FUNCTION();
 		m_indices = indices;
 		m_indicesCount = (uint32_t)m_indices.size();
 
@@ -73,11 +67,9 @@ namespace Stulu {
 
 
 	const void Mesh::recalculate() {
-		ST_PROFILING_FUNCTION();
 		m_boundingBox = VFC::createBoundingBox(this);
 	}
 	const void Mesh::calculateNormals() {
-		ST_PROFILING_FUNCTION();
 		if (m_vertices.size() == 0)
 			return;
 		size_t indexCount = m_indices.size();
@@ -115,7 +107,6 @@ namespace Stulu {
 	}
 
 	Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
-		ST_PROFILING_FUNCTION();
 		if (m_vertices.size() == 0)
 			return Vertex();
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
@@ -141,7 +132,6 @@ namespace Stulu {
 		return furthest;
 	}
 	glm::vec3 Mesh::getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
-		ST_PROFILING_FUNCTION();
 		if (m_vertices.size() == 0)
 			return glm::vec3(0.f);
 		if (vertLimit == 0 || vertLimit > getVerticesCount())
@@ -170,7 +160,6 @@ namespace Stulu {
 		return { maxX,maxY,maxZ };
 	}
 	Mesh Mesh::copyAndLimit(const Ref<Mesh>& srcMesh, uint64_t vertLimit) {
-		ST_PROFILING_FUNCTION();
 		if (vertLimit == 0 || vertLimit > srcMesh->getVerticesCount())
 			vertLimit = srcMesh->getVerticesCount();
 
@@ -197,7 +186,6 @@ namespace Stulu {
 		return combine(createRef<Mesh>(mesh));
 	}
 	Mesh Mesh::combine(const Ref<Mesh>& mesh) {
-		ST_PROFILING_FUNCTION();
 		if (mesh->m_subMeshCount == 0)
 			return *mesh.get();
 

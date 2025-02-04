@@ -53,8 +53,8 @@ namespace Stulu {
 		default:
 			break;
 		};
-		if (s_enabled)
-			glfwSetInputMode(static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow()), GLFW_CURSOR, m);
+		
+		glfwSetInputMode(static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow()), GLFW_CURSOR, m);
 	}
 	Input::CursorMode Input::getCursorMode() {
 		uint32_t mode = glfwGetInputMode(static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow()), GLFW_CURSOR);
@@ -123,7 +123,6 @@ namespace Stulu {
 	}
 
 	void Input::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<KeyDownEvent>(onKeyDown);
 		dispacther.dispatch<KeyUpEvent>(onKeyUp);
@@ -132,7 +131,6 @@ namespace Stulu {
 	}
 
 	void Input::update() {
-		ST_PROFILING_FUNCTION();
 		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos);
 		m_lastMouseXPos = Input::getMouseX();
 		m_lastMouseYPos = Input::getMouseY();

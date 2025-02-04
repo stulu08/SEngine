@@ -2,7 +2,8 @@
 #include "Profiling.h"
 namespace Stulu {
 	void ProfilingPanel::draw(Timestep& timestep, bool* open) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("ImGui - Profiling");
+
 		if (ImGui::Begin("Profiling", open)) {
 
 			bool update = false;
@@ -12,7 +13,49 @@ namespace Stulu {
 			}
 			m_updateTimer += timestep;
 
-			if(ImGui::TreeNodeEx("Frametime", ImGuiTreeNodeFlags_DefaultOpen)){
+#ifdef ST_PROFILING
+			if (ImGui::CollapsingHeader("Timing", ImGuiTreeNodeFlags_DefaultOpen)) {
+				if (update) {
+					timingGroups.clear();
+					timingGroups.insert({ "All", {} });
+
+					for (const auto& [name, time] : Profiler::GetInstance()) {
+						const std::string nameStr = name;
+						const size_t searchPos = nameStr.find_first_of("-");
+
+						if (searchPos == nameStr.npos) {
+							timingGroups["Other"].push_back({ name, time });
+						}
+						else {
+							const std::string group = nameStr.substr(0, searchPos);
+							const std::string clearName = nameStr.substr(searchPos + 1);
+							timingGroups[group].push_back({ clearName, time });
+						}
+
+						timingGroups["All"].push_back({ name, time });
+					}
+					for (auto& [name, timings] : timingGroups) {
+						std::sort(timings.begin(), timings.end(), [](const auto& left, const auto& right) { return left.second > right.second; });
+					}
+
+					lastTiming = timestep.getMilliseconds();
+					Profiler::GetInstance().Refresh();
+				}
+				
+				for (auto& [name, timings] : timingGroups) {
+					if (ImGui::TreeNodeEx(name.c_str())) {
+						for (const auto& [name, time] : timings) {
+							std::stringstream display;
+							display << name << ": " << std::fixed << std::setprecision(3) << time << "ms";
+							ImGui::ProgressBar((float)time / lastTiming, ImVec2(0.0f, 0.0f), display.str().c_str());
+						}
+						ImGui::TreePop();
+					}
+				}
+
+			}
+#endif
+			if(ImGui::CollapsingHeader("Frametime", ImGuiTreeNodeFlags_DefaultOpen)){
 				if (update) {
 					m_fps.push_back(1.0f / timestep);
 					if (m_fps.size() > 99)
@@ -28,10 +71,9 @@ namespace Stulu {
 				}
 				ImGui::PlotLines("FPS", m_fps.data(), (int)m_fps.size(), 0, (std::to_string(m_fAvg)).c_str(), 0.0f, m_fAvg + m_fAvg / 2.0f);
 				ImGui::PlotLines("Deltatime", m_delta.data(), (int)m_delta.size(), 0, (std::to_string(m_dAvg) + "ms").c_str(), 0.0f, m_dAvg + m_dAvg / 2.0f);
-				ImGui::TreePop();
 			}
 
-			if (ImGui::TreeNodeEx("Memory Usage", ImGuiTreeNodeFlags_DefaultOpen)) {
+			if (ImGui::CollapsingHeader("Memory Usage")) {
 				MemoryUsageInfo info = Platform::getMemoryUsage();
 
 				float virt = static_cast<float>(info.virtualUsedByProcess) / 1048576;
@@ -51,10 +93,10 @@ namespace Stulu {
 
 				ImGui::PlotLines("Virtual ", m_virtualM.data(), (int)m_virtualM.size(), 0, (std::to_string(m_vAvg) + "mb").c_str(), m_vAvg - m_vAvg / 2.0f, m_vAvg + m_vAvg / 2.0f);
 				ImGui::PlotLines("Physical", m_physical.data(), (int)m_physical.size(), 0, (std::to_string(m_pAvg) + "mb").c_str(), m_pAvg - m_pAvg / 2.0f, m_pAvg + m_pAvg / 2.0f);
-				ImGui::TreePop();
 			}
+
 #if ST_PROFILING_RENDERDATA
-			if (ImGui::TreeNodeEx("Runtime Render Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+			if (ImGui::CollapsingHeader("Runtime Render Data", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::Text("Runtime time: %.1f", Time::time.getSeconds());
 				if (ImGui::TreeNodeEx("RenderStats", ImGuiTreeNodeFlags_DefaultOpen, "Render Stats")) {
 					ImGui::Text("Drawcalls: %d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
@@ -63,7 +105,6 @@ namespace Stulu {
 					ImGui::Text("Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
 					ImGui::TreePop();
 				}
-				ImGui::TreePop();
 			}
 #endif
 		}

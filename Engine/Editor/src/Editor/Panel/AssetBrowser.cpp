@@ -25,7 +25,7 @@ namespace Stulu {
 	static float icoSize = 70.0f;
 
 	void AssetBrowserPanel::render(bool* open) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("ImGui - Assert Browser");
 		std::string pathBefore = m_path.string();
 		bool openCreatePopUp = false;
 		if (ImGui::Begin("Assets"), open) {
@@ -174,7 +174,6 @@ namespace Stulu {
 	}
 
 	void AssetBrowserPanel::drawCreateFilePopUp() {
-		ST_PROFILING_FUNCTION();
 		if (ImGui::BeginPopupModal("Create File", 0)) {
 			createPopUpUIFunc();
 			bool disabled = createPopUpFileName.empty();

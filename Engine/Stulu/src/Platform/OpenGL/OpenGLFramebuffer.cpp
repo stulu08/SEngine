@@ -27,7 +27,6 @@ namespace Stulu {
 
 	OpenGLFramebuffer::OpenGLFramebuffer(const FrameBufferSpecs& specs)
 		: m_specs(specs) {
-		ST_PROFILING_FUNCTION();
 
 		glCreateFramebuffers(1, &m_rendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
@@ -40,7 +39,6 @@ namespace Stulu {
 
 	OpenGLFramebuffer::OpenGLFramebuffer(const FrameBufferSpecs& specs, const TextureSettings& colorBuffer, const TextureSettings& depthBuffer)
 		: m_specs(specs) {
-		ST_PROFILING_FUNCTION();
 
 		glCreateFramebuffers(1, &m_rendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
@@ -63,8 +61,6 @@ namespace Stulu {
 	}
 
 	OpenGLFramebuffer::~OpenGLFramebuffer() {
-		ST_PROFILING_FUNCTION();
-
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		
 		//for (uint32_t i = 0; i < m_colorAttachments.size(); i++) {
@@ -88,7 +84,6 @@ namespace Stulu {
 	}
 	
 	void OpenGLFramebuffer::invalidate() {
-		ST_PROFILING_FUNCTION();
 		if (m_rendererID) {
 			glDeleteFramebuffers(1, &m_rendererID);
 		}
@@ -117,7 +112,6 @@ namespace Stulu {
 
 	}
 	void OpenGLFramebuffer::resize(uint32_t width, uint32_t height) {
-		ST_PROFILING_FUNCTION();
 		m_specs.width = width;
 		m_specs.height = height;
 		invalidate();

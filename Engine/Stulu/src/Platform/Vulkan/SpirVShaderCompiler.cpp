@@ -153,6 +153,12 @@ namespace Stulu {
 		return false;
 	}
 	std::string SpirVShaderCompiler::ApplyHeaders(const std::string& src) const {
-		return std::string();
+		std::stringstream stream;
+		for (const auto& header : m_headers) {
+			stream << header << std::endl;
+		}
+		stream << "/* Stulu SpirV Shader Compiler Headers End */" << std::endl;
+		stream << src;
+		return stream.str();
 	}
 }

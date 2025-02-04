@@ -11,7 +11,6 @@
 namespace Stulu {
 	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) 
 		: m_corePath(coreAssemblyPath), m_appPath(assemblyPath) {
-		ST_PROFILING_FUNCTION();
 		
 		InitMono();
 		CreateAppDomain();
@@ -20,7 +19,6 @@ namespace Stulu {
 	}
 
 	AssemblyManager::~AssemblyManager() {
-		ST_PROFILING_FUNCTION();
 		m_monoDomain.Set(true);
 		m_coreDomain.Unload();
 
@@ -58,10 +56,6 @@ namespace Stulu {
 		RegisterProperty<Vector4Property>("Stulu.Vector4");
 		RegisterProperty<Texture2DProperty>("Stulu.Texture2D");
 		RegisterProperty<GameObjectProperty>("Stulu.GameObject");
-
-		RegisterComponent<TransformComponent>("Stulu.TransformComponent");
-		RegisterComponent<RigidbodyComponent>("Stulu.RigidbodyComponent");
-		RegisterComponent<SpriteRendererComponent>("Stulu.SpriteRendererComponent");
 
 		m_gameObjectAttachedClass = m_scriptCoreAssembly->CreateClass("Stulu", "GameObjectAttached");
 		m_componentClass = m_scriptCoreAssembly->CreateClass("Stulu", "Component");

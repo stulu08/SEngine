@@ -24,8 +24,8 @@ namespace Stulu {
 		uint32_t shaderFlags = 0;
 	};
 
+	class GameObject;
 	class STULU_API SceneCamera;
-	class STULU_API GameObject;
 	class STULU_API MonoObjectInstance;
 	class STULU_API SceneRenderer;
 	class STULU_API EventCaller;
@@ -69,17 +69,15 @@ namespace Stulu {
 		void runtime_updatesetups();
 		void updateTransform(TransformComponent& tc);
 		void updateAllTransforms();
-		void updateParticles(bool render, bool update);
-		void clearAllParticles();
 		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
 		GameObject findGameObjectByName(const std::string& name);
 
 		template<typename... Components>
-		auto getAllGameObjectsWith() {
+		inline auto getAllGameObjectsWith() {
 			return m_registry.view<Components...>();
 		}
 		template<typename... Components>
-		auto getAllGameObjectsAsGroupWith() {
+		inline auto getAllGameObjectsAsGroupWith() {
 			return m_registry.group<Components...>();
 		}
 
@@ -91,8 +89,6 @@ namespace Stulu {
 		//needs setup and closing
 		void renderSceneForCamera(GameObject gameObject, bool callEvents = true);
 		void closeSceneForRendering();
-
-		void* UserData = nullptr;
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 		SceneData m_data;

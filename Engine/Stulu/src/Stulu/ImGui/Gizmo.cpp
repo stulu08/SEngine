@@ -70,7 +70,6 @@ namespace Stulu {
 	}
 
 	void Gizmo::init() {
-		ST_PROFILING_FUNCTION();
 		FrameBufferSpecs specs;
 		specs.width = Application::get().getWidth();
 		specs.height = Application::get().getHeight();
@@ -174,7 +173,6 @@ namespace Stulu {
 		}
 	}
 	void Gizmo::Begin() {
-		ST_PROFILING_FUNCTION();
 		//check for resize
 		if (s_data.mWidth != s_data.drawBuffer->getColorAttachment()->getWidth() || s_data.mHeight != s_data.drawBuffer->getColorAttachment()->getHeight()) {
 			s_data.drawBuffer->resize((uint32_t)s_data.mWidth, (uint32_t)s_data.mHeight);
@@ -197,7 +195,7 @@ namespace Stulu {
 		Renderer2D::begin();
 	}
 	void Gizmo::End() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Gizmo - Render Pass");
 		flushCubes();
 		flushSpheres();
 		Renderer2D::flush();
@@ -446,7 +444,6 @@ namespace Stulu {
 		s_data.sphereDataBufferPtr = s_data.sphereDataBufferBase;
 	}
 	void Gizmo::flushCubes() {
-		ST_PROFILING_FUNCTION();
 		if (s_data.cubeIndexCount > 0) {
 			uint32_t dataSize = uint32_t((uint8_t*)s_data.cubeVertexBufferPtr - (uint8_t*)s_data.cubeVertexBufferBase);
 			s_data.cubeVertexBuffer->setData(s_data.cubeVertexBufferBase, dataSize);
@@ -456,7 +453,6 @@ namespace Stulu {
 		}
 	}
 	void Gizmo::flushSpheres() {
-		ST_PROFILING_FUNCTION();
 		if (s_data.sphereInstanceCount > 0) {
 			
 			uint32_t dataSize = uint32_t((uint8_t*)s_data.sphereDataBufferPtr - (uint8_t*)s_data.sphereDataBufferBase);

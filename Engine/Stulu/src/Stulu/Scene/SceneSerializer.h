@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Scene/Scene.h"
+#include "Stulu/Scene/YAML.h"
 
 namespace Stulu {
 	class STULU_API SceneSerializer {
@@ -12,6 +13,8 @@ namespace Stulu {
 
 		static std::vector<UUID> getAllSceneAssets(const std::vector<std::string> scenes);
 	private:
+		void SerializerGameObject(YAML::Emitter& out, GameObject gameObject);
+
 		Ref<Scene> m_scene;
 	};
 }

@@ -3,8 +3,6 @@
 
 namespace Stulu {
 	Application* Stulu::CreateApplication(int argc, char** argv) {
-		ST_PROFILING_FUNCTION();
-
 		std::string path = "";
 		if (argc > 1) {
 			path = argv[1];
@@ -34,8 +32,9 @@ namespace Stulu {
 		info.DataPath = "Data";
 		info.AppPath = path;
 		info.AppAssetPath = Project::Main->assetPath;
-		info.AppAssembly = Project::Main->getBinariesDir() + "/ManagedAssembly.dll";
 		info.AppCachePath = Project::Main->path + "/Compiler/";
+		info.AppManagedAssembly = Project::Main->getBinariesDir() + "/Managed/ManagedAssembly.dll";
+		info.AppNativeAssembly = Project::Main->getBinariesDir() + "/Native/NativeAssembly.dll";
 		info.HideWindowOnSart = false;
 		info.EnableImgui = true;
 		info.LoadDefaultAssets = true;
@@ -46,7 +45,6 @@ namespace Stulu {
 
 	EditorApp::EditorApp(const ApplicationInfo& info)
 		: Application(info) {
-		ST_PROFILING_FUNCTION();
 		s_instance = this;
 
 		getWindow().setVSync(false);
@@ -65,7 +63,6 @@ namespace Stulu {
 		getWindow().show();
 	}
 	EditorApp::~EditorApp() {
-		ST_PROFILING_FUNCTION();
 		getEditorLayer().savePanelConfig(); 
 		StyleEditor::saveAll();
 	}

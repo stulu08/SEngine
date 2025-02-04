@@ -5,19 +5,19 @@ namespace Stulu {
 	extern Application* Stulu::CreateApplication(int argc, char** argv);
 
 	int main_entry(int argc, char** argv) {
-		ST_PROFILING_BEGIN("Startup", "Profiling-Startup.json");
+		ST_FILE_PROFILING_BEGIN("Startup", "Profiling-Startup.json");
 		Stulu::Log::init();
 		auto application = Stulu::CreateApplication(argc, argv);
-		ST_PROFILING_END();
+		ST_FILE_PROFILING_END();
 
-		ST_PROFILING_BEGIN("Runtime", "Profiling-Runtime.json");
+		ST_FILE_PROFILING_BEGIN("Runtime", "Profiling-Runtime.json");
 		application->run();
-		ST_PROFILING_END();
+		ST_FILE_PROFILING_END();
 
-		ST_PROFILING_BEGIN("Shutdown", "Profiling-Shutdown.json");
+		ST_FILE_PROFILING_BEGIN("Shutdown", "Profiling-Shutdown.json");
 		delete application;
 		CORE_INFO("Ended");
-		ST_PROFILING_END();
+		ST_FILE_PROFILING_END();
 
 		return 0;
 	}

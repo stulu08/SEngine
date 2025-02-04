@@ -26,16 +26,13 @@ namespace Stulu {
 	}
 
 	OpenGLVertexArray::OpenGLVertexArray() {
-		ST_PROFILING_FUNCTION();
 		glCreateVertexArrays(1, &m_rendererID);
 	}
 	OpenGLVertexArray::~OpenGLVertexArray() {
-		ST_PROFILING_FUNCTION();
 		glDeleteVertexArrays(1, &m_rendererID);
 	}
 
 	void OpenGLVertexArray::addVertexBuffer(const Ref<VertexBuffer>& vBuffer) {
-		ST_PROFILING_FUNCTION();
 		CORE_ASSERT(vBuffer->getLayout().getElements().size(), "Vertexbuffer has no layout");
 		glBindVertexArray(m_rendererID);
 		vBuffer->bind();
@@ -54,7 +51,6 @@ namespace Stulu {
 	}
 
 	void OpenGLVertexArray::clearVertexBuffers() {
-		ST_PROFILING_FUNCTION();
 		glBindVertexArray(m_rendererID);
 		for (auto& vb : m_vertexBufffers) {
 			vb->unbind();
@@ -64,7 +60,6 @@ namespace Stulu {
 	}
 
 	void OpenGLVertexArray::setIndexBuffer(const Ref<IndexBuffer>& iBuffer) {
-		ST_PROFILING_FUNCTION();
 		glBindVertexArray(m_rendererID);
 		iBuffer->bind();
 		m_indexBuffer = iBuffer;

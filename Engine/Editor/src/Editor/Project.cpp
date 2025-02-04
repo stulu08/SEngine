@@ -12,7 +12,6 @@ namespace Stulu {
 		name = path.substr(lastS, path.size() - lastS);
 	}
 	void Project::generateProjectFiles() {
-		ST_PROFILING_FUNCTION();
 		const auto& cPath = std::filesystem::absolute(std::filesystem::current_path());
 		const auto& instalPath = std::filesystem::absolute(cPath.string() + "/../../../../");
 		const std::string installDir = "--InstallDir=" + instalPath.string();
@@ -26,15 +25,15 @@ namespace Stulu {
 		std::filesystem::current_path(cPath);
 	}
 
-	void Project::compileAssembly() {
+	void Project::compileAssembly(bool fullbuild) {
 		generateProjectFiles();
-		const std::string target = getBinariesDir() + "/ManagedAssembly.dll";
+		const std::string target = getBinariesDir() + "/Managed/ManagedAssembly.dll";
 
 		if (std::filesystem::exists(target))
 			std::filesystem::remove(target);
 
 		CORE_INFO("Compiling {0}", target);
-		if (system(createBuildFile().c_str())) {
+		if (system(createBuildFile(fullbuild).c_str())) {
 			CORE_ERROR("Compiling failed: {0}", target);
 		}
 		if (std::filesystem::exists(target)) {
@@ -46,8 +45,7 @@ namespace Stulu {
 			}
 		}
 	}
-	std::string Project::createBuildFile() {
-		ST_PROFILING_FUNCTION();
+	std::string Project::createBuildFile(bool fullbuild) {
 		if (!std::filesystem::exists(path + "/Compiler"))
 			std::filesystem::create_directories(path + "/Compiler");
 		const std::string file = path + "/Compiler/Build.bat";
@@ -76,7 +74,8 @@ namespace Stulu {
 			fileStream << "Dist";
 			break;
 		}
-		fileStream << " /target:\"Managed Assembly\"";
+		if(!fullbuild)
+			fileStream << " /target:\"Managed Assembly\";\"Native Assembly\"";
 		fileStream << " -verbosity:minimal -maxcpucount:" << std::max(std::thread::hardware_concurrency() / 2u, 1u);
 		fileStream << " -nologo";
 

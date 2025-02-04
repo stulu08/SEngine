@@ -45,7 +45,6 @@ namespace Stulu {
 			add(uuid, path, assetTypeFromExtension(path.substr(path.find_last_of('.'), path.npos)));
 	}
 	void AssetsManager::add(const UUID& uuid, const std::string& path, const AssetType type) {
-		ST_PROFILING_FUNCTION();
 		if (!FileExists(path)) {
 			createMeta(uuid, path, type);
 		}
@@ -131,7 +130,6 @@ namespace Stulu {
 	}
 
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
-		ST_PROFILING_FUNCTION();
 		if ((uuid == 301|| uuid == 302) && assets.find(uuid) != assets.end()) {
 			CORE_ASSERT(false, "White or Black Texture is being overwritten");
 			return;
@@ -170,7 +168,6 @@ namespace Stulu {
 	}
 
 	void AssetsManager::remove(const UUID& uuid, bool deleteFile, bool deleteMetaFile) {
-		ST_PROFILING_FUNCTION();
 		if (exists(uuid)) {
 			Asset& asset = assets[uuid];
 			if (asset.type == AssetType::Directory) {
@@ -299,7 +296,6 @@ namespace Stulu {
 	}
 
 	void AssetsManager::loadAllFiles(const std::string& directory, bool loadNewFiles) {
-		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading all files from directory: {0}", directory);
 
 		if (progressCallback) {
@@ -316,7 +312,6 @@ namespace Stulu {
 		loadDirectory(directory, loadNewFiles);
 	}
 	void AssetsManager::loadDirectory(const std::string& directory, bool loadNewFiles) {
-		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Files: {0}", directory);
 		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
 			
@@ -339,7 +334,6 @@ namespace Stulu {
 		}
 	}
 	void AssetsManager::loadShaders(const std::string& directory, bool loadNewFiles) {
-		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Shaders: {0}", directory);
 		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
 			
@@ -358,7 +352,6 @@ namespace Stulu {
 		}
 	}
 	void AssetsManager::loadTextures(const std::string& directory, bool loadNewFiles) {
-		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Textures: {0}", directory);
 		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
 			
@@ -391,7 +384,6 @@ namespace Stulu {
 		}
 	}
 	void AssetsManager::loadMaterials(const std::string& directory, bool loadNewFiles) {
-		ST_PROFILING_FUNCTION();
 		CORE_TRACE("Loading Material: {0}", directory);
 		for (auto& dir : std::filesystem::recursive_directory_iterator(directory)) {
 			
@@ -444,7 +436,6 @@ namespace Stulu {
 		_createMeshesFromModel(asset, model);
 	}
 	void AssetsManager::_createMeshesFromModel(const Asset asset, Model& model) {
-		ST_PROFILING_FUNCTION();
 		YAML::Node data = YAML::LoadFile(asset.path + ".meta");
 		//uuid, index in model
 		std::unordered_map<UUID, size_t> meshesUuids;
@@ -518,7 +509,6 @@ namespace Stulu {
 	}
 
 	void AssetsManager::createMeta(const UUID& uuid, const std::string& path, const AssetType type) {
-		ST_PROFILING_FUNCTION();
 		YAML::Node props;
 		bool hasProps = false;
 		if (FileExists(path + ".meta")) {

@@ -148,26 +148,20 @@ namespace Stulu {
 
 	OpenGLShader::OpenGLShader(const std::string& name, const ShaderCompileResult& sources)
 		: m_name(name) {
-		ST_PROFILING_FUNCTION();
 		link(sources);
 	}
 
 	OpenGLShader::~OpenGLShader() {
-		ST_PROFILING_FUNCTION();
 		glDeleteProgram(m_rendererID);
 	}
 
 	void OpenGLShader::reload(const ShaderCompileResult& sources) {
-		ST_PROFILING_FUNCTION();
-
 		glDeleteProgram(m_rendererID);
 		m_rendererID = 0;
-
 		link(sources);
 	}
 
 	void OpenGLShader::link(const ShaderCompileResult& sources) {
-		ST_PROFILING_FUNCTION();
 		GLuint rendererID = glCreateProgram();
 		std::vector<GLenum> shaderIds;
 
@@ -247,7 +241,6 @@ namespace Stulu {
 	}
 
 	void OpenGLShader::Dispatch(const glm::uvec3& size, uint32_t usage) {
-		ST_PROFILING_FUNCTION();
 		glUseProgram(m_rendererID);
 		glDispatchCompute(size.x, size.y, size.z);
 		if (usage != ComputeUsage::None)

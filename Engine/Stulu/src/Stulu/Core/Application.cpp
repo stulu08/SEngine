@@ -27,7 +27,6 @@ namespace Stulu {
 
 	Application::Application(const ApplicationInfo& appInfo)
 		:m_appInfo(appInfo) {
-		ST_PROFILING_FUNCTION();
 		s_instance = this;
 
 		Resources::EngineDataDir = appInfo.DataPath;
@@ -35,7 +34,9 @@ namespace Stulu {
 		Resources::AppAssetDir = appInfo.AppAssetPath;
 
 		Renderer::s_data.api = appInfo.api;
-		
+
+		Module::LoadBaseModules();
+
 		m_window = Window::create(m_appInfo.WindowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
@@ -55,12 +56,18 @@ namespace Stulu {
 			Resources::load();
 		}
 
-		if(!appInfo.AppAssembly.empty())
-			m_assembly = createRef<AssemblyManager>(appInfo.AppAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
+		if(!appInfo.AppManagedAssembly.empty())
+			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
+
+		Component::RegisterBaseComponents();
 
 		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
+		}
+
+		for (auto& module : m_moduleStack) {
+			m_layerStack.pushLayer(module->GetLayer());
 		}
 
 		if (appInfo.LoadDefaultAssets) {
@@ -69,9 +76,12 @@ namespace Stulu {
 
 	}
 	Application::~Application() {
-		ST_PROFILING_FUNCTION();
 		Renderer2D::shutdown();
 		m_window.reset();
+
+		m_layerStack.deleteAll();
+		m_layerStack.clear();
+		m_moduleStack.clear();
 	}
 	void Application::pushLayer(Layer* layer) {
 		m_layerStack.pushLayer(layer);
@@ -85,13 +95,16 @@ namespace Stulu {
 	void Application::popOverlay(Layer* layer) {
 		m_layerStack.popOverlay(layer);
 	}
-
+	Application& Application::get() {
+		return *s_instance;
+	}
 	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
 		return m_assembly->getScriptCoreAssembly();
 	}
 
 	void Application::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Application - Events");
+
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
@@ -109,7 +122,7 @@ namespace Stulu {
 		m_lastFrameTime = Platform::getTime();
 		m_runnig = true;
 		while (m_runnig) {
-			ST_PROFILING_SCOPE("Run Loop");
+			ST_PROFILING_SCOPE("Application - Loop");
 			// update input
 			m_window->onUpdate();
 			Input::update();
@@ -127,20 +140,28 @@ namespace Stulu {
 			
 			if (!m_minimized) {
 				ST_PROFILING_RENDERDATA_BEGIN();
-				// update every layer
-				for (Layer* layer : m_layerStack) {
-					layer->onUpdate(delta);
+				{
+					ST_PROFILING_SCOPE("Application - Layer Updates");
+
+					// update every layer
+					for (Layer* layer : m_layerStack) {
+						layer->onUpdate(delta);
+					}
 				}
 
 				if (m_appInfo.EnableImgui) {
 					// update imgui
-					ST_PROFILING_SCOPE("ImGui - Update");
+					ST_PROFILING_SCOPE("Application - ImGui Updates");
 					m_imguiLayer->Begin();
-					for (Layer* layer : m_layerStack) {
-						layer->onImguiRender(delta);
-					}
-					for (Layer* layer : m_layerStack) {
-						layer->onRenderGizmo();
+					{
+						ST_PROFILING_SCOPE("ImGui - Layer Updates");
+
+						for (Layer* layer : m_layerStack) {
+							layer->onImguiRender(delta);
+						}
+						for (Layer* layer : m_layerStack) {
+							layer->onRenderGizmo();
+						}
 					}
 					m_imguiLayer->End();
 				}
@@ -152,8 +173,6 @@ namespace Stulu {
 		}
 	}
 	void Application::exit(int32_t code) {
-		ST_PROFILING_FUNCTION();
-
 		if (s_instance == nullptr) {
 			CORE_CRITICAL("Application can't shut down! It hasn't been created yet");
 			return;
@@ -169,12 +188,10 @@ namespace Stulu {
 		return;
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
-		ST_PROFILING_FUNCTION();
 		exit(0);
 		return m_runnig;
 	}
 	bool Application::onWindowResize(WindowResizeEvent& e) {
-		ST_PROFILING_FUNCTION();
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
 		m_minimized ? 0 : Renderer::onWindowResize(e);
 		return m_minimized;

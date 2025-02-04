@@ -13,7 +13,6 @@ namespace Stulu {
 		m_rendererID = internalID;
 	}
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings) {
-		ST_PROFILING_FUNCTION();
 		m_width = width;
 		m_height = height;
 		m_settings = settings;
@@ -31,11 +30,9 @@ namespace Stulu {
 	}
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, const TextureSettings& settings)
 		:m_path(path), m_settings(settings) {
-		ST_PROFILING_FUNCTION();
 		update();
 	}
 	OpenGLTexture2D::~OpenGLTexture2D() {
-		ST_PROFILING_FUNCTION();
 		glDeleteTextures(1, &m_rendererID);
 	}
 	void OpenGLTexture2D::bind(uint32_t slot) const {
@@ -64,24 +61,24 @@ namespace Stulu {
 		return data;
 	}
 	void OpenGLTexture2D::update() {
-		ST_PROFILING_FUNCTION();
 		if (m_rendererID)
-			glDeleteTextures(1, &m_rendererID);
+			glDeleteTextures(1, &m_rendererID)
+			;
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
+
 		void* textureData = nullptr;
 		bool isFloatData = false;
-		{
-			ST_PROFILING_SCOPE("reading file - OpenGLTexture2D::update(const std::string&)");
-			if (isTextureFileFloat(m_path.c_str())) {
-				textureData = stbi_loadf(m_path.c_str(), &width, &height, &channels, 0);
-				isFloatData = true;
-			}
-			else {
-				textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
-			}
-			CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
+
+		if (isTextureFileFloat(m_path.c_str())) {
+			textureData = stbi_loadf(m_path.c_str(), &width, &height, &channels, 0);
+			isFloatData = true;
 		}
+		else {
+			textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
+		}
+
+		CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
 		m_width = width;
 		m_height = height;
 		

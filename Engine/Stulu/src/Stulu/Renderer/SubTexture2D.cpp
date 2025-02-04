@@ -6,7 +6,6 @@ namespace Stulu {
 
 	SubTexture2D::SubTexture2D(const Ref<Texture2D>& texture, const glm::vec2& min, const glm::vec2& max)
 		:m_texture(texture) {
-		ST_PROFILING_FUNCTION();
 		m_texCoords[0] = { min.x, min.y };
 		m_texCoords[1] = { max.x, min.y };
 		m_texCoords[2] = { max.x, max.y };

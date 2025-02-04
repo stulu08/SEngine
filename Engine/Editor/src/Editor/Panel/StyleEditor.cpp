@@ -95,7 +95,6 @@ namespace Stulu {
     }
     void StyleEditor::loadFonts() {
         //we need to make sure everytime the fonts have the same index, so we create a file to store the index
-        ST_PROFILING_FUNCTION();
         ST_TRACE("Loading all Fonts from {0}", getEditorDataPath() + "/Fonts/");
         std::string file = getEditorDataPath() + "/Fonts/fonts.txt";
         std::vector<std::string> fonts;
@@ -146,7 +145,6 @@ namespace Stulu {
         stream.close();
     }
     void StyleEditor::init() {
-        ST_PROFILING_FUNCTION();
         ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         ImGui::LoadIniSettingsFromDisk(io.IniFilename);
@@ -171,7 +169,6 @@ namespace Stulu {
         style.Alpha = data.GlobalAlpha;
     }
     StyleEditor::StyleFileData StyleEditor::load() {
-        ST_PROFILING_FUNCTION();
         StyleFileData data;
         std::string file = getEditorProject().configPath + "/editor-style.ini";
         if (!FileExists(file)) {
@@ -214,7 +211,6 @@ namespace Stulu {
         return data;
     }
     void StyleEditor::save() {
-        ST_PROFILING_FUNCTION();
         std::string file = getEditorProject().configPath + "/editor-style.ini";
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         ImGuiStyle& style = ImGui::GetStyle();
@@ -240,7 +236,8 @@ namespace Stulu {
         ST_TRACE("Saved Editor style config to {0}", file);
     }
     void StyleEditor::drawStyleEditor(ImGuiStyle* ref, bool* open) {
-        ST_PROFILING_FUNCTION();
+        ST_PROFILING_SCOPE("ImGui - Style Editor");
+
         ImGuiStyle& style = ImGui::GetStyle();
         static ImGuiStyle ref_saved_style;
 
@@ -489,7 +486,6 @@ namespace Stulu {
         
     }
     void StyleEditor::saveColors() {
-        ST_PROFILING_FUNCTION();
         std::string file = getEditorProject().configPath + "/personal-colors.ini";
         ImGuiStyle* style = &ImGui::GetStyle();
         ImVec4* colors = style->Colors;
@@ -502,7 +498,6 @@ namespace Stulu {
         ST_TRACE("Saved Editor style colors to {0}", file);
     }
     void StyleEditor::LoadStyleColors(ImGuiStyle* dst) {
-        ST_PROFILING_FUNCTION();
         std::string file = getEditorProject().configPath + "/personal-colors.ini";
         ImGuiStyle* style = dst ? dst : &ImGui::GetStyle();
         ImVec4* colors = style->Colors;

@@ -20,7 +20,6 @@ namespace Stulu {
 	}
 
 	WindowsWindow::WindowsWindow(void* glfwWindowPtr) {
-		ST_PROFILING_FUNCTION();
 		m_selfInitilized = false;
 		m_graphicsContext = nullptr;
 		m_window = (GLFWwindow*)glfwWindowPtr;
@@ -33,7 +32,6 @@ namespace Stulu {
 	}
 
 	WindowsWindow::WindowsWindow(WindowProps& props) {
-		ST_PROFILING_FUNCTION();
 		m_selfInitilized = true;
 		init(props);
 	}
@@ -41,7 +39,6 @@ namespace Stulu {
 
 
 	void WindowsWindow::init(WindowProps& props) {
-		ST_PROFILING_FUNCTION();
 		m_runtimeData = &props;
 		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
 
@@ -145,11 +142,10 @@ namespace Stulu {
 		});
 	}
 	void WindowsWindow::shutDown() {
-		ST_PROFILING_FUNCTION();
 		glfwDestroyWindow(m_window);
 	}
 	void WindowsWindow::onUpdate() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Win32 - Update");
 		glfwPollEvents();
 	}
 
@@ -178,7 +174,6 @@ namespace Stulu {
 	}
 
 	void WindowsWindow::setWindowIcon(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -195,7 +190,6 @@ namespace Stulu {
 		glfwSetWindowIcon(m_window, 1, images);
 	}
 	void WindowsWindow::setWindowTitle(const std::string& title) {
-		ST_PROFILING_FUNCTION();
 		glfwSetWindowTitle(m_window, title.c_str());
 		m_runtimeData->title = title;
 	}
@@ -205,11 +199,9 @@ namespace Stulu {
 		m_runtimeData->VSync = enabled;
 	}
 	void WindowsWindow::hide() {
-		ST_PROFILING_FUNCTION();
 		glfwHideWindow(m_window);
 	}
 	void WindowsWindow::show() {
-		ST_PROFILING_FUNCTION();
 		glfwShowWindow(m_window);
 	}
 	void WindowsWindow::setAttribute(const WindowAttribute attribute, int32_t value) {

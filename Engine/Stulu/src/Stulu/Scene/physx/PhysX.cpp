@@ -1,4 +1,6 @@
 #include "st_pch.h"
+
+#define PX_PHYSX_STATIC_LIB
 #include "PhysX.h"
 #include "PxPhysicsAPI.h"
 
@@ -163,7 +165,6 @@ namespace Stulu {
 #endif
     }
     void PhysX::shutDown() {
-        ST_PROFILING_FUNCTION();
         if (s_cudaContextManager) {
             s_cudaContextManager->releaseContext();
             s_cudaContextManager->release();

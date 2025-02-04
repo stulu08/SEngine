@@ -33,7 +33,6 @@ namespace Stulu {
 		static void update();
 		static inline bool s_enabled;
 
-		friend class EditorLayer;
 		friend class Application;
 	};
 }

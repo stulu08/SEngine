@@ -72,7 +72,6 @@ namespace Stulu {
 	}
 
 	Mono::Class ScriptAssembly::CreateClass(const std::string& m_nameSpace, const std::string& m_className) const {
-		ST_PROFILING_FUNCTION();
 		Mono::Class classPtr = Mono::Class::FromName(m_image, m_nameSpace.c_str(), m_className.c_str());
 		if (classPtr) {
 			return classPtr;
@@ -82,7 +81,6 @@ namespace Stulu {
 	}
 
 	Mono::Method ScriptAssembly::CreateMethod(Mono::Class classPtr, const std::string& methodName) {
-		ST_PROFILING_FUNCTION();
 		if (classPtr) {
 			const std::string nameSpace = classPtr.GetNamespace();
 			const std::string className = classPtr.GetName();
@@ -124,7 +122,6 @@ namespace Stulu {
 	}
 
 	std::vector<Mono::Class> ScriptAssembly::LoadAllClasses(Mono::Class parentClass) {
-		ST_PROFILING_FUNCTION();
 		std::vector<Mono::Class> classes;
 		if (!parentClass)
 			return classes;

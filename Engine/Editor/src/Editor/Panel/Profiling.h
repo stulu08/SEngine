@@ -16,6 +16,9 @@ namespace Stulu {
 		float m_vAvg = .0f;
 		std::vector<float> m_physical;
 		float m_pAvg = .0f;
+
+		std::unordered_map<std::string, std::vector<std::pair<std::string, double>>> timingGroups;
+		float lastTiming;
 	};
 }
 

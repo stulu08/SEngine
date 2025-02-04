@@ -1,6 +1,5 @@
 #include "st_pch.h"
 #include "ParticleSystem.h"
-#include "Stulu/Renderer/Renderer2D.h"
 
 namespace Stulu {
 	void ParticleSystemComponent::emit(const glm::vec3& pos, const glm::vec3 rotation, uint32_t count) {
@@ -40,7 +39,6 @@ namespace Stulu {
 	}
 
 	void ParticleSystemComponent::draw() {
-		ST_PROFILING_FUNCTION();
 		for (int i = 0; i < particles.size(); i++) {
 			Particle& p = particles[i];
 			if (p.alive || !data.imortal) {
@@ -50,7 +48,6 @@ namespace Stulu {
 		}
 	}
 	void ParticleSystemComponent::update(Stulu::Timestep ts) {
-		ST_PROFILING_FUNCTION();
 		for (int i = 0; i < particles.size(); i++) {
 			Particle& p = particles[i];
 			p.alive = p.lifeTime < p.dieTime;

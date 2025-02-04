@@ -45,7 +45,7 @@ workspace "Stulu"
 			"4251",
 		}
 
-staticBuild = true
+staticBuild = false
 
 include "Dependencies/Dependencies.lua"
 
