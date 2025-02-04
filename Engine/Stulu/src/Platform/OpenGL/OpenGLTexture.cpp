@@ -62,8 +62,8 @@ namespace Stulu {
 	}
 	void OpenGLTexture2D::update() {
 		if (m_rendererID)
-			glDeleteTextures(1, &m_rendererID)
-			;
+			glDeleteTextures(1, &m_rendererID);
+
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
 
@@ -107,6 +107,8 @@ namespace Stulu {
 	}
 	void OpenGLTexture2D::updateParameters() {
 		GLenum wrap = TextureWrapToGLenum(m_settings.wrap);
+		
+		glBindTexture(GL_TEXTURE_2D, m_rendererID);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenumMinification(m_settings.filtering));
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenumMagnification(m_settings.filtering));
 
@@ -243,7 +245,7 @@ namespace Stulu {
 		case TextureWrap::ClampToBorder:
 			return GL_CLAMP_TO_BORDER;
 		}
-		return GL_REPEAT;
+		return GL_CLAMP_TO_EDGE;
 	}
 	uint32_t TextureFilteringToGLenumMinification(TextureFiltering filter) {
 		switch (filter)

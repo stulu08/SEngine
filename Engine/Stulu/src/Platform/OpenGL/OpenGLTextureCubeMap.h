@@ -29,7 +29,7 @@ namespace Stulu {
 	};
 	class STULU_API OpenGLReflectionMap : public ReflectionMap {
 	public:
-		OpenGLReflectionMap(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB16F, TextureWrap::Repeat, {1,1}, ST_MAX_REFLECTION_LOD+1));
+		OpenGLReflectionMap(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB16F, TextureWrap::ClampToEdge, {1,1}, ST_MAX_REFLECTION_LOD+1));
 		virtual ~OpenGLReflectionMap();
 
 		virtual void bind(uint32_t slot) const override { m_prefilterMap->bind(slot); }

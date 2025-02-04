@@ -6,22 +6,10 @@
 namespace Stulu {
 	void GameViewportPanel::draw(const Ref<FrameBuffer>& frameBuffer, bool* open) {
 		ST_PROFILING_SCOPE("ImGui - Game Viewport");
-		static bool maximize = false;
-		if (maximize) {
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->WorkPos);
-			ImGui::SetNextWindowSize(viewport->WorkSize);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			maximize = false;
-		}
-		
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
 		drawn = false;
 		if (ImGui::Begin("Game", open, ImGuiWindowFlags_HorizontalScrollbar)) {
-			if (ImGui::Button("Maximize")) {
-				maximize = true;
-			}
 
 			if(ComponentsRender::drawComboControl("Sizes", m_selectedSize,"1920x1080\0 1000x1000\0 1280x720\0 500x500\0 250x250\0 Custom"))
 				getEditorLayer().savePanelConfig();

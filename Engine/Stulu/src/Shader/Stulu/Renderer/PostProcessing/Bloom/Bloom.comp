@@ -20,20 +20,14 @@ layout (binding = 1) uniform sampler2D downSampledSource;
 layout(rgba32f, binding = 2) uniform writeonly image2D destination;
 
 vec3 TextureSourceLoad(const vec2 pixelPos) {
-    vec2 safePos = clamp(pixelPos, vec2(0.0), desRes - vec2(1.0));
-    return textureLod(source, safePos / desRes, iteration).xyz;
-    //return textureLod(source, pixelPos / desRes, iteration).xyz;
+    return textureLod(source, pixelPos / desRes, iteration).xyz;
 }
 vec3 TextureDSSourceLoad(const vec2 pixelPos) {
-    vec2 safePos = clamp(pixelPos, vec2(0.0), desRes - vec2(1.0));
-    return textureLod(downSampledSource, safePos / desRes, iteration - 1).xyz;
-    //return textureLod(downSampledSource, pixelPos / desRes, iteration - 1).xyz;
+    return textureLod(downSampledSource, pixelPos / desRes, iteration - 1).xyz;
 }
 
 void DestinationStore(const vec4 color, const vec2 pixelPos) {
-    vec2 safePos = clamp(pixelPos, vec2(0.0), desRes - vec2(1.0));
-    
-	imageStore(destination, ivec2(round(safePos.x), round(safePos.y)), color);
+    imageStore(destination, ivec2(round(pixelPos.x), round(pixelPos.y)), color);
 }
 
 vec3 Prefilter(vec3 color) { 

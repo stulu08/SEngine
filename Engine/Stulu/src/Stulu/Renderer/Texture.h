@@ -27,13 +27,13 @@ namespace Stulu {
 	};
 	struct TextureSettings {
 		TextureFormat format = TextureFormat::Auto;
-		TextureWrap wrap = TextureWrap::Repeat;
+		TextureWrap wrap = TextureWrap::ClampToEdge;
 		glm::vec2 tiling = { 1.0f,1.0f };
 		uint32_t levels = 1;
 		glm::vec4 border = glm::vec4(1.0f);
 		TextureFiltering filtering = TextureFiltering::Linear;
 
-		TextureSettings(TextureFormat format = TextureFormat::Auto, TextureWrap wrap = TextureWrap::Repeat, 
+		TextureSettings(TextureFormat format = TextureFormat::Auto, TextureWrap wrap = TextureWrap::ClampToEdge,
 			const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1, glm::vec4 border = glm::vec4(1.0f),
 			TextureFiltering filtering = TextureFiltering::Linear)
 			:format(format), wrap(wrap), tiling(tiling), levels(levels), border(border), filtering(filtering) {}
