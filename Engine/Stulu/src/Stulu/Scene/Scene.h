@@ -80,6 +80,7 @@ namespace Stulu {
 		inline auto getAllGameObjectsAsGroupWith() {
 			return m_registry.group<Components...>();
 		}
+		inline entt::registry& getRegistry() { return m_registry; }
 
 		static Ref<Scene> copy(Ref<Scene> scene);
 
@@ -89,6 +90,7 @@ namespace Stulu {
 		//needs setup and closing
 		void renderSceneForCamera(GameObject gameObject, bool callEvents = true);
 		void closeSceneForRendering();
+
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 		SceneData m_data;

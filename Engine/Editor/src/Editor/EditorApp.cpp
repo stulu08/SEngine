@@ -1,7 +1,8 @@
 #include "EditorApp.h"
-#include <Stulu/Core/EntryPoint.h>
+//#include <Stulu/Core/EntryPoint.h>
 
 namespace Stulu {
+	/*
 	Application* Stulu::CreateApplication(int argc, char** argv) {
 		std::string path = "";
 		if (argc > 1) {
@@ -40,7 +41,7 @@ namespace Stulu {
 		info.LoadDefaultAssets = true;
 		return new EditorApp(info);
 	}
-
+	*/
 	EditorApp* EditorApp::s_instance = nullptr;
 
 	EditorApp::EditorApp(const ApplicationInfo& info)
