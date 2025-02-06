@@ -435,7 +435,7 @@ namespace Stulu {
 			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) + (size));
 			Ref<Texture> tex = s_runtime ? EditorResources::getStopTexture() : EditorResources::getPlayTexture();
 			//if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
-			if (ImGui::ImageButton(tex, { size, size }, { 0, 1 }, { 1, 0 }, 0, { 0,0,0,0 }, icoColor)) {
+			if (ImGui::ImageButton("StopBtn", tex, {size, size}, {0, 1}, {1, 0}, {0,0,0,0}, icoColor)) {
 				if (s_runtime) {
 					onRuntimeStop();
 				}
@@ -452,7 +452,7 @@ namespace Stulu {
 			ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size) - (size));
 			Ref<Texture> tex = EditorResources::getPauseTexture();
 			//if (ImGui::ImageButton(reinterpret_cast<void*>((uint64_t)tex->getRendererID()), { size, size }, { 0, 1 }, { 1, 0 }, 0, ImVec4(0,0,0,0), icoColor)) {
-			if (ImGui::ImageButton(tex, { size, size }, { 0, 1 }, { 1, 0 }, 0, ImVec4(0,0,0,0), icoColor)) {
+			if (ImGui::ImageButton("PauseBtn", tex, {size, size}, {0, 1}, {1, 0}, ImVec4(0, 0, 0, 0), icoColor)) {
 				if (paused) {
 					Time::Scale = 1.0f;
 				}

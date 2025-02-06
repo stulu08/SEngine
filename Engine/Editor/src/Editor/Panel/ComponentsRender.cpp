@@ -325,7 +325,7 @@ namespace Stulu {
 		//bool 3
 		{
 			ImGui::PushID("Linear Velocity");
-			ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+			ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 			ImGui::SetColumnWidth(0, 100.0f);
 			ImGui::Text("Linear Velocity");
 			ImGui::NextColumn();
@@ -353,7 +353,7 @@ namespace Stulu {
 		//bool 3
 		{
 			ImGui::PushID("Angular Velocity");
-			ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+			ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 			ImGui::SetColumnWidth(0, 100.0f);
 			ImGui::Text("Angular Velocity");
 			ImGui::NextColumn();
@@ -470,7 +470,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -489,7 +489,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -517,7 +517,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -536,7 +536,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -567,7 +567,7 @@ namespace Stulu {
 		ImGui::PushID(header.c_str());
 		bool change = false;
 		int i = v;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -598,7 +598,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -617,7 +617,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -637,7 +637,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -665,7 +665,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -684,7 +684,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -711,7 +711,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -741,7 +741,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -775,7 +775,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -809,7 +809,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -828,7 +828,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -865,7 +865,7 @@ namespace Stulu {
 		for (int i = 0; i < 4; i++) {
 			glm::vec4 vec = v[i];
 			ImGui::PushID(("Row " + std::to_string(i+1)).c_str());
-			ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+			ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 			ImGui::SetColumnWidth(0, 100.0f);
 			ImGui::Text(("Row " + std::to_string(i + 1)).c_str());
 			ImGui::NextColumn();
@@ -927,7 +927,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -988,7 +988,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool change = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();
@@ -1031,7 +1031,7 @@ namespace Stulu {
 		
 		ImGui::PushID(header.c_str());
 		bool changed = false;
-		ImGui::BeginColumns(0, 2, ImGuiColumnsFlags_NoResize | ImGuiColumnsFlags_NoBorder);
+		ImGui::BeginColumns(0, 2, ImGuiOldColumnFlags_NoResize | ImGuiOldColumnFlags_NoBorder);
 		ImGui::SetColumnWidth(0, 100.0f);
 		ImGui::Text(header.c_str());
 		ImGui::NextColumn();

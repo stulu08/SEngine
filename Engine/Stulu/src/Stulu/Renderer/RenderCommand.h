@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Renderer/RenderAPI.h"
+#include "Stulu/Debug/RenderDataProfiler.h"
 
 namespace Stulu{
 	class STULU_API RenderCommand {

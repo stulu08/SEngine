@@ -1,5 +1,6 @@
 #pragma once
 #include <Stulu.h>
+#include "Panel.h"
 
 using namespace Stulu;
 
@@ -22,7 +23,32 @@ namespace Editor {
 
 		inline bool IsRuntime() { return m_runtime; }
 		inline SceneCamera& GetCamera() { return m_sceneCamera; }
+
+		template<class T, class ...Args>
+		inline void AddPanel(Args&& ...args) {
+			m_panels.insert({ typeid(T).hash_code(), new T(std::forward<Args>(args)...) });
+		}
+		template<class T>
+		inline T& GetPanel() {
+			for (auto& [hash, panel] : m_panels) {
+				if (hash == typeid(T).hash_code()) {
+					return *dynamic_cast<T*>(panel);
+				}
+			}
+			ST_ASSERT(false, "Error panel not found");
+			return *reinterpret_cast<T*>(nullptr);
+		}
+		template<auto Method, class ...Args>
+		inline void CallPanels() {
+			for (auto& [hash, panel] : m_panels) {
+				if (panel) {
+					std::invoke(Method, panel, std::forward<Args>(args)...);
+				}
+			}
+		}
 	private:
+		std::unordered_map<size_t, Panel*> m_panels;
+
 		Ref<FrameBuffer> m_sceneFrameBuffer;
 
 		SceneCamera m_sceneCamera;
