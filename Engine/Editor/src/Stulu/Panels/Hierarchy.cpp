@@ -1,6 +1,6 @@
 #include "Hierarchy.h"
 #include <Icons.h>
-
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
 using namespace Stulu;
 
@@ -8,7 +8,24 @@ namespace Editor {
 	HierarchyPanel::HierarchyPanel(Ref<Scene> scene) 
 		: Panel("Hierarchy"), m_scene(scene.get()) {}
 
+    void HierarchyPanel::PreWindow() {
+        m_windowPaddingOriginal = ImGui::GetStyle().WindowPadding.x;
+        ImGui::PushStyleVarX(ImGuiStyleVar_WindowPadding, 0.0f);
+    }
+
+    void HierarchyPanel::PostWindow() {
+        ImGui::PopStyleVar();
+    }
+
 	void HierarchyPanel::DrawImGui() {
+        // search bar
+        ImGuiStyle& style = ImGui::GetStyle();
+        float fullWidth = ImGui::GetContentRegionAvail().x - (2 * m_windowPaddingOriginal);
+        ImGui::SetNextItemWidth(fullWidth);
+        ImGui::SetCursorPosX(m_windowPaddingOriginal);
+        ImGui::InputTextWithHint("##SearchBar", ICON_FK_SEARCH " Search...", & m_search);
+        
+
         // load for a maximum ammount of childs
         m_childObjectsBuffer.reserve(GetRegistry().storage<entt::entity>().in_use());
 
@@ -30,7 +47,7 @@ namespace Editor {
 
             ImGui::TableSetupColumn("\tName", ImGuiTableColumnFlags_WidthStretch, col1);
             ImGui::TableSetupColumn("Tag", ImGuiTableColumnFlags_WidthStretch, col2);
-            ImGui::TableSetupColumn("Visibility", ImGuiTableColumnFlags_WidthStretch, col3);
+            ImGui::TableSetupColumn(ICON_FK_EYE, ImGuiTableColumnFlags_WidthStretch, col3);
             ImGui::TableHeadersRow();
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_CheckMark));
@@ -50,11 +67,12 @@ namespace Editor {
 
             ImGui::EndTable();
         }
+
 	}
 
 	void HierarchyPanel::DrawImGuizmo(){}
 
-    void HierarchyPanel::DrawGameObject(const GameObjectBaseComponent& baseComponent, const GameObject& parent) {
+    void HierarchyPanel::DrawGameObject(GameObjectBaseComponent& baseComponent, const GameObject& parent) {
         GameObject gameObject = baseComponent.gameObject;
 
         // return if it is child of someone
@@ -81,6 +99,8 @@ namespace Editor {
         if(m_childObjectsBuffer.size() < 1)
             treeFlags |= ImGuiTreeNodeFlags_Leaf;
 
+        ImGui::SetNextItemAllowOverlap();
+
         bool treeOpen = ImGui::TreeNodeEx(baseComponent.name.c_str(), treeFlags);
 
         // drag drop to child
@@ -99,6 +119,7 @@ namespace Editor {
 
         // tag
         ImGui::TableNextColumn();
+
         ImGui::Text(baseComponent.tag.c_str());
 
         // visible

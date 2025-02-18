@@ -59,7 +59,7 @@ namespace Stulu {
 		auto sources = ProcessRegions(source);
 		auto props = ProcessProperties(source);
 
-		return CreateShader(name, sources, props);
+		return CreateShader(name, sources, props, path);
 	}
 	
 	void ShaderSystem::LoadAllShaders(const std::string& path) {
@@ -351,7 +351,7 @@ namespace Stulu {
 	}
 
 	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::string& path)
-		: m_shader(shader), m_props({}), m_path(path) {
+		: m_shader(shader), m_props(), m_path(path) {
 	}
 
 	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<ShaderProperity>>& props, const std::string& path)

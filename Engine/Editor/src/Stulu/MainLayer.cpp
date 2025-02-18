@@ -5,6 +5,7 @@
 #include "App.h"
 
 #include "Panels/Hierarchy.h"
+#include "Panels/Profiling.h"
 
 using namespace Stulu;
 
@@ -13,6 +14,7 @@ namespace Editor {
 		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1) {
 		
 		AddPanel<HierarchyPanel>();
+		AddPanel<ProfilingPanel>();
 	}
 	MainLayer::~MainLayer()
 	{}
@@ -40,9 +42,19 @@ namespace Editor {
 
 		CallPanels<&Panel::InvokeImGui>();
 
+
+		static bool ste = false;
+		if (ImGui::Begin("Debug")) {
+			ImGui::Checkbox("Style Editor", &ste);
+		}
+		ImGui::End();
+		
+		if(ste)
+			ImGui::ShowStyleEditor();
 	}
-	void MainLayer::onRenderGizmo()
-	{
+	void MainLayer::onRenderGizmo() {
+		CallPanels<&Panel::DrawImGuizmo>();
+
 	}
 	void MainLayer::onEvent(Event& e)
 	{

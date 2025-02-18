@@ -14,6 +14,9 @@ namespace Editor {
 		virtual void DrawImGui() = 0;
 		virtual void DrawImGuizmo() = 0;
 
+		virtual void PreWindow() {};
+		virtual void PostWindow() {};
+
 		inline bool& OpenPtr() { return m_open; }
 		inline bool IsOpen() const { return m_open; }
 		inline void SetOpen(bool value) { m_open = value; }
@@ -28,9 +31,11 @@ namespace Editor {
 
 	inline void Panel::InvokeImGui() {
 		if (m_open) {
+			PreWindow();
 			if (ImGui::Begin(m_displayName.c_str(), &m_open, m_windowFlags)) {
 				DrawImGui();
 			}
+			PostWindow();
 			ImGui::End();
 		}
 		

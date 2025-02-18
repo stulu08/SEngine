@@ -72,6 +72,8 @@ namespace Stulu {
 		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
 		m_graphicsContext->init(this);
 
+		m_graphicsContext->setVSync(props.VSync);
+
 		glfwSetWindowUserPointer(m_window, m_runtimeData);
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
