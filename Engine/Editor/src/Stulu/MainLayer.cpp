@@ -11,7 +11,7 @@ using namespace Stulu;
 
 namespace Editor {
 	MainLayer::MainLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1) {
+		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1), m_preview() {
 		
 		AddPanel<HierarchyPanel>();
 		AddPanel<ProfilingPanel>();

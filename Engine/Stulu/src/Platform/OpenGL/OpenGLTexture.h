@@ -19,6 +19,8 @@ namespace Stulu {
 
 		OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings);
 		OpenGLTexture2D(const std::string& path, const TextureSettings& settings = TextureSettings());
+		OpenGLTexture2D(const Ref<Texture2D>& copy);
+
 		virtual ~OpenGLTexture2D();
 
 		virtual void bind(uint32_t slot) const override;

@@ -32,6 +32,30 @@ namespace Stulu {
 		:m_path(path), m_settings(settings) {
 		update();
 	}
+	OpenGLTexture2D::OpenGLTexture2D(const Ref<Texture2D>& copy) {
+		m_settings = copy->getSettings();
+		m_width = copy->getWidth();
+		m_height = copy->getHeight();
+		m_path = copy->getPath();
+
+		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(m_settings.format);
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
+		glBindTexture(GL_TEXTURE_2D, m_rendererID);
+		glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
+		updateParameters();
+
+		uint32_t copyID = std::dynamic_pointer_cast<OpenGLTexture2D>(copy)->m_rendererID;
+
+		glCopyImageSubData(copyID, GL_TEXTURE_2D, 0, 0, 0, 0,
+			m_rendererID, GL_TEXTURE_2D, 0, 0, 0, 0,
+			m_width, m_height, 1);
+
+
+		if (HasMips())
+			glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
 	OpenGLTexture2D::~OpenGLTexture2D() {
 		glDeleteTextures(1, &m_rendererID);
 	}

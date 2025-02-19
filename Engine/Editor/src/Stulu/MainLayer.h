@@ -1,6 +1,7 @@
 #pragma once
 #include <Stulu.h>
 #include "Panel.h"
+#include "Previewing.h"
 
 using namespace Stulu;
 
@@ -56,6 +57,8 @@ namespace Editor {
 		
 		std::string m_currentScenePath;
 		GizmoTransformEditMode m_gizmoEditType = GizmoTransformEditMode::None;
+
+		Preview m_preview;
 
 		//void drawObjectOutlines();
 		//void onDrawGizmoSelected(GameObject gameObject);

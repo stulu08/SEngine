@@ -41,6 +41,23 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Texture2D creation");
 		return nullptr;
 	}
+	Ref<Texture2D> Texture2D::create(Ref<Texture2D> copy) {
+		switch (Renderer::getRendererAPI())
+		{
+		case Renderer::API::OpenGL:
+			return std::make_shared<OpenGLTexture2D>(copy);
+		case Renderer::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
+		}
+
+		CORE_ASSERT(false, "Unknown error in Texture2D creation");
+		return nullptr;
+	}
+
 	Ref<SkyBox> SkyBox::create(const std::string& path) {
 		uint32_t resolution = 512;
 		if (AssetsManager::hasProperity(path, "resolution")) {

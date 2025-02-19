@@ -60,6 +60,8 @@ namespace Stulu {
 	public:
 		static Ref<Texture2D> create(const std::string& path, const TextureSettings& settings = TextureSettings());
 		static Ref<Texture2D> create(uint32_t width, uint32_t height, const TextureSettings& settings = TextureSettings());
+		static Ref<Texture2D> create(Ref<Texture2D> copy);
+
 		virtual void setData(const void* data, uint32_t size, uint32_t mipLevel = 0) = 0;
 		virtual void setPixel(uint32_t hexData, uint32_t posX, uint32_t posY, uint32_t mipLevel = 0) = 0;
 		virtual void getData(void* data, uint32_t size, uint32_t mipLevel = 0) const = 0;
