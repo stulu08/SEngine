@@ -48,6 +48,6 @@ namespace Editor {
 		void DragDropSource();
 
 		void LoadChilds(const Stulu::GameObject& parent);
-		void SetParents(const Stulu::GameObject& parent, entt::entity* targets, size_t count);
+		void SetParents(const Stulu::GameObject& parent, const std::vector<entt::entity> children);
 	};
 }

@@ -6,21 +6,27 @@
 
 #include "Panels/Hierarchy.h"
 #include "Panels/Profiling.h"
+#include "Panels/AssetBrowser.h"
 
 using namespace Stulu;
 
 namespace Editor {
 	MainLayer::MainLayer()
-		: Layer("EditorLayer"), m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1), m_preview() {
+		: Layer("EditorLayer"), m_preview() {
 		
 		AddPanel<HierarchyPanel>();
 		AddPanel<ProfilingPanel>();
+		AddPanel<AssetBrowser>(App::get().GetProject().GetAssetPath());
+
+		AddPanel<ScenePanel>();
+		m_scenePanel = &GetPanel<ScenePanel>();
 	}
 	MainLayer::~MainLayer()
 	{}
 
 	void MainLayer::onAttach() {
 		ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
+
 		Style::LoadAll();
 
 		// load debug Startup scene
@@ -35,9 +41,21 @@ namespace Editor {
 		GetPanel<HierarchyPanel>().SetScene(m_activeScene);
 	}
 	void MainLayer::onUpdate(Timestep timestep) {
+		if (!Gizmo::IsUsing()) {
+			Input::setEnabled(m_scenePanel->IsFocused());
+			m_scenePanel->GetCamera().updateMove(timestep);
+			m_scenePanel->GetCamera().onUpdate(timestep);
+			m_activeScene->updateTransform(m_scenePanel->GetCamera().getTransform());
+			Input::setEnabled(true);
+		}
+
+		m_activeScene->onUpdateEditor(timestep, m_scenePanel->GetCamera(), m_scenePanel->IsVisible());
+
 	}
 
 	void MainLayer::onImguiRender(Timestep timestep) {
+		ST_PROFILING_SCOPE("Editor - ImGui");
+
 		ImGui::DockSpaceOverViewport();
 
 		CallPanels<&Panel::InvokeImGui>();
@@ -53,11 +71,14 @@ namespace Editor {
 			ImGui::ShowStyleEditor();
 	}
 	void MainLayer::onRenderGizmo() {
-		CallPanels<&Panel::DrawImGuizmo>();
+		if (m_scenePanel->BeginGizmo()) {
+			CallPanels<&Panel::DrawImGuizmo>();
+		}
+		m_scenePanel->EndGizmo();
 
 	}
-	void MainLayer::onEvent(Event& e)
-	{
+	void MainLayer::onEvent(Event& e) {
+		CallPanels<&Panel::OnEvent>(e);
 	}
 }
 

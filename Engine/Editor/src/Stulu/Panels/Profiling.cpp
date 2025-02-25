@@ -18,6 +18,8 @@ namespace Editor {
 	}
 
 	void ProfilingPanel::DrawImGui() {
+		ST_PROFILING_SCOPE("ImGui - Statistics");
+
 		m_updateTimer += Time::frameTime;
 		ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 1.0f);
 

@@ -6,6 +6,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <ImGui/misc/cpp/imgui_stdlib.h>
+#include "AssetBrowser.h"
 namespace Stulu {
 	AssetBrowserPanel::AssetBrowserPanel(const std::filesystem::path& path)
 		: m_path(path) { }

@@ -64,7 +64,7 @@ namespace Editor {
 		ST_INFO("Loading all Project assets from: {0}", m_project.GetAssetPath());
 
 		AssetsManager::setProgessCallback(Application::LoadingScreen);
-		//AssetsManager::loadAllFiles(m_project.GetAssetPath());
+		AssetsManager::loadAllFiles(m_project.GetAssetPath());
 		AssetsManager::setProgessCallback(nullptr);
 
 		m_layer = new MainLayer();

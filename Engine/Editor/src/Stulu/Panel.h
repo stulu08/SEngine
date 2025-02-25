@@ -2,6 +2,9 @@
 #include <string>
 #include <imgui/imgui.h>
 
+#include <Stulu/Debug/Profiler.h>
+#include <Stulu/Events/Event.h>
+
 namespace Editor {
 	class Panel {
 	public:
@@ -13,6 +16,8 @@ namespace Editor {
 		virtual void InvokeImGui();
 		virtual void DrawImGui() = 0;
 		virtual void DrawImGuizmo() = 0;
+
+		virtual void OnEvent(Stulu::Event& e) {};
 
 		virtual void PreWindow() {};
 		virtual void PostWindow() {};
@@ -35,8 +40,8 @@ namespace Editor {
 			if (ImGui::Begin(m_displayName.c_str(), &m_open, m_windowFlags)) {
 				DrawImGui();
 			}
-			PostWindow();
 			ImGui::End();
+			PostWindow();
 		}
 		
 	}

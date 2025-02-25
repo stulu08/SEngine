@@ -2,6 +2,7 @@
 #include <Stulu.h>
 #include "Panel.h"
 #include "Previewing.h"
+#include "Panels/Scene.h"
 
 using namespace Stulu;
 
@@ -23,7 +24,6 @@ namespace Editor {
 		//void OpenScene(const std::string& path);
 
 		inline bool IsRuntime() { return m_runtime; }
-		inline SceneCamera& GetCamera() { return m_sceneCamera; }
 
 		template<class T, class ...Args>
 		inline void AddPanel(Args&& ...args) {
@@ -40,7 +40,7 @@ namespace Editor {
 			return *reinterpret_cast<T*>(nullptr);
 		}
 		template<auto Method, class ...Args>
-		inline void CallPanels() {
+		inline void CallPanels(Args&& ... args) {
 			for (auto& [hash, panel] : m_panels) {
 				if (panel) {
 					std::invoke(Method, panel, std::forward<Args>(args)...);
@@ -51,14 +51,13 @@ namespace Editor {
 		std::unordered_map<size_t, Panel*> m_panels;
 
 		Ref<FrameBuffer> m_sceneFrameBuffer;
-
-		SceneCamera m_sceneCamera;
 		PostProcessingData cameraPostProcessData;
 		
 		std::string m_currentScenePath;
 		GizmoTransformEditMode m_gizmoEditType = GizmoTransformEditMode::None;
 
 		Preview m_preview;
+		ScenePanel* m_scenePanel;
 
 		//void drawObjectOutlines();
 		//void onDrawGizmoSelected(GameObject gameObject);

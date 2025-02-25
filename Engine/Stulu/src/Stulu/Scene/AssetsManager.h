@@ -83,6 +83,7 @@ namespace Stulu {
 			return std::any_cast<T&>(assets[uuid].data);
 		}
 		static UUID getFromPath(const std::filesystem::path& path);
+		static std::pair<UUID, AssetType> getTypeFromPath(const std::filesystem::path& path);
 		static UUID getFromPath(const std::filesystem::path& path, AssetType type);
 		static const AssetType assetTypeFromExtension(const std::string& extension);
 

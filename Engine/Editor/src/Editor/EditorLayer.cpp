@@ -302,6 +302,7 @@ namespace Stulu {
 		if (m_showSceneViewport) {
 			if (!(m_activeScene->getData().shaderFlags & ST_ShaderViewFlags_DisplayDepth))
 				Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
+				Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
 			m_sceneViewport.draw(m_sceneCamera, &m_showSceneViewport);
 		}
 		if (m_showProfiling) {

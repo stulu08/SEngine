@@ -1,3 +1,4 @@
+#pragma once
 #include <Stulu/Renderer/Texture.h>
 #include <Stulu/Scene/Model.h>
 #include <Stulu/Scene/GameObject.h>

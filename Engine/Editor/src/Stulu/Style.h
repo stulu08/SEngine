@@ -1,14 +1,22 @@
 #pragma once
 #include "Icons.h"
 #include "Resources.h"
+#include "App.h"
 
 #include <imgui/imgui.h>
 
-#define FONT_SIZE 16.0f
-#define ICON_SIZE 15.0f
+#define FONT_ICON_SIZE 15.0f
+#define FONT_SIZE_DEFAULT 16.0f
+#define FONT_SIZE_SMALL FONT_SIZE_DEFAULT - 2.0f
+#define FONT_SIZE_LARGE FONT_SIZE_DEFAULT + 2.0f
 
 namespace Editor {
 	namespace Style {
+        extern ImFont* IconFont;
+        extern ImFont* DefaultFont;
+        extern ImFont* SmallFont;
+        extern ImFont* LargeFont;
+
 		inline void LoadColors(ImGuiStyle& style) {
             ImVec4* colors = style.Colors;
 
@@ -69,14 +77,19 @@ namespace Editor {
             colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
 		}
         inline void LoadFonts(ImGuiIO& io) {
-            io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE);
+            DefaultFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_DEFAULT);
+            io.FontDefault = DefaultFont;
 
             static const ImWchar icons_ranges[] = { ICON_MIN_FK, ICON_MAX_16_FK, 0 };
             ImFontConfig icons_config;
             icons_config.MergeMode = true;
-            icons_config.GlyphMinAdvanceX = FONT_SIZE;
+            icons_config.GlyphMinAdvanceX = FONT_SIZE_DEFAULT;
             icons_config.PixelSnapH = true;
-            ImFont* iconFont = io.Fonts->AddFontFromFileTTF(Resources::GetIconsFont().c_str(), ICON_SIZE, &icons_config, icons_ranges);
+            IconFont = io.Fonts->AddFontFromFileTTF(Resources::GetIconsFont().c_str(), FONT_ICON_SIZE, &icons_config, icons_ranges);
+            
+            SmallFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_SMALL);
+            LargeFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_LARGE);
+
         }
         inline void LoadVars(ImGuiStyle& style) {
             // Corners
@@ -104,12 +117,30 @@ namespace Editor {
             style.TabRounding = 4;
         }
         inline void LoadAll() {
+            static std::string iniFile = App::get().GetProject().GetWindowINI();
+
             ImGuiIO& io = ImGui::GetIO();
             ImGuiStyle& style = ImGui::GetStyle();
+
+            ImGui::LoadIniSettingsFromDisk(io.IniFilename);
+            // project only creates a temporary string, we need to hold the value for imgui
+            io.IniFilename = iniFile.c_str();
 
             LoadFonts(io);
             LoadColors(style);
             LoadVars(style);
         }
+    }
+}
+
+namespace ImGui {
+    inline void PushFontSmall() {
+        ImGui::PushFont(Editor::Style::SmallFont);
+    }
+    inline void PushFontLarge() {
+        ImGui::PushFont(Editor::Style::LargeFont);
+    }
+    inline void PushFontDefault() {
+        ImGui::PushFont(Editor::Style::DefaultFont);
     }
 }

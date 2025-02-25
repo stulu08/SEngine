@@ -1,6 +1,5 @@
 #include "Hierarchy.h"
-#include <Icons.h>
-#include <imgui/misc/cpp/imgui_stdlib.h>
+#include "Stulu/Controls.h"
 
 using namespace Stulu;
 
@@ -18,6 +17,8 @@ namespace Editor {
     }
 
 	void HierarchyPanel::DrawImGui() {
+        ST_PROFILING_SCOPE("ImGui - Hierarchy");
+
         // search bar
         ImGuiStyle& style = ImGui::GetStyle();
         float fullWidth = ImGui::GetContentRegionAvail().x - (2 * m_windowPaddingOriginal);
@@ -127,6 +128,8 @@ namespace Editor {
         bool value = true;
         ImGui::Text(ICON_FK_EYE "");
 
+
+
         // draw children
         if (treeOpen) {
             for (GameObject& child : m_childObjectsBuffer) {
@@ -148,19 +151,15 @@ namespace Editor {
     }
 
     void HierarchyPanel::DragDropTarget(const Stulu::GameObject& parent) {
-        if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_GO_LIST")) {
-                SetParents(parent, (entt::entity*)payload->Data, static_cast<size_t>(payload->DataSize / sizeof(entt::entity)));
-            }
-            ImGui::EndDragDropTarget();
+        std::vector<entt::entity> list;
+        if (Controls::ReceiveDragDopGameObjects(list)) {
+            SetParents(parent, list);
+
         }
     }
 
     void HierarchyPanel::DragDropSource() {
-        if (ImGui::BeginDragDropSource()) {
-            ImGui::SetDragDropPayload("SCENE_GO_LIST", m_selected.data(), sizeof(entt::entity) * m_selected.size());
-            ImGui::EndDragDropSource();
-        }
+        Controls::DragDropGameObjects(m_selected);
     }
 
 	void HierarchyPanel::LoadChilds(const Stulu::GameObject& parent) {
@@ -175,16 +174,23 @@ namespace Editor {
         }
 	}
 
-	void HierarchyPanel::SetParents(const Stulu::GameObject& parent, entt::entity* targets, size_t count) {
-		if (count < 1)
-			return;
-		for (size_t i = 0; i < count; i++) {
-			entt::entity targetID = *(targets + i);
-			GameObject target = { targetID, m_scene };
-			if (target) {
-				target.getComponent<TransformComponent>().parent = parent;
-			}
-		}
+	void HierarchyPanel::SetParents(const Stulu::GameObject& parent, const std::vector<entt::entity> children) {
+        for (entt::entity child : children) {
+            GameObject target = { child, m_scene };
+            if (target) {
+
+                // Prevent circular parent assignment
+                GameObject ancestor = parent;
+                while (ancestor) {
+                    if (ancestor == target) {
+                        return;  // Stop assignment to prevent cycles
+                    }
+                    ancestor = ancestor.getComponent<TransformComponent>().parent;
+                }
+
+                target.getComponent<TransformComponent>().parent = parent;
+            }
+        }
 	}
 
 }
