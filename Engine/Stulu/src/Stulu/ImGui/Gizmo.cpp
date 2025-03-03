@@ -25,6 +25,10 @@ namespace Stulu {
 		glm::mat4 projMatrix;
 		glm::vec3 cameraPosition;
 
+		std::string window;
+		bool* windowOpen;
+		bool windowBeginCalled;
+
 		float mX = 0.f;
 		float mY = 0.f;
 		float mWidth = 0.f;
@@ -172,34 +176,63 @@ namespace Stulu {
 			s_data.cubeShader = Renderer::getShaderSystem()->GetShader("Gizmo/Sphere");
 		}
 	}
-	void Gizmo::Begin() {
-		//check for resize
-		if (s_data.mWidth != s_data.drawBuffer->getColorAttachment()->getWidth() || s_data.mHeight != s_data.drawBuffer->getColorAttachment()->getHeight()) {
-			s_data.drawBuffer->resize((uint32_t)s_data.mWidth, (uint32_t)s_data.mHeight);
+	bool Gizmo::Begin() {
+		const bool windowOpen = s_data.windowOpen ? *s_data.windowOpen : true;
+
+		// we need to call ImGui::End, when close button is pressed Begin will not be called and one close call is to much
+		s_data.windowBeginCalled = windowOpen;
+		s_data.used = false;
+		s_data.mDrawList = 0;
+		
+		if (windowOpen && ImGui::Begin(s_data.window.c_str(), s_data.windowOpen)) {
+			//check for resize
+			if (s_data.mWidth != s_data.drawBuffer->getColorAttachment()->getWidth() || s_data.mHeight != s_data.drawBuffer->getColorAttachment()->getHeight()) {
+				s_data.drawBuffer->resize((uint32_t)s_data.mWidth, (uint32_t)s_data.mHeight);
+			}
+
+			// set guizmo to initial state
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
+			ImGuizmo::Enable(true);
+			s_data.mDrawList = ImGui::GetWindowDrawList();
+
+			// clear framebuffer
+			RenderCommand::setDefault();
+			s_data.drawBuffer->bind();
+			RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
+			RenderCommand::clear();
+			Renderer::uploadCameraBufferData(s_data.projMatrix, s_data.viewMatrix, glm::vec3(), glm::vec3());
+
+			// set renderer to initial state
+			resetCubes();
+			resetSpheres();
+			Renderer2D::begin();
+
+			return true;
+		}
+		else {
+			// disabling at anther point will reset the mouse input and gizmo will not work
+			ImGuizmo::Enable(false);
 		}
 
-		s_data.used = false;
-		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-		ImGuizmo::Enable(true);
-		s_data.mDrawList = ImGui::GetWindowDrawList();
-
-		RenderCommand::setDefault();
-		s_data.drawBuffer->bind();
-		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
-		RenderCommand::clear();
-		Renderer::uploadCameraBufferData(s_data.projMatrix, s_data.viewMatrix, glm::vec3(), glm::vec3());
-
-		resetCubes();
-		resetSpheres();
-		Renderer2D::begin();
+		return false;
 	}
 	void Gizmo::End() {
 		ST_PROFILING_SCOPE("Gizmo - Render Pass");
-		flushCubes();
-		flushSpheres();
-		Renderer2D::flush();
-		s_data.drawBuffer->unbind();
+
+		if (s_data.windowBeginCalled) {
+			// mDrawList is null when outside of window
+			if (s_data.mDrawList) {
+				// render
+				flushCubes();
+				flushSpheres();
+				Renderer2D::flush();
+
+				// reset
+				s_data.drawBuffer->unbind();
+			}
+			ImGui::End();
+		}
 	}
 	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
 		RenderCommand::setDepthTesting(false);
@@ -226,6 +259,10 @@ namespace Stulu {
 		s_data.mYMax = s_data.mY + s_data.mHeight;
 		s_data.mDisplayRatio = width / height;
 	}
+	void Gizmo::setWindow(const std::string& windowName, bool* windowOpenPtr) {
+		s_data.window = windowName;
+		s_data.windowOpen = windowOpenPtr;
+	}
 	bool Gizmo::IsUsing() {
 		return s_data.used;
 	}
@@ -233,12 +270,16 @@ namespace Stulu {
 	bool Gizmo::TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType, const glm::vec3& snap) {
 		if (gizmoEditType == GizmoTransformEditMode::None)
 			return false;
+		
 		glm::mat4 transform = tc.transform;
+		
 		float* snapArray = new float[3]{ snap.x, snap.y, snap.z };
 		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
 			snapArray = nullptr;
+		
 		ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
-			(ImGuizmo::OPERATION)((int)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapArray);
+			(ImGuizmo::OPERATION)((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapArray);
+
 		if (ImGuizmo::IsUsing()) {
 			s_data.used = true;
 			glm::vec3 position, scale;

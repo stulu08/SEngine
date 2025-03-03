@@ -54,14 +54,27 @@ namespace Editor {
                 ImGui::EndDragDropSource();
             }
         }
-        inline Stulu::UUID ReceiveDragDopAsset(Stulu::AssetType type) {
-            Stulu::UUID uuid;
+        inline Stulu::UUID ReceiveDragDopAsset(Stulu::AssetType type, bool anyAsset = false) {
+            Stulu::UUID uuid = Stulu::UUID::null;
 
             if (ImGui::BeginDragDropTarget()) {
-                std::string assetType = "ASSET_TYPE_" + std::to_string((uint32_t)type);
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(assetType.c_str())) {
-                    if (payload->DataSize == sizeof(Stulu::UUID)) {
-                        uuid = *static_cast<Stulu::UUID*>(payload->Data);
+                if (!anyAsset) {
+                    std::string assetType = "ASSET_TYPE_" + std::to_string((uint32_t)type);
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(assetType.c_str())) {
+                        if (payload->DataSize == sizeof(Stulu::UUID)) {
+                            uuid = *static_cast<Stulu::UUID*>(payload->Data);
+                        }
+                    }
+                }
+                else {
+                    const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+                    std::string type = std::string(payload->DataType);
+                    if (type.rfind("ASSET_TYPE_", 0) == 0) {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type.c_str())) {
+                            if (payload->DataSize == sizeof(Stulu::UUID)) {
+                                uuid = *static_cast<Stulu::UUID*>(payload->Data);
+                            }
+                        }
                     }
                 }
                 ImGui::EndDragDropTarget();

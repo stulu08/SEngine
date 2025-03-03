@@ -2,7 +2,6 @@
 
 namespace Editor {
 	namespace Style {
-		ImFont* IconFont = nullptr;
 		ImFont* DefaultFont = nullptr;
 		ImFont* SmallFont = nullptr;
 		ImFont* LargeFont = nullptr;

@@ -36,18 +36,19 @@ PBRResult ComputePBR(const PBRData data) {
 	vec3 R = reflect(-V, N);
 	vec3 F0 = vec3(0.04); 
 	F0 = mix(F0, data.albedo, data.metallic);
+
 	//lighting
+	LightComputeData lightData;
+	lightData.worldPos = data.worldPos;
+	lightData.view = V;
+	lightData.normal = N;
+	lightData.albedo = data.albedo;
+	lightData.roughness = data.roughness;
+	lightData.metallic = data.metallic;
+	lightData.F0 = F0;
+
 	vec3 Lo = data.emission;
 	for(int i = 0; i < lightCount; i++){
-
-		LightComputeData lightData;
-		lightData.worldPos = data.worldPos;
-		lightData.view = V;
-		lightData.normal = N;
-		lightData.albedo = data.albedo;
-		lightData.roughness = data.roughness;
-		lightData.metallic = data.metallic;
-		lightData.F0 = F0;
 		
 		vec3 L = vec3(0);
 		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData, L);
@@ -101,14 +102,16 @@ PBRResult ComputePBR(const PBRData data) {
 		res.color = vec3(res.diffuse);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
 		res.color = vec3(res.specular);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
+		res.color = vec3(res.ambient);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbientOcclusion))
+		res.color = vec3(data.ao);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayNormal))
 		res.color = vec3(data.normal) * 0.5 + 0.5;
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayRoughness))
 		res.color = vec3(data.roughness);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayMetallic))
 		res.color = vec3(data.metallic);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
-		res.color = vec3(data.ao);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
 		res.color = vec3(data.texCoords, 0);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))

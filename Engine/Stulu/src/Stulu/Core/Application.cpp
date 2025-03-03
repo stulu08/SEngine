@@ -159,9 +159,13 @@ namespace Stulu {
 						for (Layer* layer : m_layerStack) {
 							layer->onImguiRender(delta);
 						}
-						for (Layer* layer : m_layerStack) {
-							layer->onRenderGizmo();
+
+						if (Gizmo::Begin()) {
+							for (Layer* layer : m_layerStack) {
+								layer->onRenderGizmo();
+							}
 						}
+						Gizmo::End();
 					}
 					m_imguiLayer->End();
 				}

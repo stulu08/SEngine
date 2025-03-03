@@ -19,6 +19,7 @@ namespace Editor {
 
 		inline void SetScene(Stulu::Ref<Stulu::Scene> scene) {
 			m_scene = scene.get();
+			m_selected.clear();
 		}
 		inline void AddSelected(entt::entity gameObject) {
 			m_selected.push_back(gameObject);
@@ -29,6 +30,9 @@ namespace Editor {
 		}
 		inline bool IsSelected(entt::entity gameObject) const {
 			return std::find(m_selected.begin(), m_selected.end(), gameObject) != m_selected.end();
+		}
+		inline const std::vector<entt::entity>& GetSelected() const {
+			return m_selected;
 		}
 	private:
 		std::vector<entt::entity> m_selected;

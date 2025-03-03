@@ -37,6 +37,7 @@ namespace Editor {
 		}
 		ImGui::EndChild();
 
+		DrawPopUps();
 	}
 	void AssetBrowser::PreWindow() {
 		m_indent = ImGui::GetStyle().WindowPadding;
@@ -61,6 +62,14 @@ namespace Editor {
 			if (ImGui::Button(ICON_FK_BACKWARD)) {
 				m_path = m_path.parent_path();
 			}
+
+			if (!disabled) {
+				Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset(AssetType::Unknown, true);
+				if (receivedUUID != Stulu::UUID::null) {
+					MoveAsset(m_path.parent_path(), receivedUUID);
+				}
+			}
+
 			if (disabled)
 				ImGui::EndDisabled();
 
@@ -161,6 +170,11 @@ namespace Editor {
 				SetPath(entryPath);
 			}
 
+			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset(AssetType::Unknown, true);
+			if (receivedUUID != Stulu::UUID::null) {
+				MoveAsset(entry.path(), receivedUUID);
+			}
+
 			if (open) {
 				if (hasChilds) {
 					DrawDirectoryBrowser(entryPath);
@@ -172,11 +186,49 @@ namespace Editor {
 	}
 
 	void AssetBrowser::DrawMenu() {
-
 	}
 
 	void AssetBrowser::DrawCreateFileModal() {
 
+	}
+
+	void AssetBrowser::DrawPopUps() {
+		// general popups
+
+
+
+		// asset popups
+		if (!m_selectedPopupAsset)
+			return;
+
+		Asset& asset = *m_selectedPopupAsset;
+		if (ImGui::BeginPopupModal("Delete Asset", 0, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGui::Text("Delete this file? You will not be able to restore it!");
+			if (ImGui::Button("Cancel")) {
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Delete")) {
+				DeletePath(asset.path);
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+		if (ImGui::BeginPopupModal("Rename Asset", 0, ImGuiWindowFlags_AlwaysAutoResize)) {
+			ImGui::InputText("##RENAME_INPUT", &m_assetRenameString);
+
+			if (ImGui::Button("Cancel")) {
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Rename")) {
+				const auto name = std::filesystem::path(asset.path).parent_path() / m_assetRenameString;
+				if (RenameAsset(name, asset)) {
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			ImGui::EndPopup();
+		}
 	}
 
 	FileInteractAction AssetBrowser::DrawFileFrame(const std::filesystem::path& path, bool selected) {
@@ -185,9 +237,10 @@ namespace Editor {
 		const ImVec2 descriptionSize(m_iconSize, descriptionHeight);
 		const ImVec2 totalSize(m_iconSize, m_iconSize + descriptionHeight);
 
-		const ImVec4 imageBgColor = ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive];
-		const ImVec4 descriptionBgColor = ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg];
+		const ImVec4 imageBgColor = ImGui::GetStyle().Colors[ImGuiCol_PopupBg];
+		const ImVec4 descriptionBgColor = ImGui::GetStyle().Colors[ImGuiCol_TabHovered];
 		const ImVec4 shadowsColor = ImGui::GetStyle().Colors[ImGuiCol_TitleBg];
+			  ImVec4 tintColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
 		const ImVec2 padding = ImVec2(ImGui::GetStyle().FramePadding.x / 2.0f, ImGui::GetStyle().FramePadding.y);
 
 		const bool isDirectory = std::filesystem::is_directory(path);
@@ -218,6 +271,28 @@ namespace Editor {
 
 		auto& asset = AssetsManager::get(uuid);
 		Controls::DragDropAsset(uuid, asset.type);
+		
+		if (asset.type == AssetType::Directory) {
+			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset(AssetType::Unknown, true);
+			if (receivedUUID != Stulu::UUID::null) {
+				MoveAsset(asset.path, receivedUUID);
+			}
+			// directory icon is colored
+			tintColor = ImVec4(1, 1, 1, 1);
+		}
+		
+		// menu
+		if (ImGui::BeginPopupContextItem("ASSET_CONTEXT_MENU")) {
+			if (ImGui::MenuItem("Rename")) {
+				m_assetRenameString = std::filesystem::path(asset.path).filename().string();
+				ImGui::OpenPopup("Rename Asset");
+			}
+			if (ImGui::MenuItem("Delete")) {
+				ImGui::OpenPopup("Delete Asset");
+			}
+			ImGui::EndPopup();
+			m_selectedPopupAsset = &asset;
+		}
 
 		// bg
 		if (!isDirectory) {
@@ -234,8 +309,8 @@ namespace Editor {
 		const ImVec2 imageSize = iconSize - offset;
 
 		ImGui::SetCursorPos(pos + (offset / 2.0f));
-		ImGui::Image(GetIcon(asset, path.extension().string()), {imageSize.x, imageSize.y}, {0,1}, {1,0});
-
+		ImGui::Image(GetIcon(asset, path.extension().string()), imageSize, { 0,1 }, { 1,0 }, tintColor, { 0,0,0,0 });
+		
 		// header
 		ImVec2 namePos = pos + ImVec2(0.0f, iconSize.y) + ImVec2(padding.x, padding.y);
 		ImGui::SetCursorPos(namePos);
@@ -276,10 +351,16 @@ namespace Editor {
 		ImGui::SetCursorPos(pos);
 		ImGui::Dummy(totalSize);
 
+
+
 		return action;
 	}
 
 	void AssetBrowser::DeletePath(const std::filesystem::path& path) {
+		
+	}
+
+	void AssetBrowser::DeleteAsset(const Stulu::UUID& uuid) {
 
 	}
 
@@ -294,6 +375,42 @@ namespace Editor {
 			}
 		}
 		return false;
+	}
+
+	bool AssetBrowser::MoveAsset(const std::filesystem::path& targetDir, Stulu::UUID& receivedUUID) {
+		Stulu::Asset& received = AssetsManager::get(receivedUUID);
+		const auto newPath = targetDir / std::filesystem::path(received.path).filename();
+		return RenameAsset(newPath, received);
+	}
+
+	bool AssetBrowser::RenameAsset(const std::filesystem::path& targetName, Stulu::Asset& asset) {
+		const auto newPathMeta = std::filesystem::path(targetName.string() + ".meta");
+		const auto oldPathMeta = std::filesystem::path(asset.path + ".meta");
+
+		if (std::filesystem::exists(targetName)) {
+			ST_ERROR("Cannot override: {0}", targetName);
+			return false;
+		}
+		if (std::filesystem::exists(newPathMeta)) {
+			ST_ERROR("Cannot override: {0}", newPathMeta);
+			return false;
+		}
+
+		if (!std::filesystem::exists(oldPathMeta)) {
+			ST_ERROR("Cannot find: {0}", oldPathMeta);
+			return false;
+		}
+		if (!std::filesystem::exists(asset.path)) {
+			ST_ERROR("Cannot find: {0}", asset.path);
+			return false;
+		}
+
+		std::filesystem::rename(asset.path, targetName);
+		std::filesystem::rename(oldPathMeta, newPathMeta);
+
+		asset.path = targetName.string();
+
+		return true;
 	}
 
 	Ref<Texture> AssetBrowser::GetIcon(Asset& asset, const std::string& extension) {

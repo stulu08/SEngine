@@ -445,7 +445,7 @@ namespace Stulu {
 		uint32_t width = (uint32_t)((float)source->getWidth() * settings.resolutionScale);
 		uint32_t height = (uint32_t)((float)source->getHeight() * settings.resolutionScale);
 
-		if (width == 1 || height == 1 || !settings.enabled)
+		if (width <= 1 || height <= 1 || !settings.enabled)
 			return Resources::getBlackTexture();
 
 		if (data.downSample == nullptr || data.downSample->getWidth() != width || data.downSample->getHeight() != height) {

@@ -92,6 +92,7 @@ namespace Stulu {
 		if (m_blockEvents) {
 			ImGuiIO& io = ImGui::GetIO();
 			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;
+            
 		}
 	}
 

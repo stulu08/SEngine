@@ -59,4 +59,42 @@ namespace Editor {
 	std::string Resources::GetFontBold() {
 		return App::GetEditorDataPath() + "/Fonts/EditorFontBold.otf";
 	}
+	Ref<Shader>& Resources::GetOutlineShader() {
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/Outline");
+		}
+		return shader;
+	}
+	Ref<Shader>& Resources::GetHighliteShader() {
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/Green");
+		}
+		return shader;
+	}
+	Stulu::Ref<Stulu::Shader>& Resources::GetTransparentShader() {
+		static Ref<Shader> shader;
+		if (!shader) {
+			shader = Renderer::getShaderSystem()->GetShader("Editor/Transparent");
+		}
+		return shader;
+	}
+
+	Ref<Texture>& Resources::GetDirectionalLightTexture() {
+		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Directionallight.png");
+		return s_texture;
+	}
+	Ref<Texture>& Resources::GetLightTexture() {
+		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Light.png");
+		return s_texture;
+	}
+	Ref<Texture>& Resources::GetSpotLightTexture() {
+		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Spotlight.png");
+		return s_texture;
+	}
+	Ref<Texture>& Resources::GetCameraTexture() {
+		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Camera.png");
+		return s_texture;
+	}
 }

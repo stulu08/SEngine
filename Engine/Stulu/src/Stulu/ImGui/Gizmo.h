@@ -29,8 +29,10 @@ namespace Stulu {
 	class STULU_API Gizmo {
 	public:
 		static void init();
-		static void Begin();
+		static bool Begin();
+		// always call end
 		static void End();
+		static void setWindow(const std::string& windowName, bool* windowOpenPtr = nullptr);
 		static void setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView);
 		static void setRect(const float x, const float y, const float width, const float height);
 		static void ApplyToFrameBuffer(const Ref<FrameBuffer>& camera);

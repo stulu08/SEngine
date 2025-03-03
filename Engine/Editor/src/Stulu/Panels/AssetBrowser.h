@@ -57,26 +57,35 @@ namespace Editor {
 			m_path = path;
 		}
 	private:
-		ImVec2 m_indent = { 6.0f, 7.0f };
-		float m_rounding = 4.0f;
 		const std::filesystem::path m_root;
 		std::filesystem::path m_path;
 		std::filesystem::path m_selected = "";
+		
+		Preview m_preview;
+		
 		std::unordered_map<std::string, CreateFileOption::ConstructFunction> m_createFileOptions;
 		CreateFileOption* m_currentCreateOption = nullptr;
-		std::string m_search;
-		Preview m_preview;
+		std::string m_search, m_assetRenameString;
+		Stulu::Asset* m_selectedPopupAsset;
+
+		float m_rounding = 4.0f;
+		ImVec2 m_indent = { 6.0f, 7.0f };
 		float m_iconSize = 100.0f;
 
 		void DrawBrowser();
 		void DrawDirectoryBrowser(const std::filesystem::path& path);
 		void DrawMenu();
 		void DrawCreateFileModal();
+		void DrawPopUps();
 		// returns true when double pressed
 		FileInteractAction DrawFileFrame(const std::filesystem::path& path, bool selected = false);
 
 		void DeletePath(const std::filesystem::path& path);
+		void DeleteAsset(const Stulu::UUID& uuid);
 		bool DirectoryContainsSub(const std::filesystem::path& path, bool onlyDirs = false);
+
+		bool MoveAsset(const std::filesystem::path& targetDir, Stulu::UUID& receivedUUID);
+		bool RenameAsset(const std::filesystem::path& targetName, Stulu::Asset& asset);
 
 		Stulu::Ref<Stulu::Texture> GetIcon(Stulu::Asset& asset, const std::string& extension);
 	};

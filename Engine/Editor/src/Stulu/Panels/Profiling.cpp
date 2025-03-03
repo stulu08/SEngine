@@ -1,11 +1,16 @@
 #include "Profiling.h"
 
+#include "Stulu/App.h"
+#include "Stulu/MainLayer.h"
+#include "Stulu/Controls.h"
+
 #include <Stulu/Core/Time.h>
+#include <Stulu/Core/Platform.h>
 #include <Stulu/Renderer/Renderer.h>
+#include <Stulu/Scene/SceneRenderer.h>
+
 
 #include <magic_enum/magic_enum.hpp>
-#include <Icons.h>
-#include <Stulu/Core/Platform.h>
 
 using namespace Stulu;
 
@@ -27,12 +32,16 @@ namespace Editor {
 			DrawTimings();
 			ImGui::TreePop();
 		}
-		if (ImGui::TreeNodeEx("Shaders", ImGuiTreeNodeFlags_Framed)) {
-			DrawShaderStats();
+		if (ImGui::TreeNodeEx("Scene", ImGuiTreeNodeFlags_Framed)) {
+			DrawSceneStats();
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNodeEx("Pipeline Stats", ImGuiTreeNodeFlags_Framed)) {
 			DrawPipelineStats();
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNodeEx("Shaders", ImGuiTreeNodeFlags_Framed)) {
+			DrawShaderStats();
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNodeEx("Resources", ImGuiTreeNodeFlags_Framed)) {
@@ -78,7 +87,6 @@ namespace Editor {
 			m_fps.push_back(1.0f / Time::frameTime);
 			if (m_fps.size() > m_fps.capacity() - 1)
 				m_fps.erase(m_fps.begin(), m_fps.begin() + 1);
-
 		}
 
 		{
@@ -141,7 +149,8 @@ namespace Editor {
 	}
 
 	void ProfilingPanel::DrawPipelineStats() {
-		if (ImGui::TreeNodeEx("RenderStats")) {
+
+		if (ImGui::TreeNodeEx("Render Stats")) {
 
 			ImGui::TreeNodeEx("DrawCalls", ImGuiTreeNodeFlags_Leaf, "Drawcalls: % d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
 			ImGui::TreePop();
@@ -155,6 +164,36 @@ namespace Editor {
 			ImGui::TreeNodeEx("Triangles", ImGuiTreeNodeFlags_Leaf, "Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
 			ImGui::TreePop();
 
+			ImGui::TreePop();
+		}
+	}
+
+	void ProfilingPanel::DrawSceneStats() {
+		Ref<Scene> scene = App::get().GetLayer().GetActiveScene();
+		if (!scene) {
+			return;
+		}
+
+		const auto& renderer = scene->getRenderer();
+		auto& sceneData = scene->getData();
+		
+		if (ImGui::TreeNodeEx("Shadows")) {
+			ImGui::Image(renderer->GetShadowMap()->getDepthAttachment(), glm::vec2(256.0f), { 0,1 }, { 1, 0 });
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNodeEx("Display")) {
+			Controls::BitFlag("Wireframe", ST_ShaderViewFlags_DisplayVertices, sceneData.shaderFlags);
+			Controls::BitFlag("Depth", ST_ShaderViewFlags_DisplayDepth, sceneData.shaderFlags);
+			Controls::BitFlag("Lighting", ST_ShaderViewFlags_DisplayLighting, sceneData.shaderFlags);
+			Controls::BitFlag("Normals", ST_ShaderViewFlags_DisplayNormal, sceneData.shaderFlags);
+			Controls::BitFlag("Tex Coords", ST_ShaderViewFlags_DisplayTexCoords, sceneData.shaderFlags);
+			Controls::BitFlag("Diffuse", ST_ShaderViewFlags_DisplayDiffuse, sceneData.shaderFlags);
+			Controls::BitFlag("Specular", ST_ShaderViewFlags_DisplaySpecular, sceneData.shaderFlags);
+			Controls::BitFlag("Ambient", ST_ShaderViewFlags_DisplayAmbient, sceneData.shaderFlags);
+			Controls::BitFlag("Roughness", ST_ShaderViewFlags_DisplayRoughness, sceneData.shaderFlags);
+			Controls::BitFlag("Metallic", ST_ShaderViewFlags_DisplayMetallic, sceneData.shaderFlags);
+			Controls::BitFlag("Ambient Occlusion", ST_ShaderViewFlags_DisplayOcclusion, sceneData.shaderFlags);
+			Controls::BitFlag("Emission", ST_ShaderViewFlags_DisplayEmission, sceneData.shaderFlags);
 			ImGui::TreePop();
 		}
 	}

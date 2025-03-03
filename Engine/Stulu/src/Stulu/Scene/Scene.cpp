@@ -230,8 +230,11 @@ namespace Stulu {
 	}
 
 	void Scene::onRuntimeStart() {
+		// keep time at zero for starting
 		s_activeScene = this;
-		Time::time = .0f;
+		Time::deltaTime = 0.0f;
+		Time::time = 0.0f;
+
 		m_firstRuntimeUpdate = true;
 		updateAllTransforms();
 		if (m_data.enablePhsyics3D) {
@@ -248,7 +251,6 @@ namespace Stulu {
 				m_registry.get<MeshRendererComponent>(goID).material->uploadData();
 		}
 
-		Time::deltaTime = .0f;
 	}
 	void Scene::onRuntimeStop() {
 		s_activeScene = this;
@@ -290,7 +292,7 @@ namespace Stulu {
 		}
 	}
 	void Scene::updatePhysics() {
-		if (Time::deltaTime == 0.0f || m_firstRuntimeUpdate) {
+		if (m_firstRuntimeUpdate) {
 			return;
 		}
 		ST_PROFILING_SCOPE("Scene - PhysX Update");

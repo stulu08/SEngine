@@ -21,6 +21,7 @@ namespace Editor {
 
 		virtual void PreWindow() {};
 		virtual void PostWindow() {};
+		virtual void Update() {};
 
 		inline bool& OpenPtr() { return m_open; }
 		inline bool IsOpen() const { return m_open; }

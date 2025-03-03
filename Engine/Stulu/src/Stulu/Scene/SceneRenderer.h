@@ -59,6 +59,10 @@ namespace Stulu {
 		void resizeShadowMap();
 
 		void drawAll2d(const TransformComponent& camera);
+
+		Ref<FrameBuffer> GetShadowMap() const {
+			return m_shadowMap;
+		}
 	private:
 		Ref<Texture> DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data);
 

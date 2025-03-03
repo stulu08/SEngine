@@ -53,8 +53,8 @@ namespace Editor{
 
 	private:
 		TimingGroupList m_timings;
-		float m_lastFrameTime;
-		float m_updateTimer;
+		float m_lastFrameTime = 0.0f;
+		float m_updateTimer = 0.0f;
 
 		std::vector<float> m_fps;
 		std::vector<float> m_virtual;
@@ -63,6 +63,7 @@ namespace Editor{
 		void DrawTimings();
 		void DrawShaderStats();
 		void DrawPipelineStats();
+		void DrawSceneStats();
 		void DrawResources();
 
 		inline bool RequiresUpdate() const { return m_updateTimer >= 1.0f; }

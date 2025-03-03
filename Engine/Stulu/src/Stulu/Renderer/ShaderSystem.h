@@ -162,6 +162,7 @@ namespace Stulu {
 #define ST_ShaderViewFlags_DisplayTexCoords ((uint32_t)ShaderViewFlags::DisplayTexCoords)
 #define ST_ShaderViewFlags_DisplayVertices ((uint32_t)ShaderViewFlags::DisplayVertices)
 #define ST_ShaderViewFlags_DisplayEmission ((uint32_t)ShaderViewFlags::DisplayEmission)
+#define ST_ShaderViewFlags_DisplayOcclusion ((uint32_t)ShaderViewFlags::DisplayAmbientOcclusion)
 #define ST_ShaderViewFlags_DisplayDepth ((uint32_t)ShaderViewFlags::DisplayDepth)
 	static inline constexpr int32_t ST_MAXLIGHTS = 50;
 
@@ -177,7 +178,8 @@ namespace Stulu {
 		DisplayTexCoords = 1 << 7,
 		DisplayVertices = 1 << 8,
 		DisplayEmission = 1 << 9,
-		DisplayDepth = 1 << 10,
+		DisplayAmbientOcclusion = 1 << 10,
+		DisplayDepth = 1 << 11,
 	};
 }
 

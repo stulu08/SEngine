@@ -7,12 +7,14 @@
 
 #define FONT_ICON_SIZE 15.0f
 #define FONT_SIZE_DEFAULT 16.0f
+
 #define FONT_SIZE_SMALL FONT_SIZE_DEFAULT - 2.0f
+
 #define FONT_SIZE_LARGE FONT_SIZE_DEFAULT + 2.0f
+#define FONT_ICON_SIZE_ARGE FONT_ICON_SIZE + 2.0f
 
 namespace Editor {
 	namespace Style {
-        extern ImFont* IconFont;
         extern ImFont* DefaultFont;
         extern ImFont* SmallFont;
         extern ImFont* LargeFont;
@@ -24,7 +26,7 @@ namespace Editor {
             colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
             colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
             colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-            colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
+            colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.000f);
             colors[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.25f, 0.59f);
             colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
             colors[ImGuiCol_FrameBg] = ImVec4(0.25f, 0.25f, 0.25f, 0.54f);
@@ -77,19 +79,25 @@ namespace Editor {
             colors[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
 		}
         inline void LoadFonts(ImGuiIO& io) {
-            DefaultFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_DEFAULT);
-            io.FontDefault = DefaultFont;
-
             static const ImWchar icons_ranges[] = { ICON_MIN_FK, ICON_MAX_16_FK, 0 };
             ImFontConfig icons_config;
             icons_config.MergeMode = true;
             icons_config.GlyphMinAdvanceX = FONT_SIZE_DEFAULT;
             icons_config.PixelSnapH = true;
-            IconFont = io.Fonts->AddFontFromFileTTF(Resources::GetIconsFont().c_str(), FONT_ICON_SIZE, &icons_config, icons_ranges);
-            
-            SmallFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_SMALL);
-            LargeFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_LARGE);
 
+            {
+                DefaultFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_DEFAULT);
+                io.Fonts->AddFontFromFileTTF(Resources::GetIconsFont().c_str(), FONT_ICON_SIZE, &icons_config, icons_ranges);
+            }
+            {
+                SmallFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_SMALL);
+            }
+            {
+                LargeFont = io.Fonts->AddFontFromFileTTF(Resources::GetFont().c_str(), FONT_SIZE_LARGE);
+                io.Fonts->AddFontFromFileTTF(Resources::GetIconsFont().c_str(), FONT_ICON_SIZE_ARGE, &icons_config, icons_ranges);
+            }
+
+            io.FontDefault = DefaultFont;
         }
         inline void LoadVars(ImGuiStyle& style) {
             // Corners
@@ -110,7 +118,7 @@ namespace Editor {
             style.WindowRounding = 3;
             style.ChildRounding = 4;
             style.FrameRounding = 1;
-            style.PopupRounding = 4;
+            style.PopupRounding = 1;
             style.ScrollbarRounding = 9;
             style.GrabRounding = 3;
             style.LogSliderDeadzone = 4;

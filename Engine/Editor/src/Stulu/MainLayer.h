@@ -18,12 +18,16 @@ namespace Editor {
 		void onRenderGizmo() override;
 		void onEvent(Event& e) override;
 
-		Ref<Scene>& GetActiveScene() { return m_activeScene; }
+		inline bool IsRuntime() const { return m_runtime; }
+		inline Ref<Scene>& GetActiveScene() { return IsRuntime() ? m_runtimeScene : m_editorScene; }
+		inline const Ref<Scene>& GetActiveScene() const { return IsRuntime() ? m_runtimeScene : m_editorScene; }
 
-		//void SaveScene(const std::string& path);
-		//void OpenScene(const std::string& path);
+		void SaveScene(const std::string& path = "", bool browse = false);
+		void OpenScene(const std::string& path);
+		void OpenScene();
 
-		inline bool IsRuntime() { return m_runtime; }
+		void StartRuntime();
+		void StopRuntime();
 
 		template<class T, class ...Args>
 		inline void AddPanel(Args&& ...args) {
@@ -54,27 +58,23 @@ namespace Editor {
 		PostProcessingData cameraPostProcessData;
 		
 		std::string m_currentScenePath;
-		GizmoTransformEditMode m_gizmoEditType = GizmoTransformEditMode::None;
 
 		Preview m_preview;
 		ScenePanel* m_scenePanel;
 
-		//void drawObjectOutlines();
-		//void onDrawGizmoSelected(GameObject gameObject);
-		
-		//void drawMenuBar();
+		void DrawObjectOutlines();
+		void DrawGizmoSelected(GameObject gameObject);
+
+		void DrawMenuBar();
 		
 		//bool onShortCut(KeyDownEvent& e);
 		//bool onApplicationQuit(WindowCloseEvent& e);
 		
-		//void SaveScene();
-		//void OpenScene();
-		//void NewScene();
-		
-		//oid OnRuntimeStart();
-		//oid OnRuntimeStop();
+		void OpenScene(Ref<Scene> scene);
+		inline void NewScene() {
+			OpenScene(createRef<Scene>());
+		}
 
-		Ref<Scene> m_activeScene = nullptr;
 		Ref<Scene> m_editorScene = nullptr, m_runtimeScene = nullptr;
 
 		bool m_runtime = false;

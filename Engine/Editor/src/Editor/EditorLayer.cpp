@@ -503,7 +503,6 @@ namespace Stulu {
 			if (m_gameViewport.drawn) {
 				m_runtimeScene->getRenderer()->GenSceneTexture(m_sceneFrameBuffer);
 			}
-
 		}
 		else if (m_gameViewport.drawn) {
 			GameObject mainCamObj = m_activeScene->getMainCamera();
