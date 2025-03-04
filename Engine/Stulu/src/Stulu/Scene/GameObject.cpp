@@ -14,6 +14,9 @@ namespace Stulu {
 	GameObject GameObject::getById(entt::entity id, Scene* scene) {
 		if (id == entt::null || scene == nullptr)
 			return GameObject::null;
-		return { id, scene };
+		if(scene->getRegistry().valid(id))
+			return { id, scene };
+
+		return GameObject::null;
 	}
 }
