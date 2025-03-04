@@ -27,7 +27,6 @@ namespace Stulu {
 		if (!object.getScene()->getData().enablePhsyics3D)
 			return;
 		auto& tc = object.getComponent<TransformComponent>();
-		object.getScene()->updateTransform(tc);
 		auto& bCollide = object.getComponent<BoxColliderComponent>();
 		physx::PxRigidActor* actor;
 		if (object.hasComponent<RigidbodyComponent>()) {
@@ -35,18 +34,18 @@ namespace Stulu {
 			if (rb.body)
 				actor = (physx::PxRigidActor*)rb.body;
 			else
-				actor = physics->createActor(rb, tc.worldPosition, tc.worldRotation);
+				actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		else {
 			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
 			rb.useGravity = true;
 			rb.kinematic = true;
-			actor = physics->createActor(rb, tc.worldPosition, tc.worldRotation);
+			actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics->getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxBoxGeometry(PhysicsVec3fromglmVec3(tc.worldScale * bCollide.size)), *aMaterial);
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxBoxGeometry(PhysicsVec3fromglmVec3(tc.GetWorldScale() * bCollide.size)), *aMaterial);
 		shape->setLocalPose(relativePose);
 		bCollide.shape = (void*)shape;
 		bCollide.rigidbody = (void*)actor;
@@ -57,7 +56,6 @@ namespace Stulu {
 		if (!object.getScene()->getData().enablePhsyics3D)
 			return;
 		auto& tc = object.getComponent<TransformComponent>();
-		object.getScene()->updateTransform(tc);
 		auto& bCollide = object.getComponent<SphereColliderComponent>();
 		physx::PxRigidActor* actor;
 		if (object.hasComponent<RigidbodyComponent>()) {
@@ -65,18 +63,18 @@ namespace Stulu {
 			if (rb.body)
 				actor = (physx::PxRigidActor*)rb.body;
 			else
-				actor = physics->createActor(rb, tc.worldPosition, tc.worldRotation);
+				actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		else {
 			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
 			rb.useGravity = true;
 			rb.kinematic = true;
-			actor = physics->createActor(rb, tc.worldPosition, tc.worldRotation);
+			actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics->getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxSphereGeometry(tc.worldScale.x * bCollide.radius), *aMaterial);
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxSphereGeometry(tc.GetWorldScale().x * bCollide.radius), *aMaterial);
 		shape->setLocalPose(relativePose);
 		bCollide.shape = (void*)shape;
 		bCollide.rigidbody = (void*)actor;
@@ -87,7 +85,6 @@ namespace Stulu {
 		if (!object.getScene()->getData().enablePhsyics3D)
 			return;
 		auto& tc = object.getComponent<TransformComponent>();
-		object.getScene()->updateTransform(tc);
 		auto& bCollide = object.getComponent<MeshColliderComponent>();
 
 		if (!object.hasComponent<MeshFilterComponent>())
@@ -104,19 +101,19 @@ namespace Stulu {
 			return;
 		physx::PxRigidActor* actor;
 		if (bCollide.convex) {
-			actor = physics->getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
+			actor = physics->getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.GetWorldPosition()), PhysicsQuatfromglmQuat(tc.GetWorldRotation())));
 			if (object.hasComponent<RigidbodyComponent>()) {
-				actor = physics->createActor(object.getComponent<RigidbodyComponent>(), tc.worldPosition, tc.worldRotation);
+				actor = physics->createActor(object.getComponent<RigidbodyComponent>(), tc.GetWorldPosition(), tc.GetWorldRotation());
 			}
 			else {
 				RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
 				rb.useGravity = true;
 				rb.kinematic = true;
-				actor = physics->createActor(object.getComponent<RigidbodyComponent>(), tc.worldPosition, tc.worldRotation);
+				actor = physics->createActor(object.getComponent<RigidbodyComponent>(), tc.GetWorldPosition(), tc.GetWorldRotation());
 			}
 		}
 		else {
-			actor = physics->getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.worldPosition), PhysicsQuatfromglmQuat(tc.worldRotation)));
+			actor = physics->getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.GetWorldPosition()), PhysicsQuatfromglmQuat(tc.GetWorldRotation())));
 		}
 		physx::PxMaterial* aMaterial = physics->getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
 		physx::PxShape* shape;
@@ -124,7 +121,7 @@ namespace Stulu {
 			physx::PxTriangleMesh* physxMesh = physics->createTriangleMesh(bCollide.mesh.mesh);
 			if (physxMesh) {
 				shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxTriangleMeshGeometry(physxMesh,
-					physx::PxMeshScale(PhysicsVec3fromglmVec3(tc.worldScale))), *aMaterial);
+					physx::PxMeshScale(PhysicsVec3fromglmVec3(tc.GetWorldScale()))), *aMaterial);
 			}
 			else {
 				return;
@@ -134,7 +131,7 @@ namespace Stulu {
 			physx::PxConvexMesh* physxMesh = physics->createConvexMesh(bCollide.convexMesh);
 			if (physxMesh) {
 				shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxConvexMeshGeometry(physxMesh,
-					physx::PxMeshScale(PhysicsVec3fromglmVec3(tc.worldScale))), *aMaterial);
+					physx::PxMeshScale(PhysicsVec3fromglmVec3(tc.GetWorldScale()))), *aMaterial);
 			}
 			else {
 				return;
@@ -149,7 +146,6 @@ namespace Stulu {
 	}
 	void CapsuleColliderComponent::create(GameObject object, const Scope<PhysX>& physics){
 		auto& tc = object.getComponent<TransformComponent>();
-		object.getScene()->updateTransform(tc);
 		auto& bCollide = object.getComponent<CapsuleColliderComponent>();
 
 		physx::PxRigidActor* actor;
@@ -158,13 +154,13 @@ namespace Stulu {
 			if (rb.body)
 				actor = (physx::PxRigidActor*)rb.body;
 			else
-				actor = physics->createActor(rb, tc.worldPosition, tc.worldRotation);
+				actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		else {
 			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
 			rb.useGravity = true;
 			rb.kinematic = true;
-			actor = physics->createActor(rb, tc.worldPosition, tc.worldRotation);
+			actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
@@ -172,9 +168,9 @@ namespace Stulu {
 
 		physx::PxCapsuleGeometry geometry;
 		if(horizontal)
-			geometry = physx::PxCapsuleGeometry(tc.worldScale.x * bCollide.radius/2.0f, tc.worldScale.y * (height / 4.0f));
+			geometry = physx::PxCapsuleGeometry(tc.GetWorldScale().x * bCollide.radius/2.0f, tc.GetWorldScale().y * (height / 4.0f));
 		else
-			geometry = physx::PxCapsuleGeometry(tc.worldScale.y * bCollide.radius/2.0f, tc.worldScale.x * (height / 4.0f));
+			geometry = physx::PxCapsuleGeometry(tc.GetWorldScale().y * bCollide.radius/2.0f, tc.GetWorldScale().x * (height / 4.0f));
 
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, geometry, *aMaterial);
 		shape->setLocalPose(relativePose);

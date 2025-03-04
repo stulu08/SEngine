@@ -10,7 +10,7 @@ namespace Stulu {
 		//store components already got from InternalCalls
 		private Dictionary<Type, GameObjectAttached> m_componentCache = new Dictionary<Type, GameObjectAttached>();
 		internal GameObject() { Init(); }
-		internal GameObject(uint id) { Init(id); }
+		internal GameObject(ulong id) { Init(id); }
 		public GameObject(GameObject other) { InitFromOther(other); }
 		public GameObject(String name) => InitFromOther(Create(name, "default", Vector3.Zero, Quaternion.Identy, Vector3.One));
 		public GameObject(String name, String tag) => InitFromOther(Create(name, tag, Vector3.Zero, Quaternion.Identy, Vector3.One));
@@ -118,10 +118,10 @@ namespace Stulu {
 			this.ID = other.ID;
 		}
 
-		internal void Init(uint id = UInt32.MaxValue) {
+		internal void Init(ulong id = UInt64.MaxValue) {
 			this.ID = id;
 		}
-		internal uint ID;
+		internal ulong ID;
 
 		public override string ToString() {
 			return $"GameObject({ID})";

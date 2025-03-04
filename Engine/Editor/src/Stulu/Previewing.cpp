@@ -89,7 +89,7 @@ namespace Editor {
 		m_camera = m_scene->createGameObject("Camera");
 		m_light = m_scene->createGameObject("Light");
 		m_light.addComponent<LightComponent>(LightComponent::Directional).strength = 4;
-		m_light.getComponent<TransformComponent>().rotation = glm::quat(glm::radians(glm::vec3(-45.0f, -45.0f, .0f)));
+		m_light.getComponent<TransformComponent>().SetRotation(glm::quat(glm::radians(glm::vec3(-45.0f, -45.0f, .0f))));
 
 		CamDefault();
 	}
@@ -136,8 +136,8 @@ namespace Editor {
 		m_camera.getComponent<CameraComponent>().updateProjection();
 
 		auto& transform = m_camera.getComponent<TransformComponent>();
-		transform.position = glm::abs(glm::vec3(furthestX, furthestY, furthestZ)) * zoom;
-		transform.rotation = Math::lookAt({ 0,0,0 }, transform.position);
+		transform.SetPosition(glm::abs(glm::vec3(furthestX, furthestY, furthestZ)) * zoom);
+		transform.SetRotation(Math::lookAt({ 0,0,0 }, transform.position));
 	}
 	void Preview::SetupSkybox(Ref<SkyBox> skybox) {
 		m_camera.addComponent<SkyBoxComponent>().texture = skybox;
@@ -164,8 +164,8 @@ namespace Editor {
 		m_camera.getComponent<CameraComponent>().updateProjection();
 
 		auto& transform = m_camera.getComponent<TransformComponent>();
-		transform.position = glm::abs(glm::vec3(0.0f, furthest.y, furthest.z) * zoom);
-		transform.rotation = Math::lookAt({ 0,0,0 }, transform.position);
+		transform.SetPosition(glm::abs(glm::vec3(0.0f, furthest.y, furthest.z) * zoom));
+		transform.SetRotation(Math::lookAt({ 0,0,0 }, transform.position));
 	}
 
 	void Preview::SceneReset() {
@@ -190,8 +190,8 @@ namespace Editor {
 		cam.updateProjection();
 
 		m_camera.getComponent<GameObjectBaseComponent>().tag = "MainCam";
-		m_camera.getComponent<TransformComponent>().position = glm::vec3(0.0f, 0.0f, 1.25f);
-		m_camera.getComponent<TransformComponent>().rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		m_camera.getComponent<TransformComponent>().SetPosition(glm::vec3(0.0f, 0.0f, 1.25f));
+		m_camera.getComponent<TransformComponent>().SetRotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f));
 
 	}
 }

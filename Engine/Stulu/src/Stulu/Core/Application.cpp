@@ -131,12 +131,11 @@ namespace Stulu {
 			m_window->getContext()->beginBuffer();
 
 			// update timing
-			float time = Platform::getTime();
-			Timestep delta = time - m_lastFrameTime;
-			Time::applicationRuntime = time;
-			m_lastFrameTime = time;
+			Time::applicationRuntime = Platform::getTime();
+			Timestep delta = Time::applicationRuntime - m_lastFrameTime;
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
+			m_lastFrameTime = Time::applicationRuntime;
 			
 			if (!m_minimized) {
 				ST_PROFILING_RENDERDATA_BEGIN();

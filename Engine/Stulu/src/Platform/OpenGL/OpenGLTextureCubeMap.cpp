@@ -565,6 +565,8 @@ namespace Stulu {
 		glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);
 	}
+	uint32_t OpenGLSkyBox::s_quadVAO = 0;
+	uint32_t OpenGLSkyBox::s_quadVBO = 0;
 	void OpenGLSkyBox::renderQuad() {
 		if (s_quadVAO == 0)
 		{

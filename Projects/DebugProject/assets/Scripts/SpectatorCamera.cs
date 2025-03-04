@@ -31,9 +31,18 @@ public class SpectatorCamera : Component {
 
 	public override void onStart() {
 		mouse = transform.eulerAngles;
-		Input.setCursorMode(CursorMode.Disabled);
 	}
 	public override void onUpdate() {
+		if (Input.getKeyDown(KeyCode.Escape))
+		{
+			Input.setCursorMode(CursorMode.Normal);
+		}
+		if (Input.getMouseButton(MouseButton.Left))
+		{
+			Input.setCursorMode(CursorMode.Disabled);
+		}
+
+
 		Vector3 inputDiagonal = Input.getAxis(front, back) * transform.forward;
 		Vector3 inputVertical = Input.getAxis(up, down) * Vector3.Up;
 		Vector3 inputHorizonatl = Input.getAxis(right, left) * transform.right;
@@ -58,5 +67,7 @@ public class SpectatorCamera : Component {
 				nextTimeToFire = Time.time + (1.0f / FireRate);
 			}
 		}
+		
+		
 	}
 }

@@ -26,7 +26,7 @@ namespace Stulu {
 	}
 
 	void RuntimeLayer::onUpdate(Timestep timestep) {
-		m_activeScene->onUpdateRuntime(timestep);
+		m_activeScene->onUpdateRuntime();
 		//draw texture to screen
 		{
 			m_activeScene->getRenderer()->GenSceneTexture(m_frameBuffer);

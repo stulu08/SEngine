@@ -8,7 +8,7 @@ namespace Stulu {
 
 	void SceneSerializer::SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
 		out << YAML::BeginMap;
-		out << YAML::Key << "GameObject" << YAML::Value << gameObject.getId();
+		out << YAML::Key << "GameObject" << YAML::Value << (uint64_t)gameObject.getId();
 
 		BEGIN_SERIALIZE_COMPONENT(GameObjectBaseComponent);
 		{
@@ -22,7 +22,8 @@ namespace Stulu {
 			SERIALIZE_PROPERTY(SerializedTransformComponent, position);
 			SERIALIZE_PROPERTY(SerializedTransformComponent, rotation);
 			SERIALIZE_PROPERTY(SerializedTransformComponent, scale);
-			SERIALIZE_PROPERTY_IFEXIST_C(SerializedTransformComponent, parent, UUID);
+			if(SerializedTransformComponent.HasParent())
+				out << YAML::Key << "parent" << YAML::Value << (uint64_t)SerializedTransformComponent.GetParent();
 		}
 		END_SERIALIZE_COMPONENT();
 
@@ -273,7 +274,7 @@ namespace Stulu {
 			auto gos = data["GameObjects"];
 			if (gos) {
 				for (auto gameObject : gos) {
-					GameObject deserialized = m_scene->createGameObject(gameObject["GameObject"].as<uint64_t>());
+					GameObject deserialized = m_scene->createGameObject((entt::entity)gameObject["GameObject"].as<uint64_t>());
 					
 					BEGIN_DESERIALIZE_COMPONENT(GameObjectBaseComponent);
 					{
@@ -467,12 +468,12 @@ namespace Stulu {
 			//handle childs and parents
 			if (gos) {
 				for (auto gameObject : gos) {
-					GameObject deserialized = GameObject::getById(gameObject["GameObject"].as<uint64_t>(), m_scene.get());
+					GameObject deserialized = GameObject::getById((entt::entity)gameObject["GameObject"].as<uint64_t>(), m_scene.get());
 
 					auto transformComponentNode = gameObject["TransformComponent"];
 					if (transformComponentNode) {
 						if (transformComponentNode["parent"]) {
-							deserialized.getComponent<TransformComponent>().parent = GameObject::getById(UUID(transformComponentNode["parent"].as<uint64_t>()), m_scene.get());
+							deserialized.getComponent<TransformComponent>().SetParent(GameObject::getById((entt::entity)transformComponentNode["parent"].as<uint64_t>(), m_scene.get()));
 						}
 					}
 

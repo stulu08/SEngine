@@ -78,18 +78,21 @@ namespace Stulu {
 		inline Scene* getScene() const { return m_scene; }
 
 		STULU_API bool isValid() const;
-		STULU_API UUID getId() const;
-		STULU_API static GameObject getById(const UUID& id, Scene* scene);
+		STULU_API entt::entity getId() const;
+		STULU_API static GameObject getById(entt::entity id, Scene* scene);
 
 		inline operator bool() const { 
 			return isValid(); 
 		}
 		inline operator entt::entity() const { return m_entity; }
-		inline operator uint32_t() const { return (uint32_t)m_entity; }
-		inline operator UUID() const { return getId(); }
+		inline operator uint64_t() const { return (uint32_t)m_entity; }
 		inline operator void*() const { return (void*)(uint64_t)m_entity; }
 
 		inline bool operator==(const GameObject& other) const {
+			// if both ids are invalid they are same, important if (gameobject == GameObject::null)
+			if (other.m_entity == entt::null && this->m_entity == entt::null)
+				return true;
+
 			return m_entity == other.m_entity && m_scene == other.m_scene;
 		}
 		inline bool operator!=(const GameObject& other) const {

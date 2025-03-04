@@ -5,7 +5,7 @@
 namespace StuluBindings {
 	class GameObject {
 	public:	
-		static inline void addComponent(uint32_t go, MonoReflectionType* reftype) {
+		static inline void addComponent(uint64_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				const auto& manager = getManager();
@@ -31,7 +31,7 @@ namespace StuluBindings {
 				}
 			}
 		}
-		static inline bool hasComponent(uint32_t go, MonoReflectionType* reftype) {
+		static inline bool hasComponent(uint64_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				const auto& manager = getManager();
@@ -58,7 +58,7 @@ namespace StuluBindings {
 			}
 			return false;
 		}
-		static inline bool removeComponent(uint32_t go, MonoReflectionType* reftype) {
+		static inline bool removeComponent(uint64_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				const auto& manager = getManager();
@@ -86,7 +86,7 @@ namespace StuluBindings {
 			return false;
 		}
 		// only c# scripts
-		static inline MonoObject* getComponent(uint32_t go, MonoReflectionType* reftype) {
+		static inline MonoObject* getComponent(uint64_t go, MonoReflectionType* reftype) {
 			MonoType* type = mono_reflection_type_get_type(reftype);
 			if (type) {
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
@@ -101,7 +101,7 @@ namespace StuluBindings {
 			CORE_ERROR("Invalid type");
 			return nullptr;
 		}
-		static inline uint32_t create(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position, Quaternion rotation, Vector3 scale) {
+		static inline uint64_t create(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position, Quaternion rotation, Vector3 scale) {
 			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
@@ -111,19 +111,19 @@ namespace StuluBindings {
 			tc.scale = scale.toNative_s();
 			return go;
 		}
-		static inline void setName(uint32_t go, Stulu::Mono::String name) {
+		static inline void setName(uint64_t go, Stulu::Mono::String name) {
 			Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::GameObjectBaseComponent>().name = name.ToUtf8();
 		}
-		static inline Stulu::Mono::String getName(uint32_t go) {
+		static inline Stulu::Mono::String getName(uint64_t go) {
 			return Stulu::Mono::String::New(getCoreDomain(), Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::GameObjectBaseComponent>().name);
 		}
-		static inline void setTag(uint32_t go, Stulu::Mono::String tag) {
+		static inline void setTag(uint64_t go, Stulu::Mono::String tag) {
 			Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::GameObjectBaseComponent>().tag = tag.ToUtf8();
 		}
-		static inline Stulu::Mono::String getTag(uint32_t go) {
+		static inline Stulu::Mono::String getTag(uint64_t go) {
 			return Stulu::Mono::String::New(getCoreDomain(), Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene()).getComponent<Stulu::GameObjectBaseComponent>().tag);
 		}
-		static inline uint32_t createSphere(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
+		static inline uint64_t createSphere(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
 			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
@@ -134,7 +134,7 @@ namespace StuluBindings {
 			go.addComponent<Stulu::SphereColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
 			return go;
 		}
-		static inline uint32_t createCube(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
+		static inline uint64_t createCube(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
 			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
@@ -145,7 +145,7 @@ namespace StuluBindings {
 			go.addComponent<Stulu::BoxColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
 			return go;
 		}
-		static inline uint32_t createCapsule(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
+		static inline uint64_t createCapsule(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
 			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
@@ -155,7 +155,7 @@ namespace StuluBindings {
 			go.addComponent<Stulu::CapsuleColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
 			return go;
 		}
-		static inline uint32_t createPlane(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
+		static inline uint64_t createPlane(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
 			Stulu::GameObject go = Stulu::Scene::activeScene()->createGameObject(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
@@ -166,7 +166,7 @@ namespace StuluBindings {
 			go.addComponent<Stulu::MeshColliderComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
 			return go;
 		}
-		static inline void destroy(uint32_t id) {
+		static inline void destroy(uint64_t id) {
 			Stulu::Scene::activeScene()->destroyGameObject(Stulu::GameObject((entt::entity)id, Stulu::Scene::activeScene()));
 		}
 	};

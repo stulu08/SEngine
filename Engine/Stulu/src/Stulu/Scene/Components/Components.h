@@ -17,65 +17,205 @@
 namespace Stulu {
 
 	class GameObjectBaseComponent : public Component {
-	private:
-		UUID uuid;
 	public:
-		inline UUID getUUID() const {
-			return uuid;
-		}
-		inline void updateUUID(const UUID& newUuid) {
-			auto& map = gameObject.getScene()->m_uuidGameObjectMap;
-			if(map.find(uuid) != map.end())
-				map.erase(uuid);
-
-			this->uuid = newUuid;
-			map[newUuid] = gameObject;
-		}
-
 		std::string name = "GameObject";
 		std::string tag = "default";
 
 		GameObjectBaseComponent() = default;
 		GameObjectBaseComponent(const GameObjectBaseComponent&) = default;
-		GameObjectBaseComponent(const std::string& name, const UUID& uuid)
-			: name(name), uuid(uuid) {};
+		GameObjectBaseComponent(const std::string& name)
+			: name(name) {};
 	};
 	class TransformComponent : public Component {
 	public:
-		glm::vec3 position = glm::vec3(.0f);
-		glm::quat rotation = glm::quat(1.0f, .0f, .0f, .0f);
+		glm::vec3 position = glm::vec3(0.0f);
+		glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 		glm::vec3 scale = glm::vec3(1.0f);
 
-		//used for rendering, do not change
-		glm::vec3 worldPosition = glm::vec3(0.0f);
-		glm::quat worldRotation = glm::quat(1.0f, .0f, .0f, .0f);
-		glm::vec3 worldScale = glm::vec3(0.0f);
-		glm::vec3 eulerAnglesDegrees = glm::vec3(.0f);//in degrees
-		glm::vec3 eulerAnglesWorldDegrees = glm::vec3(.0f);//in degrees
+	private:
+		mutable glm::mat4 transform = glm::mat4(1.0f);
+		mutable glm::vec3 worldPosition = glm::vec3(0.0f);
+		mutable glm::quat worldRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		mutable glm::vec3 worldScale = glm::vec3(1.0f);
+		mutable bool dirty = true;
 
-		glm::mat4 transform = glm::mat4(1.0f);
-		
-		glm::vec3 up = TRANSFORM_UP_DIRECTION;
-		glm::vec3 right = TRANSFORM_RIGHT_DIRECTION;
-		glm::vec3 forward = TRANSFORM_FOREWARD_DIRECTION;
+		entt::entity parentEntity = GameObject::null;
+		std::vector<entt::entity> children;
 
-		//Parent GameObject
-		GameObject parent = GameObject::null;
-
+		inline Scene* GetScene() const {
+			return gameObject.getScene();
+		}
+		void MarkDirty() {
+			dirty = true;
+			auto& registry = GetScene()->getRegistry();
+			for (auto& child : children) {
+				registry.get<TransformComponent>(child).MarkDirty();
+			}
+		}
+	public:
 		TransformComponent() = default;
-		TransformComponent(const TransformComponent&) = default;
-		TransformComponent(const glm::vec3 pos, const glm::quat rotation, const glm::vec3 scale)
-			: position(pos), rotation(rotation), scale(scale) { };
-
-		operator const glm::mat4() { return transform; }
-
-		void addChild(GameObject child) { 
-			child.getComponent<TransformComponent>().parent = gameObject;
+		TransformComponent(const TransformComponent& other) {
+			this->position = other.position;
+			this->rotation = other.rotation;
+			this->scale = other.scale;
+			this->parentEntity = other.parentEntity;
+			this->children = other.children;
+			this->dirty = true;
 		}
-		void addChild(TransformComponent& child) {
-			child.parent = gameObject;
+
+		TransformComponent(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl)
+			: position(pos), rotation(rot), scale(scl) {}
+
+		inline void SetPosition(const glm::vec3& pos) { position = pos; dirty = true; }
+		inline void SetRotation(const glm::quat& rot) { rotation = rot; dirty = true; }
+		inline void SetScale(const glm::vec3& scl) { scale = scl; dirty = true; }
+
+		inline GameObject GetParent() const {
+			if (parentEntity == entt::null)
+				return GameObject::null;
+
+			return { parentEntity, GetScene() };
 		}
-	};
+		inline bool HasParent() const {
+			return GetParent().isValid();
+		}
+		inline void SetParent(const GameObject& newParent) {
+			GameObject parent = GetParent();
+
+			if (parent.isValid()) {
+				parent.getComponent<TransformComponent>().RemoveChild(gameObject);
+			}
+			if (newParent.isValid()) {
+				newParent.getComponent<TransformComponent>().AddChild(gameObject);
+			}
+		}
+		inline void AddChild(const GameObject& child) {
+			if (child == (entt::entity)gameObject) {
+				CORE_WARN("Cannot assign as own parent!");
+				return;
+			}
+
+			if (std::find(children.begin(), children.end(), (entt::entity)child) != children.end()) {
+				CORE_WARN("Child already present!");
+				return;
+			}
+
+			children.push_back(child);
+			auto& childTransform = child.getComponent<TransformComponent>();
+			childTransform.parentEntity = (entt::entity)gameObject;
+			childTransform.MarkDirty();
+		}
+		inline void RemoveChild(const GameObject& child) {
+			children.erase(std::remove(children.begin(), children.end(), (entt::entity)child), children.end());
+
+			auto& childTransform = child.getComponent<TransformComponent>();
+			childTransform.parentEntity = entt::null;
+			childTransform.MarkDirty();
+		}
+
+		inline std::vector<entt::entity>& GetChildren() { return children; }
+		inline const std::vector<entt::entity>& GetChildren() const { return children; }
+		inline bool HasChildren() const { return !children.empty(); }
+
+		inline const glm::mat4& GetWorldTransform() const {
+			if (dirty) {
+				GameObject parent = GetParent();
+
+				if (parent.isValid()) {
+					const glm::mat4 parentTransform = parent.getComponent<TransformComponent>().GetWorldTransform();
+					transform = parentTransform * GetLocalTransform();
+
+					Math::decomposeTransform(transform, worldPosition, worldRotation, worldScale);
+				}
+				else {
+					transform = GetLocalTransform();
+					worldPosition = position;
+					worldRotation = rotation;
+					worldScale = scale;
+				}
+				dirty = false;
+			}
+			return transform;
+		}
+
+		inline glm::mat4 GetLocalTransform() const {
+			return glm::translate(glm::mat4(1.0f), position) *
+				glm::mat4_cast(rotation) *
+				glm::scale(glm::mat4(1.0f), scale);
+		}
+		
+		inline glm::vec3 GetWorldPosition() const {
+			if (dirty)
+				GetWorldTransform();
+
+			return worldPosition;
+		}
+		inline glm::quat GetWorldRotation() const {
+			if (dirty)
+				GetWorldTransform();
+
+			return worldRotation;
+		}
+		inline glm::vec3 GetWorldScale() const {
+			if (dirty)
+				GetWorldTransform();
+
+			return worldScale;
+		}
+		inline glm::vec3 GetWorldEulerRotation() const {
+			glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(worldRotation)); // Convert quaternion to Euler (in radians), then to degrees
+			// Normalize angles to 0 - 360 degrees
+			if (eulerAngles.x < 0) eulerAngles.x += 360.0f;
+			if (eulerAngles.y < 0) eulerAngles.y += 360.0f;
+			if (eulerAngles.z < 0) eulerAngles.z += 360.0f;
+			return eulerAngles;
+		}
+
+		inline void SetWorldPosition(const glm::vec3& newWorldPos) {
+			GameObject parent = GetParent();
+			if (parent.isValid()) {
+				auto& parentTransform = parent.getComponent<TransformComponent>();
+				position = newWorldPos - parentTransform.GetWorldPosition();
+			}
+			else {
+				position = newWorldPos;
+			}
+			MarkDirty();
+		}
+		inline void SetWorldRotation(const glm::quat& newWorldRot) {
+			GameObject parent = GetParent();
+			if (parent.isValid()) {
+				auto& parentTransform = parent.getComponent<TransformComponent>();
+				rotation = glm::inverse(parentTransform.GetWorldRotation()) * newWorldRot;
+			}
+			else {
+				rotation = newWorldRot;
+			}
+			MarkDirty();
+		}
+		inline void SetWorldScale(const glm::vec3& newWorldScale) {
+			GameObject parent = GetParent();
+			if (parent.isValid()) {
+				auto& parentTransform = parent.getComponent<TransformComponent>();
+				scale = newWorldScale / parentTransform.GetWorldScale();
+			}
+			else {
+				scale = newWorldScale;
+			}
+			MarkDirty();
+		}
+
+		inline glm::vec3 GetForward() const {
+			return glm::rotate(GetWorldRotation(), TRANSFORM_FOREWARD_DIRECTION);
+		}
+		inline glm::vec3 GetUp() const {
+			return glm::rotate(GetWorldRotation(), TRANSFORM_UP_DIRECTION);
+		}
+		inline glm::vec3 GetRight() const {
+			return glm::rotate(GetWorldRotation(), TRANSFORM_RIGHT_DIRECTION);
+		}
+};
+
 
 	class SpriteRendererComponent : public Component {
 	public:

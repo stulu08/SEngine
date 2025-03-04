@@ -376,7 +376,7 @@ namespace Stulu {
 
 		if (goClass) {
 			m_gameObject = createRef<MonoObjectInstance>(goClass, assembly.get());
-			m_idProperty = m_gameObject->FindFieldAs<UInt32Property>("ID");
+			m_idProperty = m_gameObject->FindFieldAs<UInt64Property>("ID");
 
 			// get value if already asigned
 			Mono::Object assignedGo = m_fieldPtr.GetValueObject(domain, m_parentObjectPtr);
@@ -397,7 +397,7 @@ namespace Stulu {
 		out << YAML::Key << "Value" << (uint64_t)GetValue();
 	}
 	void GameObjectProperty::Deserialize(YAML::detail::iterator_value& node) {
-		SetValue(node["Value"].as<uint64_t>());
+		SetValue((entt::entity)node["Value"].as<uint64_t>());
 	}
 	void GameObjectProperty::CopyValueTo(Ref<Property> other) const {
 		if (other->getType() != this->getType())
@@ -406,33 +406,34 @@ namespace Stulu {
 		otherProp->SetValue(this->GetValue());
 	}
 	void* GameObjectProperty::CopyValueToBuffer() const {
-		uint64_t* data = (uint64_t*)malloc(this->getSize());
+		entt::entity* data = (entt::entity*)malloc(this->getSize());
 		*data = GetValue();
 		return data;
 	}
 	void GameObjectProperty::SetValueFromBuffer(void* source) {
 		if (!source)
 			return;
-		SetValue(*((uint64_t*)source));
+		SetValue(*((entt::entity*)source));
 	}
-	UUID GameObjectProperty::GetValue() const {
+	entt::entity GameObjectProperty::GetValue() const {
 		GameObject obj = GameObject((entt::entity)GetValueRaw(), Scene::activeScene());
 		if(obj.isValid())
 			return obj.getId();
-		return UUID::null;
+		return entt::null;
 	}
-	void GameObjectProperty::SetValue(const UUID& value) {
+	void GameObjectProperty::SetValue(const entt::entity& value) {
 		SetValueRaw(GameObject::getById(value, Scene::activeScene()));
 	}
-	uint32_t GameObjectProperty::GetValueRaw() const {
-		uint32_t outValue = entt::null;
+	uint64_t GameObjectProperty::GetValueRaw() const {
+		uint64_t outValue = entt::null;
 		if (m_idProperty)
 			outValue = m_idProperty->GetValue();
 		else
 			CORE_ERROR("Cant get value of GameObject, m_idProperty == 0");
-		return (uint32_t)outValue;
+
+		return (uint64_t)outValue;
 	}
-	void GameObjectProperty::SetValueRaw(uint32_t value) {
+	void GameObjectProperty::SetValueRaw(uint64_t value) {
 		if (m_idProperty) {
 			m_idProperty->SetValue(value);
 		}

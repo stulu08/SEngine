@@ -11,7 +11,7 @@ Settings:
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
-  - GameObject: 18119353929336440950
+  - GameObject: 0
     GameObjectBaseComponent:
       tag: default
       name: Sphere
@@ -41,7 +41,7 @@ GameObjects:
       retainAccelaration: false
       mass: 1
       massCenterPos: [0, 0, 0]
-  - GameObject: 8376034426478579750
+  - GameObject: 1
     GameObjectBaseComponent:
       tag: default
       name: Cube
@@ -71,7 +71,7 @@ GameObjects:
       retainAccelaration: false
       mass: 1
       massCenterPos: [0, 0, 0]
-  - GameObject: 16495207037748964345
+  - GameObject: 2
     GameObjectBaseComponent:
       tag: default
       name: Mount_hood
@@ -79,8 +79,8 @@ GameObjects:
       position: [0, 0, 0]
       rotation: [0, 0.704627693, 0, 0.709577203]
       scale: [0.99999994, 1, 0.99999994]
-      parent: 10939861675557121498
-  - GameObject: 14661814749336762375
+      parent: 6
+  - GameObject: 3
     GameObjectBaseComponent:
       tag: default
       name: Terrain
@@ -88,7 +88,7 @@ GameObjects:
       position: [4.41762107e-28, 0, -2.1787472e-12]
       rotation: [0, 0, 0.707106769, 0.707106769]
       scale: [100, 100, 100]
-      parent: 16495207037748964345
+      parent: 2
     MeshRendererComponent:
       material: 11162837847377159197
       cullmode: 2
@@ -100,7 +100,7 @@ GameObjects:
       restitution: 0
       convex: false
       mesh: 1475112583025679647
-  - GameObject: 1511857955403913349
+  - GameObject: 4
     GameObjectBaseComponent:
       tag: MainCam
       name: Perspective Camera
@@ -140,7 +140,7 @@ GameObjects:
         resolutionScale: 0.5
         diffusion: 10
         maxSamples: 10
-  - GameObject: 91324720934723243
+  - GameObject: 5
     GameObjectBaseComponent:
       tag: default
       name: Directional Light
@@ -155,7 +155,7 @@ GameObjects:
       areaRadius: 1
       spotLight_cutOff: 10
       spotLight_outerCutOff: 15
-  - GameObject: 10939861675557121498
+  - GameObject: 6
     GameObjectBaseComponent:
       tag: default
       name: Mount_Hood

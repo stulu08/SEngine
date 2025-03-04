@@ -28,6 +28,11 @@ namespace physx {
 
 //https://gameworksdocs.nvidia.com/PhysX/4.0/documentation/PhysXGuide/Manual/API.html
 namespace Stulu {
+    physx::PxFoundation* PhysX::s_foundataion = nullptr;
+    physx::PxPvd* PhysX::s_pvd = nullptr;
+    bool PhysX::s_pvdRunning = nullptr;
+    physx::PxCudaContextManager* PhysX::s_cudaContextManager = nullptr;
+
     class SnippetGpuLoadHook : public PxGpuLoadHook
     {
         virtual const char* getPhysXGpuDllName() const
@@ -243,17 +248,23 @@ namespace Stulu {
         }
     }
     void PhysX::releasePhysics() {
-        if (m_cpuDispatcher)
+        if (m_cpuDispatcher) {
             m_cpuDispatcher->release();
-        if (m_cooking)
+            m_cpuDispatcher = nullptr;
+        }
+        if (m_cooking) {
             m_cooking->release();
+            m_cooking = nullptr;
+        }
         PxCloseExtensions();
-        if (m_physics)
+        if (m_physics) {
             m_physics->release();
-        m_scene = nullptr;
-        m_cpuDispatcher = nullptr;
-        m_cooking = nullptr;
-        m_physics = nullptr;
+            m_physics = nullptr;
+        }
+        if (m_scene) {
+            m_scene->release();
+            m_scene = nullptr;
+        }
     }
     physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot) {
         physx::PxRigidActor* actor;
@@ -287,8 +298,8 @@ namespace Stulu {
     physx::PxController* PhysX::createCapsuleController(CharacterController& contr, const TransformComponent& transform) {
         physx::PxCapsuleControllerDesc desc;
 
-        desc.position = physx::PxExtendedVec3(transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z);
-        desc.upDirection = PhysicsVec3fromglmVec3(transform.up);
+        desc.position = physx::PxExtendedVec3(transform.GetWorldPosition().x, transform.GetWorldPosition().y, transform.GetWorldPosition().z);
+        desc.upDirection = PhysicsVec3fromglmVec3(transform.GetUp());
 
         desc.height = contr.height;
         desc.radius = contr.radius;

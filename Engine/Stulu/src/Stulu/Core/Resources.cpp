@@ -29,6 +29,10 @@ namespace Stulu {
 	407 -> High Res Sphere Mesh
 	*/
 
+	std::string Resources::AppDataDir = "";
+	std::string Resources::AppAssetDir = "";
+	std::string Resources::EngineDataDir = "Data/";
+
 	void Resources::load() {
 		std::string assetPath = EngineDataDir + "/Stulu/";
 		AssetsManager::update(UUID(9), { AssetType::Shader,Renderer::getShaderSystem()->GetShader("Default/PBR"),"",UUID(9) });

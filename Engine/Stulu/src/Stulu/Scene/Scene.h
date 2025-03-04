@@ -36,13 +36,13 @@ namespace Stulu {
 		Scene(const SceneData data);
 		~Scene();
 
-		GameObject createGameObject(UUID uuid);
-		GameObject createGameObject(const std::string& name = "GameObject", UUID uuid = UUID(), uint32_t id = UINT32_MAX);
+		GameObject createGameObject(entt::entity id = entt::null);
+		GameObject createGameObject(const std::string& name = "GameObject", entt::entity id = entt::null);
 		void destroyGameObject(GameObject gameObject);
 
-		void onUpdateEditor(Timestep ts, SceneCamera& camera, bool render = true);
+		void onUpdateEditor(SceneCamera& camera, bool render = true);
 		void onRuntimeStart();
-		void onUpdateRuntime(Timestep ts, bool render = true);
+		void onUpdateRuntime(bool render = true);
 		void onRuntimeStop();
 
 		void onViewportResize(uint32_t width, uint32_t height);
@@ -66,10 +66,7 @@ namespace Stulu {
 		int32_t getViewportWidth() const { return m_viewportWidth; }
 		int32_t getViewportHeight() const { return m_viewportHeight; }
 
-		void runtime_updatesetups();
-		void updateTransform(TransformComponent& tc);
-		void updateAllTransforms();
-		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
+		void GeneralUpdates();
 		GameObject findGameObjectByName(const std::string& name);
 
 		template<typename... Components>
@@ -101,7 +98,6 @@ namespace Stulu {
 		bool m_firstRuntimeUpdate = false;
 
 		entt::registry m_registry;
-		std::unordered_map<UUID, entt::entity> m_uuidGameObjectMap;
 
 		void setupPhysics();
 		void updatePhysics();
@@ -128,7 +124,7 @@ namespace Stulu {
 		friend class EventCaller;
 
 
-		static inline Scene* s_activeScene = nullptr;
+		static Scene* s_activeScene;
 	};
 }
 

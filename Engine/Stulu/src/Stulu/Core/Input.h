@@ -26,12 +26,11 @@ namespace Stulu {
 		static void setCursorMode(CursorMode mode);
 		static CursorMode getCursorMode();
 
-
-		static inline void setEnabled(bool value) { s_enabled = value; }
+		static void setEnabled(bool value);
+		static bool getEnabled();
 	private:
 		static void onEvent(Event& e);
 		static void update();
-		static inline bool s_enabled;
 
 		friend class Application;
 	};

@@ -7,6 +7,7 @@
 #include "Panels/Hierarchy.h"
 #include "Panels/Profiling.h"
 #include "Panels/AssetBrowser.h"
+
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
 using namespace Stulu;
@@ -18,9 +19,12 @@ namespace Editor {
 		AddPanel<HierarchyPanel>();
 		AddPanel<ProfilingPanel>();
 		AddPanel<AssetBrowser>(App::get().GetProject().GetAssetPath());
-
 		AddPanel<ScenePanel>();
+		AddPanel<GamePanel>();
+
+
 		m_scenePanel = &GetPanel<ScenePanel>();
+		m_gamePanel = &GetPanel<GamePanel>();
 	}
 	MainLayer::~MainLayer()
 	{}
@@ -34,20 +38,6 @@ namespace Editor {
 	}
 	void MainLayer::onUpdate(Timestep timestep) {
 		CallPanels<&Panel::Update>();
-
-		//if (m_gameViewport.focused) {
-			//Input::setCursorMode(Input::CursorMode::Disabled);
-			//StuluBindings::Input::SetEnabled(false);
-		//}
-
-		if (IsRuntime()) {
-			GetActiveScene()->onUpdateRuntime(timestep, false);
-			//if (m_gameViewport.drawn) {
-			//	m_runtimeScene->getRenderer()->GenSceneTexture(m_sceneFrameBuffer);
-			//}
-		}
-
-		GetActiveScene()->onUpdateEditor(timestep, m_scenePanel->GetCamera(), m_scenePanel->IsVisible());
 
 		DrawObjectOutlines();
 	}
@@ -64,17 +54,40 @@ namespace Editor {
 		static bool ste = false;
 		if (ImGui::Begin("Debug")) {
 			ImGui::Checkbox("Style Editor", &ste);
+
+			const auto& selectedGos = GetPanel<HierarchyPanel>().GetSelected();
+			if (selectedGos.size() >= 1) {
+				GameObject selected = { selectedGos[0], GetActiveScene().get() };
+				auto& transform = selected.getComponent<TransformComponent>();
+				ImGui::Text("Parent: %" IM_PRIu64, (uint64_t)transform.GetParent());
+				ImGui::Text("Childs: %" IM_PRIu64, (uint64_t)transform.GetChildren().size());
+			}
 		}
+		
 		ImGui::End();
 		if(ste)
 			ImGui::ShowStyleEditor();
 
-		//Application::get().getImGuiLayer()->blockEvents(!(m_gameViewport.focused || m_sceneViewport.hovered || m_sceneViewport.focused) || Gizmo::IsUsing());
-		Application::get().getImGuiLayer()->blockEvents(!(m_scenePanel->IsFocused()) || Gizmo::IsUsing());
+		// compiler will do the optimization ahh code
+		bool blockEvents = true;
+		if (m_gamePanel->IsFocused())
+			blockEvents = false;
+		if (m_scenePanel->IsFocused())
+			blockEvents = false;
+		if (Gizmo::IsUsing())
+			blockEvents = true;
+
+		Application::get().getImGuiLayer()->blockEvents(blockEvents);
 
 	}
 	void MainLayer::onEvent(Event& e) {
 		CallPanels<&Panel::OnEvent>(e);
+
+		if (e.getEventType() == EventType::WindowClose) {
+			StopRuntime();
+		}
+
+		GetActiveScene()->onEvent(e);
 	}
 	
 	void MainLayer::StartRuntime() {
@@ -84,6 +97,8 @@ namespace Editor {
 		GetActiveScene()->onRuntimeStart();
 
 		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
+
+		ImGui::SetWindowFocus(m_gamePanel->GetID().c_str());
 	}
 	void MainLayer::StopRuntime() {
 		GetActiveScene()->onRuntimeStop();
@@ -93,6 +108,8 @@ namespace Editor {
 
 		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
 		Time::Scale = 1.0f;
+
+		ImGui::SetWindowFocus(m_scenePanel->GetID().c_str());
 	}
 
 	void MainLayer::onRenderGizmo() {
@@ -118,7 +135,7 @@ namespace Editor {
 			if (selected) {
 				auto& tc = selected.getComponent<TransformComponent>();
 
-				Renderer::uploadCameraBufferData(sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(sceneCamera.getTransform().transform), glm::vec3(.0f), glm::vec3(.0f));
+				Renderer::uploadCameraBufferData(sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(sceneCamera.getTransform().GetWorldTransform()), glm::vec3(.0f), glm::vec3(.0f));
 				RenderCommand::setDepthTesting(false);
 				//draw object to stencil buffer with 0x1
 				{
@@ -126,7 +143,7 @@ namespace Editor {
 					MeshFilterComponent meshFilter;
 					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
 						if (meshFilter.mesh.hasMesh) {
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetTransparentShader(), tc.transform);
+							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
 						}
 					}
 					RenderCommand::setStencil(StencilMode::DisableWriting);
@@ -137,13 +154,13 @@ namespace Editor {
 					RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
 					static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
 						float scaleAdd = .02f;
-						return tc.worldScale + (scaleAdd * tc.worldScale);
+						return tc.GetWorldScale() + (scaleAdd * tc.GetWorldScale());
 						};
 
 					MeshFilterComponent meshFilter;
 					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
 						if (meshFilter.mesh.hasMesh) {
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.worldPosition, tc.worldRotation, getScaleAdd(tc)));
+							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
 						}
 					}
 					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
@@ -166,7 +183,9 @@ namespace Editor {
 			}
 			if (Gizmo::TransformEdit(tc, gizmoEditType, glm::vec3(snapValue))) {
 				if (IsRuntime() && GetActiveScene()->getData().enablePhsyics3D) {
-					GetActiveScene()->updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(selected);
+					if (selected.hasComponent<RigidbodyComponent>()) {
+						selected.getComponent<RigidbodyComponent>().syncTransform();
+					}
 				}
 			}
 		}
@@ -187,21 +206,21 @@ namespace Editor {
 				float nearWidth = nearHeight * aspect;
 				float farHeight = 2.0f * zFar * (glm::tan(fovHalf));//because tan(fov) = ankhatet / gegenkahtet irgendwas mathe 9te klasse
 				float farWidth = farHeight * aspect;
-				glm::vec3 nearPos = tc.worldPosition + tc.forward * zNear;
-				glm::vec3 farPos = tc.worldPosition + tc.forward * zFar;
+				glm::vec3 nearPos = tc.GetWorldPosition() + tc.GetForward() * zNear;
+				glm::vec3 farPos = tc.GetWorldPosition() + tc.GetForward() * zFar;
 
-				nearTransform = Math::createMat4(nearPos, tc.worldRotation, glm::vec3(nearWidth, nearHeight, 1.0f));
-				farTransform = Math::createMat4(farPos, tc.worldRotation, glm::vec3(farWidth, farHeight, 1.0f));
+				nearTransform = Math::createMat4(nearPos, tc.GetWorldRotation(), glm::vec3(nearWidth, nearHeight, 1.0f));
+				farTransform = Math::createMat4(farPos, tc.GetWorldRotation(), glm::vec3(farWidth, farHeight, 1.0f));
 			}
 			else {
 				float zoom = camera.settings.zoom;
 				float height = 1.0f * zoom;;
 				float width = height * aspect;
-				glm::vec3 nearPos = tc.worldPosition + tc.forward * zNear;
-				glm::vec3 farPos = tc.worldPosition + tc.forward * zFar;
+				glm::vec3 nearPos = tc.GetWorldPosition() + tc.GetForward() * zNear;
+				glm::vec3 farPos = tc.GetWorldPosition() + tc.GetForward() * zFar;
 
-				nearTransform = Math::createMat4(nearPos, tc.worldRotation, glm::vec3(width, height, 1.0f));
-				farTransform = Math::createMat4(farPos, tc.worldRotation, glm::vec3(width, height, 1.0f));
+				nearTransform = Math::createMat4(nearPos, tc.GetWorldRotation(), glm::vec3(width, height, 1.0f));
+				farTransform = Math::createMat4(farPos, tc.GetWorldRotation(), glm::vec3(width, height, 1.0f));
 			}
 
 			Gizmo::drawRect(nearTransform, COLOR_WHITE_VEC4);
@@ -219,7 +238,7 @@ namespace Editor {
 		if (selected.hasComponent<LightComponent>()) {
 			LightComponent light = selected.getComponent<LightComponent>();
 
-			const glm::vec3& position = tc.worldPosition;
+			const glm::vec3& position = tc.GetWorldPosition();
 			glm::vec3 scale = glm::vec3(1.0f);
 
 			if (light.lightType == LightComponent::Area) {
@@ -236,16 +255,16 @@ namespace Editor {
 		//colliders
 		BoxColliderComponent boxCollider;
 		if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
-			glm::vec3 position = tc.worldPosition + boxCollider.offset;
-			glm::vec3 scale = tc.worldScale * (boxCollider.size * 2.0f);
-			glm::mat4 transform = Math::createMat4(position, tc.worldRotation, scale);
+			glm::vec3 position = tc.GetWorldPosition() + boxCollider.offset;
+			glm::vec3 scale = tc.GetWorldScale() * (boxCollider.size * 2.0f);
+			glm::mat4 transform = Math::createMat4(position, tc.GetWorldRotation(), scale);
 
 			Gizmo::drawOutlineCube(transform, COLOR_GREEN);
 		}
 		SphereColliderComponent sphereCollider;
 		if (selected.saveGetComponent<SphereColliderComponent>(sphereCollider)) {
-			glm::vec3 position = tc.worldPosition + sphereCollider.offset;
-			glm::vec3 scale = tc.worldScale * (sphereCollider.radius * 2.0f);
+			glm::vec3 position = tc.GetWorldPosition() + sphereCollider.offset;
+			glm::vec3 scale = tc.GetWorldScale() * (sphereCollider.radius * 2.0f);
 
 			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
 			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(90.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
@@ -254,31 +273,31 @@ namespace Editor {
 		RenderCommand::setWireFrame(true);
 		CapsuleColliderComponent capsuleCollider;
 		if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
-			glm::vec3 position = tc.worldPosition + capsuleCollider.offset;
+			glm::vec3 position = tc.GetWorldPosition() + capsuleCollider.offset;
 			glm::vec3 scale;
 			if (capsuleCollider.horizontal)
-				scale = tc.worldScale * (glm::vec3(capsuleCollider.radius, capsuleCollider.height / 2.0f, capsuleCollider.radius));
+				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.radius, capsuleCollider.height / 2.0f, capsuleCollider.radius));
 			else
-				scale = tc.worldScale * (glm::vec3(capsuleCollider.height / 2.0f, capsuleCollider.radius, capsuleCollider.radius));
+				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.height / 2.0f, capsuleCollider.radius, capsuleCollider.radius));
 
 			Renderer::submit(Stulu::Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
 				Resources::GetHighliteShader(),
-				Math::createMat4(position, tc.worldRotation, scale));
+				Math::createMat4(position, tc.GetWorldRotation(), scale));
 		}
 		MeshColliderComponent meshCollider;
 		if (selected.saveGetComponent<MeshColliderComponent>(meshCollider)) {
-			glm::vec3 position = tc.worldPosition;
-			glm::vec3 scale = tc.worldScale;
+			glm::vec3 position = tc.GetWorldPosition();
+			glm::vec3 scale = tc.GetWorldScale();
 
 			if (meshCollider.mesh.hasMesh) {
 				if (meshCollider.convex && meshCollider.convexMesh)
 					Renderer::submit(meshCollider.convexMesh->getVertexArray(),
 						Resources::GetHighliteShader(),
-						Math::createMat4(position, tc.worldRotation, scale));
+						Math::createMat4(position, tc.GetWorldRotation(), scale));
 				else
 					Renderer::submit(meshCollider.mesh.mesh->getVertexArray(),
 						Resources::GetHighliteShader(),
-						Math::createMat4(position, tc.worldRotation, scale));
+						Math::createMat4(position, tc.GetWorldRotation(), scale));
 			}
 		}
 		RenderCommand::setWireFrame(false);

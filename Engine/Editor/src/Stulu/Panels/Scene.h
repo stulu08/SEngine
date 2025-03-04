@@ -15,15 +15,10 @@ namespace Editor {
 		virtual void OnEvent(Stulu::Event& e) override;
 
 		virtual void PostWindow() override;
+		virtual void PreWindow() override;
 
 		inline Stulu::SceneCamera& GetCamera() {
 			return m_sceneCamera;
-		}
-		inline bool IsVisible() const {
-			return IsOpen();
-		}
-		inline bool IsFocused() const {
-			return m_focused;
 		}
 		inline uint32_t GetWidth() const { return m_width; }
 		inline uint32_t GetHeight() const { return m_height; }
@@ -31,10 +26,12 @@ namespace Editor {
 		inline Stulu::GizmoTransformEditMode GetGizmoEditMode() const {
 			return (Stulu::GizmoTransformEditMode)m_gizmoMode;
 		}
+
+		void DrawMenuBars(ImVec2 startPos, bool showToolbar = true);
 	private:
 		ImVec2 m_windowPos = ImVec2(0, 0);
+		ImVec2 m_windowPadding = ImVec2(6.0f, 8.0f);
 		Stulu::SceneCamera m_sceneCamera;
-		bool m_focused = false;
 		uint32_t m_width = 1, m_height = 1;
 		uint32_t m_gizmoMode = (uint32_t)Stulu::GizmoTransformEditMode::None;
 		bool m_drawGrid = false;

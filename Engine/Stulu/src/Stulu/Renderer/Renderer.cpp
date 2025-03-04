@@ -12,7 +12,7 @@ namespace Stulu {
 	void Renderer::init() {
 		s_data.shaderSystem = createScope<ShaderSystem>();
 		// .../ShaderCache/{API-ID}/...
-		std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
+		std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "/ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
 		s_data.shaderSystem->SetCacheFolder(shaderCache);
 		s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
 

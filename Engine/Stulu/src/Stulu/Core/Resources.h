@@ -45,8 +45,8 @@ namespace Stulu {
 		static Ref<Shader> getSkyBoxShader();
 
 		// the asset directory of of the Project
-		static inline std::string AppDataDir = "";
-		static inline std::string AppAssetDir = "";
-		static inline std::string EngineDataDir = "Data/";
+		static std::string AppDataDir;
+		static std::string AppAssetDir;
+		static std::string EngineDataDir;
 	};
 }

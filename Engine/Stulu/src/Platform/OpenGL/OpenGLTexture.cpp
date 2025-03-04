@@ -58,6 +58,7 @@ namespace Stulu {
 
 	OpenGLTexture2D::~OpenGLTexture2D() {
 		glDeleteTextures(1, &m_rendererID);
+		m_rendererID = 0;
 	}
 	void OpenGLTexture2D::bind(uint32_t slot) const {
 		glBindTextureUnit(slot, m_rendererID);

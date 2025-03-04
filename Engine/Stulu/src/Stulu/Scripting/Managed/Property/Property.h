@@ -4,6 +4,8 @@
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/YAML.h"
 
+#include <entt/entt.hpp>
+
 namespace Stulu {
 	class STULU_API MonoObjectInstance;
 	enum class PropertyType : uint32_t {
@@ -249,15 +251,15 @@ namespace Stulu {
 		virtual void CopyValueTo(Ref<Property> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
-		virtual UUID GetValue() const;
-		virtual void SetValue(const UUID& value);
-		virtual uint32_t GetValueRaw() const;
-		virtual void SetValueRaw(uint32_t value);
+		virtual entt::entity GetValue() const;
+		virtual void SetValue(const entt::entity& value);
+		virtual uint64_t GetValueRaw() const;
+		virtual void SetValueRaw(uint64_t value);
 
 		virtual size_t getSize() const override { return sizeof(UUID); };
 		virtual PropertyType getType() const override { return PropertyType::GameObject_t; };
 	protected:
-		Ref<UInt32Property> m_idProperty = nullptr;;
+		Ref<UInt64Property> m_idProperty = nullptr;;
 		Ref<MonoObjectInstance> m_gameObject = nullptr;
 	};
 }

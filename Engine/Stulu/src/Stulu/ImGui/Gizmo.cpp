@@ -271,7 +271,7 @@ namespace Stulu {
 		if (gizmoEditType == GizmoTransformEditMode::None)
 			return false;
 		
-		glm::mat4 transform = tc.transform;
+		glm::mat4 transform = tc.GetWorldTransform();
 		
 		float* snapArray = new float[3]{ snap.x, snap.y, snap.z };
 		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
@@ -284,19 +284,10 @@ namespace Stulu {
 			s_data.used = true;
 			glm::vec3 position, scale;
 			glm::quat rotation;
-			if (tc.parent) {
-				TransformComponent parent = tc.parent.getComponent<TransformComponent>();
-				glm::vec3 pos, sca;glm::quat rot; //new transformations
-				Math::decomposeTransform(transform, pos, rot, sca);
-				transform = 
-					glm::translate(glm::mat4(1.0f), pos - parent.worldPosition) * 
-					(glm::toMat4(rot) / glm::toMat4(parent.worldRotation)) *
-					glm::scale(glm::mat4(1.0f),  sca / parent.worldScale) ;
-			}
 			Math::decomposeTransform(transform, position, rotation, scale);
-			tc.position = position;
-			tc.rotation = rotation;
-			tc.scale = scale;
+			tc.SetWorldPosition(position);
+			tc.SetWorldRotation(rotation);
+			tc.SetWorldScale(scale);
 			return true;
 		}
 		return false;

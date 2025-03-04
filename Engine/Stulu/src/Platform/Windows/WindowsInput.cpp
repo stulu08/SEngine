@@ -8,6 +8,15 @@
 #include <Stulu/Events/MouseEvent.h>
 
 namespace Stulu {
+	static bool s_enabled = true;
+
+	void Input::setEnabled(bool value) {
+		s_enabled = value;
+	}
+	bool Input::getEnabled() {
+		return s_enabled;
+	}
+
 	bool Input::isKeyDown(uint32_t keycode) {
 		if (!s_enabled)
 			return false;

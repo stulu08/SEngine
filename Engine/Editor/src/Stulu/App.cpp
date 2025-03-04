@@ -28,7 +28,7 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	Log::AddFileSink(project.GetPath() + "/Logs/" + Log::generateTimeString() + ".log");
 	ST_INFO("Loading project: {0}", project.GetPath());
 
-	//project.Compile(Editor::EditorBuildSettings);
+	project.Compile(Editor::EditorBuildSettings);
 
 	ApplicationInfo info;
 	info.Name = "Stulu Editor";

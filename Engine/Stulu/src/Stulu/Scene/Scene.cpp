@@ -17,6 +17,8 @@
 #include "PxPhysicsAPI.h"
 
 namespace Stulu {
+	Scene* Scene::s_activeScene = nullptr;
+
 	Scene::Scene() {
 		m_renderer = createScope<SceneRenderer>(this);
 		if(Application::get().getAssemblyManager())
@@ -29,23 +31,21 @@ namespace Stulu {
 			m_caller = createRef<EventCaller>(this);
 	}
 	Scene::~Scene() {
-		m_uuidGameObjectMap.clear();
 		m_registry.clear();
 	}
 
-	GameObject Scene::createGameObject(UUID uuid) {
-		return createGameObject("GameObject", uuid);
+	GameObject Scene::createGameObject(entt::entity id) {
+		return createGameObject("GameObject", id);
 	}
 
-	GameObject Scene::createGameObject(const std::string& name, UUID uuid, uint32_t id) {
+	GameObject Scene::createGameObject(const std::string& name, entt::entity id) {
 		GameObject go;
-		if(id != UINT32_MAX)
-			go = { m_registry.create((entt::entity)id), this };
-		else
+		if(id == entt::null)
 			go = { m_registry.create(), this };
+		else
+			go = { m_registry.create((entt::entity)id), this };
 
-		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject", uuid);
-		base.updateUUID(uuid);
+		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
 		go.addComponent<TransformComponent>();
 		m_caller->GameObjectCreate(go);
 		return go;
@@ -63,12 +63,11 @@ namespace Stulu {
 		}
 
 		//destroy all childs
-		m_registry.view<TransformComponent>().each([=](entt::entity go, TransformComponent& transform) {
-			if (transform.parent == gameObject)
-				destroyGameObject({ go, this });
-			});
+		TransformComponent& transform = gameObject.getComponent<TransformComponent>();
+		for (entt::entity child : transform.GetChildren()) {
+			destroyGameObject({ child, this });
+		}
 
-		m_uuidGameObjectMap.erase(gameObject.getId());
 		m_registry.destroy(gameObject);
 
 		gameObject.m_entity = entt::null;
@@ -76,19 +75,18 @@ namespace Stulu {
 		gameObject = GameObject::null;
 	}
 
-	void Scene::onUpdateEditor(Timestep ts, SceneCamera& camera, bool render) {
+	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
 		ST_PROFILING_SCOPE("Scene - Editor Update");
-		s_activeScene = this;
-		updateAllTransforms();
+		setActiveScene(this);
 		m_renderer->LoadLights();
 		if (camera.getCamera() && render) {
 			renderSceneEditor(camera);
 		}
 	}
-	void Scene::onUpdateRuntime(Timestep ts, bool render) {
+	void Scene::onUpdateRuntime(bool render) {
 		ST_PROFILING_SCOPE("Scene - Runtime Update");
-		s_activeScene = this;
-		Time::time += ts;
+		setActiveScene(this);
+		Time::time += Time::deltaTime;
 
 		if (m_firstRuntimeUpdate)
 			m_caller->onStart();
@@ -97,22 +95,21 @@ namespace Stulu {
 		if (m_data.enablePhsyics3D)
 			updatePhysics();
 		else
-			runtime_updatesetups();
+			GeneralUpdates();
+
 		//rendering
 		if(render) {
 			renderScene();
 		}
 		m_firstRuntimeUpdate = false;
 	}
-	void Scene::runtime_updatesetups() {
-		updateAllTransforms();
+	void Scene::GeneralUpdates() {
 		m_caller->onUpdate();
-		
 		m_renderer->LoadLights();
 		setupSceneForRendering(true);
 	}
 	void Scene::renderScene(bool callEvents) {
-		s_activeScene = this;
+		setActiveScene(this);
 		ST_PROFILING_SCOPE("Scene - Runtime Render");
 		//setupSceneForRendering(callEvents); //we do it while waiting for physx
 		auto& view = m_registry.view<CameraComponent>();
@@ -123,7 +120,7 @@ namespace Stulu {
 	}
 
 	void Scene::setupSceneForRendering(bool callEvents) {
-		s_activeScene = this;
+		setActiveScene(this);
 		m_renderer->Begin();
 		//register all objects
 		{
@@ -140,7 +137,6 @@ namespace Stulu {
 	}
 
 	void Scene::renderSceneForCamera(GameObject go, bool callEvents) {
-		s_activeScene = this;
 		CameraComponent& cameraComp = go.getComponent<CameraComponent>();
 		TransformComponent& transformComp = go.getComponent<TransformComponent>();
 		if (cameraComp.mode == CameraMode::Perspective) {
@@ -152,8 +148,8 @@ namespace Stulu {
 				cameraComp.settings.aspectRatio * cameraComp.settings.zoom, -cameraComp.settings.zoom, cameraComp.settings.zoom, 
 				cameraComp.settings.zNear, cameraComp.settings.zFar, transformComp);
 		}
-		Renderer::uploadCameraBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.transform),
-			transformComp.worldPosition, transformComp.eulerAnglesDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
+		Renderer::uploadCameraBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.GetWorldTransform()),
+			transformComp.GetWorldPosition(), transformComp.GetWorldEulerRotation(), cameraComp.settings.zNear, cameraComp.settings.zFar);
 
 		//clear 
 		cameraComp.getNativeCamera()->bindFrameBuffer();
@@ -174,14 +170,13 @@ namespace Stulu {
 		cameraComp.getNativeCamera()->unbindFrameBuffer();
 	}
 	void Scene::closeSceneForRendering() {
-		s_activeScene = this;
 		m_renderer->End();
 	}
 
 	void Scene::renderSceneEditor(SceneCamera& camera) {
+		setActiveScene(this);
 		ST_PROFILING_SCOPE("Scene - Editor Render");
 
-		s_activeScene = this;
 		m_renderer->Begin();
 		{
 			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
@@ -193,8 +188,8 @@ namespace Stulu {
 		}
 		GameObject mc = getMainCamera();
 
-		Renderer::uploadCameraBufferData(camera.getCamera()->getProjectionMatrix(), glm::inverse(camera.getTransform().transform),
-			camera.getTransform().worldPosition, camera.getTransform().eulerAnglesDegrees, camera.getNear(), camera.getFar());
+		Renderer::uploadCameraBufferData(camera.getCamera()->getProjectionMatrix(), glm::inverse(camera.getTransform().GetWorldTransform()),
+			camera.getTransform().GetWorldPosition(), camera.getTransform().GetWorldEulerRotation(), camera.getNear(), camera.getFar());
 		//clear 
 		camera.getCamera()->bindFrameBuffer();
 		if (mc)
@@ -231,12 +226,11 @@ namespace Stulu {
 
 	void Scene::onRuntimeStart() {
 		// keep time at zero for starting
-		s_activeScene = this;
+		setActiveScene(this);
 		Time::deltaTime = 0.0f;
 		Time::time = 0.0f;
 
 		m_firstRuntimeUpdate = true;
-		updateAllTransforms();
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
@@ -253,23 +247,23 @@ namespace Stulu {
 
 	}
 	void Scene::onRuntimeStop() {
-		s_activeScene = this;
+		setActiveScene(this);
 
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
 
-		Input::setCursorMode(Input::CursorMode::Normal);
-		if (m_data.enablePhsyics3D) {
-			m_physics->releasePhysics();
+		if (m_data.enablePhsyics3D && m_physics) {
+			m_physics.release();
 		}
 	}
 
 	void Scene::setupPhysics() {
 		if (!PhysX::started())
 			PhysX::startUp();
+
 		m_physics = createScope<PhysX>();
-		
 		m_physics->createPhysics(m_data.physicsData);
+
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
@@ -292,18 +286,19 @@ namespace Stulu {
 		}
 	}
 	void Scene::updatePhysics() {
-		if (m_firstRuntimeUpdate) {
+		if (m_firstRuntimeUpdate || Time::deltaTime == 0.0f) {
 			return;
 		}
 		ST_PROFILING_SCOPE("Scene - PhysX Update");
 		{
 			ST_PROFILING_SCOPE("Scene - Waiting for PhysX");
+
 			bool alreadyRun = false;
 			m_physics->getScene()->simulate(Time::deltaTime);
 			//we do as much as possible here
 			while (!m_physics->getScene()->fetchResults()) {
 				if (!alreadyRun) {
-					runtime_updatesetups();
+					GeneralUpdates();
 					alreadyRun = true;
 				}
 			}
@@ -333,79 +328,26 @@ namespace Stulu {
 			GameObject object = { id, this };
 			auto& rb = object.getComponent<RigidbodyComponent>();
 			auto& tc = object.getComponent<TransformComponent>();
+
 			if (rb.body == nullptr) {
 				continue;
 			}
-			physx::PxRigidActor* actor = (physx::PxRigidActor*)rb.body;
+
+			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.body);
 			physx::PxTransform tr = actor->getGlobalPose();
+			
 			glm::vec3 pos = PhysicsVec3toglmVec3(tr.p);
 			glm::quat rot = glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z);
-			if (pos != tc.worldPosition || rot != tc.worldRotation) {
-				glm::mat4 transform;//new local
 
-				if (tc.parent) {
-					auto& parent = tc.parent.getComponent<TransformComponent>();
-
-					transform =
-						glm::translate(glm::mat4(1.0f), pos - parent.worldPosition) *
-						(glm::toMat4(rot) / glm::toMat4(parent.worldRotation)) *
-						glm::scale(glm::mat4(1.0f), tc.scale / parent.worldScale);
-					glm::vec3 s;
-					Math::decomposeTransform(transform, tc.position, tc.rotation, s);
-				}
-				else {
-					tc.position = pos;
-					tc.rotation = rot;
-				}
+			// Use epsilon comparison to avoid floating-point inaccuracies
+			if (!glm::all(glm::epsilonEqual(pos, tc.GetWorldPosition(), 0.0001f)) ||
+				!glm::all(glm::epsilonEqual(glm::vec3(rot.x, rot.y, rot.z), glm::vec3(tc.GetWorldRotation().x, tc.GetWorldRotation().y, tc.GetWorldRotation().z), 0.0001f)))
+			{
+				tc.SetWorldPosition(pos);
+				tc.SetWorldRotation(rot);
 			}
 		}
 
-	}
-
-	std::unordered_map<entt::entity, bool> st_transform_updated;
-	void Scene::updateAllTransforms() {
-		ST_PROFILING_SCOPE("Scene - Transform Update");
-
-		st_transform_updated.clear();
-		auto view = m_registry.view<TransformComponent>();
-		for (auto id : view) {
-			GameObject object = { id, this };
-			auto& tc = object.getComponent<TransformComponent>();
-			tc.gameObject = object;
-			if (st_transform_updated.find(id) == st_transform_updated.end())
-				updateTransform(tc);
-		}
-		st_transform_updated.clear();
-	}
-	
-	void Scene::updateTransform(TransformComponent& tc) {
-		if (tc.parent) {
-			TransformComponent& ptc = tc.parent.getComponent<TransformComponent>();
-			if (st_transform_updated.find(tc.parent.m_entity) == st_transform_updated.end())
-				updateTransform(tc.parent.getComponent<TransformComponent>());
-
-			tc.transform = 
-				glm::translate(glm::mat4(1.0f), tc.position + ptc.worldPosition) * 
-				(glm::toMat4(tc.rotation) * glm::toMat4(ptc.worldRotation)) * 
-				glm::scale(glm::mat4(1.0f), tc.scale * ptc.worldScale);
-
-			Math::decomposeTransform(tc.transform, tc.worldPosition, tc.worldRotation, tc.worldScale);
-		}
-		else {
-			tc.worldPosition = tc.position;
-			tc.worldRotation = tc.rotation;
-			tc.worldScale = tc.scale;
-			tc.transform = Math::createMat4(tc.worldPosition, tc.worldRotation, tc.worldScale);
-		}
-
-		tc.forward = glm::rotate(tc.worldRotation, TRANSFORM_FOREWARD_DIRECTION);
-		tc.up = glm::rotate(tc.worldRotation, TRANSFORM_UP_DIRECTION);
-		tc.right = glm::rotate(tc.worldRotation, TRANSFORM_RIGHT_DIRECTION); 
-		tc.eulerAnglesDegrees = glm::degrees(Math::QuaternionToEuler(tc.rotation));
-		tc.eulerAnglesWorldDegrees = glm::degrees(Math::QuaternionToEuler(tc.worldRotation));
-
-		if(tc.gameObject)
-			st_transform_updated[tc.gameObject.m_entity] = true;
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
@@ -421,12 +363,11 @@ namespace Stulu {
 		}
 	}
 
-	void Scene::onEvent(Stulu::Event& e) {
+	void Scene::onEvent(Event& e) {
 		if (e.getEventType() == EventType::WindowClose) {
-			if (!PhysX::started())
+			if (PhysX::started())
 				PhysX::shutDown();
 		}
-		
 	}
 
 	GameObject Scene::addModel(Model& model) {
@@ -438,7 +379,7 @@ namespace Stulu {
 			//root node
 			destroyGameObject(root);
 			root = addMeshAssetsToScene(mesh, model);
-			root.getComponent<TransformComponent>().parent = GameObject::null;
+			root.getComponent<TransformComponent>().SetParent(GameObject::null);
 		}
 		return root;
 	}
@@ -456,12 +397,12 @@ namespace Stulu {
 		for (MeshAsset& child : model.getMeshes()) {
 			if (child.parentMeshAsset == mesh.uuid) {
 				GameObject c = addMeshAssetsToScene(child, model);
-					go.getComponent<TransformComponent>().addChild(c);
+				go.getComponent<TransformComponent>().AddChild(c);
 			}
 				
 		}
 		if (mesh.parentMeshAsset == UUID::null)
-			go.getComponent<TransformComponent>().parent = GameObject::null;
+			go.getComponent<TransformComponent>().SetParent(GameObject::null);
 		return go;
 	}
 	GameObject Scene::addMeshAssetToScene(MeshAsset& mesh) {
@@ -503,32 +444,6 @@ namespace Stulu {
 		return otherResult;
 	}
 
-	void Scene::updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent) {
-		auto& view = m_registry.view<TransformComponent>();
-		for (auto goId : view) {
-			GameObject go = GameObject(goId, this);
-			TransformComponent& tr = view.get<TransformComponent>(goId);
-			if (tr.parent == parent) {
-				updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(go);
-				if (go.hasComponent<RigidbodyComponent>()) {
-
-					this->updateTransform(tr);
-					go.getComponent<RigidbodyComponent>().setTransform(tr.worldPosition, tr.worldRotation);
-				}
-
-			}
-		}
-
-		{
-			TransformComponent& tr = parent.getComponent<TransformComponent>();
-			if (parent.hasComponent<RigidbodyComponent>()) {
-				this->updateTransform(tr);
-				parent.getComponent<RigidbodyComponent>().setTransform(tr.worldPosition, tr.worldRotation);
-			}
-		}
-
-	}
-
 	GameObject Scene::findGameObjectByName(const std::string& name) {
 		auto view = m_registry.view<GameObjectBaseComponent>();
 		for (auto gameObject : view)
@@ -545,38 +460,29 @@ namespace Stulu {
 		newScene->m_viewportWidth = scene->m_viewportWidth;
 		newScene->m_viewportHeight = scene->m_viewportHeight;
 
-		std::unordered_map<UUID, entt::entity> enttMap;
-		//gameobject with uuid of first has a parent gameobject with uuid of second
-		std::unordered_map<UUID, UUID> parentMap;
+		// parent, childs
+		std::unordered_map<entt::entity, std::vector<entt::entity>> parentMap;
 
 		// Create entities in new scene
 		auto& srcSceneRegistry = scene->m_registry;
 		auto& dstSceneRegistry = newScene->m_registry;
 		auto idView = srcSceneRegistry.view<GameObjectBaseComponent>();
-		for (auto e : idView)
-		{
-			UUID uuid = srcSceneRegistry.get<GameObjectBaseComponent>(e).getUUID();
+		for (entt::entity e : idView) {
 			const auto& name = srcSceneRegistry.get<GameObjectBaseComponent>(e).name;
-			GameObject newGameObject = newScene->createGameObject(name, uuid, (uint32_t)e);
+			GameObject newGameObject = newScene->createGameObject(name, e);
+
 			newGameObject.getComponent<GameObjectBaseComponent>().tag = srcSceneRegistry.get<GameObjectBaseComponent>(e).tag;
-			enttMap[uuid] = newGameObject;
-			if (srcSceneRegistry.get<TransformComponent>(e).parent)
-				parentMap[uuid] = srcSceneRegistry.get<TransformComponent>(e).parent.getComponent<GameObjectBaseComponent>().getUUID();
 		}
 
 		Scene* temp = s_activeScene;
 		s_activeScene = newScene.get();
 		// Copy components (except GameObjectBaseComponent)
 		for (auto& [id, func] : Component::m_componentCopyList) {
-			func(dstSceneRegistry, srcSceneRegistry, enttMap);
+			func(dstSceneRegistry, srcSceneRegistry);
 		}
 		//CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
 
 		s_activeScene = temp;
-
-		for (auto& [objUUID, parUUID] : parentMap) {
-			GameObject::getById(objUUID, newScene.get()).getComponent<TransformComponent>().parent = GameObject::getById(parUUID, newScene.get());
-		}
 
 		return newScene;
 	}

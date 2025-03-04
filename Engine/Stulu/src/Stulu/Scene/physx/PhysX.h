@@ -71,10 +71,10 @@ namespace Stulu{
         static inline bool isPVDRunning() { return s_pvdRunning; }
         static inline bool started() { return s_foundataion != nullptr; }
     private:
-        static inline physx::PxFoundation* s_foundataion = nullptr;
-        static inline physx::PxPvd* s_pvd = nullptr;
-        static inline bool s_pvdRunning = false;
-        static inline physx::PxCudaContextManager* s_cudaContextManager = nullptr;
+        static physx::PxFoundation* s_foundataion;
+        static physx::PxPvd* s_pvd;
+        static bool s_pvdRunning;
+        static physx::PxCudaContextManager* s_cudaContextManager;
 
         physx::PxPhysics* m_physics = nullptr;
         physx::PxScene* m_scene = nullptr;

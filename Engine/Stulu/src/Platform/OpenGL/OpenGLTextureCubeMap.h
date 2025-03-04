@@ -94,7 +94,7 @@ namespace Stulu {
 		uint32_t m_envCubemap;//need to be set in constructor
 		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
 		uint32_t m_brdfLUT = 0;
-		static inline uint32_t s_quadVAO = 0, s_quadVBO = 0;
+		static uint32_t s_quadVAO, s_quadVBO;
 
 		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
 

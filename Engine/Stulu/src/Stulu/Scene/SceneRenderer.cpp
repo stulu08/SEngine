@@ -43,8 +43,8 @@ namespace Stulu {
 		if (m_lightBufferData.lightCount < ST_MAXLIGHTS) {
 			
 			m_lightBufferData.lights[m_lightBufferData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
-			m_lightBufferData.lights[m_lightBufferData.lightCount].positionAndType = glm::vec4(transform.worldPosition, light.lightType);
-			m_lightBufferData.lights[m_lightBufferData.lightCount].rotation = glm::vec4(transform.forward, 1.0f);
+			m_lightBufferData.lights[m_lightBufferData.lightCount].positionAndType = glm::vec4(transform.GetWorldPosition(), light.lightType);
+			m_lightBufferData.lights[m_lightBufferData.lightCount].rotation = glm::vec4(transform.GetForward(), 1.0f);
 			m_lightBufferData.lights[m_lightBufferData.lightCount].spotLightData = glm::vec4(glm::cos(glm::radians(light.spotLight_cutOff)), glm::cos(glm::radians(light.spotLight_outerCutOff)), 1.0f, light.areaRadius);
 			m_lightBufferData.lightCount++;
 		}
@@ -79,7 +79,7 @@ namespace Stulu {
 		ST_PROFILING_SCOPE("Renderer - Main Pass");
 
 		const Ref<Camera>& cam = cameraComp.getNativeCamera();
-		const glm::mat4& view = glm::inverse(transform.transform);
+		const glm::mat4& view = glm::inverse(transform.GetWorldTransform());
 		const glm::mat4& proj = cameraComp.getProjection();
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
@@ -110,7 +110,7 @@ namespace Stulu {
 
 		//transparent sorting
 		std::sort(m_transparentDrawList.begin(), m_transparentDrawList.end(), [&](auto& a, auto& b) {
-			return glm::distance(transform.worldPosition, glm::vec3(a.transform[3])) > glm::distance(transform.worldPosition, glm::vec3(b.transform[3]));//sort the vector backwards
+			return glm::distance(transform.GetWorldPosition(), glm::vec3(a.transform[3])) > glm::distance(transform.GetWorldPosition(), glm::vec3(b.transform[3]));//sort the vector backwards
 			});
 		
 		//shadow pass
@@ -122,8 +122,8 @@ namespace Stulu {
 			float halfDistance = m_scene->getData().graphicsData.shadowDistance / 2.0f;
 			float halfFarDist = m_scene->getData().graphicsData.shadowFar/2.0f;
 			float farDist = halfFarDist * 2.0f;
-			glm::vec3 lightPos = transform.position + (halfFarDist * (-lTC.forward));
-			glm::mat4 lightView = glm::inverse(Math::createMat4(lightPos, lTC.worldRotation, glm::vec3(1.0f)));
+			glm::vec3 lightPos = transform.position + (halfFarDist * (-lTC.GetForward()));
+			glm::mat4 lightView = glm::inverse(Math::createMat4(lightPos, lTC.GetWorldRotation(), glm::vec3(1.0f)));
 			glm::mat4 lightProj = glm::ortho(-halfDistance, halfDistance, halfDistance, -halfDistance, 0.01f, farDist);
 
 			m_sceneBufferData.shadowCaster = m_shadowCaster;
@@ -132,8 +132,8 @@ namespace Stulu {
 			Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
 
 			VFC::setEnabled(true);
-			VFC::setCamera(VFC::createFrustum_ortho(-halfDistance, halfDistance, -halfDistance, halfDistance, 0.01f, farDist, lightPos, lTC.worldRotation));
-			Renderer::uploadCameraBufferData(lightProj, lightView, lTC.worldPosition, lTC.eulerAnglesWorldDegrees, 0.01f, farDist);
+			VFC::setCamera(VFC::createFrustum_ortho(-halfDistance, halfDistance, -halfDistance, halfDistance, 0.01f, farDist, lightPos, lTC.GetWorldRotation()));
+			Renderer::uploadCameraBufferData(lightProj, lightView, lTC.GetWorldPosition(), lTC.GetWorldEulerRotation(), 0.01f, farDist);
 			
 			m_shadowMap->bind();
 			RenderCommand::clear();
@@ -148,7 +148,7 @@ namespace Stulu {
 		//default render pass
 		VFC::setCamera(cameraComp.getFrustum());
 		cam->bindFrameBuffer();
-		Renderer::uploadCameraBufferData(proj, view, transform.worldPosition, transform.eulerAnglesWorldDegrees, cameraComp.settings.zNear, cameraComp.settings.zFar);
+		Renderer::uploadCameraBufferData(proj, view, transform.GetWorldPosition(), transform.GetWorldEulerRotation(), cameraComp.settings.zNear, cameraComp.settings.zFar);
 		drawSkyBox(camSkyBoxTexture);
 		drawScene();
 		cam->unbindFrameBuffer();
@@ -280,7 +280,7 @@ namespace Stulu {
 				Quad, Circle
 			}type;
 		};
-		glm::vec3 camPos = camera.worldPosition;
+		glm::vec3 camPos = camera.GetWorldPosition();
 		auto quadview = m_scene->m_registry.view<TransformComponent, SpriteRendererComponent>();
 		auto circleView = m_scene->m_registry.view<TransformComponent, CircleRendererComponent>();
 		std::vector<Entry> drawList;
@@ -294,19 +294,19 @@ namespace Stulu {
 		std::sort(drawList.begin(), drawList.end(), [=](const Entry& left, const Entry& right)->bool {
 			GameObject le = { left.id, m_scene };
 			GameObject re = { right.id, m_scene };
-			return glm::distance(camPos, le.getComponent<TransformComponent>().worldPosition) > glm::distance(camPos, re.getComponent<TransformComponent>().worldPosition);
+			return glm::distance(camPos, le.getComponent<TransformComponent>().GetWorldPosition()) > glm::distance(camPos, re.getComponent<TransformComponent>().GetWorldPosition());
 		});
 		for (Entry& entry : drawList) {
 			if (entry.type == Entry::Quad) {
 				auto [transform, sprite] = quadview.get(entry.id);
 				if (sprite.texture)
-					Renderer2D::drawTexturedQuad(transform.transform, sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
+					Renderer2D::drawTexturedQuad(transform.GetWorldTransform(), sprite.texture, sprite.texture->getSettings().tiling * sprite.tiling, sprite.color);
 				else
-					Renderer2D::drawQuad(transform.transform, sprite.color);
+					Renderer2D::drawQuad(transform.GetWorldTransform(), sprite.color);
 			}
 			else {
 				auto [transform, sprite] = circleView.get(entry.id);
-				Renderer2D::drawCircle(transform.transform, sprite.color, sprite.thickness, sprite.fade);
+				Renderer2D::drawCircle(transform.GetWorldTransform(), sprite.color, sprite.thickness, sprite.fade);
 			}
 		}
 	}
@@ -323,7 +323,7 @@ namespace Stulu {
 		}
 
 
-		glm::mat4 normalMatrix = glm::transpose(glm::inverse(Math::createMat4(transform.worldPosition, transform.worldRotation, { 1,1,1 })));
+		glm::mat4 normalMatrix = glm::transpose(glm::inverse(Math::createMat4(transform.GetWorldPosition(), transform.GetWorldRotation(), {1,1,1})));
 
 		Ref<BoundingBox> boundingBox;
 		if (filter.mesh.mesh->getBoundingBox()) {
@@ -333,10 +333,10 @@ namespace Stulu {
 
 		if (material->isTransparent())
 			m_transparentDrawList.push_back(RenderObject{
-			material,filter.mesh.mesh->getVertexArray(),transform.transform, normalMatrix, mesh.cullmode, boundingBox });
+			material,filter.mesh.mesh->getVertexArray(),transform.GetWorldTransform(), normalMatrix, mesh.cullmode, boundingBox});
 		else
 			m_drawList.push_back(RenderObject{
-			material,filter.mesh.mesh->getVertexArray(),transform.transform, normalMatrix, mesh.cullmode, boundingBox });
+			material,filter.mesh.mesh->getVertexArray(),transform.GetWorldTransform(), normalMatrix, mesh.cullmode, boundingBox });
 	}
 	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& mat, const glm::mat4& transform, const Ref<BoundingBox>& transformedBoundingBox) {
 		if (!vertexArray)

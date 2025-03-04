@@ -36,7 +36,6 @@ namespace Editor {
 		}
 	private:
 		std::vector<entt::entity> m_selected;
-		std::vector<Stulu::GameObject> m_childObjectsBuffer;
 		Stulu::Scene* m_scene;
 		std::string m_search;
 		float m_windowPaddingOriginal = 0.0f;
@@ -51,7 +50,6 @@ namespace Editor {
 		void DragDropTarget(const Stulu::GameObject& parent);
 		void DragDropSource();
 
-		void LoadChilds(const Stulu::GameObject& parent);
 		void SetParents(const Stulu::GameObject& parent, const std::vector<entt::entity> children);
 	};
 }

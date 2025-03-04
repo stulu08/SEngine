@@ -10,7 +10,7 @@ namespace Stulu {
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneStart) {
-					particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
+					particle.emit(transform.GetWorldPosition(), transform.GetWorldEulerRotation(), particle.getData().emitCount);
 			}
 		}
 	}
@@ -19,7 +19,7 @@ namespace Stulu {
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneUpdate) {
-				particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
+				particle.emit(transform.GetWorldPosition(), transform.GetWorldEulerRotation(), particle.getData().emitCount);
 			}
 			particle.update(Time::deltaTime);
 		}

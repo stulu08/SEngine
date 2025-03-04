@@ -1,8 +1,11 @@
 #pragma once
 #include <Stulu.h>
+
 #include "Panel.h"
 #include "Previewing.h"
+
 #include "Panels/Scene.h"
+#include "Panels/Game.h"
 
 using namespace Stulu;
 
@@ -54,13 +57,11 @@ namespace Editor {
 	private:
 		std::unordered_map<size_t, Panel*> m_panels;
 
-		Ref<FrameBuffer> m_sceneFrameBuffer;
-		PostProcessingData cameraPostProcessData;
-		
 		std::string m_currentScenePath;
 
 		Preview m_preview;
 		ScenePanel* m_scenePanel;
+		GamePanel* m_gamePanel;
 
 		void DrawObjectOutlines();
 		void DrawGizmoSelected(GameObject gameObject);

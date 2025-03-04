@@ -27,9 +27,6 @@ namespace Editor {
         ImGui::InputTextWithHint("##SearchBar", ICON_FK_SEARCH " Search...", & m_search);
         
 
-        // load for a maximum ammount of childs
-        m_childObjectsBuffer.reserve(GetRegistry().storage<entt::entity>().in_use());
-
         static ImGuiTableFlags flags =
             ImGuiTableFlags_BordersInner |
             ImGuiTableFlags_ScrollX |
@@ -78,10 +75,8 @@ namespace Editor {
 
         // return if it is child of someone
         TransformComponent& transform = gameObject.getComponent<TransformComponent>();
-        if (transform.parent != parent)
+        if (transform.GetParent() != parent)
             return;
-
-        LoadChilds(gameObject);
 
         ImGui::TableNextColumn();
 
@@ -97,7 +92,7 @@ namespace Editor {
 
         if (IsSelected(gameObject))
             treeFlags |= ImGuiTreeNodeFlags_Selected;
-        if(m_childObjectsBuffer.size() < 1)
+        if(!transform.HasChildren())
             treeFlags |= ImGuiTreeNodeFlags_Leaf;
 
         ImGui::SetNextItemAllowOverlap();
@@ -132,7 +127,8 @@ namespace Editor {
 
         // draw children
         if (treeOpen) {
-            for (GameObject& child : m_childObjectsBuffer) {
+            for (entt::entity& childObj : transform.GetChildren()) {
+                GameObject child = { childObj, m_scene };
                 auto& childBaseComponent = child.getComponent<GameObjectBaseComponent>();
                 if (!childBaseComponent.gameObject.isValid())
                     continue;
@@ -146,7 +142,7 @@ namespace Editor {
     void HierarchyPanel::DummyDragDropTarget(const Stulu::GameObject& parent) {
         float posY = ImGui::GetCursorPosY();
         ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x, 2));
-        DragDropTarget(parent.getComponent<TransformComponent>().parent);
+        DragDropTarget(parent.getComponent<TransformComponent>().GetParent());
         ImGui::SetCursorPosY(posY);
     }
 
@@ -162,18 +158,6 @@ namespace Editor {
         Controls::DragDropGameObjects(m_selected);
     }
 
-	void HierarchyPanel::LoadChilds(const Stulu::GameObject& parent) {
-        m_childObjectsBuffer.clear();
-
-        for (auto& [childID, childTransform] : GetRegistry().storage<TransformComponent>().each()) {
-            GameObject childObject = { childID, m_scene };
-            if (!childObject.isValid())
-                continue;
-            if (childTransform.parent == parent)
-                m_childObjectsBuffer.push_back(childObject);
-        }
-	}
-
 	void HierarchyPanel::SetParents(const Stulu::GameObject& parent, const std::vector<entt::entity> children) {
         for (entt::entity child : children) {
             GameObject target = { child, m_scene };
@@ -185,10 +169,10 @@ namespace Editor {
                     if (ancestor == target) {
                         return;  // Stop assignment to prevent cycles
                     }
-                    ancestor = ancestor.getComponent<TransformComponent>().parent;
+                    ancestor = ancestor.getComponent<TransformComponent>().GetParent();
                 }
 
-                target.getComponent<TransformComponent>().parent = parent;
+                target.getComponent<TransformComponent>().SetParent(parent);
             }
         }
 	}

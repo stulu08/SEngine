@@ -26,14 +26,16 @@ namespace Stulu {
 
 		static void RegisterBaseComponents();
 	private:
-		static std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&, const std::unordered_map<UUID, entt::entity>&)>> m_componentCopyList;
+		static std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&)>> m_componentCopyList;
 
 		template<class T>
-		static inline void CopyComponent(entt::registry& dst, entt::registry& src, const std::unordered_map<UUID, entt::entity>& map) {
+		static inline void CopyComponent(entt::registry& dst, entt::registry& src) {
 			auto view = src.view<T>();
 			for (auto srcGameObject : view)
 			{
-				entt::entity dstGameObject = map.at(src.get<GameObjectBaseComponent>(srcGameObject).getUUID());
+				// they have the same entt id
+				entt::entity dstGameObject = srcGameObject;
+
 				T& srcComponent = src.get<T>(srcGameObject);
 				dst.emplace_or_replace<T>(dstGameObject, srcComponent);
 				dst.get<T>(dstGameObject).gameObject = GameObject(dstGameObject, Scene::activeScene());

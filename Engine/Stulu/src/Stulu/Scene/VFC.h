@@ -100,8 +100,8 @@ namespace Stulu {
 
 		static void setEnabled(bool value) { s_isEnabled = value; }
 	private:
-		static inline Frustum s_frustum;
-		static inline bool s_isEnabled = true;
-		static inline BoundingBoxType s_mode = BoundingBoxType::AABB;
+		static Frustum s_frustum;
+		static bool s_isEnabled;
+		static BoundingBoxType s_mode;
 	};
 }

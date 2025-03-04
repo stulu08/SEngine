@@ -58,88 +58,88 @@ namespace Stulu {
 		#endregion
 		#region GameObject
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static uint gameObject_create(String name, String tag, Vector3 postion, Quaternion rotation, Vector3 Scale);
+		internal extern static ulong gameObject_create(String name, String tag, Vector3 postion, Quaternion rotation, Vector3 Scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static uint gameObject_destroy(uint entityId);
+		internal extern static ulong gameObject_destroy(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void gameObject_add_component(uint entityId, Type t);
+		internal extern static void gameObject_add_component(ulong entityId, Type t);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool gameObject_has_component(uint entityId, Type t);
+		internal extern static bool gameObject_has_component(ulong entityId, Type t);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool gameObject_remove_component(uint entityId, Type t);
+		internal extern static bool gameObject_remove_component(ulong entityId, Type t);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static Object gameObject_get_component(uint entityId, Type t);
+		internal extern static Object gameObject_get_component(ulong entityId, Type t);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static String gameObject_getName(uint entityId);
+		internal extern static String gameObject_getName(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void gameObject_setName(uint entityId, String name);
+		internal extern static void gameObject_setName(ulong entityId, String name);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static String gameObject_getTag(uint entityId);
+		internal extern static String gameObject_getTag(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void gameObject_setTag(uint entityId, String tag);
+		internal extern static void gameObject_setTag(ulong entityId, String tag);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static uint gameObject_createSphere(String name, String tag, Vector3 postion);
+		internal extern static ulong gameObject_createSphere(String name, String tag, Vector3 postion);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static uint gameObject_createCube(String name, String tag, Vector3 postion);
+		internal extern static ulong gameObject_createCube(String name, String tag, Vector3 postion);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static uint gameObject_createCapsule(String name, String tag, Vector3 postion);
+		internal extern static ulong gameObject_createCapsule(String name, String tag, Vector3 postion);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static uint gameObject_createPlane(String name, String tag, Vector3 postion);
+		internal extern static ulong gameObject_createPlane(String name, String tag, Vector3 postion);
 		#endregion
 		#region Transform
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_setPos(uint entityId, ref Vector3 pos);
+		internal extern static void transformComp_setPos(ulong entityId, ref Vector3 pos);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getPos(uint entityId, out Vector3 pos);
+		internal extern static void transformComp_getPos(ulong entityId, out Vector3 pos);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getWorldPos(uint entityId, out Vector3 pos);
+		internal extern static void transformComp_getWorldPos(ulong entityId, out Vector3 pos);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_setRotation(uint entityId, ref Quaternion rotation);
+		internal extern static void transformComp_setRotation(ulong entityId, ref Quaternion rotation);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getRotation(uint entityId, out Quaternion rotation);
+		internal extern static void transformComp_getRotation(ulong entityId, out Quaternion rotation);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getRotation(uint entityId, out Vector3 eulerAngles);
+		internal extern static void transformComp_getRotation(ulong entityId, out Vector3 eulerAngles);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getWorldRotation(uint entityId, out Quaternion rotation);
+		internal extern static void transformComp_getWorldRotation(ulong entityId, out Quaternion rotation);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_setScale(uint entityId, ref Vector3 scale);
+		internal extern static void transformComp_setScale(ulong entityId, ref Vector3 scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getScale(uint entityId, out Vector3 scale);
+		internal extern static void transformComp_getScale(ulong entityId, out Vector3 scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getWorldScale(uint entityId, out Vector3 scale);
+		internal extern static void transformComp_getWorldScale(ulong entityId, out Vector3 scale);
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_right(uint entityId, out Vector3 right);
+		internal extern static void transformComp_right(ulong entityId, out Vector3 right);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_forward(uint entityId, out Vector3 fronz);
+		internal extern static void transformComp_forward(ulong entityId, out Vector3 fronz);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_up(uint entityId, out Vector3 up);
+		internal extern static void transformComp_up(ulong entityId, out Vector3 up);
 		#endregion
 		#region Rigidbody
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void rigidbody_addForce(uint entityId, ref Vector3 force, uint forcemode);
+		internal extern static void rigidbody_addForce(ulong entityId, ref Vector3 force, uint forcemode);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool rigidbody_useGravity(uint entityId);
+		internal extern static bool rigidbody_useGravity(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool rigidbody_useGravity(uint entityId, bool value);
+		internal extern static bool rigidbody_useGravity(ulong entityId, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool rigidbody_kinematic(uint entityId);
+		internal extern static bool rigidbody_kinematic(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool rigidbody_kinematic(uint entityId, bool value);
+		internal extern static bool rigidbody_kinematic(ulong entityId, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool rigidbody_retainaccel(uint entityId);
+		internal extern static bool rigidbody_retainaccel(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool rigidbody_retainaccel(uint entityId, bool value);
+		internal extern static bool rigidbody_retainaccel(ulong entityId, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static float rigidbody_mass(uint entityId);
+		internal extern static float rigidbody_mass(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static float rigidbody_mass(uint entityId, float value);
+		internal extern static float rigidbody_mass(ulong entityId, float value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void rigidbody_massCenterGet(uint entityId, out Vector3 scale);
+		internal extern static void rigidbody_massCenterGet(ulong entityId, out Vector3 scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void rigidbody_massCenterSet(uint entityId, ref Vector3 value);
+		internal extern static void rigidbody_massCenterSet(ulong entityId, ref Vector3 value);
 		#endregion
 		#region Renderer
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -189,17 +189,17 @@ namespace Stulu {
 		#endregion
 		#region SpriteRenderer
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static _UUID spriteRenComp_getTexture(uint entityId);
+		internal extern static _UUID spriteRenComp_getTexture(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void spriteRenComp_setTexture(uint entityId, _UUID id);
+		internal extern static void spriteRenComp_setTexture(ulong entityId, _UUID id);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void spriteRenComp_getTiling(uint entityId, out Vector2 tiling);
+		internal extern static void spriteRenComp_getTiling(ulong entityId, out Vector2 tiling);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void spriteRenComp_setTiling(uint entityId, ref Vector2 tiling);
+		internal extern static void spriteRenComp_setTiling(ulong entityId, ref Vector2 tiling);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void spriteRenComp_getColor(uint entityId, out Vector4 tiling);
+		internal extern static void spriteRenComp_getColor(ulong entityId, out Vector4 tiling);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void spriteRenComp_setColor(uint entityId, ref Vector4 tiling);
+		internal extern static void spriteRenComp_setColor(ulong entityId, ref Vector4 tiling);
 		#endregion
 	}
 }
