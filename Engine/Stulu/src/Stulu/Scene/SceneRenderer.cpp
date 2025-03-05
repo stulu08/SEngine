@@ -386,8 +386,8 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::ApplyPostProcessing(SceneCamera& sceneCam) {
-		if (sceneCam.getPostProcessingUsingMain() && Scene::activeScene()) {
-			GameObject mainCam = Scene::activeScene()->getMainCamera();
+		if (sceneCam.getPostProcessingUsingMain() && m_scene) {
+			GameObject mainCam = m_scene->getMainCamera();
 			if (mainCam && mainCam.hasComponent<PostProcessingComponent>()) {
 				PostProcessingComponent comp = mainCam.getComponent<PostProcessingComponent>();
 

@@ -12,13 +12,13 @@
 #include "Stulu/Core/Input.h"
 #include "Stulu/Scripting/EventCaller.h"
 #include "GameObject.h"
+#include "Stulu/Scripting/Managed/Bindings/Bindings.h"
+
 
 #include "PxConfig.h"
 #include "PxPhysicsAPI.h"
 
 namespace Stulu {
-	Scene* Scene::s_activeScene = nullptr;
-
 	Scene::Scene() {
 		m_renderer = createScope<SceneRenderer>(this);
 		if(Application::get().getAssemblyManager())
@@ -40,8 +40,9 @@ namespace Stulu {
 
 	GameObject Scene::createGameObject(const std::string& name, entt::entity id) {
 		GameObject go;
-		if(id == entt::null)
+		if (id == entt::null) {
 			go = { m_registry.create(), this };
+		}
 		else {
 			go = { m_registry.create((entt::entity)id), this };
 			if (go.GetID() != id) {
@@ -78,7 +79,6 @@ namespace Stulu {
 
 	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
 		ST_PROFILING_SCOPE("Scene - Editor Update");
-		setActiveScene(this);
 		m_renderer->LoadLights();
 		if (camera.getCamera() && render) {
 			renderSceneEditor(camera);
@@ -86,7 +86,6 @@ namespace Stulu {
 	}
 	void Scene::onUpdateRuntime(bool render) {
 		ST_PROFILING_SCOPE("Scene - Runtime Update");
-		setActiveScene(this);
 		Time::time += Time::deltaTime;
 
 		if (m_firstRuntimeUpdate)
@@ -110,7 +109,6 @@ namespace Stulu {
 		setupSceneForRendering(true);
 	}
 	void Scene::renderScene(bool callEvents) {
-		setActiveScene(this);
 		ST_PROFILING_SCOPE("Scene - Runtime Render");
 		//setupSceneForRendering(callEvents); //we do it while waiting for physx
 		auto& view = m_registry.view<CameraComponent>();
@@ -121,7 +119,6 @@ namespace Stulu {
 	}
 
 	void Scene::setupSceneForRendering(bool callEvents) {
-		setActiveScene(this);
 		m_renderer->Begin();
 		//register all objects
 		{
@@ -175,7 +172,6 @@ namespace Stulu {
 	}
 
 	void Scene::renderSceneEditor(SceneCamera& camera) {
-		setActiveScene(this);
 		ST_PROFILING_SCOPE("Scene - Editor Render");
 
 		m_renderer->Begin();
@@ -227,7 +223,6 @@ namespace Stulu {
 
 	void Scene::onRuntimeStart() {
 		// keep time at zero for starting
-		setActiveScene(this);
 		Time::deltaTime = 0.0f;
 		Time::time = 0.0f;
 
@@ -248,13 +243,12 @@ namespace Stulu {
 
 	}
 	void Scene::onRuntimeStop() {
-		setActiveScene(this);
-
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
 
 		if (m_data.enablePhsyics3D && m_physics) {
 			m_physics.release();
+			m_physics = nullptr;
 		}
 	}
 
@@ -268,22 +262,22 @@ namespace Stulu {
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
-				object.getComponent<BoxColliderComponent>().create(object, m_physics);
+				object.getComponent<BoxColliderComponent>().create();
 		}
 		for (auto id : m_registry.view<SphereColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<SphereColliderComponent>().rigidbody == nullptr)
-				object.getComponent<SphereColliderComponent>().create(object, m_physics);
+				object.getComponent<SphereColliderComponent>().create();
 		}
 		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<CapsuleColliderComponent>().rigidbody == nullptr)
-				object.getComponent<CapsuleColliderComponent>().create(object, m_physics);
+				object.getComponent<CapsuleColliderComponent>().create();
 		}
 		for (auto id : m_registry.view<MeshColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<MeshColliderComponent>().rigidbody == nullptr)
-				object.getComponent<MeshColliderComponent>().create(object, m_physics);
+				object.getComponent<MeshColliderComponent>().create();
 		}
 	}
 	void Scene::updatePhysics() {
@@ -307,22 +301,22 @@ namespace Stulu {
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
-				object.getComponent<BoxColliderComponent>().create(object, m_physics);
+				object.getComponent<BoxColliderComponent>().create();
 		}
 		for (auto id : m_registry.view<SphereColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<SphereColliderComponent>().rigidbody == nullptr)
-				object.getComponent<SphereColliderComponent>().create(object, m_physics);
+				object.getComponent<SphereColliderComponent>().create();
 		}
 		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<CapsuleColliderComponent>().rigidbody == nullptr)
-				object.getComponent<CapsuleColliderComponent>().create(object, m_physics);
+				object.getComponent<CapsuleColliderComponent>().create();
 		}
 		for (auto id : m_registry.view<MeshColliderComponent>()) {
 			GameObject object = { id, this };
 			if (object.getComponent<MeshColliderComponent>().rigidbody == nullptr)
-				object.getComponent<MeshColliderComponent>().create(object, m_physics);
+				object.getComponent<MeshColliderComponent>().create();
 		}
 		auto view = m_registry.view<RigidbodyComponent>();
 		for (auto id : view) {
@@ -475,15 +469,14 @@ namespace Stulu {
 			newGameObject.getComponent<GameObjectBaseComponent>().tag = srcSceneRegistry.get<GameObjectBaseComponent>(e).tag;
 		}
 
-		Scene* temp = s_activeScene;
-		s_activeScene = newScene.get();
+		StuluBindings::SetCurrentScene(newScene.get());
+
 		// Copy components (except GameObjectBaseComponent)
 		for (auto& [id, func] : Component::m_componentCopyList) {
-			func(dstSceneRegistry, srcSceneRegistry);
+			func(dstSceneRegistry, srcSceneRegistry, newScene.get());
 		}
 		//CopyAllComponents(dstSceneRegistry, srcSceneRegistry, enttMap);
 
-		s_activeScene = temp;
 
 		return newScene;
 	}

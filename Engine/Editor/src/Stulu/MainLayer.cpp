@@ -89,28 +89,6 @@ namespace Editor {
 
 		GetActiveScene()->onEvent(e);
 	}
-	
-	void MainLayer::StartRuntime() {
-		m_runtime = true;
-		m_runtimeScene = Scene::copy(m_editorScene);
-
-		GetActiveScene()->onRuntimeStart();
-
-		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
-
-		ImGui::SetWindowFocus(m_gamePanel->GetID().c_str());
-	}
-	void MainLayer::StopRuntime() {
-		GetActiveScene()->onRuntimeStop();
-		
-		m_runtime = false;
-		m_runtimeScene = nullptr;
-
-		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
-		Time::Scale = 1.0f;
-
-		ImGui::SetWindowFocus(m_scenePanel->GetID().c_str());
-	}
 
 	void MainLayer::onRenderGizmo() {
 		CallPanels<&Panel::DrawImGuizmo>();
@@ -361,7 +339,22 @@ namespace Editor {
 			ImGui::EndMainMenuBar();
 		}
 	}
-	
+	void MainLayer::StartRuntime() {
+		m_runtime = true;
+		SetScene(Scene::copy(m_editorScene));
+
+		GetActiveScene()->onRuntimeStart();
+		ImGui::SetWindowFocus(m_gamePanel->GetID().c_str());
+	}
+	void MainLayer::StopRuntime() {
+		GetActiveScene()->onRuntimeStop();
+
+		m_runtime = false;
+		SetScene(m_editorScene);
+
+		Time::Scale = 1.0f;
+		ImGui::SetWindowFocus(m_scenePanel->GetID().c_str());
+	}
 	void MainLayer::SaveScene(const std::string& path, bool browse) {
 		if (browse) {
 			std::string recommendPath = path.empty() ? App::get().GetProject().GetAssetPath() : path;
@@ -399,11 +392,29 @@ namespace Editor {
 	void MainLayer::OpenScene(Ref<Scene> scene) {
 		if (IsRuntime())
 			return;
-
-		m_editorScene = scene;
-		GetActiveScene()->onViewportResize(m_scenePanel->GetWidth(), m_scenePanel->GetHeight());
-		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
+		SetScene(scene);
 		ST_TRACE("New Scene loaded");
+	}
+
+	void MainLayer::SetScene(Ref<Scene> scene) {
+		if (IsRuntime()) {
+			m_runtimeScene = scene;
+		}
+		else {
+			m_editorScene = scene;
+			m_runtimeScene = nullptr;
+		}
+
+		StuluBindings::SetCurrentScene(GetActiveScene().get());
+
+		if (IsRuntime()) {
+			GetActiveScene()->onViewportResize(m_gamePanel->GetWidth(), m_gamePanel->GetHeight());
+		}
+		else {
+			GetActiveScene()->onViewportResize(m_scenePanel->GetWidth(), m_scenePanel->GetHeight());
+		}
+
+		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
 	}
 }
 

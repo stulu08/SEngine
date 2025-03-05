@@ -34,4 +34,7 @@ namespace StuluBindings {
 
 	void LoadCoreBindings();
 	void LoadComponentsBindings();
+
+	STULU_API extern Stulu::Scene* GetCurrentScene();
+	STULU_API extern void SetCurrentScene(Stulu::Scene* scene);
 }

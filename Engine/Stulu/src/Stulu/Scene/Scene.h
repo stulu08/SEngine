@@ -57,12 +57,8 @@ namespace Stulu {
 		inline SceneData& getData() { return m_data; }
 		inline Ref<EventCaller>& getCaller() { return m_caller; }
 
-		static inline void setActiveScene(Scene* scne) { s_activeScene = scne; }
-
-		static inline Scene* activeScene() { return s_activeScene; }
-
-		const Scope<PhysX>& getPhysics() const { return m_physics; }
-		const Scope<SceneRenderer>& getRenderer() const { return m_renderer; }
+		PhysX* getPhysics() const { return m_physics.get(); }
+		SceneRenderer* getRenderer() const { return m_renderer.get(); }
 		int32_t getViewportWidth() const { return m_viewportWidth; }
 		int32_t getViewportHeight() const { return m_viewportHeight; }
 
@@ -115,9 +111,6 @@ namespace Stulu {
 		}
 
 		friend class GameObject;
-
-
-		static Scene* s_activeScene;
 	};
 }
 

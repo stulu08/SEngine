@@ -207,7 +207,9 @@ namespace Stulu {
 	}
 
 	void SceneSerializer::serialze(const std::string& path) {
-		Scene::setActiveScene(m_scene.get());
+		Scene* backupScene = StuluBindings::GetCurrentScene();
+		StuluBindings::SetCurrentScene(m_scene.get());
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
@@ -243,6 +245,7 @@ namespace Stulu {
 		fprintf(file, out.c_str());
 		fclose(file);
 
+		StuluBindings::SetCurrentScene(backupScene);
 	}
 
 
@@ -250,7 +253,11 @@ namespace Stulu {
 		if (!FileExists(path.c_str()))
 			return false;
 
-		Scene::setActiveScene(m_scene.get());
+
+
+		Scene* backupScene = StuluBindings::GetCurrentScene();
+		StuluBindings::SetCurrentScene(m_scene.get());
+
 		try {
 			YAML::Node data = YAML::LoadFile(path);
 			std::string SceneName = data["Scene"].as<std::string>();
@@ -506,9 +513,12 @@ namespace Stulu {
 			return true;
 		}
 		catch (YAML::Exception ex) {
-			CORE_ERROR("{1}: YAML exception at {2}\n{0}", ex.what(), path, ex.mark.line)
+			StuluBindings::SetCurrentScene(backupScene);
+			CORE_ERROR("{1}: YAML exception at {2}\n{0}", ex.what(), path, ex.mark.line);
 			return false;
 		}
+
+		StuluBindings::SetCurrentScene(backupScene);
 		return true;
 	}
 }

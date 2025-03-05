@@ -76,6 +76,8 @@ namespace Editor {
 			OpenScene(createRef<Scene>());
 		}
 
+		void SetScene(Ref<Scene> scene);
+
 		Ref<Scene> m_editorScene = nullptr, m_runtimeScene = nullptr;
 
 		bool m_runtime = false;

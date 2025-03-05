@@ -134,4 +134,13 @@ namespace StuluBindings {
 		add_call("spriteRenComp_getColor(ulong,Stulu.Vector4&)", SpriteRendererComponent::getColor);
 		add_call("spriteRenComp_setColor(ulong,Stulu.Vector4&)", SpriteRendererComponent::setColor);
 	}
+
+	static Stulu::Scene* s_activeScene;
+
+	STULU_API Stulu::Scene* GetCurrentScene() {
+		return s_activeScene;
+	}
+	STULU_API void SetCurrentScene(Stulu::Scene* scene) {
+		s_activeScene = scene;
+	}
 }

@@ -252,7 +252,7 @@ namespace Stulu {
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual entt::entity GetValue() const;
-		virtual void SetValue(const entt::entity& value);
+		virtual void SetValue(entt::entity value);
 		virtual uint64_t GetValueRaw() const;
 		virtual void SetValueRaw(uint64_t value);
 

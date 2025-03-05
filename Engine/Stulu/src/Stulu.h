@@ -69,6 +69,7 @@
 //Scripting
 #include "Stulu/Scripting/EventCaller.h"
 #include "Stulu/Scripting/Native/SceneLayer.h"
+#include "Stulu/Scripting/Managed/Bindings/Bindings.h"
 
 // Modules
 #include "Stulu/Modules/ParticleSystem/ParticleSystemModule.h"

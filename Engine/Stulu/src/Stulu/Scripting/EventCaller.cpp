@@ -46,7 +46,7 @@ namespace Stulu {
 	bool EventCaller::InitManagedGameObject(const GameObject& gameObject, Ref<MonoObjectInstance>& script) {
 		Mono::Method func = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
 		if (func) {
-			entt::entity id = gameObject.GetID();
+			uint64_t id = (uint64_t)gameObject.GetID();
 			void* args[1];
 			args[0] = &id;
 			m_manager->getAppAssembly()->InvokeMethod(func, script->getObject(), args);

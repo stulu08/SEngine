@@ -4,6 +4,8 @@
 #include "Stulu/Scripting/Managed/AssemblyManager.h"
 #include "Stulu/Scene/GameObject.h"
 
+#include "Stulu/Scripting/Managed/Bindings/Bindings.h"
+
 namespace Stulu {
 	Ref<Property> Property::Create(Mono::Object object, Mono::ClassField field) {
 		if (!object || !field)
@@ -416,13 +418,13 @@ namespace Stulu {
 		SetValue(*((entt::entity*)source));
 	}
 	entt::entity GameObjectProperty::GetValue() const {
-		GameObject obj = GameObject((entt::entity)GetValueRaw(), Scene::activeScene());
+		GameObject obj = GameObject((entt::entity)GetValueRaw(), StuluBindings::GetCurrentScene());
 		if(obj.IsValid())
 			return obj.GetID();
 		return entt::null;
 	}
-	void GameObjectProperty::SetValue(const entt::entity& value) {
-		SetValueRaw(GameObject::GetById(value, Scene::activeScene()));
+	void GameObjectProperty::SetValue(entt::entity value) {
+		SetValueRaw(GameObject::GetById(value, StuluBindings::GetCurrentScene()));
 	}
 	uint64_t GameObjectProperty::GetValueRaw() const {
 		uint64_t outValue = entt::null;

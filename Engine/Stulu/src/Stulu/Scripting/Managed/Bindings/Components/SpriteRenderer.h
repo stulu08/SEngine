@@ -3,7 +3,7 @@ namespace StuluBindings {
 	class SpriteRendererComponent {
 	public:
 		static inline void getTiling(uint64_t go, struct Vector2* tiling) {
-			auto gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			if (gameObject.hasComponent<Stulu::SpriteRendererComponent>()) {
 				auto& spriteRen = gameObject.getComponent<Stulu::SpriteRendererComponent>();
 				tiling->x = spriteRen.tiling.x;
@@ -11,7 +11,7 @@ namespace StuluBindings {
 			}
 		}
 		static inline void setTiling(uint64_t go, struct Vector2* tiling) {
-			auto gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			if (gameObject.hasComponent<Stulu::SpriteRendererComponent>()) {
 				auto& spriteRen = gameObject.getComponent<Stulu::SpriteRendererComponent>();
 				spriteRen.tiling = tiling->toNative();
@@ -19,7 +19,7 @@ namespace StuluBindings {
 		}
 
 		static inline void getColor(uint64_t go, struct Vector4* color) {
-			auto gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			if (gameObject.hasComponent<Stulu::SpriteRendererComponent>()) {
 				auto& spriteRen = gameObject.getComponent<Stulu::SpriteRendererComponent>();
 				color->x = spriteRen.color.x;
@@ -29,7 +29,7 @@ namespace StuluBindings {
 			}
 		}
 		static inline void setColor(uint64_t go, struct Vector4* color) {
-			auto gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			if (gameObject.hasComponent<Stulu::SpriteRendererComponent>()) {
 				auto& spriteRen = gameObject.getComponent<Stulu::SpriteRendererComponent>();
 				spriteRen.color = color->toNative();
@@ -39,7 +39,7 @@ namespace StuluBindings {
 		static inline void setTexture(uint64_t go, uint64_t id) {
 			Stulu::Asset asset;
 			if (Stulu::AssetsManager::saveGetAndType(id, asset, Stulu::AssetType::Texture2D)) {
-				auto gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+				auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 				if (gameObject.hasComponent<Stulu::SpriteRendererComponent>()) {
 					auto& spriteRen = gameObject.getComponent<Stulu::SpriteRendererComponent>();
 					spriteRen.texture = std::dynamic_pointer_cast<Stulu::Texture2D>(std::any_cast<Stulu::Ref<Stulu::Texture>>(asset.data));
@@ -47,7 +47,7 @@ namespace StuluBindings {
 			}
 		}
 		static inline uint64_t getTexture(uint64_t go) {
-			auto gameObject = Stulu::GameObject((entt::entity)go, Stulu::Scene::activeScene());
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			if (gameObject.hasComponent<Stulu::SpriteRendererComponent>()) {
 				auto& spriteRen = gameObject.getComponent<Stulu::SpriteRendererComponent>();
 				return spriteRen.texture->uuid;

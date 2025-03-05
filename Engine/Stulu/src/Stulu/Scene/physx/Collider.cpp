@@ -23,26 +23,28 @@ namespace Stulu {
 		rigidbody = nullptr;
 	}
 
-	void BoxColliderComponent::create(GameObject object, const Scope<PhysX>& physics) {
-		if (!object.getScene()->getData().enablePhsyics3D)
+	void BoxColliderComponent::create() {
+		auto physics = gameObject.getScene()->getPhysics();
+
+		if (!gameObject.getScene()->getData().enablePhsyics3D)
 			return;
-		auto& tc = object.getComponent<TransformComponent>();
-		auto& bCollide = object.getComponent<BoxColliderComponent>();
+		auto& tc = gameObject.getComponent<TransformComponent>();
+		auto& bCollide = gameObject.getComponent<BoxColliderComponent>();
 		physx::PxRigidActor* actor;
-		if (object.hasComponent<RigidbodyComponent>()) {
-			RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
+		if (gameObject.hasComponent<RigidbodyComponent>()) {
+			RigidbodyComponent& rb = gameObject.getComponent<RigidbodyComponent>();
 			if (rb.body)
 				actor = (physx::PxRigidActor*)rb.body;
 			else
 				actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		else {
-			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
+			RigidbodyComponent& rb = gameObject.addComponent<RigidbodyComponent>();
 			rb.useGravity = true;
 			rb.kinematic = true;
 			actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
-		RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
+		RigidbodyComponent& rb = gameObject.getComponent<RigidbodyComponent>();
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics->getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxBoxGeometry(PhysicsVec3fromglmVec3(tc.GetWorldScale() * bCollide.size)), *aMaterial);
@@ -52,26 +54,28 @@ namespace Stulu {
 		rb.body = actor;
 		physics->getScene()->addActor(*actor);
 	}
-	void SphereColliderComponent::create(GameObject object, const Scope<PhysX>& physics) {
-		if (!object.getScene()->getData().enablePhsyics3D)
+	void SphereColliderComponent::create() {
+		auto physics = gameObject.getScene()->getPhysics();
+
+		if (!gameObject.getScene()->getData().enablePhsyics3D)
 			return;
-		auto& tc = object.getComponent<TransformComponent>();
-		auto& bCollide = object.getComponent<SphereColliderComponent>();
+		auto& tc = gameObject.getComponent<TransformComponent>();
+		auto& bCollide = gameObject.getComponent<SphereColliderComponent>();
 		physx::PxRigidActor* actor;
-		if (object.hasComponent<RigidbodyComponent>()) {
-			RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
+		if (gameObject.hasComponent<RigidbodyComponent>()) {
+			RigidbodyComponent& rb = gameObject.getComponent<RigidbodyComponent>();
 			if (rb.body)
 				actor = (physx::PxRigidActor*)rb.body;
 			else
 				actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		else {
-			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
+			RigidbodyComponent& rb = gameObject.addComponent<RigidbodyComponent>();
 			rb.useGravity = true;
 			rb.kinematic = true;
 			actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
-		RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
+		RigidbodyComponent& rb = gameObject.getComponent<RigidbodyComponent>();
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics->getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, physx::PxSphereGeometry(tc.GetWorldScale().x * bCollide.radius), *aMaterial);
@@ -81,13 +85,15 @@ namespace Stulu {
 		rb.body = actor;
 		physics->getScene()->addActor(*actor);
 	}
-	void MeshColliderComponent::create(GameObject object, const Scope<PhysX>& physics) {
-		if (!object.getScene()->getData().enablePhsyics3D)
-			return;
-		auto& tc = object.getComponent<TransformComponent>();
-		auto& bCollide = object.getComponent<MeshColliderComponent>();
+	void MeshColliderComponent::create() {
+		auto physics = gameObject.getScene()->getPhysics();
 
-		if (!object.hasComponent<MeshFilterComponent>())
+		if (!gameObject.getScene()->getData().enablePhsyics3D)
+			return;
+		auto& tc = gameObject.getComponent<TransformComponent>();
+		auto& bCollide = gameObject.getComponent<MeshColliderComponent>();
+
+		if (!gameObject.hasComponent<MeshFilterComponent>())
 			return;
 		if (bCollide.convexMesh == nullptr && bCollide.convex) {
 			if (bCollide.mesh.mesh->getVerticesCount() > 255 * 3) {
@@ -102,14 +108,14 @@ namespace Stulu {
 		physx::PxRigidActor* actor;
 		if (bCollide.convex) {
 			actor = physics->getPhysics()->createRigidStatic(physx::PxTransform(PhysicsVec3fromglmVec3(tc.GetWorldPosition()), PhysicsQuatfromglmQuat(tc.GetWorldRotation())));
-			if (object.hasComponent<RigidbodyComponent>()) {
-				actor = physics->createActor(object.getComponent<RigidbodyComponent>(), tc.GetWorldPosition(), tc.GetWorldRotation());
+			if (gameObject.hasComponent<RigidbodyComponent>()) {
+				actor = physics->createActor(gameObject.getComponent<RigidbodyComponent>(), tc.GetWorldPosition(), tc.GetWorldRotation());
 			}
 			else {
-				RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
+				RigidbodyComponent& rb = gameObject.addComponent<RigidbodyComponent>();
 				rb.useGravity = true;
 				rb.kinematic = true;
-				actor = physics->createActor(object.getComponent<RigidbodyComponent>(), tc.GetWorldPosition(), tc.GetWorldRotation());
+				actor = physics->createActor(gameObject.getComponent<RigidbodyComponent>(), tc.GetWorldPosition(), tc.GetWorldRotation());
 			}
 		}
 		else {
@@ -141,28 +147,30 @@ namespace Stulu {
 		physics->getScene()->addActor(*actor);
 		bCollide.shape = (void*)shape;
 		bCollide.rigidbody = (void*)actor;
-		if(object.hasComponent<RigidbodyComponent>())
-			object.getComponent<RigidbodyComponent>().body = actor;
+		if(gameObject.hasComponent<RigidbodyComponent>())
+			gameObject.getComponent<RigidbodyComponent>().body = actor;
 	}
-	void CapsuleColliderComponent::create(GameObject object, const Scope<PhysX>& physics){
-		auto& tc = object.getComponent<TransformComponent>();
-		auto& bCollide = object.getComponent<CapsuleColliderComponent>();
+	void CapsuleColliderComponent::create(){
+		auto physics = gameObject.getScene()->getPhysics();
+
+		auto& tc = gameObject.getComponent<TransformComponent>();
+		auto& bCollide = gameObject.getComponent<CapsuleColliderComponent>();
 
 		physx::PxRigidActor* actor;
-		if (object.hasComponent<RigidbodyComponent>()) {
-			RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
+		if (gameObject.hasComponent<RigidbodyComponent>()) {
+			RigidbodyComponent& rb = gameObject.getComponent<RigidbodyComponent>();
 			if (rb.body)
 				actor = (physx::PxRigidActor*)rb.body;
 			else
 				actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
 		else {
-			RigidbodyComponent& rb = object.addComponent<RigidbodyComponent>();
+			RigidbodyComponent& rb = gameObject.addComponent<RigidbodyComponent>();
 			rb.useGravity = true;
 			rb.kinematic = true;
 			actor = physics->createActor(rb, tc.GetWorldPosition(), tc.GetWorldRotation());
 		}
-		RigidbodyComponent& rb = object.getComponent<RigidbodyComponent>();
+		RigidbodyComponent& rb = gameObject.getComponent<RigidbodyComponent>();
 		physx::PxTransform relativePose(PhysicsVec3fromglmVec3(bCollide.offset));
 		physx::PxMaterial* aMaterial = physics->getPhysics()->createMaterial(bCollide.staticFriction, bCollide.dynamicFriction, bCollide.restitution);
 

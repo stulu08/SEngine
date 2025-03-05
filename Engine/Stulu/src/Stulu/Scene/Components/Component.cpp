@@ -2,7 +2,7 @@
 #include "Stulu.h"
 
 namespace Stulu {
-	std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&)>> Component::m_componentCopyList;
+	std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&, Scene*)>> Component::m_componentCopyList;
 	
 	void Component::RegisterBaseComponents() {
 		Register<TransformComponent>("Stulu.TransformComponent");

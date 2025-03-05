@@ -75,7 +75,6 @@ namespace Stulu {
 
 			m_activeScene = nScene;
 			onResize(WindowResizeEvent(Application::get().getWidth(), Application::get().getHeight()));
-			Scene::setActiveScene(m_activeScene.get());
 			onRuntimeStart();
 			ST_TRACE("Opened Scene {0}", path);
 		}
@@ -87,14 +86,15 @@ namespace Stulu {
 	void RuntimeLayer::newScene() {
 		if (m_activeScene)
 			m_activeScene->onRuntimeStop();
+
 		m_activeScene = createRef<Scene>();
 		onResize(WindowResizeEvent(Application::get().getWidth(), Application::get().getHeight()));
-		Scene::setActiveScene(m_activeScene.get());
 		onRuntimeStart();
 		ST_TRACE("New Scene loaded");
 	}
 	void RuntimeLayer::onRuntimeStart() {
 		Time::Scale = 1.0f;
+		StuluBindings::SetCurrentScene(m_activeScene.get());
 		m_activeScene->onRuntimeStart();
 	}
 	void RuntimeLayer::onRuntimeStop() {

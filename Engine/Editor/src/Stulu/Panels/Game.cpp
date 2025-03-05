@@ -10,13 +10,18 @@ using namespace Stulu;
 namespace Editor {
 	GamePanel::GamePanel() 
 		: Panel("Game") {
+
+		FrameBufferSpecs specs;
+		specs.width = 1;
+		specs.height = 1;
+		m_framebuffer = FrameBuffer::create(specs);
 	}
 
 	void GamePanel::DrawImGui() {
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-		uint32_t width = (uint32_t)glm::max(viewportSize.x, 1.0f);
-		uint32_t height = (uint32_t)glm::max(viewportSize.y, 1.0f);
-		UpdateFrameBuffer(width, height);
+		m_width = (uint32_t)glm::max(viewportSize.x, 1.0f);
+		m_height = (uint32_t)glm::max(viewportSize.y, 1.0f);
+		UpdateFrameBuffer(m_width, m_height);
 
 		m_windowPos = ImGui::GetCursorScreenPos();
 
@@ -26,6 +31,11 @@ namespace Editor {
 
 	void GamePanel::Update() {
 		auto& layer = App::get().GetLayer();
+
+		// if anywhere outside of window return to defualt cursor mode
+		if (!IsFocused()) {
+			Input::setCursorMode(Input::CursorMode::Normal);
+		}
 
 		StuluBindings::Input::SetEnabled(IsFocused() && layer.IsRuntime());
 
@@ -65,18 +75,14 @@ namespace Editor {
 	}
 
 	void GamePanel::UpdateFrameBuffer(uint32_t width, uint32_t height) {
-		if (!m_framebuffer) {
-			FrameBufferSpecs specs;
-			specs.width = width;
-			specs.height = height;
-
-			m_framebuffer = FrameBuffer::create(specs);
-			return;
-		}
-
 		FrameBufferSpecs specs = m_framebuffer->getSpecs();
 		if (specs.width != width || specs.height != height) {
 			m_framebuffer->resize(width, height);
+
+			auto& layer = App::get().GetLayer();
+			if (layer.IsRuntime()) {
+				layer.GetActiveScene()->onViewportResize(width, height);
+			}
 		}
 	}
 }

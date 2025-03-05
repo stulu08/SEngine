@@ -17,11 +17,14 @@ namespace Editor {
 		virtual void PreWindow() override;
 		virtual void PostWindow() override;
 
+		inline uint32_t GetWidth() const { return m_width; }
+		inline uint32_t GetHeight() const { return m_height; }
 
 		Stulu::Ref<Stulu::FrameBuffer> GetFrameBuffer() const {
 			return m_framebuffer;
 		}
 	private:
+		uint32_t m_width = 1, m_height = 1;
 		ImVec2 m_windowPos;
 		Stulu::Ref<Stulu::FrameBuffer> m_framebuffer;
 

@@ -16,7 +16,13 @@ namespace Stulu {
 		void* shape = nullptr;
 		void* rigidbody = nullptr;
 
-		virtual void create(GameObject object, const Scope<PhysX>& physics){}
+		virtual void onComponentAdded(Scene* scene) {
+			if(scene->getPhysics())
+				this->create();
+		};
+
+
+		virtual void create(){}
 	};
 	class STULU_API BoxColliderComponent : public Collider{
 	public:
@@ -26,8 +32,7 @@ namespace Stulu {
 		glm::vec3 offset = glm::vec3(0.0f);
 		glm::vec3 size = glm::vec3(.5f);
 	private:
-		virtual void create(GameObject object, const Scope<PhysX>& physics) override;
-		friend class StuluBindings::GameObject;
+		virtual void create() override;
 		friend class Scene;
 		friend class RigidbodyComponent;
 	};
@@ -39,8 +44,7 @@ namespace Stulu {
 		glm::vec3 offset = glm::vec3(0.0f);
 		float radius = .5f;
 	private:
-		virtual void create(GameObject object, const Scope<PhysX>& physics) override;
-		friend class StuluBindings::GameObject;
+		virtual void create() override;
 		friend class Scene;
 		friend class RigidbodyComponent;
 	};
@@ -55,8 +59,7 @@ namespace Stulu {
 		// if true: height * scale.y; else: height * scale.x;
 		bool horizontal = false;
 	private:
-		virtual void create(GameObject object, const Scope<PhysX>& physics) override;
-		friend class StuluBindings::GameObject;
+		virtual void create() override;
 		friend class Scene;
 		friend class RigidbodyComponent;
 	};
@@ -69,8 +72,7 @@ namespace Stulu {
 		Ref<Mesh> convexMesh = nullptr;
 		bool convex = false;
 	private:
-		virtual void create(GameObject object, const Scope<PhysX>& physics) override;
-		friend class StuluBindings::GameObject;
+		virtual void create() override;
 		friend class RigidbodyComponent;
 		friend class Scene;
 	};
