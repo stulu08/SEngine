@@ -67,7 +67,9 @@ public class SpectatorCamera : Component {
 				nextTimeToFire = Time.time + (1.0f / FireRate);
 			}
 		}
-		
-		
+	}
+
+	public override void onDrawGizmos() {
+		Gizmo.drawOutlinedCube(transform.position, Color.Cyan);
 	}
 }

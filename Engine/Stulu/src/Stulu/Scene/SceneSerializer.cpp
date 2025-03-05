@@ -8,7 +8,7 @@ namespace Stulu {
 
 	void SceneSerializer::SerializerGameObject(YAML::Emitter& out, GameObject gameObject) {
 		out << YAML::BeginMap;
-		out << YAML::Key << "GameObject" << YAML::Value << (uint64_t)gameObject.getId();
+		out << YAML::Key << "GameObject" << YAML::Value << (uint64_t)gameObject.GetID();
 
 		BEGIN_SERIALIZE_COMPONENT(GameObjectBaseComponent);
 		{
@@ -201,7 +201,7 @@ namespace Stulu {
 		}
 		END_SERIALIZE_COMPONENT();
 
-		m_scene->m_caller->SerializerGameObject(out, gameObject);
+		m_scene->getCaller()->SerializerGameObject(out, gameObject);
 
 		out << YAML::EndMap;
 	}
@@ -213,22 +213,22 @@ namespace Stulu {
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
 
-		SERIALIZE(m_scene->m_data, shaderFlags);
-		SERIALIZE(m_scene->m_data.graphicsData, env_lod);
-		SERIALIZE(m_scene->m_data.graphicsData, shadowDistance);
-		SERIALIZE(m_scene->m_data.graphicsData, shadowFar);
-		SERIALIZE(m_scene->m_data.graphicsData, shadowMapSize);
-		SERIALIZE(m_scene->m_data, enablePhsyics3D);
-		SERIALIZE(m_scene->m_data, physicsData.gravity);
-		SERIALIZE(m_scene->m_data, physicsData.length);
-		SERIALIZE(m_scene->m_data, physicsData.speed);
-		SERIALIZE(m_scene->m_data, physicsData.workerThreads);
+		SERIALIZE(m_scene->getData(), shaderFlags);
+		SERIALIZE(m_scene->getData().graphicsData, env_lod);
+		SERIALIZE(m_scene->getData().graphicsData, shadowDistance);
+		SERIALIZE(m_scene->getData().graphicsData, shadowFar);
+		SERIALIZE(m_scene->getData().graphicsData, shadowMapSize);
+		SERIALIZE(m_scene->getData(), enablePhsyics3D);
+		SERIALIZE(m_scene->getData(), physicsData.gravity);
+		SERIALIZE(m_scene->getData(), physicsData.length);
+		SERIALIZE(m_scene->getData(), physicsData.speed);
+		SERIALIZE(m_scene->getData(), physicsData.workerThreads);
 
 		out << YAML::EndMap;
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		for (auto [id, comp] : m_scene->m_registry.storage<GameObjectBaseComponent>().each()) {
+		for (auto [id, comp] : m_scene->getRegistry().storage<GameObjectBaseComponent>().each()) {
 			GameObject go = { id, m_scene.get() };
-			if (!go.isValid())
+			if (!go.IsValid())
 				return;
 
 			SerializerGameObject(out, go);
@@ -257,18 +257,18 @@ namespace Stulu {
 			if (data["Settings"]) {
 				YAML::Node settings = data["Settings"];
 
-				DESERIALIZE(m_scene->m_data, shaderFlags, settings);
+				DESERIALIZE(m_scene->getData(), shaderFlags, settings);
 
-				DESERIALIZE(m_scene->m_data.graphicsData, env_lod, settings);
-				DESERIALIZE(m_scene->m_data.graphicsData, shadowDistance, settings);
-				DESERIALIZE(m_scene->m_data.graphicsData, shadowFar, settings);
-				DESERIALIZE(m_scene->m_data.graphicsData, shadowMapSize, settings);
+				DESERIALIZE(m_scene->getData().graphicsData, env_lod, settings);
+				DESERIALIZE(m_scene->getData().graphicsData, shadowDistance, settings);
+				DESERIALIZE(m_scene->getData().graphicsData, shadowFar, settings);
+				DESERIALIZE(m_scene->getData().graphicsData, shadowMapSize, settings);
 				
-				DESERIALIZE(m_scene->m_data, enablePhsyics3D, settings);
-				DESERIALIZE(m_scene->m_data, physicsData.gravity, settings);
-				DESERIALIZE(m_scene->m_data, physicsData.length, settings);
-				DESERIALIZE(m_scene->m_data, physicsData.speed, settings);
-				DESERIALIZE(m_scene->m_data, physicsData.workerThreads, settings);
+				DESERIALIZE(m_scene->getData(), enablePhsyics3D, settings);
+				DESERIALIZE(m_scene->getData(), physicsData.gravity, settings);
+				DESERIALIZE(m_scene->getData(), physicsData.length, settings);
+				DESERIALIZE(m_scene->getData(), physicsData.speed, settings);
+				DESERIALIZE(m_scene->getData(), physicsData.workerThreads, settings);
 			}
 
 			auto gos = data["GameObjects"];
@@ -461,19 +461,19 @@ namespace Stulu {
 					}
 					END_DESERIALIZE_COMPONENT();
 
-					m_scene->m_caller->DeserializerGameObject(gameObject, deserialized, path);
+					m_scene->getCaller()->DeserializerGameObject(gameObject, deserialized, path);
 				}
 			}
 
 			//handle childs and parents
 			if (gos) {
 				for (auto gameObject : gos) {
-					GameObject deserialized = GameObject::getById((entt::entity)gameObject["GameObject"].as<uint64_t>(), m_scene.get());
+					GameObject deserialized = GameObject::GetById((entt::entity)gameObject["GameObject"].as<uint64_t>(), m_scene.get());
 
 					auto transformComponentNode = gameObject["TransformComponent"];
 					if (transformComponentNode) {
 						if (transformComponentNode["parent"]) {
-							deserialized.getComponent<TransformComponent>().SetParent(GameObject::getById((entt::entity)transformComponentNode["parent"].as<uint64_t>(), m_scene.get()));
+							deserialized.getComponent<TransformComponent>().SetParent(GameObject::GetById((entt::entity)transformComponentNode["parent"].as<uint64_t>(), m_scene.get()));
 						}
 					}
 

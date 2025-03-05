@@ -11,6 +11,8 @@ namespace Stulu {
 		}
 		inline GameObject(const GameObject& other) = default;
 
+		STULU_API static GameObject GetById(entt::entity id, Scene* scene);
+
 		template<typename T>
 		inline bool hasComponent() const {
 			return m_scene->m_registry.storage<T>().contains(m_entity);
@@ -77,23 +79,23 @@ namespace Stulu {
 
 		inline Scene* getScene() const { return m_scene; }
 
-		STULU_API bool isValid() const;
-		STULU_API entt::entity getId() const;
-		STULU_API static GameObject getById(entt::entity id, Scene* scene);
+		// defined after GameObjectBaseComponent to keep the function inline
+		inline bool IsValid() const;
+
+		inline entt::entity GetID() const {
+			return m_entity;
+		}
 
 		inline operator bool() const { 
-			return isValid(); 
+			return IsValid(); 
 		}
-		inline operator entt::entity() const { return m_entity; }
-		inline operator uint64_t() const { return (uint32_t)m_entity; }
-		inline operator void*() const { return (void*)(uint64_t)m_entity; }
 
 		inline bool operator==(const GameObject& other) const {
 			// if both ids are invalid they are same, important if (gameobject == GameObject::null)
-			if (other.m_entity == entt::null && this->m_entity == entt::null)
+			if (other.GetID() == entt::null && this->GetID() == entt::null)
 				return true;
 
-			return m_entity == other.m_entity && m_scene == other.m_scene;
+			return GetID() == other.GetID() && m_scene == other.m_scene;
 		}
 		inline bool operator!=(const GameObject& other) const {
 			return !(*this == other);
@@ -104,7 +106,6 @@ namespace Stulu {
 		entt::entity m_entity{ entt::null };
 		Scene* m_scene = nullptr;
 
-		friend class EditorInspectorPanel;
 		friend class Scene;
 	};
 

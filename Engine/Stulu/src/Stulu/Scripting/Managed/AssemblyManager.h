@@ -15,7 +15,7 @@ namespace Stulu {
 		template<class T>
 		inline void RegisterComponent(const std::string& managedName) {
 			m_addComponentRegister[managedName] = [](GameObject go) { go.addComponent<T>(); };
-			m_hasComponentRegister[managedName] = [](GameObject go) { return go.hasComponent<T>(); };
+			m_hasComponentRegister[managedName] = [](GameObject go) { return go.IsValid() && go.hasComponent<T>(); };
 			m_removeComponentRegister[managedName] = [](GameObject go) { return go.removeComponent<T>(); };
 		}
 		template<class T>

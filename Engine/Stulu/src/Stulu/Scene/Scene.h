@@ -114,14 +114,7 @@ namespace Stulu {
 			component.destroy();
 		}
 
-		friend class SceneRenderer;
 		friend class GameObject;
-		friend class EditorLayer;
-		friend class SceneSerializer;
-		friend class EditorHierarchyPanel;
-		friend class ComponentsRender;
-		friend class GameObjectBaseComponent;
-		friend class EventCaller;
 
 
 		static Scene* s_activeScene;

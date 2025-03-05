@@ -54,7 +54,7 @@ namespace Editor {
             if (m_scene) {
                 for (auto& [gameObjectID, baseComponent] : GetRegistry().storage<GameObjectBaseComponent>().each()) {
                     GameObject gameObject = baseComponent.gameObject;
-                    if (!gameObject.isValid())
+                    if (!gameObject.IsValid())
                         continue;
                     DrawGameObject(baseComponent);
                 }
@@ -90,7 +90,7 @@ namespace Editor {
             ImGuiTreeNodeFlags_FramePadding |
             ImGuiTreeNodeFlags_OpenOnArrow;
 
-        if (IsSelected(gameObject))
+        if (IsSelected(gameObject.GetID()))
             treeFlags |= ImGuiTreeNodeFlags_Selected;
         if(!transform.HasChildren())
             treeFlags |= ImGuiTreeNodeFlags_Leaf;
@@ -106,10 +106,10 @@ namespace Editor {
         // selecting
         if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) {
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
-                AddSelected(gameObject);
+                AddSelected(gameObject.GetID());
             }
             else {
-                SetSelected(gameObject);
+                SetSelected(gameObject.GetID());
             }
         }
 
@@ -130,7 +130,7 @@ namespace Editor {
             for (entt::entity& childObj : transform.GetChildren()) {
                 GameObject child = { childObj, m_scene };
                 auto& childBaseComponent = child.getComponent<GameObjectBaseComponent>();
-                if (!childBaseComponent.gameObject.isValid())
+                if (!childBaseComponent.gameObject.IsValid())
                     continue;
                 DrawGameObject(childBaseComponent, gameObject);
             }

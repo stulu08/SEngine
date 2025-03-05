@@ -72,6 +72,7 @@ namespace Stulu {
 		glViewport(x, y, width, height);
 	}
 	void OpenGLRenderAPI::setWireFrame(bool value) {
+		glPolygonMode(GL_FRONT_AND_BACK, value ? GL_LINE : GL_FILL);
 		//glPolygonMode(GL_FRONT, value ? GL_LINE : GL_FILL);
 		//glPolygonMode(GL_BACK, value ? GL_LINE : GL_FILL);
 	}

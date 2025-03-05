@@ -417,12 +417,12 @@ namespace Stulu {
 	}
 	entt::entity GameObjectProperty::GetValue() const {
 		GameObject obj = GameObject((entt::entity)GetValueRaw(), Scene::activeScene());
-		if(obj.isValid())
-			return obj.getId();
+		if(obj.IsValid())
+			return obj.GetID();
 		return entt::null;
 	}
 	void GameObjectProperty::SetValue(const entt::entity& value) {
-		SetValueRaw(GameObject::getById(value, Scene::activeScene()));
+		SetValueRaw(GameObject::GetById(value, Scene::activeScene()));
 	}
 	uint64_t GameObjectProperty::GetValueRaw() const {
 		uint64_t outValue = entt::null;

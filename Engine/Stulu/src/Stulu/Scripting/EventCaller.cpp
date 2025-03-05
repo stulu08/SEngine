@@ -28,7 +28,7 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->getRegistry().storage<ScriptingComponent>().each()) {
 			const GameObject gameObject = { id, m_scene };
 			ConstructManaged(gameObject);
 		}
@@ -46,7 +46,7 @@ namespace Stulu {
 	bool EventCaller::InitManagedGameObject(const GameObject& gameObject, Ref<MonoObjectInstance>& script) {
 		Mono::Method func = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
 		if (func) {
-			entt::entity id = (entt::entity)gameObject;
+			entt::entity id = gameObject.GetID();
 			void* args[1];
 			args[0] = &id;
 			m_manager->getAppAssembly()->InvokeMethod(func, script->getObject(), args);
@@ -69,7 +69,7 @@ namespace Stulu {
 			}
 			return;
 		}
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->getRegistry().storage<ScriptingComponent>().each()) {
 			const GameObject gameObject = { id, m_scene };
 			CallManagedEvent(method, gameObject);
 		}
@@ -78,13 +78,13 @@ namespace Stulu {
 #define DEFAULT_HANDLE_MANAGED(name) \
 	{\
 		ST_PROFILING_SCOPE("Managed Scripting - " #name); \
-		if (object) { \
+		if (object.IsValid()) { \
 			if (object.hasComponent<ScriptingComponent>()) { \
 				CallManagedEvent(m_manager->getEvents().name, object); \
 			} \
 			return; \
 		} \
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) { \
+		for (auto& [id, comp] : m_scene->getRegistry().storage<ScriptingComponent>().each()) { \
 			const GameObject gameObject = { id, m_scene }; \
 			CallManagedEvent(m_manager->getEvents().name, gameObject); \
 		} \

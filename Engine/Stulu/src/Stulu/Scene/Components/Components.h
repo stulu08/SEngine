@@ -19,13 +19,20 @@ namespace Stulu {
 	class GameObjectBaseComponent : public Component {
 	public:
 		std::string name = "GameObject";
-		std::string tag = "default";
+		std::string tag = "Default";
 
 		GameObjectBaseComponent() = default;
 		GameObjectBaseComponent(const GameObjectBaseComponent&) = default;
 		GameObjectBaseComponent(const std::string& name)
 			: name(name) {};
 	};
+	// defined here to keep the function inline and prevent Declaraton problems
+	inline bool GameObject::IsValid() const {
+		if (m_entity == entt::null || m_scene == nullptr)
+			return false;
+		return hasComponent<GameObjectBaseComponent>();
+	}
+
 	class TransformComponent : public Component {
 	public:
 		glm::vec3 position = glm::vec3(0.0f);
@@ -39,7 +46,7 @@ namespace Stulu {
 		mutable glm::vec3 worldScale = glm::vec3(1.0f);
 		mutable bool dirty = true;
 
-		entt::entity parentEntity = GameObject::null;
+		entt::entity parentEntity = entt::null;
 		std::vector<entt::entity> children;
 
 		inline Scene* GetScene() const {
@@ -77,36 +84,36 @@ namespace Stulu {
 			return { parentEntity, GetScene() };
 		}
 		inline bool HasParent() const {
-			return GetParent().isValid();
+			return GetParent().IsValid();
 		}
 		inline void SetParent(const GameObject& newParent) {
 			GameObject parent = GetParent();
 
-			if (parent.isValid()) {
+			if (parent.IsValid()) {
 				parent.getComponent<TransformComponent>().RemoveChild(gameObject);
 			}
-			if (newParent.isValid()) {
+			if (newParent.IsValid()) {
 				newParent.getComponent<TransformComponent>().AddChild(gameObject);
 			}
 		}
 		inline void AddChild(const GameObject& child) {
-			if (child == (entt::entity)gameObject) {
+			if (child == gameObject) {
 				CORE_WARN("Cannot assign as own parent!");
 				return;
 			}
 
-			if (std::find(children.begin(), children.end(), (entt::entity)child) != children.end()) {
+			if (std::find(children.begin(), children.end(), child.GetID()) != children.end()) {
 				CORE_WARN("Child already present!");
 				return;
 			}
 
-			children.push_back(child);
+			children.push_back(child.GetID());
 			auto& childTransform = child.getComponent<TransformComponent>();
-			childTransform.parentEntity = (entt::entity)gameObject;
+			childTransform.parentEntity = gameObject.GetID();
 			childTransform.MarkDirty();
 		}
 		inline void RemoveChild(const GameObject& child) {
-			children.erase(std::remove(children.begin(), children.end(), (entt::entity)child), children.end());
+			children.erase(std::remove(children.begin(), children.end(), child.GetID()), children.end());
 
 			auto& childTransform = child.getComponent<TransformComponent>();
 			childTransform.parentEntity = entt::null;
@@ -121,7 +128,7 @@ namespace Stulu {
 			if (dirty) {
 				GameObject parent = GetParent();
 
-				if (parent.isValid()) {
+				if (parent.IsValid()) {
 					const glm::mat4 parentTransform = parent.getComponent<TransformComponent>().GetWorldTransform();
 					transform = parentTransform * GetLocalTransform();
 
@@ -173,7 +180,7 @@ namespace Stulu {
 
 		inline void SetWorldPosition(const glm::vec3& newWorldPos) {
 			GameObject parent = GetParent();
-			if (parent.isValid()) {
+			if (parent.IsValid()) {
 				auto& parentTransform = parent.getComponent<TransformComponent>();
 				position = newWorldPos - parentTransform.GetWorldPosition();
 			}
@@ -184,7 +191,7 @@ namespace Stulu {
 		}
 		inline void SetWorldRotation(const glm::quat& newWorldRot) {
 			GameObject parent = GetParent();
-			if (parent.isValid()) {
+			if (parent.IsValid()) {
 				auto& parentTransform = parent.getComponent<TransformComponent>();
 				rotation = glm::inverse(parentTransform.GetWorldRotation()) * newWorldRot;
 			}
@@ -195,7 +202,7 @@ namespace Stulu {
 		}
 		inline void SetWorldScale(const glm::vec3& newWorldScale) {
 			GameObject parent = GetParent();
-			if (parent.isValid()) {
+			if (parent.IsValid()) {
 				auto& parentTransform = parent.getComponent<TransformComponent>();
 				scale = newWorldScale / parentTransform.GetWorldScale();
 			}

@@ -85,7 +85,7 @@ namespace Stulu {
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
 		uint32_t camSkyBoxMapType = 0;
 		glm::mat4 skyboxRotation = glm::mat4(1.0f);
-		if ((entt::entity)cameraComp.gameObject != entt::null) {
+		if (cameraComp.gameObject.IsValid()) {
 			if (cameraComp.settings.clearType == CameraComponent::ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
 				auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
 				camSkyBoxTexture = s.texture;
@@ -98,10 +98,10 @@ namespace Stulu {
 		}
 		
 		//upload shader scene data
-		m_sceneBufferData.env_lod = m_scene->m_data.graphicsData.env_lod;
+		m_sceneBufferData.env_lod = m_scene->getData().graphicsData.env_lod;
 		m_sceneBufferData.skyboxMapType = camSkyBoxMapType;
 		m_sceneBufferData.useSkybox = camSkyBoxTexture != nullptr;
-		m_sceneBufferData.shaderFlags = m_scene->m_data.shaderFlags;
+		m_sceneBufferData.shaderFlags = m_scene->getData().shaderFlags;
 		m_sceneBufferData.skyBoxRotation = skyboxRotation;
 		m_sceneBufferData.lightSpaceMatrix = glm::mat4(1.0f);
 		m_sceneBufferData.shadowCasterPos = glm::vec3(0.0f);
@@ -252,8 +252,8 @@ namespace Stulu {
 
 	void SceneRenderer::resizeShadowMap() {
 		FrameBufferSpecs specs;
-		specs.width = (uint32_t)m_scene->m_data.graphicsData.shadowMapSize;
-		specs.height = (uint32_t)m_scene->m_data.graphicsData.shadowMapSize;
+		specs.width = (uint32_t)m_scene->getData().graphicsData.shadowMapSize;
+		specs.height = (uint32_t)m_scene->getData().graphicsData.shadowMapSize;
 		specs.samples = 1;
 
 		TextureSettings colorBuffer;
@@ -281,8 +281,8 @@ namespace Stulu {
 			}type;
 		};
 		glm::vec3 camPos = camera.GetWorldPosition();
-		auto quadview = m_scene->m_registry.view<TransformComponent, SpriteRendererComponent>();
-		auto circleView = m_scene->m_registry.view<TransformComponent, CircleRendererComponent>();
+		auto quadview = m_scene->getRegistry().view<TransformComponent, SpriteRendererComponent>();
+		auto circleView = m_scene->getRegistry().view<TransformComponent, CircleRendererComponent>();
 		std::vector<Entry> drawList;
 		drawList.reserve(quadview.size_hint() + circleView.size_hint());
 		for (auto gameObject : quadview) {

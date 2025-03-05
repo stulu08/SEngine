@@ -131,7 +131,7 @@ namespace StuluBindings {
 			tc.position = position.toNative_s();
 
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getSphereMeshAsset();
-			go.addComponent<Stulu::SphereColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
+			go.addComponent<Stulu::SphereColliderComponent>();
 			return go;
 		}
 		static inline uint64_t createCube(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
@@ -142,7 +142,7 @@ namespace StuluBindings {
 			tc.position = position.toNative_s();
 
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCubeMeshAsset();
-			go.addComponent<Stulu::BoxColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
+			go.addComponent<Stulu::BoxColliderComponent>();
 			return go;
 		}
 		static inline uint64_t createCapsule(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
@@ -152,7 +152,7 @@ namespace StuluBindings {
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCapsuleMeshAsset();
-			go.addComponent<Stulu::CapsuleColliderComponent>().create(go, Stulu::Scene::activeScene()->getPhysics());
+			go.addComponent<Stulu::CapsuleColliderComponent>();
 			return go;
 		}
 		static inline uint64_t createPlane(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {

@@ -115,6 +115,8 @@ namespace Editor {
 	void MainLayer::onRenderGizmo() {
 		CallPanels<&Panel::DrawImGuizmo>();
 
+		GetActiveScene()->getCaller()->onDrawGizmos();
+
 		const auto& selectedObjects = GetPanel<HierarchyPanel>().GetSelected();
 		for (entt::entity id : selectedObjects) {
 			GameObject selectedObject = { id, GetActiveScene().get()};

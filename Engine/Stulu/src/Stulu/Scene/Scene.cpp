@@ -42,8 +42,13 @@ namespace Stulu {
 		GameObject go;
 		if(id == entt::null)
 			go = { m_registry.create(), this };
-		else
+		else {
 			go = { m_registry.create((entt::entity)id), this };
+			if (go.GetID() != id) {
+				CORE_WARN("Warining GameObject '{0}' could not be assigned to ID: {1}", name, id);
+				CORE_WARN("Instead it was given the ID: {0}", go.GetID());
+			}
+		}
 
 		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
 		go.addComponent<TransformComponent>();
@@ -68,11 +73,7 @@ namespace Stulu {
 			destroyGameObject({ child, this });
 		}
 
-		m_registry.destroy(gameObject);
-
-		gameObject.m_entity = entt::null;
-		gameObject.m_scene = nullptr;
-		gameObject = GameObject::null;
+		m_registry.destroy(gameObject.GetID());
 	}
 
 	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
