@@ -124,8 +124,8 @@ namespace Stulu {
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Application - Loop");
 			// update input
-			m_window->onUpdate();
 			Input::update();
+			m_window->onUpdate();
 
 			// begin render command buffer
 			m_window->getContext()->beginBuffer();

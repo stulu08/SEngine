@@ -25,6 +25,8 @@ namespace Editor {
 
 		m_scenePanel = &GetPanel<ScenePanel>();
 		m_gamePanel = &GetPanel<GamePanel>();
+
+		LoadShotcuts();
 	}
 	MainLayer::~MainLayer()
 	{}
@@ -79,15 +81,22 @@ namespace Editor {
 
 		Application::get().getImGuiLayer()->blockEvents(blockEvents);
 
+		if (!m_gamePanel->IsFocused())
+			CheckShortcuts();
+
 	}
 	void MainLayer::onEvent(Event& e) {
+		EventDispatcher dispatcher(e);
+		// shortcuts should be always checked, when imgui wants to capture the keyboard events are stopped resulting in the layer not receiving the keyboard event
+		//dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(MainLayer::CheckShortcuts));
+
 		CallPanels<&Panel::OnEvent>(e);
 
 		if (e.getEventType() == EventType::WindowClose) {
 			StopRuntime();
 		}
-
 		GetActiveScene()->onEvent(e);
+
 	}
 
 	void MainLayer::onRenderGizmo() {
@@ -415,6 +424,35 @@ namespace Editor {
 		}
 
 		GetPanel<HierarchyPanel>().SetScene(GetActiveScene());
+	}
+	void MainLayer::LoadShotcuts() {
+
+		// Open Scene Ctrl+0
+		m_shortcuts.push_back(Shortcut([&]() { OpenScene(); return true; }, Keyboard::O, false, true));
+		// Save Scene Ctrl+S
+		m_shortcuts.push_back(Shortcut([&]() { SaveScene(m_currentScenePath, false); return true; }, Keyboard::S, false, true));
+		// Save Scene As Ctrl+Shift+S
+		m_shortcuts.push_back(Shortcut([&]() { SaveScene(m_currentScenePath, true); return true; }, Keyboard::S, true, true));
+
+	}
+	bool MainLayer::CheckShortcuts() {
+		const bool ctrl = Input::isKeyDown(Keyboard::LeftControl) || Input::isKeyDown(Keyboard::RightControl);
+		const bool shift = Input::isKeyDown(Keyboard::LeftShift) || Input::isKeyDown(Keyboard::RightShift);
+		const bool alt = Input::isKeyDown(Keyboard::LeftAlt) || Input::isKeyDown(Keyboard::RightAlt);
+
+
+		for (const auto& shortcut : m_shortcuts) {
+			if (shortcut.UseControl() != ctrl) continue;
+			if (shortcut.UseShift() != shift) continue;
+			if (shortcut.UseAlt() != alt) continue;
+
+
+			if (Input::getKeyDown(shortcut.GetKeyCode())) {
+				if (shortcut.OnPress())
+					return true;
+			}
+		}
+		return false;
 	}
 }
 

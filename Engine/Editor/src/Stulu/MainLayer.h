@@ -3,6 +3,7 @@
 
 #include "Panel.h"
 #include "Previewing.h"
+#include "Shortcut.h"
 
 #include "Panels/Scene.h"
 #include "Panels/Game.h"
@@ -62,6 +63,7 @@ namespace Editor {
 		Preview m_preview;
 		ScenePanel* m_scenePanel;
 		GamePanel* m_gamePanel;
+		std::vector<Shortcut> m_shortcuts;
 
 		void DrawObjectOutlines();
 		void DrawGizmoSelected(GameObject gameObject);
@@ -71,6 +73,9 @@ namespace Editor {
 		//bool onShortCut(KeyDownEvent& e);
 		//bool onApplicationQuit(WindowCloseEvent& e);
 		
+		void LoadShotcuts();
+		bool CheckShortcuts();
+
 		void OpenScene(Ref<Scene> scene);
 		inline void NewScene() {
 			OpenScene(createRef<Scene>());
