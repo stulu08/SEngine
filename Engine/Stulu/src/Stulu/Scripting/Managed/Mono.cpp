@@ -8,6 +8,7 @@
 #include <mono/metadata/reflection.h>
 #include <mono/metadata/threads.h>
 #include <mono/metadata/mono-debug.h>
+#include <mono/metadata/reflection.h>
 
 namespace Stulu {
 	namespace Mono {
@@ -95,6 +96,9 @@ namespace Stulu {
 		int Type::GetType() const {
 			return mono_type_get_type(m_type);
 		}
+		Type ReflectionType::GetType() const {
+			return mono_reflection_type_get_type(m_type);
+		}
 		Class Type::GetClass() const {
 			return mono_type_get_class(m_type);
 		}
@@ -136,6 +140,33 @@ namespace Stulu {
 		}
 		Class Object::GetClass() const {
 			return mono_object_get_class(m_object);
+		}
+		Method CustomAttrEntry::GetConstructor() const {
+			return reinterpret_cast<MonoCustomAttrEntry*>(m_entry)->ctor;
+		}
+		size_t CustomAttrEntry::GetDataSize() const {
+			return (size_t)reinterpret_cast<MonoCustomAttrEntry*>(m_entry)->data_size;
+		}
+		void* CustomAttrEntry::GetData() const{
+			return (void*)reinterpret_cast<MonoCustomAttrEntry*>(m_entry)->data;
+		}
+		CustomAttrInfo CustomAttrInfo::FromField(Class clas, ClassField field) {
+			return reinterpret_cast<_MonoCustomAttrInfo*>(mono_custom_attrs_from_field(clas, field));
+		}
+		CustomAttrInfo CustomAttrInfo::FromClass(Class clas) {
+			return reinterpret_cast<_MonoCustomAttrInfo*>(mono_custom_attrs_from_class(clas));
+		}
+		CustomAttrInfo CustomAttrInfo::FromMethod(Method method) {
+			return reinterpret_cast<_MonoCustomAttrInfo*>(mono_custom_attrs_from_method(method));
+		}
+		bool CustomAttrInfo::HasAttribute(Class attribute) const {
+			return mono_custom_attrs_has_attr(reinterpret_cast<MonoCustomAttrInfo*>(m_infos), attribute);
+		}
+		Object CustomAttrInfo::GetAttribute(Class attribute) const {
+			return mono_custom_attrs_get_attr(reinterpret_cast<MonoCustomAttrInfo*>(m_infos), attribute);
+		}
+		void CustomAttrInfo::Free() {
+			mono_custom_attrs_free(reinterpret_cast<MonoCustomAttrInfo*>(m_infos));
 		}
 		Object Object::New(Domain domain, Class klass) {
 			return mono_object_new(domain, klass);

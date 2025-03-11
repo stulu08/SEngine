@@ -18,14 +18,22 @@
 #include "Core/Time.h"
 
 namespace StuluBindings {
-	Stulu::Ref<Stulu::AssemblyManager> getManager() {
+	STULU_API Stulu::Ref<Stulu::AssemblyManager> getManager() {
 		return Stulu::Application::get().getAssemblyManager();
 	}
-	MonoDomain* getCoreDomain() {
+	STULU_API MonoDomain* getCoreDomain() {
 		return getManager()->getCoreDomain();
 	}
-	MonoImage* getCoreImage() {
+	STULU_API MonoImage* getCoreImage() {
 		return Stulu::Application::get().getScriptCoreAssembly()->getImage();
+	}
+	
+	static Stulu::Scene* s_activeScene;
+	STULU_API Stulu::Scene* GetCurrentScene() {
+		return s_activeScene;
+	}
+	STULU_API void SetCurrentScene(Stulu::Scene* scene) {
+		s_activeScene = scene;
 	}
 
 	#define add_call(Name, _Binding) manager->RegisterFunction(std::string("Stulu.InternalCalls::") + Name, StuluBindings::_Binding)
@@ -135,12 +143,4 @@ namespace StuluBindings {
 		add_call("spriteRenComp_setColor(ulong,Stulu.Vector4&)", SpriteRendererComponent::setColor);
 	}
 
-	static Stulu::Scene* s_activeScene;
-
-	STULU_API Stulu::Scene* GetCurrentScene() {
-		return s_activeScene;
-	}
-	STULU_API void SetCurrentScene(Stulu::Scene* scene) {
-		s_activeScene = scene;
-	}
 }

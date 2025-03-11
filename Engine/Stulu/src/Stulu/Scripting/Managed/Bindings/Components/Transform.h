@@ -33,7 +33,7 @@ namespace StuluBindings {
 			rot->w = nrot.w;
 		}
 		static inline void getRotationInDegree(uint64_t go, struct Vector3* rot) {
-			glm::vec3& nrot = glm::radians(Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::TransformComponent>().GetWorldEulerRotation());
+			glm::vec3& nrot = Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::TransformComponent>().GetWorldEulerRotation();
 			rot->x = nrot.x;
 			rot->y = nrot.y;
 			rot->z = nrot.z;

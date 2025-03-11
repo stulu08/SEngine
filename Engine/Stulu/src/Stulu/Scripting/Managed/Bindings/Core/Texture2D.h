@@ -38,10 +38,10 @@ namespace StuluBindings {
 					path = texture->getPath();
 				}
 			}
-			return mono_string_new(getCoreDomain(), path.c_str());
+			return Stulu::Mono::String::New(getCoreDomain(), path.c_str());
 		}
-		static inline uint64_t findByPath(MonoString* mono_path) {
-			const std::string path = mono_string_to_utf8(mono_path);
+		static inline uint64_t findByPath(Stulu::Mono::String mono_path) {
+			const std::string path = mono_path.ToUtf8();
 			Stulu::UUID uuid = Stulu::AssetsManager::getFromPath((Stulu::Resources::AppAssetDir + "/" + path), Stulu::AssetType::Texture2D);
 			return uuid;
 		}

@@ -162,28 +162,12 @@ namespace Stulu {
 		if (attribute) {
 			if (field->getDataType()) {
 				Mono::Class parent = field->getField().GetParent();
-				MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_field(parent, field->getField());
-				
+				Mono::CustomAttrInfo attrInfo = Mono::CustomAttrInfo::FromField(parent, field->getField());
 				if (attrInfo) {
-					std::string AttrClassName = attribute.GetNamespace() + "." + attribute.GetName();
-					bool has = false;
-					for (int i = 0; i < attrInfo->num_attrs; ++i) {
-						MonoCustomAttrEntry* centry = &attrInfo->attrs[i];
-						if (centry->ctor == NULL)
-							continue;
-						Mono::Class klass = mono_method_get_class(centry->ctor);
-						std::string cAttrClassName = klass.GetNamespace() + "." + klass.GetName();
-						if (AttrClassName == cAttrClassName) {
-							has = true;
-							break;
-						}
-					}
-					mono_custom_attrs_free(attrInfo);
-					return has;
+					return attrInfo.HasAttribute(attribute);
 				}
 			}
 		}
-	
 		return false;
 	}
 }

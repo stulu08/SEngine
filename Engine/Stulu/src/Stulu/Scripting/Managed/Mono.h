@@ -43,6 +43,8 @@ typedef struct MonoVTable MonoVTable;
 struct _MonoArrayType;
 typedef struct _MonoArrayType MonoArrayType;
 
+struct _MonoCustomAttrEntry;
+struct _MonoCustomAttrInfo;
 
 #ifndef NO_EXPORT_MONO_WRAPPER
 	#define ST_MONO_API STULU_API
@@ -51,6 +53,7 @@ typedef struct _MonoArrayType MonoArrayType;
 namespace Stulu {
 	namespace Mono {
 		class ST_MONO_API Type;
+		class ST_MONO_API ReflectionType;
 		class ST_MONO_API Method;
 		class ST_MONO_API Class;
 		class ST_MONO_API String;
@@ -62,6 +65,8 @@ namespace Stulu {
 		class ST_MONO_API MethodDesc;
 		class ST_MONO_API Thread;
 		class ST_MONO_API GCHandle;
+		class ST_MONO_API CustomAttrInfo;
+		class ST_MONO_API CustomAttrEntry;
 
 		class ST_MONO_API Image {
 		public:
@@ -177,6 +182,23 @@ namespace Stulu {
 			MonoType* m_type;
 		};
 		
+		class ST_MONO_API ReflectionType {
+		public:
+			ReflectionType(MonoReflectionType* ptr)
+				: m_type(ptr) {};
+
+			Type GetType() const;
+
+			inline operator bool() const {
+				return m_type != nullptr;
+			}
+			inline operator MonoReflectionType* () {
+				return m_type;
+			}
+		private:
+			MonoReflectionType* m_type;
+		};
+
 		class ST_MONO_API Method {
 		public:
 			Method(MonoMethod* ptr)
@@ -228,6 +250,50 @@ namespace Stulu {
 
 			MonoClass* m_class;
 		};
+
+
+		class ST_MONO_API CustomAttrEntry {
+		public:
+			CustomAttrEntry(_MonoCustomAttrEntry* entry)
+				: m_entry(entry) {}
+
+			Method GetConstructor() const;
+			size_t GetDataSize() const;
+			void* GetData() const;
+
+			inline operator bool() const {
+				return m_entry != nullptr;
+			}
+			inline operator _MonoCustomAttrEntry* () {
+				return m_entry;
+			}
+		private:
+			_MonoCustomAttrEntry* m_entry;
+		};
+
+		class ST_MONO_API CustomAttrInfo {
+		public:
+			CustomAttrInfo(_MonoCustomAttrInfo* infos)
+				: m_infos(infos){}
+
+			static CustomAttrInfo FromField(Class clas, ClassField field);
+			static CustomAttrInfo FromClass(Class clas);
+			static CustomAttrInfo FromMethod(Method method);
+
+			bool HasAttribute(Class attribute) const;
+			Object GetAttribute(Class attribute) const;
+			void Free();
+
+			inline operator bool() const {
+				return m_infos != nullptr;
+			}
+			inline operator _MonoCustomAttrInfo* () {
+				return m_infos;
+			}
+		private:
+			_MonoCustomAttrInfo* m_infos;
+		};
+
 
 		class ST_MONO_API String {
 		public:

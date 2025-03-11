@@ -30,7 +30,7 @@ public class SpectatorCamera : Component {
 	float nextTimeToFire = 0;
 
 	public override void onStart() {
-		mouse = transform.eulerAngles;
+		mouse = Mathf.Radians(transform.eulerAngles);
 	}
 	public override void onUpdate() {
 		if (Input.getKeyDown(KeyCode.Escape))

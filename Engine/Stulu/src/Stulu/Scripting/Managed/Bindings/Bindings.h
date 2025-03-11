@@ -3,9 +3,11 @@
 #include "Stulu/Scripting/Managed/Mono.h"
 
 namespace StuluBindings {
-	Stulu::Ref<Stulu::AssemblyManager> getManager();
-	MonoDomain* getCoreDomain();
-	MonoImage* getCoreImage();
+	STULU_API extern Stulu::Ref<Stulu::AssemblyManager> getManager();
+	STULU_API extern MonoDomain* getCoreDomain();
+	STULU_API extern MonoImage* getCoreImage();
+	STULU_API extern Stulu::Scene* GetCurrentScene();
+	STULU_API extern void SetCurrentScene(Stulu::Scene* scene);
 
 	struct Vector2 {
 		float x, y;
@@ -34,7 +36,4 @@ namespace StuluBindings {
 
 	void LoadCoreBindings();
 	void LoadComponentsBindings();
-
-	STULU_API extern Stulu::Scene* GetCurrentScene();
-	STULU_API extern void SetCurrentScene(Stulu::Scene* scene);
 }

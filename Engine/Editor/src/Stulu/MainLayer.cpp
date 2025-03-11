@@ -7,6 +7,7 @@
 #include "Panels/Hierarchy.h"
 #include "Panels/Profiling.h"
 #include "Panels/AssetBrowser.h"
+#include "Panels/Inspector.h"
 
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
@@ -21,7 +22,7 @@ namespace Editor {
 		AddPanel<AssetBrowser>(App::get().GetProject().GetAssetPath());
 		AddPanel<ScenePanel>();
 		AddPanel<GamePanel>();
-
+		AddPanel<InspectorPanel>();
 
 		m_scenePanel = &GetPanel<ScenePanel>();
 		m_gamePanel = &GetPanel<GamePanel>();
@@ -31,12 +32,16 @@ namespace Editor {
 	MainLayer::~MainLayer()
 	{}
 
+	static Mono::Method debugMethod = nullptr;
+
 	void MainLayer::onAttach() {
 		ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
 
 		Style::LoadAll();
 
 		NewScene();
+
+		debugMethod = App::get().getAssemblyManager()->getScriptCoreAssembly()->CreateMethod("Editor", "Editor", "DebugTest");
 	}
 	void MainLayer::onUpdate(Timestep timestep) {
 		CallPanels<&Panel::Update>();
@@ -64,6 +69,8 @@ namespace Editor {
 				ImGui::Text("Parent: %" IM_PRIu64, (uint64_t)transform.GetParent());
 				ImGui::Text("Childs: %" IM_PRIu64, (uint64_t)transform.GetChildren().size());
 			}
+
+			App::get().getAssemblyManager()->getScriptCoreAssembly()->InvokeMethod(debugMethod, NULL, NULL);
 		}
 		
 		ImGui::End();

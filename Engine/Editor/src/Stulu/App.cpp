@@ -4,6 +4,8 @@
 
 #include <Stulu/Core/EntryPoint.h>
 
+#include "Bindings/Bindings.h"
+
 Editor::Project FindProject(int argc, char** argv) {
 	std::string path = "";
 	if (argc > 1) {
@@ -61,14 +63,17 @@ namespace Editor {
 		getWindow().setWindowIcon(Editor::Resources::GetLogo()->getPath());
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION_STR + " - " + m_project.GetPath());
 
+		Editor::LoadEditorBindings();
+		Editor::LoadImGuiBindings();
+
+		m_layer = new MainLayer();
+		pushLayer(m_layer);
+
 		ST_INFO("Loading all Project assets from: {0}", m_project.GetAssetPath());
 
 		AssetsManager::setProgessCallback(Application::LoadingScreen);
 		AssetsManager::loadAllFiles(m_project.GetAssetPath());
 		AssetsManager::setProgessCallback(nullptr);
-
-		m_layer = new MainLayer();
-		pushLayer(m_layer);
 	}
 	App::~App() {
 		

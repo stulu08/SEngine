@@ -1,24 +1,22 @@
 #pragma once
 
-#include <mono/metadata/reflection.h>
-
 namespace StuluBindings {
 	class GameObject {
 	public:	
-		static inline void addComponent(uint64_t go, MonoReflectionType* reftype) {
-			MonoType* type = mono_reflection_type_get_type(reftype);
+		static inline void addComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
+			Stulu::Mono::Type type = reftype.GetType();
 			if (type) {
 				const auto& manager = getManager();
 
 				auto& componentRegister = manager->GetComponentRegister_Add();
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
-				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
+				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
 				if (componentRegister.find(typeName) != componentRegister.end()) {
 					return componentRegister[typeName](gameObject);
 				}
 
 				// c# scripts
-				Stulu::Mono::Class desiredClass = mono_type_get_class(type);
+				Stulu::Mono::Class desiredClass = type.GetClass();
 				if (!desiredClass)
 					return;
 
@@ -31,20 +29,20 @@ namespace StuluBindings {
 				}
 			}
 		}
-		static inline bool hasComponent(uint64_t go, MonoReflectionType* reftype) {
-			MonoType* type = mono_reflection_type_get_type(reftype);
+		static inline bool hasComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
+			Stulu::Mono::Type type = reftype.GetType();
 			if (type) {
 				const auto& manager = getManager();
 
 				auto& componentRegister = manager->GetComponentRegister_Has();
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
-				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
+				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
 				if (componentRegister.find(typeName) != componentRegister.end()) {
 					return componentRegister[typeName](gameObject);
 				}
 
 				// c# scripts
-				Stulu::Mono::Class desiredClass = mono_type_get_class(type);
+				Stulu::Mono::Class desiredClass = type.GetClass();
 				if (!desiredClass)
 					return false;
 
@@ -58,20 +56,20 @@ namespace StuluBindings {
 			}
 			return false;
 		}
-		static inline bool removeComponent(uint64_t go, MonoReflectionType* reftype) {
-			MonoType* type = mono_reflection_type_get_type(reftype);
+		static inline bool removeComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
+			Stulu::Mono::Type type = reftype.GetType();
 			if (type) {
 				const auto& manager = getManager();
 
 				auto& componentRegister = manager->GetComponentRegister_Remove();
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
-				std::string typeName = mono_type_get_name_full(type, MonoTypeNameFormat::MONO_TYPE_NAME_FORMAT_FULL_NAME);
+				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
 				if (componentRegister.find(typeName) != componentRegister.end()) {
 					return componentRegister[typeName](gameObject);
 				}
 
 				// c# scripts
-				Stulu::Mono::Class desiredClass = mono_type_get_class(type);
+				Stulu::Mono::Class desiredClass = type.GetClass();
 				if (!desiredClass)
 					return false;
 
@@ -86,12 +84,12 @@ namespace StuluBindings {
 			return false;
 		}
 		// only c# scripts
-		static inline MonoObject* getComponent(uint64_t go, MonoReflectionType* reftype) {
-			MonoType* type = mono_reflection_type_get_type(reftype);
+		static inline MonoObject* getComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
+			Stulu::Mono::Type type = reftype.GetType();
 			if (type) {
 				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 				if (gameObject != Stulu::GameObject::null) {
-					Stulu::Mono::Class desired = mono_type_get_class(type);
+					Stulu::Mono::Class desired = type.GetClass();
 					Stulu::Mono::Object object = getManager()->ManagedGetComponent(gameObject, desired);
 					if (object)
 						return (MonoObject*)object;

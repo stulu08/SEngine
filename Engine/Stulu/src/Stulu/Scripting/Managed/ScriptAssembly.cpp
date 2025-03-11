@@ -127,7 +127,7 @@ namespace Stulu {
 			return classes;
 
 		const MonoTableInfo* table_info = mono_image_get_table_info(m_image, MONO_TABLE_TYPEDEF);
-
+		
 		int rows = mono_table_info_get_rows(table_info);
 		for (int i = 0; i < rows; i++) {
 			uint32_t cols[MONO_TYPEDEF_SIZE];
