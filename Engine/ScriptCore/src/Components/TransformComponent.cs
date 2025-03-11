@@ -26,7 +26,7 @@ namespace Stulu {
 		/// </summary>
 		public Quaternion worldRotation { get { Quaternion val; InternalCalls.transformComp_getWorldRotation(id, out val); return val; } }
 		/// <summary>
-		/// World rotation of the gameobjectin in euler angles
+		/// Local rotation of the gameobjectin in euler angles
 		/// </summary>
 		public Vector3 eulerAngles { get { Vector3 val; InternalCalls.transformComp_getRotation(id, out val); return val; } }
 		/// <summary>

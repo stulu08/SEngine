@@ -45,7 +45,7 @@ namespace Stulu {
 	void MonoObjectInstance::CreateObject() {
 		Mono::Object temp = Mono::Object::New(Stulu::Application::get().getAssemblyManager()->getCoreDomain(), m_class);
 		Mono::RuntimeObjectInit(temp);
-		m_garbageHandle = Mono::GCHandle::New(temp, false);
+		m_garbageHandle = Mono::GCHandle::New(temp, true);
 		m_object = m_garbageHandle.GetTarget();
 	}
 

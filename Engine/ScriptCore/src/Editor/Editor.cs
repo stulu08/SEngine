@@ -1,5 +1,4 @@
-﻿
-using Stulu;
+﻿using Stulu;
 using System;
 using System.Reflection;
 

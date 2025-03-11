@@ -114,7 +114,7 @@ namespace Editor {
 		const auto& selectedObjects = GetPanel<HierarchyPanel>().GetSelected();
 		for (entt::entity id : selectedObjects) {
 			GameObject selectedObject = { id, GetActiveScene().get()};
-			if (selectedObject) {
+			if (selectedObject.IsValid()) {
 				DrawGizmoSelected(selectedObject);
 			}
 		}
@@ -440,6 +440,14 @@ namespace Editor {
 		m_shortcuts.push_back(Shortcut([&]() { SaveScene(m_currentScenePath, false); return true; }, Keyboard::S, false, true));
 		// Save Scene As Ctrl+Shift+S
 		m_shortcuts.push_back(Shortcut([&]() { SaveScene(m_currentScenePath, true); return true; }, Keyboard::S, true, true));
+		// Switch Runtime Mode Ctrl+Alt+P
+		m_shortcuts.push_back(Shortcut(([&]() {
+			if (this->IsRuntime())
+				StopRuntime();
+			else
+				StartRuntime();
+			return true;
+		}), Keyboard::P, false, true, true));
 
 	}
 	bool MainLayer::CheckShortcuts() {

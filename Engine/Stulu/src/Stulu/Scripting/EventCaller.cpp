@@ -60,6 +60,9 @@ namespace Stulu {
 		if (object) {
 			ScriptingComponent& comp = object.getComponent<ScriptingComponent>();
 			for (auto& script : comp.runtimeScripts) {
+				if (!script)
+					continue;
+
 				if (!script->IsInitilized()) {
 					InitManagedRuntimeScript(object, script);
 				}

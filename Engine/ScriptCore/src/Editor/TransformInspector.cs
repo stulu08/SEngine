@@ -3,7 +3,7 @@ using Stulu;
 
 namespace Editor
 {
-	[InspectorRenderer(typeof(TransformComponent), "Transform")]
+	[InspectorRenderer(typeof(TransformComponent), Icons.Arrows + " Transform")]
 	internal class TransformInspector : Inspector
 	{
 		public override void Render(GameObject gameObject) {
@@ -17,7 +17,7 @@ namespace Editor
 				transform.position = position;
 			}
 
-			Vector3 rotation = transform.eulerAngles;
+			Vector3 rotation = Mathf.Degrees(transform.rotation.ToEulerAngles());
 			if (ImGui.Vector3("Rotation", ref rotation, 1.0f))
 			{
 				transform.setRotation(new Quaternion(Mathf.Radians(rotation)));

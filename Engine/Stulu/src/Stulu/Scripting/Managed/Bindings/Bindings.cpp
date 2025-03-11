@@ -114,7 +114,7 @@ namespace StuluBindings {
 		add_call("transformComp_getWorldPos(ulong,Stulu.Vector3&)", Transform::getWorldPos);
 		add_call("transformComp_setRotation(ulong,Stulu.Quaternion&)", Transform::setRotation);
 		add_call("transformComp_getRotation(ulong,Stulu.Quaternion&)", Transform::getRotation);
-		add_call("transformComp_getRotation(ulong,Stulu.Vector3&)", Transform::getRotationInDegree);
+		add_call("transformComp_getRotation(ulong,Stulu.Vector3&)", Transform::getRotationEulerDegree);
 		add_call("transformComp_getWorldRotation(ulong,Stulu.Quaternion&)", Transform::getWorldRotation);
 		add_call("transformComp_setScale(ulong,Stulu.Vector3&)", Transform::setScale);
 		add_call("transformComp_getScale(ulong,Stulu.Vector3&)", Transform::getScale);

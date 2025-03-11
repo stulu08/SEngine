@@ -67,15 +67,15 @@ namespace Stulu {
 			this->scale = other.scale;
 			this->parentEntity = other.parentEntity;
 			this->children = other.children;
-			this->dirty = true;
+			MarkDirty();
 		}
 
 		TransformComponent(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl)
 			: position(pos), rotation(rot), scale(scl) {}
 
-		inline void SetPosition(const glm::vec3& pos) { position = pos; dirty = true; }
-		inline void SetRotation(const glm::quat& rot) { rotation = rot; dirty = true; }
-		inline void SetScale(const glm::vec3& scl) { scale = scl; dirty = true; }
+		inline void SetPosition(const glm::vec3& pos) { position = pos; MarkDirty(); }
+		inline void SetRotation(const glm::quat& rot) { rotation = rot; MarkDirty(); }
+		inline void SetScale(const glm::vec3& scl) { scale = scl; MarkDirty(); }
 
 		inline GameObject GetParent() const {
 			if (parentEntity == entt::null)
@@ -169,8 +169,18 @@ namespace Stulu {
 
 			return worldScale;
 		}
+		// In degrees
 		inline glm::vec3 GetWorldEulerRotation() const {
-			glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(worldRotation)); // Convert quaternion to Euler (in radians), then to degrees
+			glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(worldRotation));
+			// Normalize angles to 0 - 360 degrees
+			if (eulerAngles.x < 0) eulerAngles.x += 360.0f;
+			if (eulerAngles.y < 0) eulerAngles.y += 360.0f;
+			if (eulerAngles.z < 0) eulerAngles.z += 360.0f;
+			return eulerAngles;
+		}
+		// In degrees
+		inline glm::vec3 GetEulerRotation() const {
+			glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(rotation));
 			// Normalize angles to 0 - 360 degrees
 			if (eulerAngles.x < 0) eulerAngles.x += 360.0f;
 			if (eulerAngles.y < 0) eulerAngles.y += 360.0f;

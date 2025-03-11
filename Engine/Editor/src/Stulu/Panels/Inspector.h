@@ -12,6 +12,9 @@ namespace Editor {
 
 		InspectorRenderer(InspectorRenderer&&) = default;
 
+		InspectorRenderer(const InspectorRenderer&) = delete;
+		InspectorRenderer& operator=(const InspectorRenderer&) = delete;
+
 		inline Stulu::Mono::ReflectionType GetType() const {
 			return m_refType;
 		}
@@ -33,6 +36,9 @@ namespace Editor {
 		~InspectorPanel() = default;
 
 		virtual void DrawImGui() override;
+
+		virtual void PreWindow() override;
+		virtual void PostWindow() override;
 		
 	private:
 		std::vector<InspectorRenderer> m_inspectors;

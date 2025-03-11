@@ -174,6 +174,32 @@ namespace Stulu {
             quaternion.Normalize();
             return quaternion;
         }
+		/// <summary>
+        /// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+        /// </summary>
+        /// <returns> Euler angles in degrees </returns>
+		public Vector3 ToEulerAngles()
+        {
+			Vector3 angles = new Vector3();
+
+			// roll (x-axis rotation)
+			double sinr_cosp = 2 * (this.w * this.x + this.y * this.z);
+			double cosr_cosp = 1 - 2 * (this.x * this.x + this.y * this.y);
+			angles.x = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+
+			// pitch (y-axis rotation)
+			double sinp = Mathf.Sqrt(1 + 2 * (this.w * this.y - this.x * this.z));
+			double cosp = Mathf.Sqrt(1 - 2 * (this.w * this.y - this.x * this.z));
+            angles.y = (float)(2 * Math.Atan2(sinp, cosp) - (Math.PI / 2));
+
+			// yaw (z-axis rotation)
+			double siny_cosp = 2 * (this.w * this.z + this.x * this.y);
+			double cosy_cosp = 1 - 2 * (this.y * this.y + this.z * this.z);
+            angles.z = (float)Math.Atan2(siny_cosp, cosy_cosp);
+
+			return angles;
+		}
+
         public override string ToString() => "Quaternion[" + this.X.ToString() + ", " + this.Y.ToString() + ", " + this.Z.ToString() + ", " + this.W.ToString() + "]";
 
         public float x { get => this.X; set { this.X = value; } }
