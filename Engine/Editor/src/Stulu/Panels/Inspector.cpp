@@ -2,6 +2,7 @@
 
 #include "Stulu/Panels/Hierarchy.h"
 #include "Stulu/App.h"
+#include "Stulu/Style.h"
 
 #include <Stulu/Scripting/Managed/Bindings/Bindings.h>
 #include <Stulu/Scripting/Managed/Bindings/Components/GameObject.h>
@@ -25,7 +26,25 @@ namespace Editor {
 			
 			auto& base = selected.getComponent<GameObjectBaseComponent>();
 
-			ImGui::Text(base.name.c_str());
+			ImGui::SameLine(m_windowIndent);
+
+			if (m_nameEditing != selected.GetID()) {
+				m_nameEditing = entt::null;
+				if (ImGui::Button(ICON_FK_PENCIL)) {
+					m_nameEditing = selected.GetID();
+				}
+				ImGui::SameLine();
+				ImGui::Text(base.name.c_str());
+			}
+			else {
+				if (ImGui::Button(ICON_FK_CHECK)) {
+					m_nameEditing = entt::null;
+				}
+				ImGui::SameLine();
+				ImGui::InputText("##name", &base.name);
+			}
+
+
 
 			uint64_t id = (uint64_t)selected.GetID();
 			void* args[1] = { &id };
@@ -46,6 +65,7 @@ namespace Editor {
 	}
 
 	void InspectorPanel::PreWindow() {
+		m_windowIndent = ImGui::GetStyle().WindowPadding.x;
 		ImGui::PushStyleVarX(ImGuiStyleVar_WindowPadding, 0.0f);
 	}
 

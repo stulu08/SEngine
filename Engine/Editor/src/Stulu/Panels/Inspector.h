@@ -45,6 +45,8 @@ namespace Editor {
 		Stulu::Mono::Class m_inspectorClass = nullptr;
 		Stulu::Mono::Class m_inspectorAttribute = nullptr;
 		Stulu::Mono::Method m_renderMethod = nullptr;
+		entt::entity m_nameEditing = entt::null;
+		float m_windowIndent = 0.0f;
 
 		void LoadObjects();
 		void LoadScriptObjects(Stulu::Ref<Stulu::ScriptAssembly> assembly);

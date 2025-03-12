@@ -4,6 +4,7 @@
 #include "App.h"
 
 #include <imgui/imgui.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
 #define FONT_ICON_SIZE 15.0f
 #define FONT_SIZE_DEFAULT 16.0f
