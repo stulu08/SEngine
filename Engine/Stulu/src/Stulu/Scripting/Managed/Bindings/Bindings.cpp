@@ -7,6 +7,8 @@
 #include "Components/Rigidbody.h"
 #include "Components/SpriteRenderer.h"
 #include "Components/Transform.h"
+#include "Components/ScriptingComponent.h"
+#include "Components/Camera.h"
 
 #include "Core/Application.h"
 #include "Core/Folders.h"
@@ -77,6 +79,7 @@ namespace StuluBindings {
 
 		add_call("gizmo_drawLine(Stulu.Vector3&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawLine);
 		add_call("gizmo_drawRect(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawRect);
+		add_call("gizmo_drawRect(Stulu.Matrix4&,Stulu.Vector4&)", Gizmo::drawRectMatrix);
 		add_call("gizmo_drawOutlineCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawOutlineCube);
 		add_call("gizmo_drawCircle(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&,single,single)", Gizmo::drawCircle);
 		add_call("gizmo_drawCube(Stulu.Vector3&,Stulu.Quaternion&,Stulu.Vector3&,Stulu.Vector4&)", Gizmo::drawCube);
@@ -141,6 +144,17 @@ namespace StuluBindings {
 		add_call("spriteRenComp_setTiling(ulong,Stulu.Vector2&)", SpriteRendererComponent::setTiling);
 		add_call("spriteRenComp_getColor(ulong,Stulu.Vector4&)", SpriteRendererComponent::getColor);
 		add_call("spriteRenComp_setColor(ulong,Stulu.Vector4&)", SpriteRendererComponent::setColor);
+
+		add_call("scriptingComp_fetchScripts(ulong)", ScriptingComponent::FetchObjectArray);
+
+		add_call("cameraComp_fov(ulong)", CameraComponent::cameraComp_GetFov);
+		add_call("cameraComp_fov(ulong,single)", CameraComponent::cameraComp_SetFov);
+		add_call("cameraComp_far(ulong)", CameraComponent::cameraComp_GetFar);
+		add_call("cameraComp_far(ulong,single)", CameraComponent::cameraComp_SetFar);
+		add_call("cameraComp_near(ulong)", CameraComponent::cameraComp_GetNear);
+		add_call("cameraComp_near(ulong,single)", CameraComponent::cameraComp_SetNear);
+		add_call("cameraComp_update(ulong)", CameraComponent::cameraComp_Update);
+		add_call("cameraComp_aspect(ulong)", CameraComponent::cameraComp_GetAspect);
 	}
 
 }

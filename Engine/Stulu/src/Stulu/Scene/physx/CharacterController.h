@@ -3,6 +3,8 @@
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Components/Component.h"
 
+#include "PhysX.h"
+
 namespace Stulu {
 	class STULU_API CharacterController : public Component {
 	public:

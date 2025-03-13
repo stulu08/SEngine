@@ -161,6 +161,8 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void gizmo_drawRect(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void gizmo_drawRect(ref Matrix4 matrix, ref Vector4 color);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void gizmo_drawOutlineCube(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void gizmo_drawCircle(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, float thickness, float fade);
@@ -200,6 +202,28 @@ namespace Stulu {
 		internal extern static void spriteRenComp_getColor(ulong entityId, out Vector4 tiling);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void spriteRenComp_setColor(ulong entityId, ref Vector4 tiling);
+		#endregion
+		#region ScriptingComponent
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static Component[] scriptingComp_fetchScripts(ulong entityId);
+		#endregion
+		#region CameraComponent
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float cameraComp_fov(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void cameraComp_fov(ulong entityId, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float cameraComp_far(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void cameraComp_far(ulong entityId, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float cameraComp_near(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void cameraComp_near(ulong entityId, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void cameraComp_update(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float cameraComp_aspect(ulong entityId);
 		#endregion
 	}
 }

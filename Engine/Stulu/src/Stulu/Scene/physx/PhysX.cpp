@@ -150,39 +150,7 @@ namespace Stulu {
             }
         }
     };
-    void PhysX::startUp() {
-        static UserErrorCallback gDefaultErrorCallback;
-        //static physx::PxDefaultAllocator gDefaultAllocatorCallback;
-        static physx::StDefaultAllocator gDefaultAllocatorCallback;
 
-        s_foundataion = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback,
-            gDefaultErrorCallback);
-        if (!s_foundataion) {
-            CORE_ERROR("PxCreateFoundation failed!");
-            return;
-        }
-
-        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
-#if PX_WINDOWS
-        // create GPU dispatcher
-        physx::PxCudaContextManagerDesc cudaContextManagerDesc;
-        s_cudaContextManager = PxCreateCudaContextManager(*s_foundataion, cudaContextManagerDesc);
-#endif
-    }
-    void PhysX::shutDown() {
-        if (s_cudaContextManager) {
-            s_cudaContextManager->releaseContext();
-            s_cudaContextManager->release();
-        }
-        if(s_pvd)
-            s_pvd->release();
-        if(s_foundataion)
-            s_foundataion->release();
-
-        s_pvd = nullptr;
-        s_foundataion = nullptr;
-        s_cudaContextManager = nullptr;
-    }
     void PhysX::startPVD() {
         if (isPVDRunning())
             stopPVD();
@@ -198,32 +166,39 @@ namespace Stulu {
             s_pvd->release();
         s_pvdRunning = false;
     }
-    void PhysX::createPhysics(const PhysicsData& data) {
+
+    PhysX::PhysX(const PhysicsData& data) {
         bool recordMemoryAllocations = true;
-        physx::PxTolerancesScale tollerantScale = physx::PxTolerancesScale();
+        physx::PxTolerancesScale tollerantScale;
         tollerantScale.length = data.length;
         tollerantScale.speed = data.speed;
 
-        m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *s_foundataion,
-            tollerantScale, recordMemoryAllocations, s_pvd);
+        m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *s_foundataion, tollerantScale, recordMemoryAllocations, s_pvd);
         if (!m_physics) {
             CORE_ERROR("PxCreatePhysics failed!");
             return;
         }
+
+        // Only initialize extensions if needed
         if (!PxInitExtensions(*m_physics, s_pvd)) {
             CORE_ERROR("PxInitExtensions failed!");
             return;
         }
-        m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, *s_foundataion, physx::PxCookingParams(m_physics->getTolerancesScale()));
+
+        PxRegisterHeightFields(*m_physics);
+
+        m_cooking = PxCreateCooking(PX_PHYSICS_VERSION, m_physics->getFoundation(), physx::PxCookingParams(m_physics->getTolerancesScale()));
         if (!m_cooking) {
             CORE_ERROR("PxCreateCooking failed!");
             return;
         }
+
         m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(data.workerThreads);
         if (!m_cpuDispatcher) {
             CORE_ERROR("PxDefaultCpuDispatcherCreate failed!");
             return;
         }
+
         physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
 
 #if PX_WINDOWS
@@ -241,13 +216,27 @@ namespace Stulu {
             CORE_ERROR("Physics Scene creation failed!");
             return;
         }
+
         m_controllerManager = PxCreateControllerManager(*m_scene);
         if (!m_controllerManager) {
             CORE_ERROR("Physics Controller Manager creation failed!");
             return;
         }
+
+        // Verify gravity was applied correctly
+        physx::PxVec3 currentGravity = m_scene->getGravity();
+        CORE_INFO("Physics scene created with gravity: ({}, {}, {})", currentGravity.x, currentGravity.y, currentGravity.z);
     }
-    void PhysX::releasePhysics() {
+
+    PhysX::~PhysX() {
+        if (m_controllerManager) {
+            m_controllerManager->release();
+            m_controllerManager = nullptr;
+        }
+        if (m_scene) {
+            m_scene->release();
+            m_scene = nullptr;
+        }
         if (m_cpuDispatcher) {
             m_cpuDispatcher->release();
             m_cpuDispatcher = nullptr;
@@ -256,16 +245,54 @@ namespace Stulu {
             m_cooking->release();
             m_cooking = nullptr;
         }
+
         PxCloseExtensions();
+
         if (m_physics) {
             m_physics->release();
             m_physics = nullptr;
         }
-        if (m_scene) {
-            m_scene->release();
-            m_scene = nullptr;
+    }
+
+    void PhysX::startUp() {
+        static UserErrorCallback gDefaultErrorCallback;
+        static physx::StDefaultAllocator gDefaultAllocatorCallback;
+
+        s_foundataion = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+        if (!s_foundataion) {
+            CORE_ERROR("PxCreateFoundation failed!");
+            return;
+        }
+
+        // Optional: Enable GPU load hook only if GPU support is required
+        PxSetPhysXGpuLoadHook(&gGpuLoadHook);
+
+#if PX_WINDOWS
+        // Create GPU dispatcher
+        physx::PxCudaContextManagerDesc cudaContextManagerDesc;
+        s_cudaContextManager = PxCreateCudaContextManager(*s_foundataion, cudaContextManagerDesc);
+        if (!s_cudaContextManager || !s_cudaContextManager->contextIsValid()) {
+            CORE_WARN("PxCreateCudaContextManager failed or is invalid!");
+            s_cudaContextManager = nullptr;
+        }
+#endif
+    }
+    void PhysX::shutDown() {
+        if (s_cudaContextManager) {
+            s_cudaContextManager->releaseContext();
+            s_cudaContextManager->release();
+            s_cudaContextManager = nullptr;
+        }
+        if (s_pvd) {
+            s_pvd->release();
+            s_pvd = nullptr;
+        }
+        if (s_foundataion) {
+            s_foundataion->release();
+            s_foundataion = nullptr;
         }
     }
+    
     physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot) {
         physx::PxRigidActor* actor;
         actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));

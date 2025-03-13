@@ -7,7 +7,8 @@
 #include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Core/UUID.h"
 #include "Stulu/Events/MouseEvent.h"
-#include "Stulu/Events/KeyEvent.h"
+#include "Stulu/Events/KeyEvent.h" 
+#include "physx/PhysX.h"
 #include <entt.hpp>
 
 namespace Stulu {	
@@ -94,6 +95,9 @@ namespace Stulu {
 		bool m_firstRuntimeUpdate = false;
 
 		entt::registry m_registry;
+
+		// only for internal usage
+		GameObject createEmptyGameObject(entt::entity id = entt::null);
 
 		void setupPhysics();
 		void updatePhysics();

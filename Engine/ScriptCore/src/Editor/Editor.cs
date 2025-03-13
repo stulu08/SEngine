@@ -23,6 +23,10 @@ namespace Editor
 
 			}
 		}
-		
+		/// <summary>
+		/// Check if there is an InspectorRenderer implemented for this type
+		/// </summary>
+		public static bool HasInspector(Type type) => EditorCalls.Editor_TypeHasInspector(type);
+
 	}
 }

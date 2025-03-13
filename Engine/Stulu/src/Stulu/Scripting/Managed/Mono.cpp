@@ -250,11 +250,20 @@ namespace Stulu {
 		GCHandle GCHandle::NewWeakRef(Mono::Object obj, bool track_resurrection) {
 			return mono_gchandle_new_weakref(obj, track_resurrection);
 		}
+		Array Array::New(Domain domain, Class clas, size_t size) {
+			return mono_array_new(domain, clas, size);
+		}
+		void Array::SetRef(size_t index, Object value){
+			mono_array_setref(m_array, index, value);
+		}
 		ST_MONO_API void SetDirs(const std::string& assembly_dir, const std::string& config_dir) {
 			return mono_set_dirs(assembly_dir.c_str(), config_dir.c_str());
 		}
 		ST_MONO_API Domain GetRootDomain() {
 			return mono_get_root_domain();
+		}
+		ST_MONO_API Class GetObjectClass() {
+			return mono_get_object_class();
 		}
 		ST_MONO_API void AddInternallCall(const std::string& name, const void* method) {
 			return mono_add_internal_call(name.c_str(), method);
@@ -315,5 +324,5 @@ namespace Stulu {
 		ST_MONO_API void JIT::set_signal_chaining(bool chain_signals) {
 			return mono_set_signal_chaining(chain_signals);
 		}
-	}
+}
 }

@@ -15,5 +15,8 @@ namespace StuluBindings {
 		static inline bool Bool(Stulu::Mono::String monoName, bool* value) {
 			return ::Editor::Controls::Bool(monoName.ToUtf8(), *value);
 		}
+		static inline bool TreeBegin(Stulu::Mono::String monoName, uint32_t flags) {
+			return ::ImGui::TreeNodeEx(monoName.ToUtf8().c_str(), (ImGuiTreeNodeFlags)flags);
+		}
 	};
 }

@@ -244,7 +244,6 @@ namespace Editor {
 				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, 90.0f, .0f))), scale), COLOR_GREEN, .02f);
 			}
 			else if (light.lightType == LightComponent::Spot) {
-
 			}
 
 		}

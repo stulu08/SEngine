@@ -144,6 +144,13 @@ namespace Stulu {
 			Vector3 _scale = new Vector3(scale, 1);
 			InternalCalls.gizmo_drawRect(ref _position, ref _rotation, ref _scale, ref color);
 		}
+		/// <summary>
+		/// Draws a 2D Outlined Quad
+		/// </summary>
+		public static void drawOutlinedQuad(ref Matrix4 matrix, Vector4 color)
+		{
+			InternalCalls.gizmo_drawRect(ref matrix, ref color);
+		}
 		#endregion
 		#region Circle
 		/// <summary>

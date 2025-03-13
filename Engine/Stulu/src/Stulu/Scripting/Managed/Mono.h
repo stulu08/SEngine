@@ -43,6 +43,9 @@ typedef struct MonoVTable MonoVTable;
 struct _MonoArrayType;
 typedef struct _MonoArrayType MonoArrayType;
 
+struct _MonoArray;
+typedef struct _MonoArray MonoArray;
+
 struct _MonoCustomAttrEntry;
 struct _MonoCustomAttrInfo;
 
@@ -67,6 +70,7 @@ namespace Stulu {
 		class ST_MONO_API GCHandle;
 		class ST_MONO_API CustomAttrInfo;
 		class ST_MONO_API CustomAttrEntry;
+		class ST_MONO_API Array;
 
 		class ST_MONO_API Image {
 		public:
@@ -430,6 +434,24 @@ namespace Stulu {
 		private:
 			uint32_t m_handle;
 		};
+		class ST_MONO_API Array {
+		public:
+			Array(MonoArray* ptr)
+				: m_array(ptr) {};
+
+			static Array New(Domain domain, Class clas, size_t size);
+
+			void SetRef(size_t index, Object value);
+
+			inline operator bool() const {
+				return m_array != nullptr;
+			}
+			inline operator MonoArray* () {
+				return m_array;
+			}
+		private:
+			MonoArray* m_array;
+		};
 
 		namespace JIT {
 			ST_MONO_API Domain Init(const std::string& file);
@@ -500,6 +522,7 @@ namespace Stulu {
 
 		ST_MONO_API void SetDirs(const std::string& assembly_dir, const std::string& config_dir);
 		ST_MONO_API Domain GetRootDomain();
+		ST_MONO_API Class GetObjectClass();
 		ST_MONO_API void AddInternallCall(const std::string& name, const void* method);
 		ST_MONO_API Object RuntimeInvoke(Method method, void* obj, void** params, MonoObject** exc = NULL);
 		ST_MONO_API void RuntimeObjectInit(Object object);

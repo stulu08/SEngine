@@ -43,14 +43,12 @@ namespace Stulu {
 		BaseProperty(Mono::Object object, Mono::ClassField field);
 		virtual ~BaseProperty() = default;
 
-		virtual std::string getName() const override { return m_name; };
-		virtual std::string getTypeName() const override { return m_typeName; };
-		virtual Mono::Type getDataType() const override { return m_typePtr; };
+		virtual std::string getName() const override;
+		virtual std::string getTypeName() const override;
+		virtual Mono::Type getDataType() const override;
 		virtual Mono::ClassField getField() const override { return m_fieldPtr; };
 		virtual Mono::Object getParentObject() const override { return m_parentObjectPtr; };
 	protected:
-		std::string m_name = "", m_typeName = "";
-		Mono::Type m_typePtr = nullptr;
 		Mono::ClassField m_fieldPtr = nullptr;
 		Mono::Object m_parentObjectPtr = nullptr;
 	};

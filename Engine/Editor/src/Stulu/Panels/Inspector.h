@@ -36,15 +36,18 @@ namespace Editor {
 		~InspectorPanel() = default;
 
 		virtual void DrawImGui() override;
+		virtual void DrawImGuizmo() override;
 
 		virtual void PreWindow() override;
 		virtual void PostWindow() override;
 		
+		bool HasInspector(Stulu::Mono::ReflectionType refType) const;
 	private:
 		std::vector<InspectorRenderer> m_inspectors;
 		Stulu::Mono::Class m_inspectorClass = nullptr;
 		Stulu::Mono::Class m_inspectorAttribute = nullptr;
 		Stulu::Mono::Method m_renderMethod = nullptr;
+		Stulu::Mono::Method m_renderGizmosMethod = nullptr;
 		entt::entity m_nameEditing = entt::null;
 		float m_windowIndent = 0.0f;
 

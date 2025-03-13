@@ -2,6 +2,7 @@
 #include "Stulu/Math/Math.h"
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Components/Component.h"
+#include "PhysX.h"
 
 namespace Stulu {
 	class STULU_API RigidbodyComponent : public Component {

@@ -33,6 +33,14 @@ namespace StuluBindings {
 		glm::quat toNative() { return glm::quat(w, x, y, z); }
 		glm::quat toNative_s() { return glm::quat(w, x, y, z); }
 	};
+	struct Matrix4 {
+		float D00, D10, D20, D30;  // Column 0
+		float D01, D11, D21, D31;  // Column 1
+		float D02, D12, D22, D32;  // Column 2
+		float D03, D13, D23, D33;  // Column 3
+
+		glm::mat4 toNative() { return *((glm::mat4*)this); }
+	};
 
 	void LoadCoreBindings();
 	void LoadComponentsBindings();

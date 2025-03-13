@@ -246,18 +246,29 @@ namespace Stulu {
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
 
-		if (m_data.enablePhsyics3D && m_physics) {
-			m_physics.release();
-			m_physics = nullptr;
+		m_physics.reset();
+	}
+
+	GameObject Scene::createEmptyGameObject(entt::entity id) {
+		GameObject go;
+		if (id == entt::null) {
+			go = { m_registry.create(), this };
 		}
+		else {
+			go = { m_registry.create((entt::entity)id), this };
+			if (go.GetID() != id) {
+				CORE_WARN("Warining Internal GameObject could not be assigned to ID: {0}", id);
+				CORE_WARN("Instead it was given the ID: {0}", go.GetID());
+			}
+		}
+		return go;
 	}
 
 	void Scene::setupPhysics() {
 		if (!PhysX::started())
 			PhysX::startUp();
 
-		m_physics = createScope<PhysX>();
-		m_physics->createPhysics(m_data.physicsData);
+		m_physics = createScope<PhysX>(m_data.physicsData);
 
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
@@ -463,10 +474,9 @@ namespace Stulu {
 		auto& dstSceneRegistry = newScene->m_registry;
 		auto idView = srcSceneRegistry.view<GameObjectBaseComponent>();
 		for (entt::entity e : idView) {
-			const auto& name = srcSceneRegistry.get<GameObjectBaseComponent>(e).name;
-			GameObject newGameObject = newScene->createGameObject(name, e);
-
-			newGameObject.getComponent<GameObjectBaseComponent>().tag = srcSceneRegistry.get<GameObjectBaseComponent>(e).tag;
+			GameObject newGameObject = newScene->createEmptyGameObject(e);
+			// other wise cant use the copy constructor to make them dirty
+			newGameObject.addComponent<TransformComponent>();
 		}
 
 		StuluBindings::SetCurrentScene(newScene.get());

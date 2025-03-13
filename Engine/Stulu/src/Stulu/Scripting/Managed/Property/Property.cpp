@@ -26,9 +26,15 @@ namespace Stulu {
 	BaseProperty::BaseProperty(Mono::Object object, Mono::ClassField field) {
 		this->m_parentObjectPtr = object;
 		this->m_fieldPtr = field;
-		this->m_typePtr = field.GetType();
-		this->m_name = field.GetName();
-		this->m_typeName = this->m_typePtr.GetNameFull(Mono::TypeNameFormat::REFLECTION);
+	}
+	std::string BaseProperty::getName() const {
+		return m_fieldPtr.GetName();
+	}
+	std::string BaseProperty::getTypeName() const {
+		return getDataType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
+	}
+	Mono::Type BaseProperty::getDataType() const {
+		return m_fieldPtr.GetType();
 	}
 #pragma region Primitives
 	void Int32Property::Serialize(YAML::Emitter& out) const {

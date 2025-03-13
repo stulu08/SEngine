@@ -35,10 +35,17 @@ namespace Stulu {
 			{
 				// they have the same entt id
 				entt::entity dstGameObject = srcGameObject;
-
 				T& srcComponent = src.get<T>(srcGameObject);
-				dst.emplace_or_replace<T>(dstGameObject, srcComponent);
-				dst.get<T>(dstGameObject).gameObject = GameObject(dstGameObject, scene);
+				
+				// so this->gameObject can be used inside the copy constructor
+				GameObject oldGameObject = srcComponent.gameObject;
+				GameObject newGameObject = GameObject(dstGameObject, scene);
+				srcComponent.gameObject = newGameObject;
+
+				dst.emplace_or_replace<T>(dstGameObject, srcComponent).gameObject = newGameObject;
+
+				// set the GameObject back
+				srcComponent.gameObject = oldGameObject;
 			}
 		}
 

@@ -14,6 +14,8 @@
 #include "Stulu/Scene/Components/Camera.h"
 #include "Stulu/Scene/physx/Collider.h"
 
+#include "Stulu/Scripting/Managed/AssemblyManager.h"
+
 namespace Stulu {
 
 	class GameObjectBaseComponent : public Component {
@@ -44,7 +46,10 @@ namespace Stulu {
 		mutable glm::vec3 worldPosition = glm::vec3(0.0f);
 		mutable glm::quat worldRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 		mutable glm::vec3 worldScale = glm::vec3(1.0f);
-		mutable bool dirty = true;
+		mutable bool dirty;
+
+		//mutable bool dirty : 1;
+		//mutable bool isStatic : 1;
 
 		entt::entity parentEntity = entt::null;
 		std::vector<entt::entity> children;
@@ -60,18 +65,19 @@ namespace Stulu {
 			}
 		}
 	public:
-		TransformComponent() = default;
+		TransformComponent()
+			: dirty(true) {}
 		TransformComponent(const TransformComponent& other) {
 			this->position = other.position;
 			this->rotation = other.rotation;
 			this->scale = other.scale;
 			this->parentEntity = other.parentEntity;
 			this->children = other.children;
-			MarkDirty();
+			this->dirty = true;
 		}
 
 		TransformComponent(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl)
-			: position(pos), rotation(rot), scale(scl) {}
+			: position(pos), rotation(rot), scale(scl), dirty(true) {}
 
 		inline void SetPosition(const glm::vec3& pos) { position = pos; MarkDirty(); }
 		inline void SetRotation(const glm::quat& rot) { rotation = rot; MarkDirty(); }
@@ -344,6 +350,17 @@ namespace Stulu {
 			}
 		}
 		std::vector<Ref<MonoObjectInstance>> runtimeScripts;
+
+		Mono::Array FetchObjectArray() {
+			const auto& manager = Application::get().getAssemblyManager();
+
+			Mono::Array list = Mono::Array::New(manager->getCoreDomain(), manager->getComponentClass(), runtimeScripts.size());
+			for (size_t i = 0; i < runtimeScripts.size(); i++) {
+				list.SetRef(i, runtimeScripts[i]->getObject());
+			}
+			return list;
+		}
+		
 	};
 
 

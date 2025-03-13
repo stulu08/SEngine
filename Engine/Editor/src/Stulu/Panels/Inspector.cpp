@@ -52,15 +52,40 @@ namespace Editor {
 				if (!StuluBindings::GameObject::hasComponent(id, inspector.GetType())) {
 					continue;
 				}
-				if (ImGui::TreeNodeEx(inspector.GetHeader().c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed)) {
+				const std::string& header = inspector.GetHeader();
+				bool isHeaderID = header.rfind("##", 0) == 0;
+
+				if (!isHeaderID && ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed)) {
 					inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
 					ImGui::TreePop();
+				}
+				else {
+					ImGui::PushID(header.c_str());
+					inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
+					ImGui::PopID();
 				}
 
 			}
 		}
 		else if (selectedObjects.size() > 1) {
 
+		}
+	}
+
+	void InspectorPanel::DrawImGuizmo() {
+		auto& layer = App::get().GetLayer();
+		const auto& selectedObjects = layer.GetPanel<Editor::HierarchyPanel>().GetSelected();
+
+		for (entt::entity selected : selectedObjects) {
+			uint64_t id = (uint64_t)selected;
+			void* args[1] = { &id };
+
+			for (const InspectorRenderer& inspector : m_inspectors) {
+				if (!StuluBindings::GameObject::hasComponent(id, inspector.GetType())) {
+					continue;
+				}
+				inspector.GetScriptObject()->CallMethod(m_renderGizmosMethod, args);
+			}
 		}
 	}
 
@@ -73,6 +98,17 @@ namespace Editor {
 		ImGui::PopStyleVar();
 	}
 
+	bool InspectorPanel::HasInspector(Stulu::Mono::ReflectionType refType) const {
+		std::string searchedName = refType.GetType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
+
+		for (const auto& inspector : m_inspectors) {
+			std::string inspectorName = inspector.GetType().GetType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
+			if (inspectorName == searchedName)
+				return true;
+		}
+		return false;
+	}
+
 	void InspectorPanel::LoadObjects() {
 		m_inspectors.clear();
 
@@ -80,7 +116,7 @@ namespace Editor {
 		m_inspectorClass = manager->getScriptCoreAssembly()->CreateClass("Editor", "Inspector");
 		m_inspectorAttribute = manager->getScriptCoreAssembly()->CreateClass("Editor", "InspectorRendererAttribute");
 		m_renderMethod = m_inspectorClass.GetMethodFromName("Impl_Render", 1);
-
+		m_renderGizmosMethod = m_inspectorClass.GetMethodFromName("Impl_RenderGizmos", 1);
 
 		LoadScriptObjects(manager->getScriptCoreAssembly());
 		LoadScriptObjects(manager->getAppAssembly());

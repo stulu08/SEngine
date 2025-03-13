@@ -27,7 +27,6 @@ namespace Stulu{
     class STULU_API RigidbodyComponent;
     class STULU_API CharacterController;
     class STULU_API Mesh;
-    class STULU_API PhysX;
     STULU_API physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
     STULU_API glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec);
 
@@ -44,8 +43,9 @@ namespace Stulu{
     };
     class STULU_API PhysX {
     public:
-        PhysX() { }
-        ~PhysX() { releasePhysics(); }
+        PhysX(const PhysicsData& data = PhysicsData());
+        ~PhysX();
+
         //call this on application startup
         static void startUp();
         //call this on application shutdown
@@ -53,9 +53,6 @@ namespace Stulu{
 
         static void startPVD();
         static void stopPVD();
-
-        void createPhysics(const PhysicsData& data = PhysicsData());
-        void releasePhysics();
 
         physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
         physx::PxRigidActor* createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter = glm::vec3(.0f));
