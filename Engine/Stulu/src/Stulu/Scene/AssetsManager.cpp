@@ -130,11 +130,6 @@ namespace Stulu {
 	}
 
 	void AssetsManager::update(const UUID& uuid, const Asset& data) {
-		if ((uuid == 301|| uuid == 302) && assets.find(uuid) != assets.end()) {
-			CORE_ASSERT(false, "White or Black Texture is being overwritten");
-			return;
-		}
-
 		switch (data.type)
 		{
 		case Stulu::AssetType::Texture2D: 

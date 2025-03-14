@@ -21,5 +21,7 @@ namespace Editor
 		internal extern static bool ImGui_TreeNode(string name, uint flags);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void ImGui_TreePop();
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool ImGui_Combo(string name, ref int currentValue, string optionsString);
 	}
 }

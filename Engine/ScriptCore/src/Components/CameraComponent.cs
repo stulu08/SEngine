@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 namespace Stulu
 {
 	/// <summary>
+	/// How a camera shoul clear the screen
+	/// </summary>
+	public enum ClearType { 
+		Color = 0, 
+		Skybox = 1 
+	};
+
+	/// <summary>
 	/// Acces to camera settings
 	/// </summary>
 	public class CameraComponent : GameObjectAttached {
@@ -22,6 +30,10 @@ namespace Stulu
 		/// View distance
 		/// </summary>
 		public float Far { get => InternalCalls.cameraComp_far(id); set => InternalCalls.cameraComp_far(id, value); }
+		/// <summary>
+		/// How the camera clears the screen
+		/// </summary>
+		public ClearType ClearType { get => (ClearType)InternalCalls.cameraComp_clearType(id); set => InternalCalls.cameraComp_clearType(id, (int)value); }
 		/// <summary>
 		/// Aspect ratio of the camera ( width/height )
 		/// </summary>

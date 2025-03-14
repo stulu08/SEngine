@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <sstream>
 #include <fstream>
 
 namespace Stulu {
@@ -48,5 +49,16 @@ namespace Stulu {
 		std::string newString = string;
 		std::transform(newString.begin(), newString.end(), newString.begin(), [](char c) { return c == '\\' ? '/' : c; });
 		return newString;
+	}
+	inline std::vector<std::string> SplitString(const std::string& input, char delimiter = '@') {
+		std::vector<std::string> result;
+		std::stringstream ss(input);
+		std::string item;
+
+		while (std::getline(ss, item, delimiter)) {
+			result.push_back(item);
+		}
+
+		return result;
 	}
 }

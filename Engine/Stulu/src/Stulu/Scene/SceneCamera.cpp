@@ -8,9 +8,8 @@
 
 namespace Stulu {
 	SceneCamera::SceneCamera(float aspectRatio, float fov, float zNear, float zFar, uint32_t samples)
-		:m_aspectRatio(aspectRatio), m_fov(fov), m_zNear(zNear), m_zFar(zFar) {
-
-		m_cam = createRef<PerspectiveCamera>(m_fov, m_aspectRatio, m_zNear, m_zFar, FrameBufferSpecs(1, 1, samples));
+		:m_aspectRatio(aspectRatio), m_fov(fov), m_zNear(zNear), m_zFar(zFar), m_cam(CameraMode::Perspective, FrameBufferSpecs(1, 1, samples)) {
+		m_cam.SetPrespective(m_fov, m_aspectRatio, m_zNear, m_zFar);
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		m_mouseDelta = Input::getMouseDelta() * 0.003f;
@@ -43,8 +42,8 @@ namespace Stulu {
 	}
 	void SceneCamera::onResize(float width, float height) {
 		m_aspectRatio = width / height;
-		m_cam->setProjection(m_fov, m_aspectRatio, m_zNear, m_zFar);
-		m_cam->getFrameBuffer()->resize((uint32_t)width, (uint32_t)height);
+		m_cam.SetPrespective(m_fov, m_aspectRatio, m_zNear, m_zFar);
+		m_cam.getFrameBuffer()->resize((uint32_t)width, (uint32_t)height);
 	}
 	bool SceneCamera::onMouseScrolledEvent(MouseScrollEvent& e) {
 		m_transform.SetPosition(m_transform.position + m_transform.GetForward() * e.getYOff());

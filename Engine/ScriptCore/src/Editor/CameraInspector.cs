@@ -23,7 +23,33 @@ namespace Stulu.src.Editor
 			CameraComponent camera = gameObject.getComponent<CameraComponent>();
 			if (camera == null)  return;
 
-			
+			float far = camera.Far;
+			float near = camera.Near;
+			float fov = camera.Fov;
+			int clearType = (int)camera.ClearType;
+
+			if(ImGui.Float("Far", ref far))
+			{
+				camera.Far = far;
+				camera.Update();
+			}
+
+			if (ImGui.Float("Near", ref near))
+			{
+				camera.Near = near;
+				camera.Update();
+			}
+
+			if (ImGui.Float("Fov", ref fov))
+			{
+				camera.Fov = fov;
+				camera.Update();
+			}
+
+			if (ImGui.Combo("Clear Type", ref clearType, Enum.GetNames(typeof(ClearType))))
+			{
+				camera.ClearType = (ClearType)clearType;
+			}
 		}
 		public override void RenderGizmos(GameObject gameObject)
 		{

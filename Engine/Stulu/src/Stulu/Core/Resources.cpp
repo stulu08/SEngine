@@ -64,9 +64,9 @@ namespace Stulu {
 			tex = Texture2D::create(1, 1);
 			static uint32_t datablack = 0x00000000;
 			tex->setData(&datablack, sizeof(uint32_t));
-			AssetsManager::update(UUID(301), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(301), });
+			//AssetsManager::update(UUID(301), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(301), });
 		}
-		return std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(301)).data);
+		return tex;
 
 	}
 	Ref<Texture> Resources::getWhiteTexture() {
@@ -75,9 +75,9 @@ namespace Stulu {
 			tex = Texture2D::create(1, 1);
 			static uint32_t datawhite = 0xffffffff;
 			tex->setData(&datawhite, sizeof(uint32_t));
-			AssetsManager::update(UUID(302), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(302), });
+			//AssetsManager::update(UUID(302), Asset{ AssetType::Texture2D,static_cast<Ref<Texture>>(tex),"",UUID(302), });
 		}
-		return std::any_cast<Ref<Texture>&>(AssetsManager::get(UUID(302)).data);
+		return tex;
 	}
 	Ref<Texture> Resources::getLoadingTexture() {
 		static Ref<Texture2D> tex;

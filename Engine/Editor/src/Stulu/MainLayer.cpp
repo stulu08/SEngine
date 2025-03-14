@@ -122,7 +122,7 @@ namespace Editor {
 
 	void MainLayer::DrawObjectOutlines() {
 		auto& sceneCamera = m_scenePanel->GetCamera();
-		sceneCamera.getCamera()->getFrameBuffer()->bind();
+		sceneCamera.getCamera().getFrameBuffer()->bind();
 		// TODO: Draw Children, first rework transform system
 
 		const auto& selectedObjects = GetPanel<HierarchyPanel>().GetSelected();
@@ -131,7 +131,7 @@ namespace Editor {
 			if (selected) {
 				auto& tc = selected.getComponent<TransformComponent>();
 
-				Renderer::uploadCameraBufferData(sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(sceneCamera.getTransform().GetWorldTransform()), glm::vec3(.0f), glm::vec3(.0f));
+				Renderer::uploadCameraBufferData(sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(sceneCamera.getTransform().GetWorldTransform()), glm::vec3(.0f), glm::vec3(.0f));
 				RenderCommand::setDepthTesting(false);
 				//draw object to stencil buffer with 0x1
 				{
@@ -164,7 +164,7 @@ namespace Editor {
 			}
 		}
 
-		sceneCamera.getCamera()->getFrameBuffer()->unbind();
+		sceneCamera.getCamera().getFrameBuffer()->unbind();
 	}
 	void MainLayer::DrawGizmoSelected(GameObject selected) {
 		auto& tc = selected.getComponent<TransformComponent>();
@@ -189,15 +189,15 @@ namespace Editor {
 
 		//camera view frustum
 		if (selected.hasComponent<CameraComponent>()) {
-			CameraComponent camera = selected.getComponent<CameraComponent>();
-			float zNear = camera.settings.zNear;
-			float zFar = camera.settings.zFar;
-			float aspect = camera.settings.aspectRatio;
+			const auto& camera = selected.getComponent<CameraComponent>();
+			float zNear = camera.GetNear();
+			float zFar = camera.GetFar();
+			float aspect = camera.GetAspect();
 			glm::mat4 nearTransform;
 			glm::mat4 farTransform;
 
-			if (camera.mode == CameraMode::Perspective) {
-				float fovHalf = glm::radians(camera.settings.fov * 0.5f);
+			if (camera.GetMode() == CameraMode::Perspective) {
+				float fovHalf = glm::radians(camera.GetFov() * 0.5f);
 				float nearHeight = 1.0f;
 				float nearWidth = nearHeight * aspect;
 				float farHeight = 2.0f * zFar * (glm::tan(fovHalf));//because tan(fov) = ankhatet / gegenkahtet irgendwas mathe 9te klasse
@@ -209,7 +209,7 @@ namespace Editor {
 				farTransform = Math::createMat4(farPos, tc.GetWorldRotation(), glm::vec3(farWidth, farHeight, 1.0f));
 			}
 			else {
-				float zoom = camera.settings.zoom;
+				float zoom = camera.GetZoom();
 				float height = 1.0f * zoom;;
 				float width = height * aspect;
 				glm::vec3 nearPos = tc.GetWorldPosition() + tc.GetForward() * zNear;

@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseControls.h"
+#include <magic_enum/magic_enum.hpp>
 
 namespace Editor {
     namespace Controls {
@@ -73,6 +74,45 @@ namespace Editor {
                     return re;
                     });
             }
+        }
+
+        inline bool Combo(const std::string& label, int& currentValue, const std::string& optionsString) {
+            static std::vector<std::string> items = Stulu::SplitString(optionsString);
+            std::vector<const char*> itemPointers;
+            for (const auto& item : items) {
+                itemPointers.push_back(item.c_str());
+            }
+
+            return LabeledBaseControl(label, [&]() {
+                ImGui::PushItemWidth(-1);
+                bool re = ImGui::Combo("##value_combo", &currentValue, itemPointers.data(), (int)items.size());
+                ImGui::PopItemWidth();
+                return re;
+            });
+        }
+
+        template<class E>
+        inline bool Combo(const std::string& label, E& currentValue) {
+            static constexpr auto names = magic_enum::enum_names<E>();
+            static std::array<const char*, names.size()> items = {};
+
+            // Convert to const char* array
+            for (size_t i = 0; i < names.size(); ++i) {
+                items[i] = names[i].data();
+            }
+
+            return LabeledBaseControl(label, [&]() {
+                ImGui::PushItemWidth(-1);
+
+                int currentIndex = static_cast<int>(currentValue);
+                bool re = ImGui::Combo("##value_combo", &currentIndex, items.data(), static_cast<int>(items.size()));
+                if (re) {
+                    currentValue = static_cast<E>(currentIndex);
+                }
+
+                ImGui::PopItemWidth();
+                return re;
+                });
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Editor {
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_Bool(string,bool&)", StuluBindings::ImGui::Bool);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_TreeNode(string,uint)", StuluBindings::ImGui::TreeBegin);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_TreePop()", ImGui::TreePop);
+		manager->RegisterFunction("Editor.EditorCalls::ImGui_Combo(string,int&,string)", StuluBindings::ImGui::Combo);
 
 	}
 }

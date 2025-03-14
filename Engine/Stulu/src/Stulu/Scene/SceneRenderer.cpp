@@ -54,46 +54,37 @@ namespace Stulu {
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, CameraComponent& mainCam) {
 		CameraComponent camComp = mainCam.gameObject.getComponent<CameraComponent>();
-		camComp.cam = sceneCam.getCamera();
-		camComp.settings.zFar = sceneCam.m_zFar;
-		camComp.settings.zNear = sceneCam.m_zNear;
-		camComp.settings.fov = sceneCam.m_fov;
-		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
-		camComp.frustum = sceneCam.getFrustum();
-		camComp.postProcessing = &sceneCam.getPostProcessingData();
+		camComp.gameObject = mainCam.gameObject;
+		camComp.m_cam = sceneCam.getCamera();
+		camComp.m_far = sceneCam.m_zFar;
+		camComp.m_near = sceneCam.m_zNear;
+		camComp.m_fov = sceneCam.m_fov;
 		DrawSceneToCamera(sceneCam.m_transform, camComp);
 	}
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam) {
-		CameraComponent camComp = CameraComponent(CameraMode::Perspective);
+		CameraComponent camComp = CameraComponent(sceneCam.getCamera());
 		camComp.gameObject = GameObject(entt::null, m_scene);
-		camComp.cam = sceneCam.getCamera();
-		camComp.settings.zFar = sceneCam.m_zFar;
-		camComp.settings.zNear = sceneCam.m_zNear;
-		camComp.settings.fov = sceneCam.m_fov;
-		camComp.settings.aspectRatio = sceneCam.m_aspectRatio;
-		camComp.frustum = sceneCam.getFrustum();
-		camComp.postProcessing = &sceneCam.getPostProcessingData();
+		camComp.m_far = sceneCam.m_zFar;
+		camComp.m_near = sceneCam.m_zNear;
+		camComp.m_fov = sceneCam.m_fov;
 		DrawSceneToCamera(sceneCam.m_transform, camComp);
 	}
 	void SceneRenderer::DrawSceneToCamera(TransformComponent& transform, CameraComponent& cameraComp) {
 		ST_PROFILING_SCOPE("Renderer - Main Pass");
 
-		const Ref<Camera>& cam = cameraComp.getNativeCamera();
+		const Camera& cam = cameraComp.GetNativeCamera();
 		const glm::mat4& view = glm::inverse(transform.GetWorldTransform());
-		const glm::mat4& proj = cameraComp.getProjection();
+		const glm::mat4& proj = cameraComp.GetProjection();
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
 		uint32_t camSkyBoxMapType = 0;
 		glm::mat4 skyboxRotation = glm::mat4(1.0f);
 		if (cameraComp.gameObject.IsValid()) {
-			if (cameraComp.settings.clearType == CameraComponent::ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
+			if (cameraComp.GetClearType() == ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
 				auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
 				camSkyBoxTexture = s.texture;
 				camSkyBoxMapType = (uint32_t)s.mapType;
 				skyboxRotation = Math::createMat4(glm::vec3(.0f), glm::quat(glm::radians(s.rotation)), glm::vec3(1.0f));
-			}
-			if (cameraComp.gameObject.hasComponent<PostProcessingComponent>()) {
-				cameraComp.postProcessing = &cameraComp.gameObject.getComponent<PostProcessingComponent>().data;
 			}
 		}
 		
@@ -146,12 +137,12 @@ namespace Stulu {
 		}
 
 		//default render pass
-		VFC::setCamera(cameraComp.getFrustum());
-		cam->bindFrameBuffer();
-		Renderer::uploadCameraBufferData(proj, view, transform.GetWorldPosition(), transform.GetWorldEulerRotation(), cameraComp.settings.zNear, cameraComp.settings.zFar);
+		VFC::setCamera(cameraComp.CalculateFrustum(transform));
+		cam.bindFrameBuffer();
+		Renderer::uploadCameraBufferData(proj, view, transform.GetWorldPosition(), transform.GetWorldEulerRotation(), cameraComp.GetNear(), cameraComp.GetFar());
 		drawSkyBox(camSkyBoxTexture);
 		drawScene();
-		cam->unbindFrameBuffer();
+		cam.unbindFrameBuffer();
 	}
 
 	void SceneRenderer::Clear() {
@@ -161,13 +152,13 @@ namespace Stulu {
 	}
 	void SceneRenderer::Clear(CameraComponent& cam) {
 		RenderCommand::setDefault();
-		switch (cam.settings.clearType)
+		switch (cam.GetClearType())
 		{
-		case CameraComponent::ClearType::Color:
-			RenderCommand::setClearColor(cam.settings.clearColor);
-			m_sceneBufferData.clearColor = cam.settings.clearColor;
+		case ClearType::Color:
+			RenderCommand::setClearColor(cam.GetClearColor());
+			m_sceneBufferData.clearColor = cam.GetClearColor();
 			break;
-		case CameraComponent::ClearType::Skybox:
+		case ClearType::Skybox:
 			RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, 1.0f));
 			m_sceneBufferData.clearColor = glm::vec4(.0f, .0f, .0f, 1.0f);
 			break;
@@ -364,23 +355,33 @@ namespace Stulu {
 		auto& cams = m_scene->getAllGameObjectsAsGroupWith<TransformComponent, CameraComponent>();
 
 		cams.sort([&](const entt::entity a, const entt::entity b) {
-			int32_t dA = cams.get<CameraComponent>(a).depth;
-		int32_t dB = cams.get<CameraComponent>(b).depth;
-		return dA < dB;
-			});
+			int32_t dA = cams.get<CameraComponent>(a).GetDepth();
+			int32_t dB = cams.get<CameraComponent>(b).GetDepth();
+			return dA < dB;
+		});
 
 
 		sceneFbo->bind();
 		RenderCommand::setClearColor(glm::vec4(.0f, .0f, .0f, .0f));
 		RenderCommand::clear();
 		sceneFbo->unbind();
+
 		for (auto& goID : cams) {
 			CameraComponent& cam = cams.get<CameraComponent>(goID);
-			if (!cam.settings.isRenderTarget) {
-				if (cam.postProcessing)
-					ApplyPostProcessing(sceneFbo, cam.getFrameBuffer()->getColorAttachment(), *cam.postProcessing);
-				else
-					ApplyPostProcessing(sceneFbo, cam.getFrameBuffer()->getColorAttachment());
+			GameObject gameObject = cam.gameObject;
+			PostProcessingData* postProcessing = nullptr;
+
+			if (!postProcessing && gameObject.hasComponent<PostProcessingComponent>()) {
+				postProcessing = &gameObject.getComponent<PostProcessingComponent>().data;
+			}
+
+			if (!cam.IsRenderTarget()) {
+				if (postProcessing) {
+					ApplyPostProcessing(sceneFbo, cam.GetFrameBuffer()->getColorAttachment(), *postProcessing);
+				}
+				else {
+					ApplyPostProcessing(sceneFbo, cam.GetFrameBuffer()->getColorAttachment());
+				}
 			}
 		}
 	}
@@ -392,20 +393,14 @@ namespace Stulu {
 				PostProcessingComponent comp = mainCam.getComponent<PostProcessingComponent>();
 
 				comp.data.bloom = sceneCam.getPostProcessingData().bloom;
-				ApplyPostProcessing(sceneCam.getCamera()->getFrameBuffer(), comp.data);
+				ApplyPostProcessing(sceneCam.getCamera().getFrameBuffer(), comp.data);
 				sceneCam.getPostProcessingData().bloom = comp.data.bloom;
 
 				return;
 			}
 		}
 
-		ApplyPostProcessing(sceneCam.getCamera()->getFrameBuffer(), sceneCam.getPostProcessingData());
-	}
-	void SceneRenderer::ApplyPostProcessing(CameraComponent& camera) {
-		if (camera.postProcessing)
-			ApplyPostProcessing(camera.getFrameBuffer(), *camera.postProcessing);
-		else
-			ApplyPostProcessing(camera.getFrameBuffer());
+		ApplyPostProcessing(sceneCam.getCamera().getFrameBuffer(), sceneCam.getPostProcessingData());
 	}
 	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data) {
 		ApplyPostProcessing(frameBuffer, frameBuffer->getColorAttachment(), data);

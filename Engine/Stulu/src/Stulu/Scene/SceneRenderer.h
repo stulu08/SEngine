@@ -48,7 +48,6 @@ namespace Stulu {
 		void GenSceneTexture(const Ref<FrameBuffer>& sceneFbo);
 
 		void ApplyPostProcessing(SceneCamera& camera);
-		void ApplyPostProcessing(CameraComponent& camera);
 		void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data = PostProcessingData());
 		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data = PostProcessingData());
 

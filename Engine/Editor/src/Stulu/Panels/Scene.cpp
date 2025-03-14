@@ -19,20 +19,20 @@ namespace Editor {
 		m_width = (uint32_t)glm::max(viewportSize.x, 1.0f);
 		m_height = (uint32_t)glm::max(viewportSize.y, 1.0f);
 
-		FrameBufferSpecs FBspec = m_sceneCamera.getCamera()->getFrameBuffer()->getSpecs();
+		FrameBufferSpecs FBspec = m_sceneCamera.getCamera().getFrameBuffer()->getSpecs();
 		if (FBspec.width != m_width || FBspec.height != m_height)
 			m_sceneCamera.onResize((float)m_width, (float)m_height);
 
-		Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera()->getFrameBuffer());
+		Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera().getFrameBuffer());
 
 		m_windowPos = ImGui::GetCursorScreenPos();
 
-		auto& texture = m_sceneCamera.getCamera()->getFrameBuffer()->getColorAttachment();
+		auto& texture = m_sceneCamera.getCamera().getFrameBuffer()->getColorAttachment();
 		ImGui::Image(texture, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 
 		glm::vec2 windowPos = glm::vec2(ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Min.y);
 		Gizmo::setRect(windowPos.x, windowPos.y, (float)m_width, (float)m_height);
-		Gizmo::setCamData(m_sceneCamera.getCamera()->getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().GetWorldTransform()));
+		Gizmo::setCamData(m_sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().GetWorldTransform()));
 
 		Gizmo::setWindow(GetID(), &OpenPtr());
 

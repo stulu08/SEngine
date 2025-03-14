@@ -80,7 +80,7 @@ namespace Stulu {
 	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
 		ST_PROFILING_SCOPE("Scene - Editor Update");
 		m_renderer->LoadLights();
-		if (camera.getCamera() && render) {
+		if (render) {
 			renderSceneEditor(camera);
 		}
 	}
@@ -137,27 +137,18 @@ namespace Stulu {
 	void Scene::renderSceneForCamera(GameObject go, bool callEvents) {
 		CameraComponent& cameraComp = go.getComponent<CameraComponent>();
 		TransformComponent& transformComp = go.getComponent<TransformComponent>();
-		if (cameraComp.mode == CameraMode::Perspective) {
-			cameraComp.frustum = VFC::createFrustum(cameraComp.settings.aspectRatio, cameraComp.settings.zNear,
-				cameraComp.settings.zFar, cameraComp.settings.fov, transformComp);
-		}
-		else if (cameraComp.mode == CameraMode::Orthographic) {
-			cameraComp.frustum = VFC::createFrustum_ortho(-cameraComp.settings.aspectRatio * cameraComp.settings.zoom, 
-				cameraComp.settings.aspectRatio * cameraComp.settings.zoom, -cameraComp.settings.zoom, cameraComp.settings.zoom, 
-				cameraComp.settings.zNear, cameraComp.settings.zFar, transformComp);
-		}
-		Renderer::uploadCameraBufferData(cameraComp.getNativeCamera()->getProjectionMatrix(), glm::inverse(transformComp.GetWorldTransform()),
-			transformComp.GetWorldPosition(), transformComp.GetWorldEulerRotation(), cameraComp.settings.zNear, cameraComp.settings.zFar);
+		Renderer::uploadCameraBufferData(cameraComp.GetNativeCamera().getProjectionMatrix(), glm::inverse(transformComp.GetWorldTransform()),
+			transformComp.GetWorldPosition(), transformComp.GetWorldEulerRotation(), cameraComp.GetNear(), cameraComp.GetFar());
 
 		//clear 
-		cameraComp.getNativeCamera()->bindFrameBuffer();
+		cameraComp.GetNativeCamera().bindFrameBuffer();
 		m_renderer->Clear(cameraComp);
-		cameraComp.getNativeCamera()->unbindFrameBuffer();
+		cameraComp.GetNativeCamera().unbindFrameBuffer();
 
 		//draw 3D
 		m_renderer->DrawSceneToCamera(transformComp, cameraComp);
 		//draw 2D stuff
-		cameraComp.getNativeCamera()->bindFrameBuffer();
+		cameraComp.GetNativeCamera().bindFrameBuffer();
 		Renderer2D::begin();
 		if (callEvents) {
 			m_caller->onRender2D();
@@ -165,7 +156,7 @@ namespace Stulu {
 
 		m_renderer->drawAll2d(transformComp);
 		Renderer2D::flush();
-		cameraComp.getNativeCamera()->unbindFrameBuffer();
+		cameraComp.GetNativeCamera().unbindFrameBuffer();
 	}
 	void Scene::closeSceneForRendering() {
 		m_renderer->End();
@@ -185,10 +176,10 @@ namespace Stulu {
 		}
 		GameObject mc = getMainCamera();
 
-		Renderer::uploadCameraBufferData(camera.getCamera()->getProjectionMatrix(), glm::inverse(camera.getTransform().GetWorldTransform()),
+		Renderer::uploadCameraBufferData(camera.getCamera().getProjectionMatrix(), glm::inverse(camera.getTransform().GetWorldTransform()),
 			camera.getTransform().GetWorldPosition(), camera.getTransform().GetWorldEulerRotation(), camera.getNear(), camera.getFar());
 		//clear 
-		camera.getCamera()->bindFrameBuffer();
+		camera.getCamera().bindFrameBuffer();
 		if (mc)
 			m_renderer->Clear(mc.getComponent<CameraComponent>());
 		else
@@ -198,7 +189,7 @@ namespace Stulu {
 		if ((m_data.shaderFlags & ST_ShaderViewFlags_DisplayVertices))
 			RenderCommand::setWireFrame(true);
 
-		camera.getCamera()->unbindFrameBuffer();
+		camera.getCamera().unbindFrameBuffer();
 
 		//draw 3D
 		if (mc)
@@ -207,11 +198,11 @@ namespace Stulu {
 			m_renderer->DrawSceneToCamera(camera);
 
 		//draw 2D stuff
-		camera.getCamera()->bindFrameBuffer();
+		camera.getCamera().bindFrameBuffer();
 		Renderer2D::begin();
 		m_renderer->drawAll2d(camera.getTransform());
 		Renderer2D::flush();
-		camera.getCamera()->unbindFrameBuffer();
+		camera.getCamera().unbindFrameBuffer();
 
 		//only in editor
 		if ((m_data.shaderFlags & ST_ShaderViewFlags_DisplayVertices))
@@ -232,12 +223,8 @@ namespace Stulu {
 		}
 		m_caller->ConstructManaged();
 
-		m_registry.view<CameraComponent>().each([=](auto gameObject, CameraComponent& cam) {
-			cam.getFrameBuffer()->resize(cam.settings.textureWidth, cam.settings.textureHeight);
-			});
-
 		for (entt::entity goID : getAllGameObjectsWith<MeshRendererComponent>()) {
-			if(m_registry.get<MeshRendererComponent>(goID).material)
+			if (m_registry.get<MeshRendererComponent>(goID).material)
 				m_registry.get<MeshRendererComponent>(goID).material->uploadData();
 		}
 
@@ -362,10 +349,8 @@ namespace Stulu {
 		auto view = m_registry.view<CameraComponent>();
 		for (auto entity : view) {
 			auto& cameraComponent = view.get<CameraComponent>(entity);
-			if (!cameraComponent.settings.isRenderTarget)
-				cameraComponent.onResize(width, height);
-			else
-				cameraComponent.updateSize();
+			if(!cameraComponent.IsRenderTarget())
+				cameraComponent.ResizeTexture(width, height);
 		}
 	}
 
@@ -425,7 +410,7 @@ namespace Stulu {
 		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
 		for (auto gameObject : view) {
 			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
-			if (base.tag == "MainCam" && !view.get<CameraComponent>(gameObject).settings.isRenderTarget) {
+			if (base.tag == "MainCam" && !view.get<CameraComponent>(gameObject).IsRenderTarget()) {
 				return GameObject{ gameObject,this };
 			}
 		}

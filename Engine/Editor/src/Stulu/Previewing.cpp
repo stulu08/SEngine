@@ -100,20 +100,20 @@ namespace Editor {
 		m_scene->onUpdateRuntime(Timestep(.05f));
 		m_scene->onRuntimeStop();
 
-		m_scene->getRenderer()->ApplyPostProcessing(m_camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer());
-		return m_camera.getComponent<CameraComponent>().getNativeCamera()->getFrameBuffer()->getColorAttachment();
+		m_scene->getRenderer()->ApplyPostProcessing(m_camera.getComponent<CameraComponent>().GetNativeCamera().getFrameBuffer());
+		return m_camera.getComponent<CameraComponent>().GetNativeCamera().getFrameBuffer()->getColorAttachment();
 	}
 
 	void Preview::SetupMaterial(Ref<Material> material) {
 		m_camera.addComponent<SkyBoxComponent>().texture = Resources::getDefaultSkyBox();
-		m_camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Skybox;
+		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 		m_renderObject = m_scene->createGameObject("RenderObject");
 		m_renderObject.saveAddComponent<MeshFilterComponent>().mesh = Resources::getCubeMeshAsset();
 		m_renderObject.saveAddComponent<MeshRendererComponent>().material = material;
 	}
 	void Preview::SetupModel(Model& model) {
 		m_camera.addComponent<SkyBoxComponent>().texture = Resources::getDefaultSkyBox();
-		m_camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Skybox;
+		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 
 		m_renderObject = m_scene->addModel(model);
 
@@ -132,8 +132,8 @@ namespace Editor {
 			}
 		}
 		const float zoom = 1.5f;
-		m_camera.getComponent<CameraComponent>().settings.zFar = std::max({ glm::abs(furthestX), glm::abs(furthestY), glm::abs(furthestZ) }) * 2.0f * zoom;
-		m_camera.getComponent<CameraComponent>().updateProjection();
+		m_camera.getComponent<CameraComponent>().SetFar(std::max({ glm::abs(furthestX), glm::abs(furthestY), glm::abs(furthestZ) }) * 2.0f * zoom);
+		m_camera.getComponent<CameraComponent>().UpdateCamera();
 
 		auto& transform = m_camera.getComponent<TransformComponent>();
 		transform.SetPosition(glm::abs(glm::vec3(furthestX, furthestY, furthestZ)) * zoom);
@@ -141,14 +141,14 @@ namespace Editor {
 	}
 	void Preview::SetupSkybox(Ref<SkyBox> skybox) {
 		m_camera.addComponent<SkyBoxComponent>().texture = skybox;
-		m_camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Skybox;
+		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 		m_renderObject = m_scene->createGameObject("RenderObject");
 		m_renderObject.saveAddComponent<MeshFilterComponent>().mesh = Resources::getHighResSphereMeshAsset();
 		m_renderObject.saveAddComponent<MeshRendererComponent>().material = Resources::getReflectiveMaterial();
 	}
 	void Preview::SetupMesh(MeshAsset& mesh) {
 		m_camera.addComponent<SkyBoxComponent>().texture = Resources::getDefaultSkyBox();
-		m_camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Skybox;
+		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 
 		if (!mesh.mesh)
 			return;
@@ -160,8 +160,8 @@ namespace Editor {
 		glm::vec3 furthest = mesh.mesh->getFurthesteachAxisFromPos(glm::vec3(.0f), 0);
 
 		const float zoom = 2.0f;
-		m_camera.getComponent<CameraComponent>().settings.zFar = std::max({ glm::abs(furthest.x), glm::abs(furthest.y), glm::abs(furthest.z) }) * 2.0f * zoom;
-		m_camera.getComponent<CameraComponent>().updateProjection();
+		m_camera.getComponent<CameraComponent>().SetFar(std::max({ glm::abs(furthest.x), glm::abs(furthest.y), glm::abs(furthest.z) }) * 2.0f * zoom);
+		m_camera.getComponent<CameraComponent>().UpdateCamera();
 
 		auto& transform = m_camera.getComponent<TransformComponent>();
 		transform.SetPosition(glm::abs(glm::vec3(0.0f, furthest.y, furthest.z) * zoom));
@@ -171,7 +171,7 @@ namespace Editor {
 	void Preview::SceneReset() {
 		if (m_camera.hasComponent<SkyBoxComponent>()) {
 			m_camera.removeComponent<SkyBoxComponent>();
-			m_camera.getComponent<CameraComponent>().settings.clearType = CameraComponent::ClearType::Color;
+			m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Color);
 		}
 
 		CamDefault();
@@ -184,10 +184,8 @@ namespace Editor {
 			m_camera.removeComponent<CameraComponent>();
 
 		CameraComponent& cam = m_camera.addComponent<CameraComponent>(CameraMode::Perspective);
-		cam.depth = 1;
-		cam.settings.clearColor = glm::vec4(.0f);
-		cam.settings.clearType = CameraComponent::ClearType::Color;
-		cam.updateProjection();
+		cam.SetClearColor(glm::vec4(.0f));
+		cam.SetClearType(ClearType::Color);
 
 		m_camera.getComponent<GameObjectBaseComponent>().tag = "MainCam";
 		m_camera.getComponent<TransformComponent>().SetPosition(glm::vec3(0.0f, 0.0f, 1.25f));

@@ -1,4 +1,6 @@
 ﻿using Stulu;
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Editor {
@@ -73,5 +75,24 @@ namespace Editor {
 		/// Call this if TreeNode(...) == true
 		/// </summary>
 		public static void TreePop() => EditorCalls.ImGui_TreePop();
+		/// <summary>
+		/// Draws a Drop Down Combo Control
+		/// </summary>
+		public static bool Combo(string name, ref int currentValue, string[] names)
+		{
+			string namesString = "";
+            foreach (string n in names)
+            {
+                namesString += n + '@';
+            }
+			if (namesString.Length == 0)
+				return false;
+
+			if (namesString[namesString.Length - 1] == '@')
+				namesString.Remove(namesString.Length - 1);
+
+
+			return EditorCalls.ImGui_Combo(name, ref currentValue, namesString);
+        }
 	}
 }

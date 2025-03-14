@@ -217,6 +217,10 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void cameraComp_far(ulong entityId, float value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static int cameraComp_clearType(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void cameraComp_clearType(ulong entityId, int value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static float cameraComp_near(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void cameraComp_near(ulong entityId, float value);

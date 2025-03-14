@@ -151,6 +151,8 @@ namespace StuluBindings {
 		add_call("cameraComp_fov(ulong,single)", CameraComponent::cameraComp_SetFov);
 		add_call("cameraComp_far(ulong)", CameraComponent::cameraComp_GetFar);
 		add_call("cameraComp_far(ulong,single)", CameraComponent::cameraComp_SetFar);
+		add_call("cameraComp_clearType(ulong)", CameraComponent::cameraComp_GetClearType);
+		add_call("cameraComp_clearType(ulong,int)", CameraComponent::cameraComp_SetClearType);
 		add_call("cameraComp_near(ulong)", CameraComponent::cameraComp_GetNear);
 		add_call("cameraComp_near(ulong,single)", CameraComponent::cameraComp_SetNear);
 		add_call("cameraComp_update(ulong)", CameraComponent::cameraComp_Update);

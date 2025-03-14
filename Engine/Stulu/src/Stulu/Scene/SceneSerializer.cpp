@@ -23,7 +23,7 @@ namespace Stulu {
 			SERIALIZE_PROPERTY(SerializedTransformComponent, rotation);
 			SERIALIZE_PROPERTY(SerializedTransformComponent, scale);
 			if(SerializedTransformComponent.HasParent())
-				out << YAML::Key << "parent" << YAML::Value << (uint64_t)SerializedTransformComponent.GetParent();
+				out << YAML::Key << "parent" << YAML::Value << (uint64_t)SerializedTransformComponent.GetParent().GetID();
 		}
 		END_SERIALIZE_COMPONENT();
 
@@ -52,22 +52,14 @@ namespace Stulu {
 		
 		BEGIN_SERIALIZE_COMPONENT(CameraComponent);
 		{
-			auto& settings = SerializedCameraComponent.settings;
-			SERIALIZE_BEGINMAP("Camera Settings");
-				SERIALIZE_PROPERTY(settings, clearColor);
-				SERIALIZE_ENUMPROP(settings, clearType);
-				SERIALIZE_PROPERTY(settings, fov);
-				SERIALIZE_PROPERTY(settings, zoom);
-				SERIALIZE_PROPERTY(settings, zFar);
-				SERIALIZE_PROPERTY(settings, isRenderTarget);
-				SERIALIZE_PROPERTY(settings, aspectRatio);
-				SERIALIZE_PROPERTY(settings, textureWidth);
-				SERIALIZE_PROPERTY(settings, textureHeight);
-			SERIALIZE_ENDMAP();
-
-			SERIALIZE_ENUMPROP(SerializedCameraComponent, mode);
-			SERIALIZE_PROPERTY(SerializedCameraComponent, depth);
-			SERIALIZE_UUIDPROP(SerializedCameraComponent, renderTexture);
+			SERIALIZE_ENUMPROP(SerializedCameraComponent, m_mode);
+			SERIALIZE_ENUMPROP(SerializedCameraComponent, m_clearType);
+			SERIALIZE_PROPERTY(SerializedCameraComponent, m_depth);
+			SERIALIZE_PROPERTY(SerializedCameraComponent, m_fov);
+			SERIALIZE_PROPERTY(SerializedCameraComponent, m_near);
+			SERIALIZE_PROPERTY(SerializedCameraComponent, m_far);
+			SERIALIZE_PROPERTY(SerializedCameraComponent, m_clearColor);
+			SERIALIZE_UUIDPROP(SerializedCameraComponent, m_renderTarget);
 		}
 		END_SERIALIZE_COMPONENT();
 
@@ -300,26 +292,16 @@ namespace Stulu {
 
 					BEGIN_DESERIALIZE_COMPONENT(CameraComponent);
 					{
-						DESERIALIZE_ENUMPROP(AddedCameraComponent, mode);
-						DESERIALIZE_PROPERTY(AddedCameraComponent, depth);
-						DESERIALIZE_UUIDPROP(AddedCameraComponent, renderTexture);
+						DESERIALIZE_ENUMPROP(AddedCameraComponent, m_mode);
+						DESERIALIZE_ENUMPROP(AddedCameraComponent, m_clearType);
+						DESERIALIZE_PROPERTY(AddedCameraComponent, m_depth);
+						DESERIALIZE_PROPERTY(AddedCameraComponent, m_fov);
+						DESERIALIZE_PROPERTY(AddedCameraComponent, m_near);
+						DESERIALIZE_PROPERTY(AddedCameraComponent, m_far);
+						DESERIALIZE_PROPERTY(AddedCameraComponent, m_clearColor);
+						DESERIALIZE_UUIDPROP(AddedCameraComponent, m_renderTarget);
 						
-						DESERIALIZE_BEGINMAP("Camera Settings");
-							auto& settings = AddedCameraComponent.settings;
-							DESERIALIZE_PROPERTY(settings, clearColor);
-							DESERIALIZE_ENUMPROP(settings, clearType);
-							DESERIALIZE_PROPERTY(settings, fov);
-							DESERIALIZE_PROPERTY(settings, zoom);
-							DESERIALIZE_PROPERTY(settings, zFar);
-							DESERIALIZE_PROPERTY(settings, isRenderTarget);
-							DESERIALIZE_PROPERTY(settings, aspectRatio);
-							DESERIALIZE_PROPERTY(settings, textureWidth);
-							DESERIALIZE_PROPERTY(settings, textureHeight);
-						DESERIALIZE_ENDMAP();
-						
-						AddedCameraComponent.updateMode();
-						AddedCameraComponent.updateProjection();
-						AddedCameraComponent.updateSize();
+						AddedCameraComponent.UpdateCamera();
 					}
 					END_DESERIALIZE_COMPONENT();
 

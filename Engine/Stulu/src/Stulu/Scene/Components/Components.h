@@ -67,7 +67,8 @@ namespace Stulu {
 	public:
 		TransformComponent()
 			: dirty(true) {}
-		TransformComponent(const TransformComponent& other) {
+		TransformComponent(const TransformComponent& other) 
+			: Component(other) {
 			this->position = other.position;
 			this->rotation = other.rotation;
 			this->scale = other.scale;
@@ -344,8 +345,9 @@ namespace Stulu {
 	class ScriptingComponent : public Component {
 	public:
 		ScriptingComponent() = default;
-		ScriptingComponent(const ScriptingComponent& origin) {
-			for (auto& script : origin.runtimeScripts) {
+		ScriptingComponent(const ScriptingComponent& other) 
+			: Component(other) {
+			for (auto& script : other.runtimeScripts) {
 				runtimeScripts.push_back(createRef<MonoObjectInstance>(*script));
 			}
 		}

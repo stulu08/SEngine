@@ -4,7 +4,6 @@
 #include "Stulu/Core/Platform.h"
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Renderer.h"
-#include "Stulu/Renderer/OrthographicCamera.h"
 #include "Stulu/Renderer/Renderer2D.h"
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Core/Input.h"

@@ -4,6 +4,13 @@
 namespace Stulu {
 	class STULU_API Component {
 	public:
+		inline Component() {
+
+		}
+		inline Component(const Component& other) {
+			this->gameObject = other.gameObject;
+		}
+
 		//this GameObject
 		GameObject gameObject = GameObject::null;
 
