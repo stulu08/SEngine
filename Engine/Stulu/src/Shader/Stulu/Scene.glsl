@@ -22,7 +22,7 @@ layout(std140, binding = 4) uniform shaderSceneData
 	mat4 skyBoxRotation;
 	vec4 clearColor;
 	bool useSkybox;
-	uint skyboxMapType;
+	uint emptyData;
 	uint viewFlags;
 	float env_lod;
 	mat4 lightSpaceMatrix;

@@ -35,28 +35,14 @@ struct vertInput
 layout (location = 0) in vertInput vertex;
 
 void main() {
-	vec3 view = getSkyBoxCoords(vertex.texCoords, skyBoxRotation);
-
-	vec4 color = vec4(.0f);
-
+	vec4 color = vec4(clearColor.xyz, 1.0);
 	if(useSkybox){
-		vec3 mapColor = clearColor.xyz;
-
-		if(skyboxMapType == 0){
-			//acces mip maps if needed
-			if(env_lod == 0)
-				mapColor = texture(environmentMap, view).rgb;
-			else {
-				mapColor = textureLod(environmentMap, view, env_lod).rgb;
-			}
-		} 
-		else if(skyboxMapType == 1) {
-			mapColor = texture(irradianceMap, view).rgb;
-		} 
-		else if(skyboxMapType == 2) {
-			mapColor = texture(prefilterMap, view).rgb;
+		vec3 view = getSkyBoxCoords(vertex.texCoords, skyBoxRotation);
+		if(env_lod == 0)
+			color = vec4(texture(environmentMap, view).rgb, 1.0);
+		else {
+			color = vec4(textureLod(environmentMap, view, env_lod).rgb, 1.0);
 		}
-		color = vec4(mapColor, 1.0f);
 	}
 	
 	FragColor = color;

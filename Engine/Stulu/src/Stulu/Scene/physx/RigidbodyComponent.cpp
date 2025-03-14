@@ -52,24 +52,6 @@ namespace Stulu {
 			actor->is<physx::PxRigidDynamic>()->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(position), PhysicsQuatfromglmQuat(rotation)));
 	}
 
-	void RigidbodyComponent::syncTransform() {
-		auto& transform = gameObject.getComponent<TransformComponent>();
-
-		setTransform(transform.GetWorldPosition(), transform.GetWorldRotation());
-		syncTransform(transform.GetChildren());
-	}
-	void RigidbodyComponent::syncTransform(const std::vector<entt::entity>& childs) {
-		for (entt::entity child : childs) {
-			GameObject childObject = { child, gameObject.getScene() };
-			auto& transform = childObject.getComponent<TransformComponent>();
-
-			if (childObject.hasComponent<RigidbodyComponent>()) {
-				setTransform(transform.GetWorldPosition(), transform.GetWorldRotation());
-			}
-			syncTransform(transform.GetChildren());
-		}
-	}
-
 	void RigidbodyComponent::updateFlags() {
 		if (!body)
 			return;

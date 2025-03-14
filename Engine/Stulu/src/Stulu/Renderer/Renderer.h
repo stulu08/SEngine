@@ -37,7 +37,7 @@ namespace Stulu{
 		glm::mat4 skyBoxRotation = glm::mat4(1.0f);
 		glm::vec4 clearColor = glm::vec4(.0f);
 		uint32_t useSkybox = 0;
-		uint32_t skyboxMapType = 0;
+		uint32_t emptyData = 0;
 		uint32_t shaderFlags = 0;
 		float env_lod = 4.0f;
 		glm::mat4 lightSpaceMatrix = glm::mat4(1.0f);

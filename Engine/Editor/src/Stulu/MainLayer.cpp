@@ -178,11 +178,6 @@ namespace Editor {
 					snapValue = 45.0f;
 			}
 			if (Gizmo::TransformEdit(tc, gizmoEditType, glm::vec3(snapValue))) {
-				if (IsRuntime() && GetActiveScene()->getData().enablePhsyics3D) {
-					if (selected.hasComponent<RigidbodyComponent>()) {
-						selected.getComponent<RigidbodyComponent>().syncTransform();
-					}
-				}
 			}
 		}
 

@@ -58,4 +58,21 @@ namespace Stulu {
 
 		friend class Scene;
 	};
+
+	class GameObjectBaseComponent : public Component {
+	public:
+		std::string name = "GameObject";
+		std::string tag = "Default";
+
+		GameObjectBaseComponent() = default;
+		GameObjectBaseComponent(const GameObjectBaseComponent&) = default;
+		GameObjectBaseComponent(const std::string& name)
+			: name(name) {};
+	};
+	// defined here to keep the function inline and prevent Declaraton problems
+	inline bool GameObject::IsValid() const {
+		if (m_entity == entt::null || m_scene == nullptr)
+			return false;
+		return hasComponent<GameObjectBaseComponent>();
+	}
 }

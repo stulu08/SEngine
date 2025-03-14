@@ -11,36 +11,92 @@ Settings:
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
-  - GameObject: 0
+  - GameObject: 6
     GameObjectBaseComponent:
       tag: default
-      name: Sphere
+      name: Mount_Hood
     TransformComponent:
-      position: [0, 298.513458, 0]
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.00100000005, 0.00100000005, 0.00100000005]
+  - GameObject: 5
+    GameObjectBaseComponent:
+      tag: default
+      name: Directional Light
+    TransformComponent:
+      position: [0, -2.53458739e-13, 3.5]
+      rotation: [-0.221389756, -5.78575809e-09, 2.54854857e-08, 0.975185394]
+      scale: [1, 1, 1]
+    LightComponent:
+      color: [1, 1, 1]
+      lightType: 0
+      strength: 1
+      areaRadius: 1
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15
+  - GameObject: 4
+    GameObjectBaseComponent:
+      tag: MainCam
+      name: Perspective Camera
+    TransformComponent:
+      position: [0, 0, 0.787358999]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
+    CameraComponent:
+      m_mode: 0
+      m_clearType: 1
+      m_depth: 1
+      m_fov: 80
+      m_near: 0.00999999978
+      m_far: 1000
+      m_clearColor: [0, 0, 0, 1]
+      m_renderTarget: 0
+    SkyBoxComponent:
+      rotation: [0, 0, 0]
+      texture: 11
+    PostProcessingComponent:
+      Gamma Correction:
+        enabled: true
+        gamma: 2.20000005
+        exposure: 1
+      Bloom:
+        enabled: true
+        intensity: 0.0700000003
+        threshold: 3.79999995
+        knee: 0.430999994
+        clamp: 11.1999998
+        resolutionScale: 0.5
+        diffusion: 10
+        maxSamples: 10
+  - GameObject: 3
+    GameObjectBaseComponent:
+      tag: default
+      name: Terrain
+    TransformComponent:
+      position: [4.41762107e-28, 0, -2.1787472e-12]
+      rotation: [0, 0, 0.707106769, 0.707106769]
+      scale: [100, 100, 100]
+      parent: 2
     MeshRendererComponent:
-      material: 2246654256457386391
-      cullmode: 0
+      material: 11162837847377159197
+      cullmode: 2
     MeshFilterComponent:
-      mesh: 404
-    SphereColliderComponent:
+      mesh: 1475112583025679647
+    MeshColliderComponent:
       dynamicFriction: 0.600000024
       staticFriction: 0.600000024
       restitution: 0
-      radius: 0.5
-      offset: [0, 0, 0]
-    RigidbodyComponent:
-      useGravity: true
-      rotationX: true
-      rotationY: true
-      moveX: true
-      moveY: true
-      moveZ: true
-      kinematic: false
-      retainAccelaration: false
-      mass: 1
-      massCenterPos: [0, 0, 0]
+      convex: false
+      mesh: 1475112583025679647
+  - GameObject: 2
+    GameObjectBaseComponent:
+      tag: default
+      name: Mount_hood
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0.704627693, 0, 0.709577203]
+      scale: [0.99999994, 1, 0.99999994]
+      parent: 6
   - GameObject: 1
     GameObjectBaseComponent:
       tag: default
@@ -71,95 +127,33 @@ GameObjects:
       retainAccelaration: false
       mass: 1
       massCenterPos: [0, 0, 0]
-  - GameObject: 2
+  - GameObject: 0
     GameObjectBaseComponent:
       tag: default
-      name: Mount_hood
+      name: Sphere
     TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0.704627693, 0, 0.709577203]
-      scale: [0.99999994, 1, 0.99999994]
-      parent: 6
-  - GameObject: 3
-    GameObjectBaseComponent:
-      tag: default
-      name: Terrain
-    TransformComponent:
-      position: [4.41762107e-28, 0, -2.1787472e-12]
-      rotation: [0, 0, 0.707106769, 0.707106769]
-      scale: [100, 100, 100]
-      parent: 2
+      position: [0, 298.513458, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
     MeshRendererComponent:
-      material: 11162837847377159197
-      cullmode: 2
+      material: 2246654256457386391
+      cullmode: 0
     MeshFilterComponent:
-      mesh: 1475112583025679647
-    MeshColliderComponent:
+      mesh: 404
+    SphereColliderComponent:
       dynamicFriction: 0.600000024
       staticFriction: 0.600000024
       restitution: 0
-      convex: false
-      mesh: 1475112583025679647
-  - GameObject: 4
-    GameObjectBaseComponent:
-      tag: MainCam
-      name: Perspective Camera
-    TransformComponent:
-      position: [0, 0, 0.787358999]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    CameraComponent:
-      Camera Settings:
-        clearColor: [0, 0, 0, 1]
-        clearType: 1
-        fov: 80
-        zoom: 1
-        zFar: 250
-        isRenderTarget: false
-        aspectRatio: 1.77777779
-        textureWidth: 1920
-        textureHeight: 1080
-      mode: 0
-      depth: 1
-      renderTexture: 0
-    SkyBoxComponent:
-      rotation: [0, 0, 0]
-      mapType: 0
-      texture: 11
-    PostProcessingComponent:
-      Gamma Correction:
-        enabled: true
-        gamma: 2.20000005
-        exposure: 1
-      Bloom:
-        enabled: true
-        intensity: 0.0700000003
-        threshold: 3.79999995
-        knee: 0.430999994
-        clamp: 11.1999998
-        resolutionScale: 0.5
-        diffusion: 10
-        maxSamples: 10
-  - GameObject: 5
-    GameObjectBaseComponent:
-      tag: default
-      name: Directional Light
-    TransformComponent:
-      position: [0, -2.53458739e-13, 3.5]
-      rotation: [-0.221389756, -5.78575809e-09, 2.54854857e-08, 0.975185394]
-      scale: [1, 1, 1]
-    LightComponent:
-      color: [1, 1, 1]
-      lightType: 0
-      strength: 1
-      areaRadius: 1
-      spotLight_cutOff: 10
-      spotLight_outerCutOff: 15
-  - GameObject: 6
-    GameObjectBaseComponent:
-      tag: default
-      name: Mount_Hood
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [0.00100000005, 0.00100000005, 0.00100000005]
+      radius: 0.5
+      offset: [0, 0, 0]
+    RigidbodyComponent:
+      useGravity: true
+      rotationX: true
+      rotationY: true
+      moveX: true
+      moveY: true
+      moveZ: true
+      kinematic: false
+      retainAccelaration: false
+      mass: 1
+      massCenterPos: [0, 0, 0]

@@ -322,7 +322,7 @@ namespace Stulu {
 			auto& rb = object.getComponent<RigidbodyComponent>();
 			auto& tc = object.getComponent<TransformComponent>();
 
-			if (rb.body == nullptr) {
+			if (rb.body == nullptr || !tc.IsUpdatingPhysics()) {
 				continue;
 			}
 
@@ -336,8 +336,13 @@ namespace Stulu {
 			if (!glm::all(glm::epsilonEqual(pos, tc.GetWorldPosition(), 0.0001f)) ||
 				!glm::all(glm::epsilonEqual(glm::vec3(rot.x, rot.y, rot.z), glm::vec3(tc.GetWorldRotation().x, tc.GetWorldRotation().y, tc.GetWorldRotation().z), 0.0001f)))
 			{
+				// dont double update
+				tc.SetUpdatePhysics(false);
+
 				tc.SetWorldPosition(pos);
 				tc.SetWorldRotation(rot);
+
+				tc.SetUpdatePhysics(true);
 			}
 		}
 

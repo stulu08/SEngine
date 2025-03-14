@@ -19,10 +19,6 @@ namespace StuluBindings {
 		static inline void setPos(uint64_t go, struct Vector3* pos) {
 			Stulu::GameObject object = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			object.getComponent<Stulu::TransformComponent>().SetPosition(pos->toNative());
-
-			if (GetCurrentScene()->getData().enablePhsyics3D && object.hasComponent<Stulu::RigidbodyComponent>()) {
-				object.getComponent<Stulu::RigidbodyComponent>().syncTransform();
-			}
 		}
 
 		static inline void getRotation(uint64_t go, struct Quaternion* rot) {
@@ -48,10 +44,6 @@ namespace StuluBindings {
 		static inline void setRotation(uint64_t go, struct Quaternion* rot) {
 			Stulu::GameObject object = Stulu::GameObject((entt::entity)go, GetCurrentScene());
 			object.getComponent<Stulu::TransformComponent>().SetRotation(rot->toNative());
-
-			if (GetCurrentScene()->getData().enablePhsyics3D && object.hasComponent<Stulu::RigidbodyComponent>()) {
-				object.getComponent<Stulu::RigidbodyComponent>().syncTransform();
-			}
 		}
 
 		static inline void getScale(uint64_t go, struct Vector3* scale) {

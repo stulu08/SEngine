@@ -10,6 +10,7 @@ namespace Stulu {
 	SceneCamera::SceneCamera(float aspectRatio, float fov, float zNear, float zFar, uint32_t samples)
 		:m_aspectRatio(aspectRatio), m_fov(fov), m_zNear(zNear), m_zFar(zFar), m_cam(CameraMode::Perspective, FrameBufferSpecs(1, 1, samples)) {
 		m_cam.SetPrespective(m_fov, m_aspectRatio, m_zNear, m_zFar);
+		m_transform.SetUpdatePhysics(false);
 	}
 	void SceneCamera::onUpdate(Timestep timestep) {
 		m_mouseDelta = Input::getMouseDelta() * 0.003f;

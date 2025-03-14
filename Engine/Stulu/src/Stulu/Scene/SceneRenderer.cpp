@@ -77,20 +77,17 @@ namespace Stulu {
 		const glm::mat4& proj = cameraComp.GetProjection();
 
 		Ref<SkyBox> camSkyBoxTexture = nullptr;
-		uint32_t camSkyBoxMapType = 0;
 		glm::mat4 skyboxRotation = glm::mat4(1.0f);
 		if (cameraComp.gameObject.IsValid()) {
 			if (cameraComp.GetClearType() == ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
 				auto& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
 				camSkyBoxTexture = s.texture;
-				camSkyBoxMapType = (uint32_t)s.mapType;
 				skyboxRotation = Math::createMat4(glm::vec3(.0f), glm::quat(glm::radians(s.rotation)), glm::vec3(1.0f));
 			}
 		}
 		
 		//upload shader scene data
 		m_sceneBufferData.env_lod = m_scene->getData().graphicsData.env_lod;
-		m_sceneBufferData.skyboxMapType = camSkyBoxMapType;
 		m_sceneBufferData.useSkybox = camSkyBoxTexture != nullptr;
 		m_sceneBufferData.shaderFlags = m_scene->getData().shaderFlags;
 		m_sceneBufferData.skyBoxRotation = skyboxRotation;

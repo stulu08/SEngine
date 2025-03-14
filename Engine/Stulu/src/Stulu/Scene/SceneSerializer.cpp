@@ -106,7 +106,6 @@ namespace Stulu {
 		BEGIN_SERIALIZE_COMPONENT(SkyBoxComponent);
 		{
 			SERIALIZE_PROPERTY(SerializedSkyBoxComponent, rotation);
-			SERIALIZE_ENUMPROP(SerializedSkyBoxComponent, mapType);
 			SERIALIZE_TEXTURE(SerializedSkyBoxComponent, texture);
 		}
 		END_SERIALIZE_COMPONENT();
@@ -375,7 +374,6 @@ namespace Stulu {
 					{
 						DESERIALIZE_SKYBOX(AddedSkyBoxComponent, texture);
 						DESERIALIZE_PROPERTY(AddedSkyBoxComponent, rotation);
-						DESERIALIZE_ENUMPROP(AddedSkyBoxComponent, mapType);
 					}
 					END_DESERIALIZE_COMPONENT();
 

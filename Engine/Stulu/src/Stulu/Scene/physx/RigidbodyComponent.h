@@ -21,9 +21,6 @@ namespace Stulu {
 		void setPosition(glm::vec3 position);
 		void setTransform(glm::vec3 position, glm::quat rotation);
 
-		void syncTransform();
-		void syncTransform(const std::vector<entt::entity>& childs);
-
 		void* getRuntimeBody() { return body; }
 
 		void updateFlags();
