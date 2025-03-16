@@ -112,58 +112,51 @@ namespace Stulu {
 
 		BEGIN_SERIALIZE_COMPONENT(BoxColliderComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, dynamicFriction);
-			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, staticFriction);
-			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, restitution);
-			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, size);
-			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, offset);
+			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, PhysicsMaterial);
+			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, Size);
+			SERIALIZE_PROPERTY(SerializedBoxColliderComponent, Offset);
 		}
 		END_SERIALIZE_COMPONENT();
 
 		BEGIN_SERIALIZE_COMPONENT(SphereColliderComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, dynamicFriction);
-			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, staticFriction);
-			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, restitution);
-			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, radius);
-			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, offset);
+			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, PhysicsMaterial);
+			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, Radius);
+			SERIALIZE_PROPERTY(SerializedSphereColliderComponent, Offset);
 		}
 		END_SERIALIZE_COMPONENT();
 
 		BEGIN_SERIALIZE_COMPONENT(CapsuleColliderComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, dynamicFriction);
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, staticFriction);
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, restitution);
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, radius);
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, height);
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, offset);
-			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, horizontal);
+			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, PhysicsMaterial);
+			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Radius);
+			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Height);
+			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Offset);
+			SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Horizontal);
 		}
 		END_SERIALIZE_COMPONENT();
 
 		BEGIN_SERIALIZE_COMPONENT(MeshColliderComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedMeshColliderComponent, dynamicFriction);
-			SERIALIZE_PROPERTY(SerializedMeshColliderComponent, staticFriction);
-			SERIALIZE_PROPERTY(SerializedMeshColliderComponent, restitution);
-			SERIALIZE_PROPERTY(SerializedMeshColliderComponent, convex);
-			SERIALIZE_MESH(SerializedMeshColliderComponent, mesh);
+			SERIALIZE_PROPERTY(SerializedMeshColliderComponent, PhysicsMaterial);
+			SERIALIZE_PROPERTY(SerializedMeshColliderComponent, Convex);
+			SERIALIZE_MESH(SerializedMeshColliderComponent, Mesh);
 		}
 		END_SERIALIZE_COMPONENT();
 
 		BEGIN_SERIALIZE_COMPONENT(RigidbodyComponent);
 		{
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, useGravity);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, rotationX);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, rotationY);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, moveX);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, moveY);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, moveZ);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, kinematic);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, retainAccelaration);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, mass);
-			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, massCenterPos);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, UseGravity);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationX);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationY);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationZ);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveX);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveY);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveZ);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, Kinematic);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RetainAccelaration);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, Mass);
+			SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MassCenterPosition);
 		}
 		END_SERIALIZE_COMPONENT();
 
@@ -379,72 +372,52 @@ namespace Stulu {
 
 					BEGIN_DESERIALIZE_COMPONENT(BoxColliderComponent);
 					{
-						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, dynamicFriction);
-						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, staticFriction);
-						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, restitution);
-						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, size);
-						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, offset);
+						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, PhysicsMaterial);
+						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, Size);
+						DESERIALIZE_PROPERTY(AddedBoxColliderComponent, Offset);
 					}
 					END_DESERIALIZE_COMPONENT();
 
 					BEGIN_DESERIALIZE_COMPONENT(SphereColliderComponent);
 					{
-						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, dynamicFriction);
-						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, staticFriction);
-						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, restitution);
-						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, radius);
-						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, offset);
+						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, PhysicsMaterial);
+						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, Radius);
+						DESERIALIZE_PROPERTY(AddedSphereColliderComponent, Offset);
 					}
 					END_DESERIALIZE_COMPONENT();
 
 					BEGIN_DESERIALIZE_COMPONENT(CapsuleColliderComponent);
 					{
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, dynamicFriction);
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, staticFriction);
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, restitution);
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, radius);
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, height);
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, offset);
-						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, horizontal);
+						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, PhysicsMaterial);
+						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Radius);
+						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Height);
+						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Offset);
+						DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Horizontal);
 					}
 					END_DESERIALIZE_COMPONENT();
 
 					BEGIN_DESERIALIZE_COMPONENT(MeshColliderComponent);
 					{
-						DESERIALIZE_PROPERTY(AddedMeshColliderComponent, dynamicFriction);
-						DESERIALIZE_PROPERTY(AddedMeshColliderComponent, staticFriction);
-						DESERIALIZE_PROPERTY(AddedMeshColliderComponent, restitution);
-						DESERIALIZE_PROPERTY(AddedMeshColliderComponent, convex);
-
-						if (componentNode["mesh"]) {
-							UUID id = componentNode["mesh"].as<uint64_t>();
-							if (AssetsManager::existsAndType(id, AssetType::Mesh)) {
-								AddedMeshColliderComponent.mesh = std::any_cast<MeshAsset>(AssetsManager::get(id).data);
-
-								if (AddedMeshColliderComponent.convex && AddedMeshColliderComponent.mesh.mesh->getVerticesCount() > 255 * 3) {
-									AddedMeshColliderComponent.convexMesh = createRef<Mesh>(Mesh::copyAndLimit(AddedMeshColliderComponent.mesh.mesh, 255 * 3));
-								}
-								else {
-									AddedMeshColliderComponent.convexMesh = AddedMeshColliderComponent.mesh.mesh;
-								}
-							}
-						}
+						DESERIALIZE_PROPERTY(AddedMeshColliderComponent, PhysicsMaterial);
+						DESERIALIZE_PROPERTY(AddedMeshColliderComponent, Convex);
+						DESERIALIZE_MESH(AddedMeshColliderComponent, Mesh);
+						AddedMeshColliderComponent.BuildConvex();
 					}
 					END_DESERIALIZE_COMPONENT();
 
 					BEGIN_DESERIALIZE_COMPONENT(RigidbodyComponent);
 					{
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, useGravity);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, rotationX);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, rotationY);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, rotationZ);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, moveX);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, moveY);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, moveZ);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, kinematic);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, retainAccelaration);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, mass);
-						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, massCenterPos);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, UseGravity);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationX);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationY);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationZ);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveX);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveY);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveZ);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, Kinematic);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RetainAccelaration);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, Mass);
+						DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MassCenterPosition);
 					}
 					END_DESERIALIZE_COMPONENT();
 

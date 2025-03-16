@@ -43,8 +43,8 @@ GameObjects:
       dynamicFriction: 0.600000024
       staticFriction: 0.600000024
       restitution: 0
-      convex: false
-      mesh: 402
+      Convex: false
+      Mesh: 402
   - GameObject: 2
     GameObjectBaseComponent:
       tag: default

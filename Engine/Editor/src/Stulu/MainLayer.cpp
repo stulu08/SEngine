@@ -136,8 +136,8 @@ namespace Editor {
 				//draw object to stencil buffer with 0x1
 				{
 					RenderCommand::setStencil(StencilMode::WriteToBuffer);
-					MeshFilterComponent meshFilter;
-					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
+					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
+						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
 						if (meshFilter.mesh.hasMesh) {
 							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
 						}
@@ -153,8 +153,8 @@ namespace Editor {
 						return tc.GetWorldScale() + (scaleAdd * tc.GetWorldScale());
 						};
 
-					MeshFilterComponent meshFilter;
-					if (selected.hasComponent<MeshRendererComponent>() && selected.saveGetComponent<MeshFilterComponent>(meshFilter)) {
+					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
+						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
 						if (meshFilter.mesh.hasMesh) {
 							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
 						}
@@ -243,49 +243,50 @@ namespace Editor {
 
 		}
 		//colliders
-		BoxColliderComponent boxCollider;
-		if (selected.saveGetComponent<BoxColliderComponent>(boxCollider)) {
-			glm::vec3 position = tc.GetWorldPosition() + boxCollider.offset;
-			glm::vec3 scale = tc.GetWorldScale() * (boxCollider.size * 2.0f);
+		if (selected.hasComponent<BoxColliderComponent>()) {
+			BoxColliderComponent& boxCollider = selected.getComponent<BoxColliderComponent>();
+
+			glm::vec3 position = tc.GetWorldPosition() + boxCollider.GetOffset();
+			glm::vec3 scale = tc.GetWorldScale() * (boxCollider.GetSize() * 2.0f);
 			glm::mat4 transform = Math::createMat4(position, tc.GetWorldRotation(), scale);
 
 			Gizmo::drawOutlineCube(transform, COLOR_GREEN);
 		}
-		SphereColliderComponent sphereCollider;
-		if (selected.saveGetComponent<SphereColliderComponent>(sphereCollider)) {
-			glm::vec3 position = tc.GetWorldPosition() + sphereCollider.offset;
-			glm::vec3 scale = tc.GetWorldScale() * (sphereCollider.radius * 2.0f);
+		if (selected.hasComponent<SphereColliderComponent>()) {
+			SphereColliderComponent& sphereCollider = selected.getComponent<SphereColliderComponent>();
+			glm::vec3 position = tc.GetWorldPosition() + sphereCollider.GetOffset();
+			glm::vec3 scale = tc.GetWorldScale() * (sphereCollider.GetRadius() * 2.0f);
 
 			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
 			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(90.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
 			Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, 90.0f, .0f))), scale), COLOR_GREEN, .02f);
 		}
 		RenderCommand::setWireFrame(true);
-		CapsuleColliderComponent capsuleCollider;
-		if (selected.saveGetComponent<CapsuleColliderComponent>(capsuleCollider)) {
-			glm::vec3 position = tc.GetWorldPosition() + capsuleCollider.offset;
+		if (selected.hasComponent<CapsuleColliderComponent>()) {
+			CapsuleColliderComponent& capsuleCollider = selected.getComponent<CapsuleColliderComponent>();
+			glm::vec3 position = tc.GetWorldPosition() + capsuleCollider.GetOffset();
 			glm::vec3 scale;
-			if (capsuleCollider.horizontal)
-				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.radius, capsuleCollider.height / 2.0f, capsuleCollider.radius));
+			if (capsuleCollider.GetHorizontal())
+				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.GetRadius(), capsuleCollider.GetHeight() / 2.0f, capsuleCollider.GetRadius()));
 			else
-				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.height / 2.0f, capsuleCollider.radius, capsuleCollider.radius));
+				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.GetHeight() / 2.0f, capsuleCollider.GetRadius(), capsuleCollider.GetRadius()));
 
 			Renderer::submit(Stulu::Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
 				Resources::GetHighliteShader(),
 				Math::createMat4(position, tc.GetWorldRotation(), scale));
 		}
-		MeshColliderComponent meshCollider;
-		if (selected.saveGetComponent<MeshColliderComponent>(meshCollider)) {
+		if (selected.hasComponent<MeshColliderComponent>()) {
+			MeshColliderComponent& meshCollider = selected.getComponent<MeshColliderComponent>();
 			glm::vec3 position = tc.GetWorldPosition();
 			glm::vec3 scale = tc.GetWorldScale();
 
-			if (meshCollider.mesh.hasMesh) {
-				if (meshCollider.convex && meshCollider.convexMesh)
-					Renderer::submit(meshCollider.convexMesh->getVertexArray(),
+			if (meshCollider.GetMesh().hasMesh) {
+				if (meshCollider.GetConvex() && meshCollider.GetConvexMesh())
+					Renderer::submit(meshCollider.GetConvexMesh()->getVertexArray(),
 						Resources::GetHighliteShader(),
 						Math::createMat4(position, tc.GetWorldRotation(), scale));
 				else
-					Renderer::submit(meshCollider.mesh.mesh->getVertexArray(),
+					Renderer::submit(meshCollider.GetMesh().mesh->getVertexArray(),
 						Resources::GetHighliteShader(),
 						Math::createMat4(position, tc.GetWorldRotation(), scale));
 			}

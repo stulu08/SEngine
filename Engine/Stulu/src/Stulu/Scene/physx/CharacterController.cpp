@@ -14,7 +14,7 @@ namespace Stulu {
             return;
         physx::PxController* controller = (physx::PxController*)this->controller;
         controller->setPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
-        controller->setUpDirection(PhysicsVec3fromglmVec3(up));
+        controller->setUpDirection(Vec3ToPhysX(up));
     }
 	void CharacterController::update(const glm::vec3& pos, const glm::vec3& up) {
         if (!controller)
@@ -23,7 +23,7 @@ namespace Stulu {
         physx::PxCapsuleController* controller = (physx::PxCapsuleController*)con;
 
         controller->setPosition(physx::PxExtendedVec3(pos.x, pos.y, pos.z));
-        controller->setUpDirection(PhysicsVec3fromglmVec3(up));
+        controller->setUpDirection(Vec3ToPhysX(up));
 
         controller->setHeight(height);
         controller->setRadius(radius);
@@ -37,7 +37,7 @@ namespace Stulu {
         controller->setNonWalkableMode((physx::PxControllerNonWalkableMode::Enum)((int)nonWalkAbleMode));
         controller->setClimbingMode((physx::PxCapsuleClimbingMode::Enum)((int)climbingMode));
 	}
-    void CharacterController::destroy() {
+    void CharacterController::Destroy() {
 
     }
 }

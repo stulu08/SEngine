@@ -10,7 +10,9 @@ namespace Stulu
 	/// How a camera shoul clear the screen
 	/// </summary>
 	public enum ClearType { 
+		/// Clear using a color
 		Color = 0, 
+		/// Clear using the skybox component of the camera object
 		Skybox = 1 
 	};
 

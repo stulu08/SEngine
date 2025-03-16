@@ -32,6 +32,20 @@ namespace StuluBindings {
 
 		glm::quat toNative() { return glm::quat(w, x, y, z); }
 		glm::quat toNative_s() { return glm::quat(w, x, y, z); }
+
+		static inline void FromEuler(struct Quaternion* outQuat, struct Vector3* euler) {
+			glm::quat quat = Stulu::Math::EulerToQuaternion(euler->toNative());
+			outQuat->w = quat.w;
+			outQuat->x = quat.x;
+			outQuat->y = quat.y;
+			outQuat->z = quat.z;
+		}
+		static inline void ToEuler(struct Quaternion* quat, struct Vector3* outEuler) {
+			glm::vec3 euler = Stulu::Math::QuaternionToEuler(quat->toNative());
+			outEuler->x = euler.x;
+			outEuler->y = euler.y;
+			outEuler->z = euler.z;
+		}
 	};
 	struct Matrix4 {
 		float D00, D10, D20, D30;  // Column 0

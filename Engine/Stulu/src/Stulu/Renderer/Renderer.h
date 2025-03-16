@@ -62,7 +62,6 @@ namespace Stulu{
 		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t count = 0);
 
 		static void uploadCameraBufferData(const CameraBufferData& data);
-		static void uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& transform, float z_near = 0, float z_far = 1000);
 		static void uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation, float z_near = 0, float z_far = 1000);
 		
 		static void uploadBufferData(BufferBinding buffer, const void* data, uint32_t size, uint32_t offset = 0);

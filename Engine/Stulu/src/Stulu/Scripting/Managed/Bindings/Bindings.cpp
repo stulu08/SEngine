@@ -92,6 +92,9 @@ namespace StuluBindings {
 		add_call("texture2d_getWhiteTexture()", Texture2D::getWhite);
 		add_call("texture2d_getBlackTexture()", Texture2D::getBlack);
 
+		add_call("quaternion_fromEuler(Stulu.Quaternion&,Stulu.Vector3&)", Quaternion::FromEuler);
+		add_call("quaternion_toEuler(Stulu.Quaternion&,Stulu.Vector3&)", Quaternion::ToEuler);
+
 		add_call("folders_assetPath()", Folders::AssetsPath);
 	}
 	void LoadComponentsBindings() {
@@ -117,7 +120,6 @@ namespace StuluBindings {
 		add_call("transformComp_getWorldPos(ulong,Stulu.Vector3&)", Transform::getWorldPos);
 		add_call("transformComp_setRotation(ulong,Stulu.Quaternion&)", Transform::setRotation);
 		add_call("transformComp_getRotation(ulong,Stulu.Quaternion&)", Transform::getRotation);
-		add_call("transformComp_getRotation(ulong,Stulu.Vector3&)", Transform::getRotationEulerDegree);
 		add_call("transformComp_getWorldRotation(ulong,Stulu.Quaternion&)", Transform::getWorldRotation);
 		add_call("transformComp_setScale(ulong,Stulu.Vector3&)", Transform::setScale);
 		add_call("transformComp_getScale(ulong,Stulu.Vector3&)", Transform::getScale);

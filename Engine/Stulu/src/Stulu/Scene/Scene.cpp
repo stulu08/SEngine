@@ -256,27 +256,7 @@ namespace Stulu {
 			PhysX::startUp();
 
 		m_physics = createScope<PhysX>(m_data.physicsData);
-
-		for (auto id : m_registry.view<BoxColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
-				object.getComponent<BoxColliderComponent>().create();
-		}
-		for (auto id : m_registry.view<SphereColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<SphereColliderComponent>().rigidbody == nullptr)
-				object.getComponent<SphereColliderComponent>().create();
-		}
-		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<CapsuleColliderComponent>().rigidbody == nullptr)
-				object.getComponent<CapsuleColliderComponent>().create();
-		}
-		for (auto id : m_registry.view<MeshColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<MeshColliderComponent>().rigidbody == nullptr)
-				object.getComponent<MeshColliderComponent>().create();
-		}
+		createPhysicsObjects();
 	}
 	void Scene::updatePhysics() {
 		if (m_firstRuntimeUpdate || Time::deltaTime == 0.0f) {
@@ -296,56 +276,39 @@ namespace Stulu {
 				}
 			}
 		}
+		createPhysicsObjects();
+
+		// only update dynamic objects
+		auto rigidbodyView = m_registry.view<RigidbodyComponent>();
+		for (auto id : rigidbodyView) {
+			GameObject object = { id, this };
+			auto& rb = object.getComponent<RigidbodyComponent>();
+			rb.ApplyTransformChanges();
+		}
+
+	}
+
+	void Scene::createPhysicsObjects() {
 		for (auto id : m_registry.view<BoxColliderComponent>()) {
 			GameObject object = { id, this };
-			if (object.getComponent<BoxColliderComponent>().rigidbody == nullptr)
-				object.getComponent<BoxColliderComponent>().create();
+			if (object.getComponent<BoxColliderComponent>().GetShape() == nullptr)
+				object.getComponent<BoxColliderComponent>().Create();
 		}
 		for (auto id : m_registry.view<SphereColliderComponent>()) {
 			GameObject object = { id, this };
-			if (object.getComponent<SphereColliderComponent>().rigidbody == nullptr)
-				object.getComponent<SphereColliderComponent>().create();
+			if (object.getComponent<SphereColliderComponent>().GetShape() == nullptr)
+				object.getComponent<SphereColliderComponent>().Create();
 		}
 		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
 			GameObject object = { id, this };
-			if (object.getComponent<CapsuleColliderComponent>().rigidbody == nullptr)
-				object.getComponent<CapsuleColliderComponent>().create();
+			if (object.getComponent<CapsuleColliderComponent>().GetShape() == nullptr)
+				object.getComponent<CapsuleColliderComponent>().Create();
 		}
 		for (auto id : m_registry.view<MeshColliderComponent>()) {
 			GameObject object = { id, this };
-			if (object.getComponent<MeshColliderComponent>().rigidbody == nullptr)
-				object.getComponent<MeshColliderComponent>().create();
+			if (object.getComponent<MeshColliderComponent>().GetShape() == nullptr)
+				object.getComponent<MeshColliderComponent>().Create();
 		}
-		auto view = m_registry.view<RigidbodyComponent>();
-		for (auto id : view) {
-			GameObject object = { id, this };
-			auto& rb = object.getComponent<RigidbodyComponent>();
-			auto& tc = object.getComponent<TransformComponent>();
-
-			if (rb.body == nullptr || !tc.IsUpdatingPhysics()) {
-				continue;
-			}
-
-			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.body);
-			physx::PxTransform tr = actor->getGlobalPose();
-			
-			glm::vec3 pos = PhysicsVec3toglmVec3(tr.p);
-			glm::quat rot = glm::quat(tr.q.w, tr.q.x, tr.q.y, tr.q.z);
-
-			// Use epsilon comparison to avoid floating-point inaccuracies
-			if (!glm::all(glm::epsilonEqual(pos, tc.GetWorldPosition(), 0.0001f)) ||
-				!glm::all(glm::epsilonEqual(glm::vec3(rot.x, rot.y, rot.z), glm::vec3(tc.GetWorldRotation().x, tc.GetWorldRotation().y, tc.GetWorldRotation().z), 0.0001f)))
-			{
-				// dont double update
-				tc.SetUpdatePhysics(false);
-
-				tc.SetWorldPosition(pos);
-				tc.SetWorldRotation(rot);
-
-				tc.SetUpdatePhysics(true);
-			}
-		}
-
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {

@@ -89,11 +89,6 @@ namespace Stulu {
 	void Renderer::uploadCameraBufferData(const CameraBufferData& data) {
 		uploadBufferData(BufferBinding::Camera, &data, sizeof(data), 0);
 	}
-	void Renderer::uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& transform, float z_near, float z_far) {
-		glm::vec3 pos, rot, scale;
-		Math::decomposeTransformEuler(transform, pos, rot, scale);
-		uploadCameraBufferData(projection, glm::inverse(transform), pos, rot, z_near, z_far);
-	}
 	void Renderer::uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation, float z_near, float z_far) {
 		static CameraBufferData cameraData;
 		cameraData.viewMatrix = view;

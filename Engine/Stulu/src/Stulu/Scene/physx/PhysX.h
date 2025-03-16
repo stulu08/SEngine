@@ -1,11 +1,15 @@
 #pragma once
 #include "Stulu/Core/Core.h"
 #include "Stulu/Math/Math.h"
+
+
 namespace physx {
     class PxFoundation;
     class PxPvd;
     class PxPhysics;
     class PxScene;
+    class PxShape;
+    class PxRigidDynamic;
     class PxTolerancesScale;
     class PxDefaultCpuDispatcher;
     class PxCudaContextManager;
@@ -13,27 +17,26 @@ namespace physx {
     class PxVec3;
     class PxQuat;
     class PxRigidActor;
+    class PxRigidStatic;
     class PxTriangleMesh;
     class PxConvexMesh;
     class PxCooking;
     class PxControllerManager;
     class PxController;
 }
-#define ST_DEFAULT_PHYSX_MATERIAL_STATIC_FRICTION .6f
-#define ST_DEFAULT_PHYSX_MATERIAL_DYNAMIC_FRICTION .6f
-#define ST_DEFAULT_PHYSX_MATERIAL_RESTITUTION .0f
+
 namespace Stulu{
     class STULU_API TransformComponent;
     class STULU_API RigidbodyComponent;
     class STULU_API CharacterController;
     class STULU_API Mesh;
-    STULU_API physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec);
-    STULU_API glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec);
 
-    STULU_API physx::PxQuat PhysicsQuatfromglmQuat(const glm::quat& quat);
-    STULU_API glm::vec3 PhysicsQuattoglmVec3(const physx::PxQuat& quat);
 
-    STULU_API physx::PxTransform PhysicsTransformfromTransformComponent(const glm::mat4& transform);
+    STULU_API physx::PxVec3 Vec3ToPhysX(const glm::vec3& vec);
+    STULU_API glm::vec3 PhysXToVec3(const physx::PxVec3& vec);
+
+    STULU_API physx::PxQuat QuatToPhysX(const glm::quat& quat);
+    STULU_API glm::quat PhysXToQuat(const physx::PxQuat& quat);
 
     struct PhysicsData {
         float speed = 9.81f;
@@ -41,6 +44,7 @@ namespace Stulu{
         glm::vec3 gravity = { 0.f, -9.8f, 0.f };
         uint32_t workerThreads = 4;
     };
+
     class STULU_API PhysX {
     public:
         PhysX(const PhysicsData& data = PhysicsData());
@@ -54,8 +58,6 @@ namespace Stulu{
         static void startPVD();
         static void stopPVD();
 
-        physx::PxRigidActor* createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot);
-        physx::PxRigidActor* createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter = glm::vec3(.0f));
         physx::PxController* createCapsuleController(CharacterController& controller, const TransformComponent& transform);
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
         physx::PxConvexMesh* createConvexMesh(Ref<Mesh>& mesh);

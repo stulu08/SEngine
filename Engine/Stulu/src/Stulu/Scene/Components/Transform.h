@@ -92,9 +92,13 @@ namespace Stulu {
 		inline bool IsUpdatingPhysics() const { return updatePhysics && !IsStatic(); }
 
 		// In degrees
-		inline glm::vec3 GetWorldEulerRotation() const;
+		inline glm::vec3 GetWorldEulerRotation() const {
+			return Math::QuaternionToEuler(GetWorldRotation());
+		}
 		// In degrees
-		inline glm::vec3 GetEulerRotation() const;
+		inline glm::vec3 GetEulerRotation() const {
+			return Math::QuaternionToEuler(rotation);
+		}
 
 	private:
 		mutable glm::mat4 transform = glm::mat4(1.0f);
@@ -122,34 +126,8 @@ namespace Stulu {
 			}
 		}
 
-		void SyncWithPhysics();
+		void SyncWithPhysics(bool onlyPosition = false);
 	};
-
-
-	inline const glm::mat4& TransformComponent::GetWorldTransform() const {
-		if (isStatic && !dirty) {
-			return transform;
-		}
-
-		if (dirty) {
-			GameObject parent = GetParent();
-
-			if (parent.IsValid()) {
-				const glm::mat4 parentTransform = parent.getComponent<TransformComponent>().GetWorldTransform();
-				transform = parentTransform * GetLocalTransform();
-
-				Math::decomposeTransform(transform, worldPosition, worldRotation, worldScale);
-			}
-			else {
-				transform = GetLocalTransform();
-				worldPosition = position;
-				worldRotation = rotation;
-				worldScale = scale;
-			}
-			dirty = false;
-		}
-		return transform;
-	}
 
 	inline void TransformComponent::SetPosition(const glm::vec3& pos) {
 		if (isStatic) return;
@@ -158,7 +136,7 @@ namespace Stulu {
 		MarkDirty();
 
 		if (IsUpdatingPhysics()) {
-			SyncWithPhysics();
+			SyncWithPhysics(true);
 		}
 	}
 	inline void TransformComponent::SetRotation(const glm::quat& rot) {
@@ -211,23 +189,6 @@ namespace Stulu {
 		childTransform.MarkDirty();
 	}
 
-	inline glm::vec3 TransformComponent::GetWorldEulerRotation() const {
-		glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(worldRotation));
-		// Normalize angles to 0 - 360 degrees
-		if (eulerAngles.x < 0) eulerAngles.x += 360.0f;
-		if (eulerAngles.y < 0) eulerAngles.y += 360.0f;
-		if (eulerAngles.z < 0) eulerAngles.z += 360.0f;
-		return eulerAngles;
-	}
-	inline glm::vec3 TransformComponent::GetEulerRotation() const {
-		glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(rotation));
-		// Normalize angles to 0 - 360 degrees
-		if (eulerAngles.x < 0) eulerAngles.x += 360.0f;
-		if (eulerAngles.y < 0) eulerAngles.y += 360.0f;
-		if (eulerAngles.z < 0) eulerAngles.z += 360.0f;
-		return eulerAngles;
-	}
-
 	inline void TransformComponent::SetWorldPosition(const glm::vec3& newWorldPos) {
 		GameObject parent = GetParent();
 		if (parent.IsValid()) {
@@ -242,7 +203,7 @@ namespace Stulu {
 		GameObject parent = GetParent();
 		if (parent.IsValid()) {
 			auto& parentTransform = parent.getComponent<TransformComponent>();
-			SetRotation(glm::inverse(parentTransform.GetWorldRotation()) * newWorldRot);
+			SetRotation(newWorldRot * glm::inverse(parentTransform.GetWorldRotation()));
 		}
 		else {
 			SetRotation(newWorldRot);
@@ -257,5 +218,29 @@ namespace Stulu {
 		else {
 			SetScale(newWorldScale);
 		}
+	}
+	inline const glm::mat4& TransformComponent::GetWorldTransform() const {
+		if (isStatic && !dirty) {
+			return transform;
+		}
+
+		if (dirty) {
+			GameObject parent = GetParent();
+
+			if (parent.IsValid()) {
+				const glm::mat4 parentTransform = parent.getComponent<TransformComponent>().GetWorldTransform();
+				transform = parentTransform * GetLocalTransform();
+
+				Math::decomposeTransform(transform, worldPosition, worldRotation, worldScale);
+			}
+			else {
+				transform = GetLocalTransform();
+				worldPosition = position;
+				worldRotation = rotation;
+				worldScale = scale;
+			}
+			dirty = false;
+		}
+		return transform;
 	}
 }

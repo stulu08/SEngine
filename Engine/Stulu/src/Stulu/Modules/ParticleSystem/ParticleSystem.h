@@ -76,9 +76,6 @@ namespace Stulu {
 		ParticleSystemData& getData() { return data; }
 		const ParticleSystemData& getData() const { return data; }
 
-		virtual void destroy() override {
-			clear();
-		}
 		virtual void onComponentAdded(Scene* scene) override {
 			clear();
 		}

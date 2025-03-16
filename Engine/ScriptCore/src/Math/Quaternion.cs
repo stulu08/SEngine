@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 1591
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,15 +26,6 @@ namespace Stulu {
             this.Y = xyz.Y;
             this.Z = xyz.Z;
             this.W = w;
-        }
-
-        public Quaternion(Vector3 euler) {
-            Vector3 vector3_1 = Vector3.Cos(euler * 0.5f);
-            Vector3 vector3_2 = Vector3.Sin(euler * 0.5f);
-            this.W = (float)((double)vector3_1.X * (double)vector3_1.Y * (double)vector3_1.Z + (double)vector3_2.X * (double)vector3_2.Y * (double)vector3_2.Z);
-            this.X = (float)((double)vector3_2.X * (double)vector3_1.Y * (double)vector3_1.Z - (double)vector3_1.X * (double)vector3_2.Y * (double)vector3_2.Z);
-            this.Y = (float)((double)vector3_1.X * (double)vector3_2.Y * (double)vector3_1.Z + (double)vector3_2.X * (double)vector3_1.Y * (double)vector3_2.Z);
-            this.Z = (float)((double)vector3_1.X * (double)vector3_1.Y * (double)vector3_2.Z - (double)vector3_2.X * (double)vector3_2.Y * (double)vector3_1.Z);
         }
 
         public static Vector3 operator *(Quaternion q, Vector3 v) {
@@ -175,30 +167,57 @@ namespace Stulu {
             return quaternion;
         }
 		/// <summary>
-        /// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        /// </summary>
-        /// <returns> Euler angles in degrees </returns>
-		public Vector3 ToEulerAngles()
+		/// 
+		/// </summary>
+		/// <returns> Euler angles of the quatrenion (in radians) </returns>
+		public Vector3 ToEuler()
         {
-			Vector3 angles = new Vector3();
-
-			// roll (x-axis rotation)
-			double sinr_cosp = 2 * (this.w * this.x + this.y * this.z);
-			double cosr_cosp = 1 - 2 * (this.x * this.x + this.y * this.y);
-			angles.x = (float)Math.Atan2(sinr_cosp, cosr_cosp);
-
-			// pitch (y-axis rotation)
-			double sinp = Mathf.Sqrt(1 + 2 * (this.w * this.y - this.x * this.z));
-			double cosp = Mathf.Sqrt(1 - 2 * (this.w * this.y - this.x * this.z));
-            angles.y = (float)(2 * Math.Atan2(sinp, cosp) - (Math.PI / 2));
-
-			// yaw (z-axis rotation)
-			double siny_cosp = 2 * (this.w * this.z + this.x * this.y);
-			double cosy_cosp = 1 - 2 * (this.y * this.y + this.z * this.z);
-            angles.z = (float)Math.Atan2(siny_cosp, cosy_cosp);
-
-			return angles;
+			InternalCalls.quaternion_toEuler(ref this, out Vector3 euler);
+			return euler;
+			//// https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+			//Vector3 angles = new Vector3();
+			//
+			//// roll (x-axis rotation)
+			//double sinr_cosp = 2 * (this.w * this.x + this.y * this.z);
+			//double cosr_cosp = 1 - 2 * (this.x * this.x + this.y * this.y);
+			//angles.x = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+			//
+			//// pitch (y-axis rotation)
+			//double sinp = Mathf.Sqrt(1 + 2 * (this.w * this.y - this.x * this.z));
+			//double cosp = Mathf.Sqrt(1 - 2 * (this.w * this.y - this.x * this.z));
+			//angles.y = (float)(2 * Math.Atan2(sinp, cosp) - (Math.PI / 2));
+			//
+			//// yaw (z-axis rotation)
+			//double siny_cosp = 2 * (this.w * this.z + this.x * this.y);
+			//double cosy_cosp = 1 - 2 * (this.y * this.y + this.z * this.z);
+			//angles.z = (float)Math.Atan2(siny_cosp, cosy_cosp);
+			//
+			//return angles;
 		}
+        /// <summary>
+        /// Construct a Quaternion from Euler angles (in radians)
+        /// </summary>
+        public static Quaternion Euler(Vector3 euler)
+        {
+            InternalCalls.quaternion_fromEuler(out Quaternion quat, ref euler);
+            return quat;
+
+			//Vector3 vector3_1 = Vector3.Cos(euler * 0.5f);
+			//Vector3 vector3_2 = Vector3.Sin(euler * 0.5f);
+            //
+			//float W = (float)((double)vector3_1.X * (double)vector3_1.Y * (double)vector3_1.Z + (double)vector3_2.X * (double)vector3_2.Y * (double)vector3_2.Z);
+			//float X = (float)((double)vector3_2.X * (double)vector3_1.Y * (double)vector3_1.Z - (double)vector3_1.X * (double)vector3_2.Y * (double)vector3_2.Z);
+			//float Y = (float)((double)vector3_1.X * (double)vector3_2.Y * (double)vector3_1.Z + (double)vector3_2.X * (double)vector3_1.Y * (double)vector3_2.Z);
+			//float Z = (float)((double)vector3_1.X * (double)vector3_1.Y * (double)vector3_2.Z - (double)vector3_2.X * (double)vector3_2.Y * (double)vector3_1.Z);
+            //return new Quaternion(X, Y, Z, W);
+		}
+		/// <summary>
+		/// Construct a Quaternion from Euler angles (in degree)
+		/// </summary>
+		public static Quaternion EulerDegree(Vector3 euler)
+        {
+            return Quaternion.Euler(Mathf.Radians(euler));
+        }
 
         public override string ToString() => "Quaternion[" + this.X.ToString() + ", " + this.Y.ToString() + ", " + this.Z.ToString() + ", " + this.W.ToString() + "]";
 

@@ -30,7 +30,7 @@ public class SpectatorCamera : Component {
 	float nextTimeToFire = 0;
 
 	public override void onStart() {
-		mouse = Mathf.Radians(transform.eulerAngles);
+		mouse = transform.eulerAngles;
 	}
 	public override void onUpdate() {
 		if (Input.getKeyDown(KeyCode.Escape))
@@ -50,9 +50,9 @@ public class SpectatorCamera : Component {
 		Vector3 move = inputDiagonal + inputVertical + inputHorizonatl;
 		transform.position += move * MoveSpeed * (Input.getKey(accelerate) ? Acceleration : 1.0f) * Time.deltaTime;
 
-		mouse.y += Input.getMouseDelta().x * (MouseHorizontal * Time.deltaTime);
-		mouse.z -= Input.getMouseDelta().y * (MouseVertical * Time.deltaTime);
-		transform.setRotation(new Quaternion(mouse));
+		mouse.y -= Input.getMouseDelta().x * (MouseHorizontal * Time.deltaTime);
+		mouse.x -= Input.getMouseDelta().y * (MouseVertical * Time.deltaTime);
+		transform.setRotation(Quaternion.Euler(mouse));
 
 		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) {
 			if (nextTimeToFire < Time.time) {

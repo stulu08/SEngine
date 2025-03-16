@@ -11,29 +11,91 @@ Settings:
   physicsData.speed: 9.81000042
   physicsData.workerThreads: 4
 GameObjects:
-  - GameObject: 6
+  - GameObject: 0
     GameObjectBaseComponent:
       tag: default
-      name: Mount_Hood
+      name: Sphere
+    TransformComponent:
+      position: [0, 298.513458, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 2246654256457386391
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 404
+    SphereColliderComponent:
+      PhysicsMaterial: [0.600000024, 0.600000024, 0]
+      Radius: 0.5
+      Offset: [0, 0, 0]
+    RigidbodyComponent:
+      UseGravity: true
+      RotationX: true
+      RotationY: true
+      RotationZ: true
+      MoveX: true
+      MoveY: true
+      MoveZ: true
+      Kinematic: false
+      RetainAccelaration: false
+      Mass: 1
+      MassCenterPosition: [0, 0, 0]
+  - GameObject: 1
+    GameObjectBaseComponent:
+      tag: default
+      name: Cube
+    TransformComponent:
+      position: [0, 296.386078, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshRendererComponent:
+      material: 2246654256457386391
+      cullmode: 0
+    MeshFilterComponent:
+      mesh: 401
+    BoxColliderComponent:
+      PhysicsMaterial: [0.600000024, 0.600000024, 0]
+      Size: [0.5, 0.5, 0.5]
+      Offset: [0, 0, 0]
+    RigidbodyComponent:
+      UseGravity: true
+      RotationX: true
+      RotationY: true
+      RotationZ: true
+      MoveX: true
+      MoveY: true
+      MoveZ: true
+      Kinematic: false
+      RetainAccelaration: false
+      Mass: 1
+      MassCenterPosition: [0, 0, 0]
+  - GameObject: 2
+    GameObjectBaseComponent:
+      tag: default
+      name: Mount_hood
     TransformComponent:
       position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
-      scale: [0.00100000005, 0.00100000005, 0.00100000005]
-  - GameObject: 5
+      scale: [0.99999994, 1, 0.99999994]
+      parent: 6
+  - GameObject: 3
     GameObjectBaseComponent:
       tag: default
-      name: Directional Light
+      name: Terrain
     TransformComponent:
-      position: [0, -2.53458739e-13, 3.5]
-      rotation: [-0.221389756, -5.78575809e-09, 2.54854857e-08, 0.975185394]
-      scale: [1, 1, 1]
-    LightComponent:
-      color: [1, 1, 1]
-      lightType: 0
-      strength: 1
-      areaRadius: 1
-      spotLight_cutOff: 10
-      spotLight_outerCutOff: 15
+      position: [4.41762107e-28, 0, -2.1787472e-12]
+      rotation: [0, 0, 0, 1]
+      scale: [100, 100, 100]
+      parent: 2
+    MeshRendererComponent:
+      material: 11162837847377159197
+      cullmode: 2
+    MeshFilterComponent:
+      mesh: 1475112583025679647
+    MeshColliderComponent:
+      PhysicsMaterial: [0.600000024, 0.600000024, 0]
+      Convex: false
+      Mesh: 1475112583025679647
   - GameObject: 4
     GameObjectBaseComponent:
       tag: MainCam
@@ -68,92 +130,26 @@ GameObjects:
         resolutionScale: 0.5
         diffusion: 10
         maxSamples: 10
-  - GameObject: 3
+  - GameObject: 5
     GameObjectBaseComponent:
       tag: default
-      name: Terrain
+      name: Directional Light
     TransformComponent:
-      position: [4.41762107e-28, 0, -2.1787472e-12]
-      rotation: [0, 0, 0.707106769, 0.707106769]
-      scale: [100, 100, 100]
-      parent: 2
-    MeshRendererComponent:
-      material: 11162837847377159197
-      cullmode: 2
-    MeshFilterComponent:
-      mesh: 1475112583025679647
-    MeshColliderComponent:
-      dynamicFriction: 0.600000024
-      staticFriction: 0.600000024
-      restitution: 0
-      convex: false
-      mesh: 1475112583025679647
-  - GameObject: 2
+      position: [0, -2.53458739e-13, 3.5]
+      rotation: [-0.221389756, -5.78575809e-09, 2.54854857e-08, 0.975185394]
+      scale: [1, 1, 1]
+    LightComponent:
+      color: [1, 1, 1]
+      lightType: 0
+      strength: 1
+      areaRadius: 1
+      spotLight_cutOff: 10
+      spotLight_outerCutOff: 15
+  - GameObject: 6
     GameObjectBaseComponent:
       tag: default
-      name: Mount_hood
+      name: Mount_Hood
     TransformComponent:
       position: [0, 0, 0]
-      rotation: [0, 0.704627693, 0, 0.709577203]
-      scale: [0.99999994, 1, 0.99999994]
-      parent: 6
-  - GameObject: 1
-    GameObjectBaseComponent:
-      tag: default
-      name: Cube
-    TransformComponent:
-      position: [0, 296.386078, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    MeshRendererComponent:
-      material: 2246654256457386391
-      cullmode: 0
-    MeshFilterComponent:
-      mesh: 401
-    BoxColliderComponent:
-      dynamicFriction: 0.600000024
-      staticFriction: 0.600000024
-      restitution: 0
-      size: [0.5, 0.5, 0.5]
-      offset: [0, 0, 0]
-    RigidbodyComponent:
-      useGravity: true
-      rotationX: true
-      rotationY: true
-      moveX: true
-      moveY: true
-      moveZ: true
-      kinematic: false
-      retainAccelaration: false
-      mass: 1
-      massCenterPos: [0, 0, 0]
-  - GameObject: 0
-    GameObjectBaseComponent:
-      tag: default
-      name: Sphere
-    TransformComponent:
-      position: [0, 298.513458, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-    MeshRendererComponent:
-      material: 2246654256457386391
-      cullmode: 0
-    MeshFilterComponent:
-      mesh: 404
-    SphereColliderComponent:
-      dynamicFriction: 0.600000024
-      staticFriction: 0.600000024
-      restitution: 0
-      radius: 0.5
-      offset: [0, 0, 0]
-    RigidbodyComponent:
-      useGravity: true
-      rotationX: true
-      rotationY: true
-      moveX: true
-      moveY: true
-      moveZ: true
-      kinematic: false
-      retainAccelaration: false
-      mass: 1
-      massCenterPos: [0, 0, 0]
+      rotation: [-0.707106769, 0, 0, 0.707106769]
+      scale: [0.00100000005, 0.00100000005, 0.00100000005]

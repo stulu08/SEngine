@@ -129,6 +129,7 @@ namespace StuluBindings {
 			tc.position = position.toNative_s();
 
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getSphereMeshAsset();
+			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::SphereColliderComponent>();
 			return (uint64_t)go.GetID();
 		}
@@ -140,6 +141,7 @@ namespace StuluBindings {
 			tc.position = position.toNative_s();
 
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCubeMeshAsset();
+			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::BoxColliderComponent>();
 			return (uint64_t)go.GetID();
 		}
@@ -150,6 +152,7 @@ namespace StuluBindings {
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCapsuleMeshAsset();
+			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::CapsuleColliderComponent>();
 			return (uint64_t)go.GetID();
 		}
@@ -161,7 +164,8 @@ namespace StuluBindings {
 			tc.position = position.toNative_s();
 
 			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
-			go.addComponent<Stulu::MeshColliderComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
+			go.addComponent<Stulu::RigidbodyComponent>();
+			go.addComponent<Stulu::MeshColliderComponent>().SetMesh(Stulu::Resources::getPlaneMeshAsset());
 			return (uint64_t)go.GetID();
 		}
 		static inline void destroy(uint64_t id) {

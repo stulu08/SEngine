@@ -42,75 +42,18 @@ namespace Stulu {
     } gGpuLoadHook;
 
 
-    physx::PxVec3 PhysicsVec3fromglmVec3(const glm::vec3& vec) {
+    physx::PxVec3 Vec3ToPhysX(const glm::vec3& vec) {
         return physx::PxVec3{ vec.x,vec.y,vec.z };
     }
-    glm::vec3 PhysicsVec3toglmVec3(const physx::PxVec3& vec) {
+    glm::vec3 PhysXToVec3(const physx::PxVec3& vec) {
         return glm::vec3{ vec.x,vec.y,vec.z };
     }
    
-    physx::PxQuat PhysicsQuatfromglmQuat(const glm::quat& quat) {
+    physx::PxQuat QuatToPhysX(const glm::quat& quat) {
         return physx::PxQuat(quat.x,quat.y,quat.z,quat.w);
     }
-    glm::vec3 PhysicsQuattoglmVec3(const physx::PxQuat& quat) {
-        glm::vec3 rotation;
-        // From glm::decompose in matrix_decompose.inl
-
-        using namespace glm;
-        using T = float;
-
-        mat4 LocalMatrix(toMat4(glm::quat(quat.w,quat.x,quat.y,quat.z)));
-
-        // Normalize the matrix.
-        //if (epsilonEqual(LocalMatrix[3][3], static_cast<float>(0), epsilon<T>()))
-        //    return false;
-
-        // First, isolate perspective.  This is the messiest.
-        if (
-            epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
-            epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
-            epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
-        {
-            // Clear the perspective partition
-            LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
-            LocalMatrix[3][3] = static_cast<T>(1);
-        }
-
-        // Next take care of translation (easy).
-        //translation = vec3(LocalMatrix[3]);
-        //LocalMatrix[3] = vec4(0, 0, 0, LocalMatrix[3].w);
-
-        vec3 Row[3];
-
-        // Now get scale and shear.
-        for (length_t i = 0; i < 3; ++i)
-            for (length_t j = 0; j < 3; ++j)
-                Row[i][j] = LocalMatrix[i][j];
-
-        // Compute X scale factor and normalize first row.
-        //scale.x = length(Row[0]);
-        Row[0] = detail::scale(Row[0], static_cast<T>(1));
-        //scale.y = length(Row[1]);
-        Row[1] = detail::scale(Row[1], static_cast<T>(1));
-        //scale.z = length(Row[2]);
-        Row[2] = detail::scale(Row[2], static_cast<T>(1));
-
-        rotation.y = asin(-Row[0][2]);
-        if (cos(rotation.y) != 0) {
-            rotation.x = atan2(Row[1][2], Row[2][2]);
-            rotation.z = atan2(Row[0][1], Row[0][0]);
-        }
-        else {
-            rotation.x = atan2(-Row[2][0], Row[1][1]);
-            rotation.z = 0;
-        }
-        return rotation;
-    }
-    
-    physx::PxTransform PhysicsTransformfromTransformComponent(const glm::mat4& transform) {
-        glm::vec3 position, rotation, scale;
-        Math::decomposeTransformEuler(transform, position, rotation, scale);
-        return physx::PxTransform(PhysicsVec3fromglmVec3(position), PhysicsQuatfromglmQuat(rotation));
+    glm::quat PhysXToQuat(const physx::PxQuat& quat) {
+        return glm::quat(quat.w, quat.x, quat.y, quat.z);
     }
     
     class UserErrorCallback : public physx::PxErrorCallback {
@@ -207,7 +150,7 @@ namespace Stulu {
 
         sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
         sceneDesc.cpuDispatcher = m_cpuDispatcher;
-        sceneDesc.gravity = PhysicsVec3fromglmVec3(data.gravity);
+        sceneDesc.gravity = Vec3ToPhysX(data.gravity);
         sceneDesc.flags |= physx::PxSceneFlag::eENABLE_PCM;
         sceneDesc.flags |= physx::PxSceneFlag::eENABLE_STABILIZATION;
 
@@ -293,40 +236,11 @@ namespace Stulu {
         }
     }
     
-    physx::PxRigidActor* PhysX::createActor(RigidbodyComponent& rb, const glm::vec3& pos, const glm::quat& rot) {
-        physx::PxRigidActor* actor;
-        actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-        actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !rb.useGravity);
-        physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
-        mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, rb.kinematic);
-        if (!rb.kinematic) {
-            mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, rb.retainAccelaration);
-        }
-        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, !rb.rotationX);
-        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, !rb.rotationY);
-        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, !rb.rotationZ);
-        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, !rb.moveX);
-        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, !rb.moveY);
-        mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, !rb.moveZ);
-
-        physx::PxRigidBodyExt::updateMassAndInertia(*mactor, rb.mass, &PhysicsVec3fromglmVec3(rb.massCenterPos));
-        rb.body = (void*)actor;
-        return actor;
-    }
-    physx::PxRigidActor* PhysX::createActor(float mass, bool kinematic, bool gravity, const glm::vec3& pos, const glm::quat& rot, const glm::vec3& massLocalCenter) {
-        physx::PxRigidActor* actor;
-        actor = m_physics->createRigidDynamic(physx::PxTransform(PhysicsVec3fromglmVec3(pos), PhysicsQuatfromglmQuat(rot)));
-        actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !gravity);
-        physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
-        mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, kinematic);
-        physx::PxRigidBodyExt::updateMassAndInertia(*mactor, mass, &PhysicsVec3fromglmVec3(massLocalCenter));
-        return actor;
-    }
     physx::PxController* PhysX::createCapsuleController(CharacterController& contr, const TransformComponent& transform) {
         physx::PxCapsuleControllerDesc desc;
 
         desc.position = physx::PxExtendedVec3(transform.GetWorldPosition().x, transform.GetWorldPosition().y, transform.GetWorldPosition().z);
-        desc.upDirection = PhysicsVec3fromglmVec3(transform.GetUp());
+        desc.upDirection = Vec3ToPhysX(transform.GetUp());
 
         desc.height = contr.height;
         desc.radius = contr.radius;
@@ -338,7 +252,8 @@ namespace Stulu {
         desc.nonWalkableMode = (physx::PxControllerNonWalkableMode::Enum)((int)contr.nonWalkAbleMode);
         desc.climbingMode = (physx::PxCapsuleClimbingMode::Enum)((int)contr.climbingMode);
         
-        desc.material = m_physics->createMaterial(contr.material_staticFriction, contr.material_dynamicFriction, contr.material_restitution);
+        contr.material.CreateMaterial(this);
+        desc.material = contr.material.GetMaterial();
         
         desc.invisibleWallHeight = contr.m_invisibleWallHeight;
         desc.maxJumpHeight = contr.m_maxJumpHeight;

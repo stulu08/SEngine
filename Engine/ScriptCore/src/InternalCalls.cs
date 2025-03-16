@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Runtime.CompilerServices;
 
 namespace Stulu {
@@ -98,8 +99,6 @@ namespace Stulu {
 		internal extern static void transformComp_setRotation(ulong entityId, ref Quaternion rotation);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void transformComp_getRotation(ulong entityId, out Quaternion rotation);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void transformComp_getRotation(ulong entityId, out Vector3 eulerAngles);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void transformComp_getWorldRotation(ulong entityId, out Quaternion rotation);
 
@@ -228,6 +227,13 @@ namespace Stulu {
 		internal extern static void cameraComp_update(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static float cameraComp_aspect(ulong entityId);
+		#endregion
+		#region Quaternion
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float quaternion_fromEuler(out Quaternion outQuat, ref Vector3 euler);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float quaternion_toEuler(ref Quaternion quat, out Vector3 outEuler);
+
 		#endregion
 	}
 }

@@ -50,29 +50,12 @@ namespace Stulu {
 			return m_scene->m_registry.get<T>(m_entity);
 		}
 		template<typename T>
-		inline bool saveGetComponent(T& t) const {
-			if (m_scene->m_registry.storage<T>().contains(m_entity)) {
-				t = m_scene->m_registry.get<T>(m_entity);
-				return true;
-			}
-			return false;
-		}
-		template<typename T>
 		inline bool removeComponent() {
 			if (!hasComponent<T>()) {
 				CORE_ERROR("GameObject does not have component");
 				return false;
 			}
-			m_scene->onComponentRemove<T>(*this, getComponent<T>());
-			m_scene->m_registry.remove<T>(m_entity);
-			return true;
-		}
-		template<typename T>
-		inline bool saveRemoveComponent() {
-			if (!hasComponent<T>()) {
-				return false;
-			}
-			m_scene->onComponentRemove<T>(*this, getComponent<T>());
+			m_scene->onComponentRemove<T>(*this, m_scene->m_registry.get<T>(m_entity));
 			m_scene->m_registry.remove<T>(m_entity);
 			return true;
 		}

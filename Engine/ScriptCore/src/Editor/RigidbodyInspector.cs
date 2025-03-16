@@ -13,7 +13,7 @@ namespace Editor
 			if (rigidbody == null) return;
 			
 			bool kinematic = rigidbody.kinematic;
-			if (ImGui.Bool("Mass", ref kinematic))
+			if (ImGui.Bool("Kinematic", ref kinematic))
 			{
 				rigidbody.kinematic = kinematic;
 			}

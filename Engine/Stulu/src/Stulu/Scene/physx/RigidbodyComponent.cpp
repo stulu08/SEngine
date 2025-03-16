@@ -7,72 +7,260 @@
 #include "PxPhysicsAPI.h"
 
 namespace Stulu {
-	RigidbodyComponent::RigidbodyComponent(void* body) {
-		this->body = body;
+	inline bool RigidActorComponent::RuntimeCanChange() const {
+		return RuntimeValid() && gameObject.getScene()->PhysicsEnable();
 	}
-	void RigidbodyComponent::destroy() {
-		if (body) {
-			if(gameObject.hasComponent<BoxColliderComponent>())
-				gameObject.getComponent<BoxColliderComponent>().destroy();
-			else if (gameObject.hasComponent<SphereColliderComponent>())
-				gameObject.getComponent<SphereColliderComponent>().destroy();
-			else if (gameObject.hasComponent<CapsuleColliderComponent>())
-				gameObject.getComponent<CapsuleColliderComponent>().destroy();
-			else if (gameObject.hasComponent<MeshColliderComponent>())
-				gameObject.getComponent<MeshColliderComponent>().destroy();
+    void RigidActorComponent::Release() {
+        if (!gameObject) {
+            m_actor = nullptr;
+            return;
+        }
 
-			gameObject.getScene()->getPhysics()->getScene()->removeActor(*((physx::PxActor*)body), false);
-			((physx::PxActor*)body)->isReleasable() ? ((physx::PxActor*)body)->release() : 0;
-			body = nullptr;
+        if (gameObject.hasComponent<BoxColliderComponent>())
+            gameObject.getComponent<BoxColliderComponent>().Release();
+        else if (gameObject.hasComponent<SphereColliderComponent>())
+            gameObject.getComponent<SphereColliderComponent>().Release();
+        else if (gameObject.hasComponent<CapsuleColliderComponent>())
+            gameObject.getComponent<CapsuleColliderComponent>().Release();
+        else if (gameObject.hasComponent<MeshColliderComponent>())
+            gameObject.getComponent<MeshColliderComponent>().Release();
+
+        if (gameObject.getScene()->getPhysics())
+            gameObject.getScene()->getPhysics()->getScene()->removeActor(*m_actor, false);
+
+        if (m_actor->isReleasable())
+            m_actor->release();
+        m_actor = nullptr;
+    }
+    void RigidActorComponent::ApplyTransformChanges() {
+        if (!RuntimeCanChange())
+            return;
+
+        auto& tc = gameObject.getComponent<TransformComponent>();
+
+        if (!tc.IsUpdatingPhysics()) {
+            return;
+        }
+
+        physx::PxTransform tr = m_actor->getGlobalPose();
+
+        const glm::vec3 pos = PhysXToVec3(tr.p);
+        const glm::quat rot = PhysXToQuat(tr.q);
+
+        const glm::vec3 worldPos = tc.GetWorldPosition();
+        const glm::quat worldRot = tc.GetWorldRotation();
+
+        tc.SetUpdatePhysics(false);
+
+        // Use epsilon comparison to avoid floating-point inaccuracies
+
+        if (!glm::all(glm::epsilonEqual(pos, worldPos, 0.0001f))) {
+            tc.SetWorldPosition(pos);
+        }
+        if (!glm::all(glm::epsilonEqual(rot, worldRot, 0.0001f))) {
+            tc.SetWorldRotation(rot);
+        }
+
+        tc.SetUpdatePhysics(true);
+    }
+    void RigidActorComponent::SetPosition(glm::vec3 position) {
+        if (!RuntimeCanChange())
+            return;
+        SetTransform(position, PhysXToQuat(m_actor->getGlobalPose().q));
+    }
+
+	inline bool RigidStaticComponent::RuntimeValid() const {
+		return m_actor && m_actor->is<physx::PxRigidStatic>();
+	}
+	void RigidStaticComponent::Create() {
+		const auto& transform = gameObject.getComponent<TransformComponent>();
+		m_actor = GetPhysics()->createRigidStatic(physx::PxTransform(Vec3ToPhysX(transform.GetWorldPosition()), QuatToPhysX(transform.GetWorldRotation())));
+        gameObject.getScene()->getPhysics()->getScene()->addActor(*m_actor);
+	}
+	void RigidStaticComponent::SetTransform(glm::vec3 position, glm::quat rotation) {
+		if (!RuntimeCanChange())
+			return;
+		m_actor->setGlobalPose(physx::PxTransform(Vec3ToPhysX(position), QuatToPhysX(rotation)));
+	}
+	inline physx::PxRigidStatic* RigidStaticComponent::GetStaticActor() const {
+		return m_actor->is<physx::PxRigidStatic>();
+	}
+
+
+
+	inline bool RigidbodyComponent::RuntimeValid() const {
+		return m_actor && m_actor->is<physx::PxRigidDynamic>();
+	}
+	void RigidbodyComponent::Create() {
+		const auto& transform = gameObject.getComponent<TransformComponent>();
+		m_actor = GetPhysics()->createRigidDynamic(physx::PxTransform(Vec3ToPhysX(transform.GetWorldPosition()), QuatToPhysX(transform.GetWorldRotation())));
+        gameObject.getScene()->getPhysics()->getScene()->addActor(*m_actor);
+    }
+	void RigidbodyComponent::SetTransform(glm::vec3 position, glm::quat rotation) {
+		if (!RuntimeCanChange())
+			return;
+
+		physx::PxRigidDynamic* actor = GetDynamicActor();
+		physx::PxQuat quat = QuatToPhysX(rotation);
+		physx::PxVec3 pos = Vec3ToPhysX(position);
+
+		if (actor->getRigidBodyFlags() & physx::PxRigidBodyFlag::Enum::eKINEMATIC) {
+			actor->setKinematicTarget(physx::PxTransform(pos, quat));
+		}
+		else {
+			actor->setGlobalPose(physx::PxTransform(pos, quat));
+			actor->setLinearVelocity(physx::PxVec3(0.0f, 0.0f, 0.0f), false);
+			actor->setAngularVelocity(physx::PxVec3(0.0f, 0.0f, 0.0f), false);
 		}
 	}
-	void RigidbodyComponent::addForce(glm::vec3 force, ForceMode mode) {
-		if (!body)
+    void RigidbodyComponent::WakeUp() const {
+        if (!RuntimeCanChange())
+            return;
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        if (actor->isSleeping())
+            actor->wakeUp();
+    }
+	void RigidbodyComponent::AddForce(glm::vec3 force, ForceMode mode) const {
+		if (!RuntimeCanChange())
 			return;
-		physx::PxRigidActor* actor = (physx::PxRigidActor*)body;
-		physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
-		mactor->addForce(physx::PxVec3(force.x, force.y, force.z), (physx::PxForceMode::Enum)mode);
+
+		physx::PxRigidDynamic* actor = GetDynamicActor();
+		actor->addForce(physx::PxVec3(force.x, force.y, force.z), (physx::PxForceMode::Enum)mode);
 	}
-	void RigidbodyComponent::setPosition(glm::vec3 position) {
-		if (!body)
-			return;
-		physx::PxRigidActor* actor = (physx::PxRigidActor*)body;
-		if (kinematic)
-			actor->is<physx::PxRigidDynamic>()->setKinematicTarget(physx::PxTransform(PhysicsVec3fromglmVec3(position)));
-		else
-			actor->is<physx::PxRigidDynamic>()->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(position)));
-	}
-	void RigidbodyComponent::setTransform(glm::vec3 position, glm::quat rotation) {
-		if (!body)
-			return;
-		physx::PxRigidActor* actor = (physx::PxRigidActor*)body;
-		if (kinematic)
-			actor->is<physx::PxRigidDynamic>()->setKinematicTarget(physx::PxTransform(PhysicsVec3fromglmVec3(position), PhysicsQuatfromglmQuat(rotation)));
-		else
-			actor->is<physx::PxRigidDynamic>()->setGlobalPose(physx::PxTransform(PhysicsVec3fromglmVec3(position), PhysicsQuatfromglmQuat(rotation)));
+	inline physx::PxRigidDynamic* RigidbodyComponent::GetDynamicActor() const {
+		return m_actor->is<physx::PxRigidDynamic>();
 	}
 
-	void RigidbodyComponent::updateFlags() {
-		if (!body)
-			return;
-		physx::PxRigidActor* actor = (physx::PxRigidActor*)body;
-		actor->setActorFlag(physx::PxActorFlag::Enum::eDISABLE_GRAVITY, !useGravity);
-		physx::PxRigidDynamic* mactor = actor->is<physx::PxRigidDynamic>();
-		mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eKINEMATIC, kinematic);
-		if (!kinematic) {
-			mactor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, retainAccelaration);
-		}
-		mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, !rotationX);
-		mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, !rotationY);
-		mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, !rotationZ);
-		mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, !moveX);
-		mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, !moveY);
-		mactor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, !moveZ);
+    void RigidbodyComponent::SetRotationLock(uint8_t index, bool value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
 
-		
-		physx::PxRigidBodyExt::updateMassAndInertia(*mactor, mass, &PhysicsVec3fromglmVec3(massCenterPos));
-		actor->is<physx::PxRigidDynamic>()->setGlobalPose(physx::PxTransform(
-			PhysicsVec3fromglmVec3(gameObject.getComponent<TransformComponent>().GetWorldPosition()),
-			PhysicsQuatfromglmQuat(gameObject.getComponent<TransformComponent>().GetWorldRotation())));
-	}
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        if (!actor) {
+            return;
+        }
+        
+        physx::PxRigidDynamicLockFlags flags = actor->getRigidDynamicLockFlags();
+
+        switch (index) {
+        case 0: RotationX = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X; break;
+        case 1: RotationY = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y; break;
+        case 2: RotationZ = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z; break;
+        default: return;
+        }
+        actor->setRigidDynamicLockFlags(flags);
+    }
+
+    void RigidbodyComponent::SetMoveLock(uint8_t index, bool value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        if (!actor) {
+            return;
+        }
+
+        physx::PxRigidDynamicLockFlags flags = actor->getRigidDynamicLockFlags();
+
+        switch (index) {
+        case 0: MoveX = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X; break;
+        case 1: MoveY = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y; break;
+        case 2: MoveZ = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z; break;
+        default: return;
+        }
+
+        actor->setRigidDynamicLockFlags(flags);
+    }
+
+    void RigidbodyComponent::SetKinematic(bool value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+        Kinematic = value;
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, value);
+    }
+
+    void RigidbodyComponent::SetRetainAcceleration(bool value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+        
+        RetainAccelaration = value;
+        if (!Kinematic) {
+            physx::PxRigidDynamic* actor = GetDynamicActor();
+            actor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, value);
+        }
+    }
+    void RigidbodyComponent::SetUseGravity(bool value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+        UseGravity = value;
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !value);
+    }
+    void RigidbodyComponent::SetMass(float value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+        if (value <= 0.0f) {
+            return;
+        }
+        Mass = value;
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        actor->setMass(value);
+    }
+    void RigidbodyComponent::SetMassCenterPosition(const glm::vec3& value) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+        MassCenterPosition = value;
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        actor->setCMassLocalPose(physx::PxTransform(Vec3ToPhysX(value)));
+    }
+    bool RigidbodyComponent::HasRotationLock(uint8_t index) const {
+        switch (index) {
+        case 0: return RotationX;
+        case 1: return RotationY;
+        case 2: return RotationZ;
+        default: return false;
+        }
+    }
+    bool RigidbodyComponent::HasMoveLock(uint8_t index) const {
+        switch (index) {
+        case 0: return MoveX;
+        case 1: return MoveY;
+        case 2: return MoveZ;
+        default: return false;
+        }
+    }
+    bool RigidbodyComponent::IsKinematic() const {
+        return Kinematic;
+    }
+    bool RigidbodyComponent::IsRetainingAcceleration() const {
+        return RetainAccelaration;
+    }
+    bool RigidbodyComponent::IsUsingGravity() const {
+        return UseGravity;
+    }
+    float RigidbodyComponent::GetMass() const {
+        return Mass;
+    }
+    glm::vec3 RigidbodyComponent::GetMassCenterPosition() const {
+        return MassCenterPosition;
+    }
+
+    void RigidbodyComponent::ComputeMass(float density) {
+        if (!RuntimeCanChange()) {
+            return;
+        }
+        physx::PxRigidDynamic* actor = GetDynamicActor();
+        physx::PxRigidBodyExt::updateMassAndInertia(*actor, density, &Vec3ToPhysX(MassCenterPosition));
+
+        Mass = actor->getMass();
+    }
+
 }

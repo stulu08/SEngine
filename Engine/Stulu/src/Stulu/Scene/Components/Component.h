@@ -11,11 +11,13 @@ namespace Stulu {
 			this->gameObject = other.gameObject;
 		}
 
+		virtual ~Component() = default;
+
 		//this GameObject
 		GameObject gameObject = GameObject::null;
 
-		virtual void destroy() {};
 		virtual void onComponentAdded(Scene* scene) {};
+		virtual void onComponentRemove(Scene* scene) {};
 
 		template<class T>
 		static inline void RegisterCopy() {

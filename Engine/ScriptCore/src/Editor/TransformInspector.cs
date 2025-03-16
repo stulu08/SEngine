@@ -17,10 +17,10 @@ namespace Editor
 				transform.position = position;
 			}
 
-			Vector3 rotation = Mathf.Degrees(transform.rotation.ToEulerAngles());
+			Vector3 rotation = Mathf.Degrees(transform.eulerAngles);
 			if (ImGui.Vector3("Rotation", ref rotation, 1.0f))
 			{
-				transform.setRotation(new Quaternion(Mathf.Radians(rotation)));
+				transform.setRotation(Quaternion.EulerDegree(rotation));
 			}
 
 			Vector3 scale = transform.scale;

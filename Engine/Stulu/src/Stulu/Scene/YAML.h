@@ -4,6 +4,7 @@
 
 #include <Stulu/Renderer/Texture.h>
 #include "Stulu/Scene/Material.h"
+#include "Stulu/Scene/physx/PhysicsMaterial.h"
 #include "Stulu/Core/UUID.h"
 #include "YAMLHelper.h"
 
@@ -94,6 +95,27 @@ namespace YAML {
 			rhs.y = node[1].as<float>();
 			rhs.z = node[2].as<float>();
 			rhs.w = node[3].as<float>();
+			return true;
+		}
+	};
+	template<>
+	struct convert<Stulu::PhysicsMaterial> {
+		inline static Node encode(const Stulu::PhysicsMaterial& rhs) {
+			Node node;
+			node.push_back(rhs.DynamicFriction);
+			node.push_back(rhs.StaticFriction);
+			node.push_back(rhs.Restitution);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
+		}
+
+		inline static bool decode(const Node& node, Stulu::PhysicsMaterial& rhs) {
+			if (!node.IsSequence() || node.size() != 3)
+				return false;
+
+			rhs.DynamicFriction = node[0].as<float>();
+			rhs.StaticFriction = node[1].as<float>();
+			rhs.Restitution = node[2].as<float>();
 			return true;
 		}
 	};
@@ -278,6 +300,11 @@ namespace Stulu {
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::quat& v) {
 		out << YAML::Flow;
 		out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
+		return out;
+	}
+	inline YAML::Emitter& operator<<(YAML::Emitter& out, const Stulu::PhysicsMaterial& v) {
+		out << YAML::Flow;
+		out << YAML::BeginSeq << v.DynamicFriction << v.StaticFriction << v.Restitution << YAML::EndSeq;
 		return out;
 	}
 	inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& v) {

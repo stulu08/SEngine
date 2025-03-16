@@ -5,47 +5,104 @@
 #include "PhysX.h"
 
 namespace Stulu {
-	class STULU_API RigidbodyComponent : public Component {
-	public:
-		enum class ForceMode {
-			Force,
-			Impulse,
-			VelocityChange,
-			Acceleration
-		};
+	enum class ForceMode {
+		Force,
+		Impulse,
+		VelocityChange,
+		Acceleration
+	};
 
+	// internal usage only, use for interacting with physx
+	class STULU_API RigidActorComponent : public Component {
+	public:
+		RigidActorComponent() = default;
+		RigidActorComponent(const RigidActorComponent&) = default;
+
+		virtual ~RigidActorComponent() = default;
+
+		// checks if actor is valid
+		virtual bool RuntimeValid() const = 0;
+		// checks if scene has physics enabled and m_actor is valid
+		bool RuntimeCanChange() const;
+
+		virtual void Create() = 0;
+		virtual void Release();
+
+		void ApplyTransformChanges();
+
+		void SetPosition(glm::vec3 position);
+		virtual void SetTransform(glm::vec3 position, glm::quat rotation) = 0;
+		virtual void WakeUp() const = 0;
+
+		physx::PxRigidActor* GetActor() const {
+			if(RuntimeValid())
+				return m_actor;
+			return nullptr;
+		}
+		virtual void onComponentRemove(Scene* scene) override {
+			if (scene->PhysicsEnable())
+				Release();
+		};
+	protected:
+		physx::PxRigidActor* m_actor = nullptr;
+		
+		inline physx::PxPhysics* GetPhysics() const {
+			return gameObject.getScene()->getPhysics()->getPhysics();
+		}
+	};
+	class STULU_API RigidStaticComponent : public RigidActorComponent {
+	public:
+		RigidStaticComponent() = default;
+		RigidStaticComponent(const RigidStaticComponent&) = default;
+		
+		virtual bool RuntimeValid() const override;
+		virtual void Create() override;
+
+		virtual void SetTransform(glm::vec3 position, glm::quat rotation) override;
+		void WakeUp() const override{}
+
+		physx::PxRigidStatic* GetStaticActor() const;
+	};
+	class STULU_API RigidbodyComponent : public RigidActorComponent {
+	public:
 		RigidbodyComponent() = default;
 		RigidbodyComponent(const RigidbodyComponent&) = default;
 
-		void addForce(glm::vec3 force, ForceMode mode);
-		void setPosition(glm::vec3 position);
-		void setTransform(glm::vec3 position, glm::quat rotation);
+		virtual bool RuntimeValid() const override;
+		virtual void Create() override;
 
-		void* getRuntimeBody() { return body; }
+		virtual void SetTransform(glm::vec3 position, glm::quat rotation) override;
+		void AddForce(glm::vec3 force, ForceMode mode) const;
+		void WakeUp() const override;
 
-		void updateFlags();
+		void SetRotationLock(uint8_t index, bool value);
+		void SetMoveLock(uint8_t index, bool value);
+		void SetKinematic(bool value);
+		void SetRetainAcceleration(bool value);
+		void SetUseGravity(bool value);
+		void SetMass(float value);
+		void SetMassCenterPosition(const glm::vec3& value);
 
-		bool useGravity = true;
-		//dynamic
-		bool rotationX = true, rotationY = true, rotationZ = true;
-		bool moveX = true, moveY = true, moveZ = true;
-		bool kinematic = false;
-		bool retainAccelaration = false;
-		float mass = 1.0f;
-		glm::vec3 massCenterPos = glm::vec3(.0f);
+		bool HasRotationLock(uint8_t index) const;
+		bool HasMoveLock(uint8_t index) const;
+		bool IsKinematic() const;
+		bool IsRetainingAcceleration() const;
+		bool IsUsingGravity() const;
+		float GetMass() const;
+		glm::vec3 GetMassCenterPosition() const;
+
+		void ComputeMass(float density);
+
+		physx::PxRigidDynamic* GetDynamicActor() const;
 	private:
-		//runtime
-		void* body = nullptr;
-		RigidbodyComponent(void* body);
-		void destroy() override;
+		bool UseGravity = true;
+		bool RotationX = true, RotationY = true, RotationZ = true;
+		bool MoveX = true, MoveY = true, MoveZ = true;
+		bool Kinematic = false;
+		bool RetainAccelaration = false;
+		float Mass = 1.0f;
+		glm::vec3 MassCenterPosition = glm::vec3(.0f);
 
-
-		friend class Scene;
-		friend class PhysX;
-		friend class Collider;
-		friend class BoxColliderComponent;
-		friend class SphereColliderComponent;
-		friend class CapsuleColliderComponent;
-		friend class MeshColliderComponent;
+		friend class SceneSerializer;
 	};
 }

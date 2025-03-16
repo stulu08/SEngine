@@ -277,17 +277,21 @@ namespace Stulu {
 		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
 			snapArray = nullptr;
 		
-		ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
+		ImGuizmo::MANIPULATED operated = ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
 			(ImGuizmo::OPERATION)((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapArray);
 
-		if (ImGuizmo::IsUsing()) {
+		if (ImGuizmo::IsUsing() && operated) {
 			s_data.used = true;
 			glm::vec3 position, scale;
 			glm::quat rotation;
 			Math::decomposeTransform(transform, position, rotation, scale);
-			tc.SetWorldPosition(position);
-			tc.SetWorldRotation(rotation);
-			tc.SetWorldScale(scale);
+			if(operated & ImGuizmo::TRANSLATED)
+				tc.SetWorldPosition(position);
+			if (operated & ImGuizmo::ROTATED)
+				tc.SetWorldRotation(rotation);
+			if (operated & ImGuizmo::SCALED)
+				tc.SetWorldScale(scale);
+
 			return true;
 		}
 		return false;

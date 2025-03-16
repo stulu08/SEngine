@@ -4,6 +4,7 @@
 #include "Stulu/Scene/Components/Component.h"
 
 #include "PhysX.h"
+#include "PhysicsMaterial.h"
 
 namespace Stulu {
 	class STULU_API CharacterController : public Component {
@@ -18,9 +19,7 @@ namespace Stulu {
 		float stepOffset = .3f;
 		float density = 10.0f;//kinematic actors density
 
-		float material_staticFriction = ST_DEFAULT_PHYSX_MATERIAL_STATIC_FRICTION;
-		float material_dynamicFriction = ST_DEFAULT_PHYSX_MATERIAL_DYNAMIC_FRICTION;
-		float material_restitution = ST_DEFAULT_PHYSX_MATERIAL_RESTITUTION;
+		PhysicsMaterial material;
 
 		enum class NonWalkAbleMode {
 			PreventClimbing,						//Stops character from climbing up non-walkable slopes, but doesn't move it otherwise
@@ -35,8 +34,9 @@ namespace Stulu {
 
 		void update(const glm::vec3& pos, const glm::vec3& up);
 		void updatePosition(const glm::vec3& pos, const glm::vec3& up);
+
+		void Destroy();
 	private:
-		void destroy() override;
 
 		void* controller;
 

@@ -58,6 +58,7 @@ namespace Stulu {
 		inline SceneData& getData() { return m_data; }
 		inline Ref<EventCaller>& getCaller() { return m_caller; }
 
+		bool PhysicsEnable() const { return m_data.enablePhsyics3D && m_physics.get(); }
 		PhysX* getPhysics() const { return m_physics.get(); }
 		SceneRenderer* getRenderer() const { return m_renderer.get(); }
 		int32_t getViewportWidth() const { return m_viewportWidth; }
@@ -101,6 +102,9 @@ namespace Stulu {
 
 		void setupPhysics();
 		void updatePhysics();
+		void createPhysicsObjects();
+		void releasePhysics();
+
 		void renderSceneEditor(SceneCamera& camera);
 
 		template<typename T>
@@ -108,10 +112,10 @@ namespace Stulu {
 			component.gameObject = gameObject;
 			component.onComponentAdded(this);
 		}
-
 		template<typename T>
 		void onComponentRemove(GameObject gameObject, T& component) {
-			component.destroy();
+			component.gameObject = gameObject;
+			component.onComponentRemove(this);
 		}
 
 		friend class GameObject;
