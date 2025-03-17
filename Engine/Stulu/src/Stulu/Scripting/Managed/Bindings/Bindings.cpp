@@ -12,12 +12,12 @@
 
 #include "Core/Application.h"
 #include "Core/Folders.h"
+#include "Core/Time.h"
 #include "Core/Gizmo.h"
 #include "Core/Graphics2D.h"
 #include "Core/Input.h"
 #include "Core/Log.h"
 #include "Core/Texture2D.h"
-#include "Core/Time.h"
 
 namespace StuluBindings {
 	STULU_API Stulu::Ref<Stulu::AssemblyManager> getManager() {

@@ -7,8 +7,6 @@ namespace Stulu {
 		static Timestep frameTime;
 		// frame time scaled by Scale
 		static Timestep deltaTime;
-		// time since scene runtime started
-		static Timestep time;
 		// time since application startup
 		static Timestep applicationRuntime;
 		// deltatime is multiplied with this but not runtime

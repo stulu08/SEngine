@@ -50,7 +50,8 @@ namespace Editor {
 			Gizmo::drawGrid(glm::translate(glm::mat4(1.0f), pos), 50.0f);
 		}
 
-		auto& scene = App::get().GetLayer().GetActiveScene();
+		auto& layer = App::get().GetLayer();
+		auto& scene = layer.GetActiveScene();
 		auto& sceneCamera = GetCamera();
 		const glm::vec3& cameraPos = sceneCamera.getTransform().GetWorldPosition();
 		const float gizmoViewDistance = 50.0f;
@@ -89,6 +90,9 @@ namespace Editor {
 					break;
 				}
 			}
+		}
+		if (layer.IsRuntime() && scene->PhysicsEnable()) {
+			scene->getPhysics()->RenderSceneDebugData();
 		}
 	}
 

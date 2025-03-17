@@ -7,6 +7,7 @@
 #include "Stulu/Core/Time.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/physx/CharacterController.h"
+#include "Stulu/ImGui/Gizmo.h"
 
 namespace physx {
     class StDefaultAllocator : public physx::PxAllocatorCallback
@@ -41,6 +42,15 @@ namespace Stulu {
         }
     } gGpuLoadHook;
 
+    inline glm::vec4 ColorConvert(physx::PxU32 in) {
+        const float s = 1.0f / 255.0f;
+        return glm::vec4(
+            ((in >> 0) & 0xFF) * s,
+            ((in >> 8) & 0xFF) * s,
+            ((in >> 16) & 0xFF) * s,
+            ((in >> 24) & 0xFF) * s);
+        
+    }
 
     physx::PxVec3 Vec3ToPhysX(const glm::vec3& vec) {
         return physx::PxVec3{ vec.x,vec.y,vec.z };
@@ -110,7 +120,9 @@ namespace Stulu {
         s_pvdRunning = false;
     }
 
-    PhysX::PhysX(const PhysicsData& data) {
+    PhysX::PhysX(const PhysicsData& data, float startTime) {
+        m_time = startTime;
+
         bool recordMemoryAllocations = true;
         physx::PxTolerancesScale tollerantScale;
         tollerantScale.length = data.length;
@@ -136,7 +148,7 @@ namespace Stulu {
             return;
         }
 
-        m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(data.workerThreads);
+        m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(glm::clamp(data.workerThreads, 1u, std::thread::hardware_concurrency()));
         if (!m_cpuDispatcher) {
             CORE_ERROR("PxDefaultCpuDispatcherCreate failed!");
             return;
@@ -147,7 +159,6 @@ namespace Stulu {
 #if PX_WINDOWS
         sceneDesc.cudaContextManager = s_cudaContextManager;
 #endif
-
         sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
         sceneDesc.cpuDispatcher = m_cpuDispatcher;
         sceneDesc.gravity = Vec3ToPhysX(data.gravity);
@@ -165,7 +176,7 @@ namespace Stulu {
             CORE_ERROR("Physics Controller Manager creation failed!");
             return;
         }
-
+        
         // Verify gravity was applied correctly
         physx::PxVec3 currentGravity = m_scene->getGravity();
         CORE_INFO("Physics scene created with gravity: ({}, {}, {})", currentGravity.x, currentGravity.y, currentGravity.z);
@@ -206,7 +217,7 @@ namespace Stulu {
             CORE_ERROR("PxCreateFoundation failed!");
             return;
         }
-
+        
         // Optional: Enable GPU load hook only if GPU support is required
         PxSetPhysXGpuLoadHook(&gGpuLoadHook);
 
@@ -307,5 +318,53 @@ namespace Stulu {
             return NULL;
         physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
         return m_physics->createConvexMesh(input);
+    }
+
+    bool PhysX::Advance(float timePoint) {
+        float advance = timePoint - m_time;
+        if (advance <= 0.0f) {
+            return false;
+        }
+        m_scene->simulate(advance);
+        m_time = timePoint;
+        return true;
+    }
+
+    bool PhysX::FetchResults() {
+        return m_scene->fetchResults();
+    }
+
+    void PhysX::SetDebugVisual(PhsicsDebugViuals option, float value) const {
+        if(m_scene)
+            m_scene->setVisualizationParameter((physx::PxVisualizationParameter::Enum)option, value);
+    }
+
+    float PhysX::GetDebugVisual(PhsicsDebugViuals option) const {
+        if (m_scene)
+            return m_scene->getVisualizationParameter((physx::PxVisualizationParameter::Enum)option);
+        return 0.0f;
+    }
+
+    void PhysX::RenderSceneDebugData() const {
+        if (!m_scene)
+            return;
+
+        const auto& renderBuffer = m_scene->getRenderBuffer();
+        
+        
+        for (size_t i = 0; i < renderBuffer.getNbLines(); i++) {
+            const physx::PxDebugLine& line = renderBuffer.getLines()[i];
+            Renderer2D::drawLine(PhysXToVec3(line.pos0), PhysXToVec3(line.pos1), ColorConvert(line.color0), ColorConvert(line.color1));
+        }  
+        
+        for (size_t i = 0; i < renderBuffer.getNbPoints(); i++) {
+            const physx::PxDebugPoint& point = renderBuffer.getPoints()[i];
+            Gizmo::drawSphere(Math::createMat4(PhysXToVec3(point.pos), glm::vec3(0.1f)), ColorConvert(point.color));
+        }
+
+        for (size_t i = 0; i < renderBuffer.getNbTexts(); i++) {
+            const physx::PxDebugText& text = renderBuffer.getTexts()[i];
+            Gizmo::drawText(text.string, PhysXToVec3(text.position), ColorConvert(text.color));
+        }
     }
 }

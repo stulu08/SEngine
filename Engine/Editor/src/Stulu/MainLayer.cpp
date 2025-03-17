@@ -8,6 +8,7 @@
 #include "Panels/Profiling.h"
 #include "Panels/AssetBrowser.h"
 #include "Panels/Inspector.h"
+#include "Panels/Settings.h"
 
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
@@ -23,6 +24,7 @@ namespace Editor {
 		AddPanel<ScenePanel>();
 		AddPanel<GamePanel>();
 		AddPanel<InspectorPanel>();
+		AddPanel<SettingsPanel>();
 
 		m_scenePanel = &GetPanel<ScenePanel>();
 		m_gamePanel = &GetPanel<GamePanel>();

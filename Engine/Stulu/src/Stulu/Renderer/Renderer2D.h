@@ -34,6 +34,7 @@ namespace Stulu {
 		static void drawCircle(const glm::vec2& pos, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
 
 		static void drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color1, const glm::vec4& color2);
 		static void drawLineRect(const glm::mat4& transform, const glm::vec4& color);
 
 		static void drawSlider(const glm::vec3& pos, const glm::vec3& size, float progress = 0.5f, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, const glm::vec4& fillColor = { 1.0f,1.0f,1.0f,1.0f });

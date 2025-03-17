@@ -2,7 +2,6 @@
 #include "Stulu/Core/Core.h"
 #include "Stulu/Math/Math.h"
 
-
 namespace physx {
     class PxFoundation;
     class PxPvd;
@@ -31,6 +30,70 @@ namespace Stulu{
     class STULU_API CharacterController;
     class STULU_API Mesh;
 
+    enum class PhsicsDebugViuals
+    {
+        /* RigidBody-related parameters */
+
+        /** Visualization scale multiplier. Default: 0. */
+        eGlobalSwitch,
+
+        /** Visualize world axes. */
+        eWorldAxes,
+
+        /* Body visualizations */
+
+        /** Visualize body axes. */
+        eBodyAxes,
+        /** Visualize body mass axes, indicating sleep states. */
+        eBodyMassAxes,
+        /** Visualize body linear velocity. */
+        eBodyLinearVelocity,
+        /** Visualize body angular velocity. */
+        eBodyAngularVelocity,
+
+        /* Contact visualizations */
+
+        /** Visualize contact points, enabling contact info. */
+        eContactPoint,
+        /** Visualize contact normals, enabling contact info. */
+        eContactNormal,
+        /** Visualize contact errors, enabling contact info. */
+        eContactError,
+        /** Visualize contact forces, enabling contact info. */
+        eContactForce,
+
+        /* Actor visualizations */
+
+        /** Visualize actor axes. */
+        eActorAxes,
+        /** Visualize collision bounds (AABBs in world space). */
+        eCollisionAABBs,
+        /** Visualize collision shapes. */
+        eCollisionShapes,
+        /** Visualize shape axes. */
+        eCollisionAxes,
+        /** Visualize compound AABBs in world space. */
+        eCollisionCompounds,
+        /** Visualize mesh and convex face normals. */
+        eCollisionFaceNormals,
+        /** Visualize active edges for meshes. */
+        eCollisionEdges,
+        /** Visualize static pruning structures. */
+        eCollisionStatic,
+        /** Visualize dynamic pruning structures. */
+        eCollisionDynamic,
+        /** Visualize pairwise state (deprecated). */
+        eDeprecatedCollisionPairs,
+        /** Visualize joint local axes. */
+        eJointLocalFrames,
+        /** Visualize joint limits. */
+        eJointLimits,
+        /** Visualize culling box. */
+        eCullingBox,
+        /** Visualize MBP regions. */
+        eMBPRegions,
+    };
+
 
     STULU_API physx::PxVec3 Vec3ToPhysX(const glm::vec3& vec);
     STULU_API glm::vec3 PhysXToVec3(const physx::PxVec3& vec);
@@ -41,13 +104,13 @@ namespace Stulu{
     struct PhysicsData {
         float speed = 9.81f;
         float length = 1.0f;
-        glm::vec3 gravity = { 0.f, -9.8f, 0.f };
+        glm::vec3 gravity = { 0.f, -9.81f, 0.f };
         uint32_t workerThreads = 4;
     };
 
     class STULU_API PhysX {
     public:
-        PhysX(const PhysicsData& data = PhysicsData());
+        PhysX(const PhysicsData& data = PhysicsData(), float startTime = 0.0f);
         ~PhysX();
 
         //call this on application startup
@@ -62,6 +125,14 @@ namespace Stulu{
         physx::PxTriangleMesh* createTriangleMesh(Ref<Mesh>& mesh);
         physx::PxConvexMesh* createConvexMesh(Ref<Mesh>& mesh);
 
+        bool Advance(float timePoint);
+        bool FetchResults();
+
+        void SetDebugVisual(PhsicsDebugViuals option, float value) const;
+        float GetDebugVisual(PhsicsDebugViuals option) const;
+        // Call inside gizom renderer
+        void RenderSceneDebugData() const;
+
         physx::PxScene* getScene() const { return m_scene; };
         physx::PxPhysics* getPhysics() const { return m_physics; };
         physx::PxControllerManager* getControllerManager() const { return m_controllerManager; };
@@ -75,6 +146,7 @@ namespace Stulu{
         static bool s_pvdRunning;
         static physx::PxCudaContextManager* s_cudaContextManager;
 
+        float m_time = 0.0f;
         physx::PxPhysics* m_physics = nullptr;
         physx::PxScene* m_scene = nullptr;
         physx::PxDefaultCpuDispatcher* m_cpuDispatcher = nullptr;

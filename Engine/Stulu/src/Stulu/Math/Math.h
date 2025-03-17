@@ -105,7 +105,8 @@ namespace Stulu {
 		static bool isAABBOverPos(const AABB& aabb, const glm::vec3& pos);
 		static bool isAABBoverAABB(const AABB& aabb1, const AABB& aabb2);
 
-		static glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize);
+		static glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, const glm::vec2& windowSize);
+		static glm::vec2 WorldToScreen(const glm::vec3& pos, const glm::mat4& viewProjectionMatrix, const glm::vec2& windowSize, const glm::vec2& windowOffset = { 0.0f, 0.0f });
 		static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale);
 
 		inline static glm::mat4 createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale) {
@@ -186,7 +187,7 @@ namespace Stulu {
 			cube1.min.x <= cube2.max.x && cube1.max.z >= cube2.min.z
 			);
 	}
-	inline glm::vec3 Math::screenToWorld(const glm::vec2& screenPos, const glm::mat4& viewProjectionMatrix, glm::vec2& windowSize) {
+	inline glm::vec3 Math::screenToWorld(const glm::vec2& screenPos, const glm::mat4& viewProjectionMatrix, const glm::vec2& windowSize) {
 		float x = 2.0f * screenPos.x / windowSize.x - 1.0f;
 		float y = 2.0f * screenPos.y / windowSize.y - 1.0f;
 		glm::vec4 _screenPos = glm::vec4(x, -y, -1.0f, 1.0f);
@@ -198,6 +199,25 @@ namespace Stulu {
 			worldPos.y * worldPos.w,
 			worldPos.z * worldPos.w);
 	}
+
+	inline glm::vec2 Math::WorldToScreen(const glm::vec3& pos, const glm::mat4& viewProjectionMatrix, const glm::vec2& windowSize, const glm::vec2& windowOffset) {
+		glm::vec4 clipSpacePos = viewProjectionMatrix * glm::vec4(pos, 1.0f);
+
+		// Perform perspective divide (convert to normalized device coordinates)
+		if (clipSpacePos.w == 0.0f) {
+			return glm::vec2(-1.0f, -1.0f); // Avoid division by zero, return an invalid position
+		}
+
+		glm::vec3 ndcPos = glm::vec3(clipSpacePos) / clipSpacePos.w;
+
+		// Convert NDC to screen space
+		glm::vec2 screenPos;
+		screenPos.x = (ndcPos.x * 0.5f + 0.5f) * windowSize.x + windowOffset.x;
+		screenPos.y = (0.5f - ndcPos.y * 0.5f) * windowSize.y + windowOffset.y; // Flip Y because screen space has (0,0) at the top
+
+		return screenPos;
+	}
+
 
 	inline bool Math::decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale)
 	{

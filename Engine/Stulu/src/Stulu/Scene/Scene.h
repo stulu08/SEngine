@@ -63,6 +63,7 @@ namespace Stulu {
 		SceneRenderer* getRenderer() const { return m_renderer.get(); }
 		int32_t getViewportWidth() const { return m_viewportWidth; }
 		int32_t getViewportHeight() const { return m_viewportHeight; }
+		float GetSceneRuntime() const { return m_sceneRuntimeTime; }
 
 		void GeneralUpdates();
 		GameObject findGameObjectByName(const std::string& name);
@@ -92,8 +93,7 @@ namespace Stulu {
 		Scope<PhysX> m_physics = nullptr;
 		Scope<SceneRenderer> m_renderer = nullptr;
 		Ref<EventCaller> m_caller = nullptr;
-
-		bool m_firstRuntimeUpdate = false;
+		float m_sceneRuntimeTime = 0.0f;
 
 		entt::registry m_registry;
 
@@ -103,7 +103,6 @@ namespace Stulu {
 		void setupPhysics();
 		void updatePhysics();
 		void createPhysicsObjects();
-		void releasePhysics();
 
 		void renderSceneEditor(SceneCamera& camera);
 

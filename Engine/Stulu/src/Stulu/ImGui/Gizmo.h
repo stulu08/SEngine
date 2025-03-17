@@ -68,7 +68,7 @@ namespace Stulu {
 			const glm::vec2& uv1 = { 0,1 }, const glm::vec2& uv2 = { 1,0 }, 
 			const int borderSize = 1.0f, const glm::vec4& bgColor = {0,0,0,0});
 
-
+		static void drawText(const std::string& text, const glm::vec3& worldPos, const glm::vec4& color = { 1,1,1,1 });
 	private:
 		static void resetCubes();
 		static void resetSpheres();

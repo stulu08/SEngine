@@ -86,10 +86,12 @@ namespace Stulu {
 	}
 	void Scene::onUpdateRuntime(bool render) {
 		ST_PROFILING_SCOPE("Scene - Runtime Update");
-		Time::time += Time::deltaTime;
 
-		if (m_firstRuntimeUpdate)
+		// basicly the firt runtime update
+		if (m_sceneRuntimeTime == 0.0f)
 			m_caller->onStart();
+
+		m_sceneRuntimeTime += Time::deltaTime;
 
 		//calculations
 		if (m_data.enablePhsyics3D)
@@ -101,7 +103,6 @@ namespace Stulu {
 		if(render) {
 			renderScene();
 		}
-		m_firstRuntimeUpdate = false;
 	}
 	void Scene::GeneralUpdates() {
 		m_caller->onUpdate();
@@ -213,11 +214,6 @@ namespace Stulu {
 	}
 
 	void Scene::onRuntimeStart() {
-		// keep time at zero for starting
-		Time::deltaTime = 0.0f;
-		Time::time = 0.0f;
-
-		m_firstRuntimeUpdate = true;
 		if (m_data.enablePhsyics3D) {
 			setupPhysics();
 		}
@@ -227,13 +223,14 @@ namespace Stulu {
 			if (m_registry.get<MeshRendererComponent>(goID).material)
 				m_registry.get<MeshRendererComponent>(goID).material->uploadData();
 		}
-
+		m_sceneRuntimeTime = 0.0f;
 	}
 	void Scene::onRuntimeStop() {
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
 
 		m_physics.reset();
+		m_sceneRuntimeTime = 0.0f;
 	}
 
 	GameObject Scene::createEmptyGameObject(entt::entity id) {
@@ -255,21 +252,22 @@ namespace Stulu {
 		if (!PhysX::started())
 			PhysX::startUp();
 
-		m_physics = createScope<PhysX>(m_data.physicsData);
+		m_physics = createScope<PhysX>(m_data.physicsData, m_sceneRuntimeTime);
 		createPhysicsObjects();
 	}
 	void Scene::updatePhysics() {
-		if (m_firstRuntimeUpdate || Time::deltaTime == 0.0f) {
-			return;
-		}
 		ST_PROFILING_SCOPE("Scene - PhysX Update");
 		{
 			ST_PROFILING_SCOPE("Scene - Waiting for PhysX");
 
-			bool alreadyRun = false;
-			m_physics->getScene()->simulate(Time::deltaTime);
+			if (!m_physics->Advance(m_sceneRuntimeTime)) {
+				GeneralUpdates();
+				return;
+			}
+
 			//we do as much as possible here
-			while (!m_physics->getScene()->fetchResults()) {
+			bool alreadyRun = false;
+			while (!m_physics->FetchResults()) {
 				if (!alreadyRun) {
 					GeneralUpdates();
 					alreadyRun = true;

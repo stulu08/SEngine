@@ -37,13 +37,6 @@ namespace Stulu {
 			component.gameObject = {m_entity,m_scene};
 			return component;
 		}
-		template<typename T, typename... Args>
-		inline T& addOrReplaceComponent(Args&&... args) {
-			T& component = m_scene->m_registry.emplace_or_replace<T>(m_entity, std::forward<Args>(args)...);
-			component.gameObject = { m_entity,m_scene };
-			m_scene->onComponentAdded<T>(*this, component);
-			return component;
-		}
 		template<typename T>
 		inline T& getComponent() const {
 			CORE_ASSERT(hasComponent<T>(), "GameObject does not have component");

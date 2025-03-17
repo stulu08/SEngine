@@ -64,6 +64,7 @@ namespace Editor{
 		void DrawShaderStats();
 		void DrawPipelineStats();
 		void DrawSceneStats();
+		void DrawPhysics();
 		void DrawResources();
 
 		inline bool RequiresUpdate() const { return m_updateTimer >= 1.0f; }

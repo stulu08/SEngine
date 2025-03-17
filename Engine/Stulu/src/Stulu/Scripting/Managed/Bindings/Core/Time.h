@@ -1,4 +1,5 @@
 #pragma once
+#include "Stulu/Core/Time.h"
 
 namespace StuluBindings {
 	class Time {
@@ -13,7 +14,7 @@ namespace StuluBindings {
 			return Stulu::Time::applicationRuntime;
 		}
 		static inline float time_time() {
-			return Stulu::Time::time;
+			return GetCurrentScene()->GetSceneRuntime();
 		}
 		static inline float time_scale() {
 			return Stulu::Time::Scale;

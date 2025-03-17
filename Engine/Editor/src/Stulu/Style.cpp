@@ -6,4 +6,7 @@ namespace Editor {
 		ImFont* SmallFont = nullptr;
 		ImFont* LargeFont = nullptr;
 	}
+	namespace Controls {
+		std::string ControlHelpMark;
+	}
 }

@@ -406,7 +406,7 @@ namespace Stulu {
 		ST_PROFILING_SCOPE("Renderer - PostProcessing");
 		const auto& settings = data.settings;
 
-		m_postProcessingBufferData.time = Time::time;
+		m_postProcessingBufferData.time = Time::applicationRuntime;
 		m_postProcessingBufferData.delta = Time::deltaTime;
 		m_postProcessingBufferData.enableGammaCorrection = settings.gammaCorrection.enabled ? 1.0f : 0.0f;
 		m_postProcessingBufferData.toneMappingExposure = settings.gammaCorrection.exposure;

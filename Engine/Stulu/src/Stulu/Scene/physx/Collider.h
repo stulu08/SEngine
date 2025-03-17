@@ -44,7 +44,8 @@ namespace Stulu {
 			if (scene->PhysicsEnable())
 				Release();
 		};
-
+		
+		void SetDebugVisuals(bool value) const;
 	protected:
 		physx::PxShape* m_shape = nullptr;
 		

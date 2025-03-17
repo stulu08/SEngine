@@ -25,7 +25,7 @@ namespace Editor {
                 ImGui::PushItemWidth(-1);
                 int32_t tempValue = static_cast<int32_t>(value);
                 bool re = ImGui::DragInt("##value_uint", &tempValue, speed, min, max, format);
-                value = static_cast<uint32_t>(value);
+                value = static_cast<uint32_t>(tempValue);
                 ImGui::PopItemWidth();
                 return re;
             });
@@ -69,7 +69,7 @@ namespace Editor {
                     ImGui::PushItemWidth(-1);
                     int32_t tempValue = static_cast<int32_t>(value);
                     bool re = ImGui::SliderInt("##value_slider_uint", &tempValue, min, max, format);
-                    value = static_cast<uint32_t>(value);
+                    value = static_cast<uint32_t>(tempValue);
                     ImGui::PopItemWidth();
                     return re;
                     });

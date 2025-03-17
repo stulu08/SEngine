@@ -424,7 +424,6 @@ namespace Stulu {
 			flushSpheres();
 			resetSpheres();
 		}
-
 		s_data.sphereDataBufferPtr->transform = transform;
 		s_data.sphereDataBufferPtr->color = color;
 		s_data.sphereDataBufferPtr++;
@@ -469,6 +468,11 @@ namespace Stulu {
 		bool pressed = ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(_pos, _max);
 		s_data.used |= pressed;
 		return pressed;
+	}
+
+	void Gizmo::drawText(const std::string& text, const glm::vec3& worldPos, const glm::vec4& color) {
+		const glm::vec2 screen = Math::WorldToScreen(worldPos, s_data.projMatrix * s_data.viewMatrix, { s_data.mWidth, s_data.mHeight }, { s_data.mX, s_data.mY });
+		s_data.mDrawList->AddText({ screen.x ,screen.y }, ImGui::ColorConvertFloat4ToU32({ color.x,color.y,color.z,color.w }), text.c_str());
 	}
 
 	void Gizmo::resetCubes() {

@@ -36,6 +36,10 @@ namespace Editor {
 			DrawSceneStats();
 			ImGui::TreePop();
 		}
+		if (ImGui::TreeNodeEx("Physics", ImGuiTreeNodeFlags_Framed)) {
+			DrawPhysics();
+			ImGui::TreePop();
+		}
 		if (ImGui::TreeNodeEx("Pipeline Stats", ImGuiTreeNodeFlags_Framed)) {
 			DrawPipelineStats();
 			ImGui::TreePop();
@@ -196,6 +200,27 @@ namespace Editor {
 			Controls::BitFlag("Emission", ST_ShaderViewFlags_DisplayEmission, sceneData.shaderFlags);
 			ImGui::TreePop();
 		}
+	}
+
+	void ProfilingPanel::DrawPhysics() {
+		Ref<Scene> scene = App::get().GetLayer().GetActiveScene();
+		if (scene->PhysicsEnable()) {
+			const auto& physics = scene->getPhysics();
+			bool value = false;
+
+			for (auto enumValue : magic_enum::enum_values<PhsicsDebugViuals>()) {
+				bool value = physics->GetDebugVisual(enumValue) > 0.0f;
+				std::string enumName = std::string(magic_enum::enum_name(enumValue));
+				if (Controls::Bool(enumName, value)) {
+					physics->SetDebugVisual(enumValue, value ? 1.0f : 0.0f);
+				}
+			}
+		}
+		else {
+			ImGui::Text("Only availabe during runtime with physics enabled");
+		}
+
+		
 	}
 
 	void ProfilingPanel::DrawResources() {

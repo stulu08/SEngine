@@ -7,6 +7,18 @@
 
 namespace Editor {
 	namespace Controls {
+        extern std::string ControlHelpMark;
+
+        inline void SetControlHelpMark(const std::string& text) {
+            ControlHelpMark = text;
+        }
+        inline const std::string& GetControlHelpMark() {
+            return ControlHelpMark;
+        }
+        inline void PopControlHelpMark() {
+            ControlHelpMark.clear();
+        }
+
         inline bool LabeledBaseControl(const std::string& label, std::function<bool()> drawControl, float columnWidth = 0.0f) {
             ImGui::PushID(label.c_str());
 
@@ -21,6 +33,11 @@ namespace Editor {
             ImGui::PushTextWrapPos(columnWidth);
             ImGui::TextWrapped("%s", label.c_str());
             ImGui::PopTextWrapPos();
+
+            if (!GetControlHelpMark().empty()) {
+                ImGui::SameLine();
+                ImGui::HelpMarker(GetControlHelpMark().c_str());
+            }
 
             ImGui::NextColumn();
             // col 2

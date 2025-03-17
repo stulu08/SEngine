@@ -379,21 +379,24 @@ namespace Stulu {
 	void Renderer2D::drawCircle(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float thickness, float fade) {
 		drawCircle(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(size, 1.0f)), color, thickness, fade);
 	}
-
-	void Renderer2D::drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color) {
+	void Renderer2D::drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color1, const glm::vec4& color2) {
 		if (s_renderer2Ddata.lineVertexCount >= s_renderer2Ddata.maxVertices) {
 			flushLines();
 			resetLineBatch();
 		}
 		s_renderer2Ddata.lineVertexBufferPtr->pos = point0;
-		s_renderer2Ddata.lineVertexBufferPtr->color = color;
+		s_renderer2Ddata.lineVertexBufferPtr->color = color1;
 		s_renderer2Ddata.lineVertexBufferPtr++;
 
 		s_renderer2Ddata.lineVertexBufferPtr->pos = point1;
-		s_renderer2Ddata.lineVertexBufferPtr->color = color;
+		s_renderer2Ddata.lineVertexBufferPtr->color = color2;
 		s_renderer2Ddata.lineVertexBufferPtr++;
 
 		s_renderer2Ddata.lineVertexCount += 2;
+	}
+
+	void Renderer2D::drawLine(const glm::vec3& point0, const glm::vec3& point1, const glm::vec4& color) {
+		drawLine(point0, point1, color, color);
 	}
 	void Renderer2D::drawLineRect(const glm::mat4& transform, const glm::vec4& color) {
 		glm::vec3 lineVertices[4];

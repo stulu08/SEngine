@@ -34,6 +34,8 @@ namespace Stulu {
 		virtual void SetTransform(glm::vec3 position, glm::quat rotation) = 0;
 		virtual void WakeUp() const = 0;
 
+		void SetDebugVisuals(bool value) const;
+
 		physx::PxRigidActor* GetActor() const {
 			if(RuntimeValid())
 				return m_actor;
@@ -105,4 +107,35 @@ namespace Stulu {
 
 		friend class SceneSerializer;
 	};
+
+	template<>
+	inline RigidActorComponent& GameObject::getComponent<RigidActorComponent>() const {
+		if (hasComponent<RigidbodyComponent>())
+			return getComponent<RigidbodyComponent>();
+		return getComponent<RigidStaticComponent>();
+	}
+	template<>
+	inline bool GameObject::hasComponent<RigidActorComponent>() const {
+		return hasComponent<RigidbodyComponent>() || hasComponent<RigidStaticComponent>();
+	}
+	template<>
+	inline bool GameObject::removeComponent<RigidActorComponent>() {
+		if (hasComponent<RigidbodyComponent>())
+			return removeComponent<RigidbodyComponent>();
+		return removeComponent<RigidStaticComponent>();
+	}
+	template<>
+	inline RigidActorComponent& GameObject::addComponent<RigidActorComponent>() {
+		CORE_ERROR("Warning dont add a RigidActorComponent to a gameobject, use RigidStaticComponent or RigidbodyComponent");
+		if (hasComponent<RigidbodyComponent>())
+			return addComponent<RigidbodyComponent>();
+		return addComponent<RigidStaticComponent>();
+	}
+	template<>
+	inline RigidActorComponent& GameObject::saveAddComponent<RigidActorComponent>() {
+		CORE_ERROR("Warning dont add a RigidActorComponent to a gameobject, use RigidStaticComponent or RigidbodyComponent");
+		if (hasComponent<RigidbodyComponent>())
+			return saveAddComponent<RigidbodyComponent>();
+		return saveAddComponent<RigidStaticComponent>();
+	}
 }

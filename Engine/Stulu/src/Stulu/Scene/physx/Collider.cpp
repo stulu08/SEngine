@@ -31,33 +31,30 @@ namespace Stulu {
 	}
 
 	inline bool Collider::HasActorAttached() const {
-		if (gameObject.hasComponent<RigidStaticComponent>()) {
-			return gameObject.getComponent<RigidStaticComponent>().RuntimeValid();
-		}
-		if (gameObject.hasComponent<RigidbodyComponent>()) {
-			return gameObject.getComponent<RigidbodyComponent>().RuntimeValid();
-		}
-		return false;
+		return gameObject.hasComponent<RigidActorComponent>();
 	}
 
 	inline RigidActorComponent& Collider::GetActor() const {
-		if (HasRigidBody()) {
-			return GetRigidBody();
+		return gameObject.getComponent<RigidActorComponent>();
+	}
+
+	void Collider::SetDebugVisuals(bool value) const {
+		if (RuntimeCanChange()) {
+			m_shape->setFlag(physx::PxShapeFlag::eVISUALIZATION, value);
 		}
-		return gameObject.getComponent<RigidStaticComponent>();
 	}
 
 	void Collider::CreateActor() {
-		if (gameObject.hasComponent<RigidbodyComponent>()) {
-			RigidbodyComponent& rigidbody = gameObject.getComponent<RigidbodyComponent>();
-			if (!rigidbody.RuntimeValid()) {
-				rigidbody.Create();
+		if (gameObject.hasComponent<RigidActorComponent>()) {
+			RigidActorComponent& actorComponent = gameObject.getComponent<RigidActorComponent>();
+			if (!actorComponent.RuntimeValid()) {
+				actorComponent.Create();
 			}
 		}
-		else if (!gameObject.hasComponent<RigidStaticComponent>()) {
-			RigidStaticComponent& rigidStatic = gameObject.addComponent<RigidStaticComponent>();
-			if (!rigidStatic.RuntimeValid()) {
-				rigidStatic.Create();
+		else {
+			RigidActorComponent& actorComponent = gameObject.addComponent<RigidStaticComponent>();
+			if (!actorComponent.RuntimeValid()) {
+				actorComponent.Create();
 			}
 		}
 	}

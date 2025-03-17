@@ -69,6 +69,13 @@ namespace Stulu {
         SetTransform(position, PhysXToQuat(m_actor->getGlobalPose().q));
     }
 
+    void RigidActorComponent::SetDebugVisuals(bool value) const {
+        if (!RuntimeCanChange())
+            return;
+
+        m_actor->setActorFlag(physx::PxActorFlag::eVISUALIZATION, value);
+    }
+
 	inline bool RigidStaticComponent::RuntimeValid() const {
 		return m_actor && m_actor->is<physx::PxRigidStatic>();
 	}
