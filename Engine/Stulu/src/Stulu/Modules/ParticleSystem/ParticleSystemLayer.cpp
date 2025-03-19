@@ -5,7 +5,7 @@ namespace Stulu {
 	void ParticleSystemLayer::Initlize(Scene* scene) {
 		m_scene = scene;
 	}
-	void ParticleSystemLayer::Start() {
+	void ParticleSystemLayer::SceneStart() {
 		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);

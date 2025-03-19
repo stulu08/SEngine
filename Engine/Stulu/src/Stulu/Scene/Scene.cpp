@@ -1,22 +1,18 @@
 #include "st_pch.h"
 #include "Scene.h"
 
-#include "Stulu/Events/Event.h"
-#include "Stulu/Scene/SceneRenderer.h"
-#include "Stulu/Scene/physx/PhysX.h"
-#include "Stulu/Scene/SceneCamera.h"
-#include "Stulu/Scene/Components/Components.h"
-#include "Stulu/Math/Math.h"
-#include "Stulu/Core/Time.h"
+#include "GameObject.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Core/Input.h"
+#include "Stulu/Core/Time.h"
+#include "Stulu/Events/Event.h"
+#include "Stulu/Math/Math.h"
+#include "Stulu/Scene/Components/Components.h"
+#include "Stulu/Scene/SceneCamera.h"
+#include "Stulu/Scene/SceneRenderer.h"
 #include "Stulu/Scripting/EventCaller.h"
-#include "GameObject.h"
 #include "Stulu/Scripting/Managed/Bindings/Bindings.h"
 
-
-#include "PxConfig.h"
-#include "PxPhysicsAPI.h"
 
 namespace Stulu {
 	Scene::Scene() {
@@ -53,7 +49,7 @@ namespace Stulu {
 
 		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
 		go.addComponent<TransformComponent>();
-		m_caller->GameObjectCreate(go);
+		m_caller->NativeGameObjectCreate(go);
 		return go;
 	}
 	void Scene::destroyGameObject(GameObject gameObject) {
@@ -61,12 +57,8 @@ namespace Stulu {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
 		}
-		m_caller->GameObjectDestory(gameObject);
+		m_caller->NativeGameObjectDestory(gameObject);
 		m_caller->onDestroy(gameObject);
-
-		if (m_data.enablePhsyics3D && gameObject.hasComponent<RigidbodyComponent>()) {
-			gameObject.removeComponent<RigidbodyComponent>();
-		}
 
 		//destroy all childs
 		TransformComponent& transform = gameObject.getComponent<TransformComponent>();
@@ -86,6 +78,7 @@ namespace Stulu {
 	}
 	void Scene::onUpdateRuntime(bool render) {
 		ST_PROFILING_SCOPE("Scene - Runtime Update");
+		updatesRan = false;
 
 		// basicly the firt runtime update
 		if (m_sceneRuntimeTime == 0.0f)
@@ -94,10 +87,8 @@ namespace Stulu {
 		m_sceneRuntimeTime += Time::deltaTime;
 
 		//calculations
-		if (m_data.enablePhsyics3D)
-			updatePhysics();
-		else
-			GeneralUpdates();
+		m_caller->onUpdate();
+		GeneralUpdates();
 
 		//rendering
 		if(render) {
@@ -105,9 +96,11 @@ namespace Stulu {
 		}
 	}
 	void Scene::GeneralUpdates() {
-		m_caller->onUpdate();
+		if (updatesRan)
+			return;
 		m_renderer->LoadLights();
 		setupSceneForRendering(true);
+		updatesRan = true;
 	}
 	void Scene::renderScene(bool callEvents) {
 		ST_PROFILING_SCOPE("Scene - Runtime Render");
@@ -214,9 +207,7 @@ namespace Stulu {
 	}
 
 	void Scene::onRuntimeStart() {
-		if (m_data.enablePhsyics3D) {
-			setupPhysics();
-		}
+		m_caller->NativeSceneStart();
 		m_caller->ConstructManaged();
 
 		for (entt::entity goID : getAllGameObjectsWith<MeshRendererComponent>()) {
@@ -229,7 +220,6 @@ namespace Stulu {
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
 
-		m_physics.reset();
 		m_sceneRuntimeTime = 0.0f;
 	}
 
@@ -248,67 +238,6 @@ namespace Stulu {
 		return go;
 	}
 
-	void Scene::setupPhysics() {
-		if (!PhysX::started())
-			PhysX::startUp();
-
-		m_physics = createScope<PhysX>(m_data.physicsData, m_sceneRuntimeTime);
-		createPhysicsObjects();
-	}
-	void Scene::updatePhysics() {
-		ST_PROFILING_SCOPE("Scene - PhysX Update");
-		{
-			ST_PROFILING_SCOPE("Scene - Waiting for PhysX");
-
-			if (!m_physics->Advance(m_sceneRuntimeTime)) {
-				GeneralUpdates();
-				return;
-			}
-
-			//we do as much as possible here
-			bool alreadyRun = false;
-			while (!m_physics->FetchResults()) {
-				if (!alreadyRun) {
-					GeneralUpdates();
-					alreadyRun = true;
-				}
-			}
-		}
-		createPhysicsObjects();
-
-		// only update dynamic objects
-		auto rigidbodyView = m_registry.view<RigidbodyComponent>();
-		for (auto id : rigidbodyView) {
-			GameObject object = { id, this };
-			auto& rb = object.getComponent<RigidbodyComponent>();
-			rb.ApplyTransformChanges();
-		}
-
-	}
-
-	void Scene::createPhysicsObjects() {
-		for (auto id : m_registry.view<BoxColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<BoxColliderComponent>().GetShape() == nullptr)
-				object.getComponent<BoxColliderComponent>().Create();
-		}
-		for (auto id : m_registry.view<SphereColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<SphereColliderComponent>().GetShape() == nullptr)
-				object.getComponent<SphereColliderComponent>().Create();
-		}
-		for (auto id : m_registry.view<CapsuleColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<CapsuleColliderComponent>().GetShape() == nullptr)
-				object.getComponent<CapsuleColliderComponent>().Create();
-		}
-		for (auto id : m_registry.view<MeshColliderComponent>()) {
-			GameObject object = { id, this };
-			if (object.getComponent<MeshColliderComponent>().GetShape() == nullptr)
-				object.getComponent<MeshColliderComponent>().Create();
-		}
-	}
-
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
 		m_viewportWidth = width;
 		m_viewportHeight = height;
@@ -321,10 +250,7 @@ namespace Stulu {
 	}
 
 	void Scene::onEvent(Event& e) {
-		if (e.getEventType() == EventType::WindowClose) {
-			if (PhysX::started())
-				PhysX::shutDown();
-		}
+		
 	}
 
 	GameObject Scene::addModel(Model& model) {

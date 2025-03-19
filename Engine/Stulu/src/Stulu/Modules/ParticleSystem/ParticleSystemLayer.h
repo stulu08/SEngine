@@ -8,7 +8,7 @@ namespace Stulu {
 
 		virtual void Initlize(Scene* scene) override;
 
-		virtual void Start() override;
+		virtual void SceneStart() override;
 		virtual void Update() override;
 
 		virtual void Render2D() override;

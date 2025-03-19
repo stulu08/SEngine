@@ -4,7 +4,7 @@
 
 #include <Stulu/Renderer/Texture.h>
 #include "Stulu/Scene/Material.h"
-#include "Stulu/Scene/physx/PhysicsMaterial.h"
+#include "Stulu/Physics/PhysicsMaterial.h"
 #include "Stulu/Core/UUID.h"
 #include "YAMLHelper.h"
 

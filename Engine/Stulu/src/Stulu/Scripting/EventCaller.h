@@ -18,8 +18,9 @@ namespace Stulu {
 		void onDestroy(const GameObject& object = GameObject::null);
 		void onSceneExit(const GameObject& object = GameObject::null);
 
-		void GameObjectCreate(const GameObject& object);
-		void GameObjectDestory(const GameObject& object);
+		void NativeSceneStart();
+		void NativeGameObjectCreate(const GameObject& object);
+		void NativeGameObjectDestory(const GameObject& object);
 
 		void ConstructManaged(const GameObject& object = GameObject::null);
 		void InitManagedRuntimeScript(const GameObject& gameObject, Ref<MonoObjectInstance>& script);
@@ -31,21 +32,30 @@ namespace Stulu {
 		void CallManagedEvent(Mono::Method method, const GameObject& object = GameObject::null);
 
 		template<class T>
+		inline bool HasLayer() const {
+			return m_layer.find(typeid(T).hash_code()) != m_layer.end();
+		}
+		template<class T>
+		inline T& GetLayer() {
+			return *dynamic_cast<T*>(m_layer.at(typeid(T).hash_code()));
+		}
+
+		template<class T>
 		static inline void RegisterLayer() {
-			s_registeredSceneLayers[typeid(T).hash_code()] = CreateSceneLayer<T>;
+			s_registeredSceneLayers[typeid(m_layer).hash_code()] = CreateSceneLayer<T>;
 		}
 	private:
 		Scene* m_scene;
-		Stack<SceneLayer> m_layer;
+		std::unordered_map<size_t, SceneLayer*> m_layer;
 		Ref<AssemblyManager> m_manager;
 
-		static std::unordered_map<size_t, std::function<SceneLayer* (Scene*)>> s_registeredSceneLayers;
+		static std::unordered_map<size_t, std::function<std::pair<size_t, SceneLayer*>(Scene*)>> s_registeredSceneLayers;
 
 		template<class T>
-		static inline SceneLayer* CreateSceneLayer(Scene* scene) {
+		static inline std::pair<size_t, SceneLayer*> CreateSceneLayer(Scene* scene) {
 			T* layer = new T();
 			layer->Initlize(scene);
-			return layer;
+			return { typeid(T).hash_code(), layer };
 		}
 	};
 }

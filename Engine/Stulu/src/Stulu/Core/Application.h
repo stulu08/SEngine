@@ -26,10 +26,11 @@ namespace Stulu {
 
 		Renderer::API api = Renderer::API::OpenGL;
 
-		bool HideWindowOnSart;
-		bool EnableImgui;
+		bool HideWindowOnSart = false;
+		bool StartPhysicsEngine = false;
+		bool EnableImgui = true;
 		// this includes default assets, gizmo and renderer
-		bool LoadDefaultAssets;
+		bool LoadDefaultAssets = true;
 	};
 	class STULU_API AssemblyManager;
 	class STULU_API ScriptAssembly;

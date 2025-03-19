@@ -1,7 +1,6 @@
 #include "st_pch.h"
 #include "PhysicsMaterial.h"
-
-#include "PhysX.h"
+#include "PhysicsModule.h"
 
 #define PX_PHYSX_STATIC_LIB
 #include "PxConfig.h"
@@ -26,9 +25,11 @@ namespace Stulu {
 
 		Restitution = value;
 	}
-	void PhysicsMaterial::CreateMaterial(PhysX* physics) {
-		if (physics && physics->getPhysics())
-			m_material = physics->getPhysics()->createMaterial(StaticFriction, DynamicFriction, Restitution);
+	void PhysicsMaterial::CreateMaterial() {
+		auto& physicsModule = PhysicsModule::Get();
+
+		if (physicsModule.PhysicsEnabled())
+			m_material = physicsModule.GetPhysics()->createMaterial(StaticFriction, DynamicFriction, Restitution);
 		else
 			m_material = nullptr;
 	}

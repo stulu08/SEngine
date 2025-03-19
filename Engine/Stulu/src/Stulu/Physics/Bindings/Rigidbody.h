@@ -1,4 +1,6 @@
 #pragma once
+#include "Stulu/Scripting/Managed/Bindings/Bindings.h"
+#include "Stulu/Physics/Components/RigidbodyComponent.h"
 
 namespace StuluBindings {
 	class Rigidbody {

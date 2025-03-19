@@ -47,6 +47,7 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	info.AppNativeAssembly = project.GetBinariesPath() + "/Native/NativeAssembly.dll";
 	info.HideWindowOnSart = false;
 	info.EnableImgui = true;
+	info.StartPhysicsEngine = true;
 	info.LoadDefaultAssets = true;
 
 	return new Editor::App(info, std::move(project));

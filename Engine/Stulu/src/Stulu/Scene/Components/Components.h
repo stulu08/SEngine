@@ -6,6 +6,4 @@
 #include "Stulu/Scene/Components/Render2D.h"
 #include "Stulu/Scene/Components/Render3D.h"
 #include "Stulu/Scene/Components/Scripting.h"
-#include "Stulu/Scene/physx/Collider.h"
-#include "Stulu/Scene/physx/CharacterController.h"
 

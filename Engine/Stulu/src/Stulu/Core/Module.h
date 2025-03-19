@@ -9,6 +9,8 @@ namespace Stulu {
 		
 		virtual ~Module() = default;
 
+		// This is called before everything eles is loaded (UI, Renderer, etc, ...)
+		// onAttach is called after the main loading progess
 		virtual void onLoad() {}
 
 		inline std::string GetPath() const { return Layer::getName(); }

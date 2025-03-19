@@ -1,7 +1,6 @@
 #pragma once
-namespace physx {
-	class PxMaterial;
-}
+#include "PhysicsHelper.h"
+
 namespace Stulu {
 	class STULU_API PhysX;
 
@@ -22,7 +21,7 @@ namespace Stulu {
 		void SetDynamicFriction(float value);
 		void SetRestitution(float value);
 
-		void CreateMaterial(PhysX* physics);
+		void CreateMaterial();
 		
 		inline physx::PxMaterial* GetMaterial() const {
 			return m_material;

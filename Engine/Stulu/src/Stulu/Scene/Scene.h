@@ -4,11 +4,9 @@
 #include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Scene/Model.h"
-#include "Stulu/Scene/physx/PhysX.h"
 #include "Stulu/Core/UUID.h"
 #include "Stulu/Events/MouseEvent.h"
 #include "Stulu/Events/KeyEvent.h" 
-#include "physx/PhysX.h"
 #include <entt.hpp>
 
 namespace Stulu {	
@@ -21,7 +19,6 @@ namespace Stulu {
 	struct SceneData {
 		SceneGraphicsData graphicsData;
 		bool enablePhsyics3D = true;
-		PhysicsData physicsData = PhysicsData();
 		uint32_t shaderFlags = 0;
 	};
 
@@ -58,8 +55,7 @@ namespace Stulu {
 		inline SceneData& getData() { return m_data; }
 		inline Ref<EventCaller>& getCaller() { return m_caller; }
 
-		bool PhysicsEnable() const { return m_data.enablePhsyics3D && m_physics.get(); }
-		PhysX* getPhysics() const { return m_physics.get(); }
+		bool PhysicsEnable() const { return m_data.enablePhsyics3D; }
 		SceneRenderer* getRenderer() const { return m_renderer.get(); }
 		int32_t getViewportWidth() const { return m_viewportWidth; }
 		int32_t getViewportHeight() const { return m_viewportHeight; }
@@ -86,23 +82,18 @@ namespace Stulu {
 		//needs setup and closing
 		void renderSceneForCamera(GameObject gameObject, bool callEvents = true);
 		void closeSceneForRendering();
-
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 		SceneData m_data;
-		Scope<PhysX> m_physics = nullptr;
 		Scope<SceneRenderer> m_renderer = nullptr;
 		Ref<EventCaller> m_caller = nullptr;
 		float m_sceneRuntimeTime = 0.0f;
+		bool updatesRan = false;
 
 		entt::registry m_registry;
 
 		// only for internal usage
 		GameObject createEmptyGameObject(entt::entity id = entt::null);
-
-		void setupPhysics();
-		void updatePhysics();
-		void createPhysicsObjects();
 
 		void renderSceneEditor(SceneCamera& camera);
 

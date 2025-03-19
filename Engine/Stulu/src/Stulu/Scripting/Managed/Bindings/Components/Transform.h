@@ -1,5 +1,4 @@
 #pragma once
-#include <Stulu/Scene/physx/RigidbodyComponent.h>
 
 namespace StuluBindings {
 	class Transform {

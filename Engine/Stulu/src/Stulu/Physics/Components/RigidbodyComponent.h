@@ -2,7 +2,7 @@
 #include "Stulu/Math/Math.h"
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Components/Component.h"
-#include "PhysX.h"
+#include "Stulu/Physics/PhysicsScene.h"
 
 namespace Stulu {
 	enum class ForceMode {
@@ -25,7 +25,7 @@ namespace Stulu {
 		// checks if scene has physics enabled and m_actor is valid
 		bool RuntimeCanChange() const;
 
-		virtual void Create() = 0;
+		virtual void Create(PhysicsScene* physics) = 0;
 		virtual void Release();
 
 		void ApplyTransformChanges();
@@ -47,10 +47,7 @@ namespace Stulu {
 		};
 	protected:
 		physx::PxRigidActor* m_actor = nullptr;
-		
-		inline physx::PxPhysics* GetPhysics() const {
-			return gameObject.getScene()->getPhysics()->getPhysics();
-		}
+		PhysicsScene* m_physics = nullptr;
 	};
 	class STULU_API RigidStaticComponent : public RigidActorComponent {
 	public:
@@ -58,7 +55,7 @@ namespace Stulu {
 		RigidStaticComponent(const RigidStaticComponent&) = default;
 		
 		virtual bool RuntimeValid() const override;
-		virtual void Create() override;
+		virtual void Create(PhysicsScene* physics) override;
 
 		virtual void SetTransform(glm::vec3 position, glm::quat rotation) override;
 		void WakeUp() const override{}
@@ -71,7 +68,7 @@ namespace Stulu {
 		RigidbodyComponent(const RigidbodyComponent&) = default;
 
 		virtual bool RuntimeValid() const override;
-		virtual void Create() override;
+		virtual void Create(PhysicsScene* physics) override;
 
 		virtual void SetTransform(glm::vec3 position, glm::quat rotation) override;
 		void AddForce(glm::vec3 force, ForceMode mode) const;
@@ -105,7 +102,7 @@ namespace Stulu {
 		float Mass = 1.0f;
 		glm::vec3 MassCenterPosition = glm::vec3(.0f);
 
-		friend class SceneSerializer;
+		friend class PhysicsScene;
 	};
 
 	template<>
@@ -119,20 +116,20 @@ namespace Stulu {
 		return hasComponent<RigidbodyComponent>() || hasComponent<RigidStaticComponent>();
 	}
 	template<>
-	inline bool GameObject::removeComponent<RigidActorComponent>() {
+	inline bool GameObject::removeComponent<RigidActorComponent>() const {
 		if (hasComponent<RigidbodyComponent>())
 			return removeComponent<RigidbodyComponent>();
 		return removeComponent<RigidStaticComponent>();
 	}
 	template<>
-	inline RigidActorComponent& GameObject::addComponent<RigidActorComponent>() {
+	inline RigidActorComponent& GameObject::addComponent<RigidActorComponent>() const {
 		CORE_ERROR("Warning dont add a RigidActorComponent to a gameobject, use RigidStaticComponent or RigidbodyComponent");
 		if (hasComponent<RigidbodyComponent>())
 			return addComponent<RigidbodyComponent>();
 		return addComponent<RigidStaticComponent>();
 	}
 	template<>
-	inline RigidActorComponent& GameObject::saveAddComponent<RigidActorComponent>() {
+	inline RigidActorComponent& GameObject::saveAddComponent<RigidActorComponent>() const {
 		CORE_ERROR("Warning dont add a RigidActorComponent to a gameobject, use RigidStaticComponent or RigidbodyComponent");
 		if (hasComponent<RigidbodyComponent>())
 			return saveAddComponent<RigidbodyComponent>();

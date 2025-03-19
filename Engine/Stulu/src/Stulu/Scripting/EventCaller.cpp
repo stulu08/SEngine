@@ -6,16 +6,15 @@
 
 namespace Stulu {
 
-	std::unordered_map<size_t, std::function<SceneLayer* (Scene*)>> EventCaller::s_registeredSceneLayers;
+	std::unordered_map<size_t, std::function<std::pair<size_t, SceneLayer*>(Scene*)>> EventCaller::s_registeredSceneLayers;
 
 
 	EventCaller::EventCaller(Scene* scene)
 		: m_scene(scene) {
 
 		for (auto& [id, func] : s_registeredSceneLayers) {
-			m_layer.push(func(scene));
+			m_layer.insert(func(scene));
 		}
-
 		m_manager = Application::get().getAssemblyManager();
 	}
 
@@ -96,7 +95,7 @@ namespace Stulu {
 #define DEFAULT_HANDLE_LAYER(name, ...) \
 	{\
 		ST_PROFILING_SCOPE("Native Scripting - " #name); \
-		for (auto layer : m_layer) { \
+		for (auto& [id, layer] : m_layer) { \
 			layer->name(__VA_ARGS__); \
 		} \
 	}
@@ -109,10 +108,6 @@ namespace Stulu {
 	}
 
 	void EventCaller::onStart(const GameObject& object) {
-		if (object == GameObject::null) {
-			DEFAULT_HANDLE_LAYER(Start);
-		}
-
 		DEFAULT_HANDLE_MANAGED(onStart);
 	}
 	void EventCaller::onUpdate(const GameObject& object) {
@@ -150,10 +145,13 @@ namespace Stulu {
 
 		DEFAULT_HANDLE_MANAGED(onSceneExit);
 	}
-	void EventCaller::GameObjectCreate(const GameObject& object) {
+	void EventCaller::NativeSceneStart() {
+		DEFAULT_HANDLE_LAYER(SceneStart);
+	}
+	void EventCaller::NativeGameObjectCreate(const GameObject& object) {
 		DEFAULT_HANDLE_LAYER(GameObjectCreate, object);
 	}
-	void EventCaller::GameObjectDestory(const GameObject& object) {
+	void EventCaller::NativeGameObjectDestory(const GameObject& object) {
 		DEFAULT_HANDLE_LAYER(GameObjectDestory, object);
 	}
 	void EventCaller::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {

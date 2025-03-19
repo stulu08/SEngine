@@ -1,21 +1,15 @@
 #include "st_pch.h"
 #include "Transform.h"
 
-#include "Stulu/Scene/physx/RigidbodyComponent.h"
+#include "Stulu/Physics/Components/RigidbodyComponent.h"
 
 namespace Stulu {
 	void TransformComponent::SyncWithPhysics(bool onlyPosition) {
-		if (gameObject.hasComponent<RigidbodyComponent>()) {
+		if (gameObject.getScene()->PhysicsEnable() && gameObject.hasComponent<RigidActorComponent>()) {
 			if (onlyPosition)
-				gameObject.getComponent<RigidbodyComponent>().SetPosition(GetWorldPosition());
+				gameObject.getComponent<RigidActorComponent>().SetPosition(GetWorldPosition());
 			else
-				gameObject.getComponent<RigidbodyComponent>().SetTransform(GetWorldPosition(), GetWorldRotation());
-		}
-		if (gameObject.hasComponent<RigidStaticComponent>()) {
-			if (onlyPosition)
-				gameObject.getComponent<RigidStaticComponent>().SetPosition(GetWorldPosition());
-			else
-				gameObject.getComponent<RigidStaticComponent>().SetTransform(GetWorldPosition(), GetWorldRotation());
+				gameObject.getComponent<RigidActorComponent>().SetTransform(GetWorldPosition(), GetWorldRotation());
 		}
 			
 

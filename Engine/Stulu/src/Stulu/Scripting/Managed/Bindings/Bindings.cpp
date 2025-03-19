@@ -4,7 +4,6 @@
 #include <Stulu.h>
 
 #include "Components/GameObject.h"
-#include "Components/Rigidbody.h"
 #include "Components/SpriteRenderer.h"
 #include "Components/Transform.h"
 #include "Components/ScriptingComponent.h"
@@ -127,18 +126,6 @@ namespace StuluBindings {
 		add_call("transformComp_forward(ulong,Stulu.Vector3&)", Transform::forward);
 		add_call("transformComp_right(ulong,Stulu.Vector3&)", Transform::right);
 		add_call("transformComp_up(ulong,Stulu.Vector3&)", Transform::up);
-
-		add_call("rigidbody_addForce(ulong,Stulu.Vector3&,uint)", Rigidbody::addForce);
-		add_call("rigidbody_useGravity(ulong)", Rigidbody::getuseGravity);
-		add_call("rigidbody_kinematic(ulong)", Rigidbody::getKinematic);
-		add_call("rigidbody_retainaccel(ulong)", Rigidbody::getRetainAccel);
-		add_call("rigidbody_mass(ulong)", Rigidbody::getMass);
-		add_call("rigidbody_useGravity(ulong,bool)", Rigidbody::setuseGravity);
-		add_call("rigidbody_kinematic(ulong,bool)", Rigidbody::setKinematic);
-		add_call("rigidbody_retainaccel(ulong,bool)", Rigidbody::setRetainAccel);
-		add_call("rigidbody_mass(ulong,single)", Rigidbody::setMass);
-		add_call("rigidbody_massCenterSet(ulong,Stulu.Vector3&)", Rigidbody::setMassCenterPos);
-		add_call("rigidbody_massCenterGet(ulong,Stulu.Vector3&)", Rigidbody::getMassCenterPos);
 
 		add_call("spriteRenComp_getTexture(ulong)", SpriteRendererComponent::getTexture);
 		add_call("spriteRenComp_setTexture(ulong,ulong)", SpriteRendererComponent::setTexture);

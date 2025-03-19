@@ -1,6 +1,10 @@
 #include "st_pch.h"
 #include "RigidbodyComponent.h"
+
+
 #include "Collider.h"
+#include "Stulu/Physics/PhysicsScene.h"
+#include "Stulu/Physics/PhysicsModule.h"
 #include "Stulu/Scene/Components/Components.h"
 
 #define PX_PHYSX_STATIC_LIB
@@ -8,7 +12,7 @@
 
 namespace Stulu {
 	inline bool RigidActorComponent::RuntimeCanChange() const {
-		return RuntimeValid() && gameObject.getScene()->PhysicsEnable();
+		return RuntimeValid() && m_physics->IsValid();
 	}
     void RigidActorComponent::Release() {
         if (!gameObject) {
@@ -25,8 +29,8 @@ namespace Stulu {
         else if (gameObject.hasComponent<MeshColliderComponent>())
             gameObject.getComponent<MeshColliderComponent>().Release();
 
-        if (gameObject.getScene()->getPhysics())
-            gameObject.getScene()->getPhysics()->getScene()->removeActor(*m_actor, false);
+        if (m_physics->IsValid())
+            m_physics->GetPhysicsScene()->removeActor(*m_actor, false);
 
         if (m_actor->isReleasable())
             m_actor->release();
@@ -44,8 +48,8 @@ namespace Stulu {
 
         physx::PxTransform tr = m_actor->getGlobalPose();
 
-        const glm::vec3 pos = PhysXToVec3(tr.p);
-        const glm::quat rot = PhysXToQuat(tr.q);
+        const glm::vec3 pos = PhysicsHelper::PhysXToVec3(tr.p);
+        const glm::quat rot = PhysicsHelper::PhysXToQuat(tr.q);
 
         const glm::vec3 worldPos = tc.GetWorldPosition();
         const glm::quat worldRot = tc.GetWorldRotation();
@@ -66,7 +70,7 @@ namespace Stulu {
     void RigidActorComponent::SetPosition(glm::vec3 position) {
         if (!RuntimeCanChange())
             return;
-        SetTransform(position, PhysXToQuat(m_actor->getGlobalPose().q));
+        SetTransform(position, PhysicsHelper::PhysXToQuat(m_actor->getGlobalPose().q));
     }
 
     void RigidActorComponent::SetDebugVisuals(bool value) const {
@@ -79,15 +83,19 @@ namespace Stulu {
 	inline bool RigidStaticComponent::RuntimeValid() const {
 		return m_actor && m_actor->is<physx::PxRigidStatic>();
 	}
-	void RigidStaticComponent::Create() {
+	void RigidStaticComponent::Create(PhysicsScene* physics) {
 		const auto& transform = gameObject.getComponent<TransformComponent>();
-		m_actor = GetPhysics()->createRigidStatic(physx::PxTransform(Vec3ToPhysX(transform.GetWorldPosition()), QuatToPhysX(transform.GetWorldRotation())));
-        gameObject.getScene()->getPhysics()->getScene()->addActor(*m_actor);
+		m_actor = PhysicsModule::Get().GetPhysics()->createRigidStatic(physx::PxTransform(
+            PhysicsHelper::Vec3ToPhysX(transform.GetWorldPosition()), 
+            PhysicsHelper::QuatToPhysX(transform.GetWorldRotation())));
+
+        physics->GetPhysicsScene()->addActor(*m_actor);
+        m_physics = physics;
 	}
 	void RigidStaticComponent::SetTransform(glm::vec3 position, glm::quat rotation) {
 		if (!RuntimeCanChange())
 			return;
-		m_actor->setGlobalPose(physx::PxTransform(Vec3ToPhysX(position), QuatToPhysX(rotation)));
+		m_actor->setGlobalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(position), PhysicsHelper::QuatToPhysX(rotation)));
 	}
 	inline physx::PxRigidStatic* RigidStaticComponent::GetStaticActor() const {
 		return m_actor->is<physx::PxRigidStatic>();
@@ -98,18 +106,22 @@ namespace Stulu {
 	inline bool RigidbodyComponent::RuntimeValid() const {
 		return m_actor && m_actor->is<physx::PxRigidDynamic>();
 	}
-	void RigidbodyComponent::Create() {
-		const auto& transform = gameObject.getComponent<TransformComponent>();
-		m_actor = GetPhysics()->createRigidDynamic(physx::PxTransform(Vec3ToPhysX(transform.GetWorldPosition()), QuatToPhysX(transform.GetWorldRotation())));
-        gameObject.getScene()->getPhysics()->getScene()->addActor(*m_actor);
+	void RigidbodyComponent::Create(PhysicsScene* physics) {
+        const auto& transform = gameObject.getComponent<TransformComponent>();
+        m_actor = PhysicsModule::Get().GetPhysics()->createRigidDynamic(physx::PxTransform(
+            PhysicsHelper::Vec3ToPhysX(transform.GetWorldPosition()),
+            PhysicsHelper::QuatToPhysX(transform.GetWorldRotation())));
+
+        physics->GetPhysicsScene()->addActor(*m_actor);
+        m_physics = physics;
     }
 	void RigidbodyComponent::SetTransform(glm::vec3 position, glm::quat rotation) {
 		if (!RuntimeCanChange())
 			return;
 
 		physx::PxRigidDynamic* actor = GetDynamicActor();
-		physx::PxQuat quat = QuatToPhysX(rotation);
-		physx::PxVec3 pos = Vec3ToPhysX(position);
+		physx::PxQuat quat = PhysicsHelper::QuatToPhysX(rotation);
+		physx::PxVec3 pos = PhysicsHelper::Vec3ToPhysX(position);
 
 		if (actor->getRigidBodyFlags() & physx::PxRigidBodyFlag::Enum::eKINEMATIC) {
 			actor->setKinematicTarget(physx::PxTransform(pos, quat));
@@ -226,7 +238,7 @@ namespace Stulu {
         }
         MassCenterPosition = value;
         physx::PxRigidDynamic* actor = GetDynamicActor();
-        actor->setCMassLocalPose(physx::PxTransform(Vec3ToPhysX(value)));
+        actor->setCMassLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(value)));
     }
     bool RigidbodyComponent::HasRotationLock(uint8_t index) const {
         switch (index) {
@@ -265,7 +277,7 @@ namespace Stulu {
             return;
         }
         physx::PxRigidDynamic* actor = GetDynamicActor();
-        physx::PxRigidBodyExt::updateMassAndInertia(*actor, density, &Vec3ToPhysX(MassCenterPosition));
+        physx::PxRigidBodyExt::updateMassAndInertia(*actor, density, &PhysicsHelper::Vec3ToPhysX(MassCenterPosition));
 
         Mass = actor->getMass();
     }

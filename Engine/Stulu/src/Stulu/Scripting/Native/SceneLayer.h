@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Scene/Scene.h"
+#include "Stulu/Scene/YAML.h"
 
 namespace Stulu {
 	class STULU_API SceneLayer {
@@ -7,7 +8,7 @@ namespace Stulu {
 		virtual void Initlize(Scene* scene) = 0;
 		virtual ~SceneLayer() = default;
 
-		virtual void Start() { }
+		virtual void SceneStart() { }
 		virtual void Update() { }
 		virtual void SceneExit() {}
 

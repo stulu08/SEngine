@@ -19,13 +19,6 @@ namespace Stulu {
 		Register<PostProcessingComponent>("Stulu.PostProcessingComponent");
 		Register<CameraComponent>("Stulu.CameraComponent");
 		
-		Register<RigidbodyComponent>("Stulu.RigidbodyComponent");
-		Register<RigidStaticComponent>("Stulu.RigidStaticComponent");
-		Register<BoxColliderComponent>("Stulu.BoxColliderComponent");
-		Register<SphereColliderComponent>("Stulu.SphereColliderComponent");
-		Register<CapsuleColliderComponent>("Stulu.CapsuleColliderComponent");
-		Register<MeshColliderComponent>("Stulu.MeshColliderComponent");
-		
 		Register<ScriptingComponent>("Stulu.ScriptingComponent");
 	}
 }

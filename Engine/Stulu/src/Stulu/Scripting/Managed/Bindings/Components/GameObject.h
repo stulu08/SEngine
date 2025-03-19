@@ -1,4 +1,6 @@
 #pragma once
+#include <Stulu/Physics/Components/RigidbodyComponent.h>
+#include <Stulu/Physics/Components/Collider.h>
 
 namespace StuluBindings {
 	class GameObject {

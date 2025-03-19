@@ -217,7 +217,7 @@ namespace Editor {
 			}
 		}
 		else {
-			ImGui::Text("Only availabe during runtime with physics enabled");
+			ImGui::Text("Only availabe during runtime");
 		}
 
 		

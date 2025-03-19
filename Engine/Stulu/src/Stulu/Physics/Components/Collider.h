@@ -1,8 +1,10 @@
 #pragma once
 #include "RigidbodyComponent.h"
-#include "PhysicsMaterial.h"
+#include "Stulu/Physics/PhysicsMaterial.h"
+#include "Stulu/Physics/PhysicsScene.h"
 
 #include "Stulu/Renderer/Mesh.h"
+#include "Stulu/Scripting/EventCaller.h"
 
 namespace StuluBindings {
 	class GameObject;
@@ -18,11 +20,6 @@ namespace Stulu {
 
 		PhysicsMaterial PhysicsMaterial;
 
-		// Checks if physics are enable, the shape is valid and an actor is attached
-		inline bool RuntimeCanChange() const {
-			return gameObject.getScene()->PhysicsEnable() && m_shape && HasActorAttached();
-		}
-
 		physx::PxShape* GetShape() const {
 			return m_shape;
 		}
@@ -37,31 +34,32 @@ namespace Stulu {
 		}
 
 		virtual void onComponentAdded(Scene* scene) override {
-			if (scene->PhysicsEnable())
-				this->Create();
+			if (scene->PhysicsEnable() && scene->getCaller()->HasLayer<PhysicsScene>()) {
+				PhysicsScene* physicsLayer = &scene->getCaller()->GetLayer<PhysicsScene>();
+				if (physicsLayer->IsValid()) {
+					this->Create(&scene->getCaller()->GetLayer<PhysicsScene>());
+				}
+			}
 		};
 		virtual void onComponentRemove(Scene* scene) override {
-			if (scene->PhysicsEnable())
+			if (m_physics->IsValid())
 				Release();
 		};
 		
 		void SetDebugVisuals(bool value) const;
 	protected:
 		physx::PxShape* m_shape = nullptr;
+		PhysicsScene* m_physics = nullptr;
 		
-		inline physx::PxPhysics* GetPhysics() const {
-			return gameObject.getScene()->getPhysics()->getPhysics();
-		}
-
 		void CreateActor();
-		virtual void Create() = 0;
+		virtual void Create(PhysicsScene* physics) = 0;
 	};
 	class STULU_API BoxColliderComponent : public Collider{
 	public:
 		BoxColliderComponent() = default;
 		BoxColliderComponent(const BoxColliderComponent&) = default;
 
-		virtual void Create();
+		virtual void Create(PhysicsScene* physics);
 
 		glm::vec3 GetOffset() const { return Offset; }
 		glm::vec3 GetSize() const { return Size; }
@@ -69,7 +67,7 @@ namespace Stulu {
 		void SetOffset(glm::vec3 value) { Offset = value; }
 		void SetSize(glm::vec3 value) { Size = value; }
 	private:
-		friend class SceneSerializer;
+		friend class PhysicsScene;
 		glm::vec3 Offset = glm::vec3(0.0f);
 		glm::vec3 Size = glm::vec3(.5f);
 
@@ -79,7 +77,7 @@ namespace Stulu {
 		SphereColliderComponent() = default;
 		SphereColliderComponent(const SphereColliderComponent&) = default;
 
-		virtual void Create();
+		virtual void Create(PhysicsScene* physics);
 
 		glm::vec3 GetOffset() const { return Offset; }
 		float GetRadius() const { return Radius; }
@@ -87,7 +85,7 @@ namespace Stulu {
 		void SetOffset(glm::vec3 value) { Offset = value; }
 		void SetRadius(float value) { Radius = value; }
 	private:
-		friend class SceneSerializer;
+		friend class PhysicsScene;
 		glm::vec3 Offset = glm::vec3(0.0f);
 		float Radius = .5f;
 
@@ -97,7 +95,7 @@ namespace Stulu {
 		CapsuleColliderComponent() = default;
 		CapsuleColliderComponent(const CapsuleColliderComponent&) = default;
 
-		virtual void Create();
+		virtual void Create(PhysicsScene* physics);
 
 		glm::vec3 GetOffset() const { return Offset; }
 		float GetRadius() const { return Radius; }
@@ -109,7 +107,7 @@ namespace Stulu {
 		void SetHeight(float value) { Height = value; }
 		void SetHorizontal(bool value) { Horizontal = value; }
 	private:
-		friend class SceneSerializer;
+		friend class PhysicsScene;
 
 		glm::vec3 Offset = glm::vec3(0.0f);
 		float Radius = 1.0f;
@@ -122,7 +120,7 @@ namespace Stulu {
 		MeshColliderComponent() = default;
 		MeshColliderComponent(const MeshColliderComponent&) = default;
 
-		virtual void Create();
+		virtual void Create(PhysicsScene* physics);
 
 		void BuildConvex();
 
@@ -146,7 +144,7 @@ namespace Stulu {
 			Convex = value;
 		}
 	private:
-		friend class SceneSerializer;
+		friend class PhysicsScene;
 		MeshAsset Mesh = { "",nullptr };
 		Ref<Stulu::Mesh> ConvexMesh = nullptr;
 		bool Convex = false;
