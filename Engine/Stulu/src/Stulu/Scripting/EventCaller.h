@@ -19,6 +19,7 @@ namespace Stulu {
 		void onSceneExit(const GameObject& object = GameObject::null);
 
 		void NativeSceneStart();
+		void NativePreUpdate();
 		void NativeGameObjectCreate(const GameObject& object);
 		void NativeGameObjectDestory(const GameObject& object);
 
@@ -42,7 +43,7 @@ namespace Stulu {
 
 		template<class T>
 		static inline void RegisterLayer() {
-			s_registeredSceneLayers[typeid(m_layer).hash_code()] = CreateSceneLayer<T>;
+			s_registeredSceneLayers[typeid(T).hash_code()] = CreateSceneLayer<T>;
 		}
 	private:
 		Scene* m_scene;
@@ -54,8 +55,10 @@ namespace Stulu {
 		template<class T>
 		static inline std::pair<size_t, SceneLayer*> CreateSceneLayer(Scene* scene) {
 			T* layer = new T();
-			layer->Initlize(scene);
-			return { typeid(T).hash_code(), layer };
+			if (layer->Initlize(scene))
+				return { typeid(T).hash_code(), layer };
+			else
+				return { 0, nullptr };
 		}
 	};
 }

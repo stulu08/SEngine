@@ -2,8 +2,9 @@
 #include "ParticleSystemLayer.h"
 
 namespace Stulu {
-	void ParticleSystemLayer::Initlize(Scene* scene) {
+	bool ParticleSystemLayer::Initlize(Scene* scene) {
 		m_scene = scene;
+		return true;
 	}
 	void ParticleSystemLayer::SceneStart() {
 		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();

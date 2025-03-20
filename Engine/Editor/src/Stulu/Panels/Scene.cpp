@@ -5,6 +5,7 @@
 #include "Stulu/App.h"
 #include "Stulu/Controls.h"
 #include "Stulu/Style.h"
+#include <Stulu/Physics/PhysicsScene.h>
 
 
 using namespace Stulu;
@@ -91,8 +92,8 @@ namespace Editor {
 				}
 			}
 		}
-		if (layer.IsRuntime() && scene->PhysicsEnable()) {
-			scene->getPhysics()->RenderSceneDebugData();
+		if (layer.IsRuntime() && scene->getCaller()->HasLayer<PhysicsScene>()) {
+			scene->getCaller()->GetLayer<PhysicsScene>().RenderSceneDebugData();
 		}
 	}
 

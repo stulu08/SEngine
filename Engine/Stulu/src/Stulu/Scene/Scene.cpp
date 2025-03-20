@@ -87,7 +87,7 @@ namespace Stulu {
 		m_sceneRuntimeTime += Time::deltaTime;
 
 		//calculations
-		m_caller->onUpdate();
+		m_caller->NativePreUpdate();
 		GeneralUpdates();
 
 		//rendering
@@ -98,6 +98,7 @@ namespace Stulu {
 	void Scene::GeneralUpdates() {
 		if (updatesRan)
 			return;
+		m_caller->onUpdate();
 		m_renderer->LoadLights();
 		setupSceneForRendering(true);
 		updatesRan = true;

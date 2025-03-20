@@ -12,11 +12,10 @@
 
 
 namespace Stulu {
-    void PhysicsScene::Initlize(Scene* scene) {
+    bool PhysicsScene::Initlize(Scene* scene) {
         m_scene = scene;
-        if (scene->PhysicsEnable()) {
-            m_enabled = true;
-        }
+        m_enabled = scene->PhysicsEnable();
+        return m_enabled;
     }
     
     void PhysicsScene::SceneStart() {
@@ -55,11 +54,12 @@ namespace Stulu {
         CreatePhysicsObject();
     }
 
-    void PhysicsScene::Update() {
+    void PhysicsScene::PreUpdate() {
         if (!m_enabled)
             return;
 
         float advance = glm::max(m_scene->GetSceneRuntime() - m_time, 0.0f);
+        m_time = m_scene->GetSceneRuntime();
         if (advance <= 0.0f) {
             return;
         }

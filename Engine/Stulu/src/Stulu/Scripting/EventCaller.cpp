@@ -13,7 +13,9 @@ namespace Stulu {
 		: m_scene(scene) {
 
 		for (auto& [id, func] : s_registeredSceneLayers) {
-			m_layer.insert(func(scene));
+			auto [layerHash, layerPtr] = func(scene);
+			if(layerHash && layerPtr)
+				m_layer.insert(func(scene));
 		}
 		m_manager = Application::get().getAssemblyManager();
 	}
@@ -147,6 +149,9 @@ namespace Stulu {
 	}
 	void EventCaller::NativeSceneStart() {
 		DEFAULT_HANDLE_LAYER(SceneStart);
+	}
+	void EventCaller::NativePreUpdate() {
+		DEFAULT_HANDLE_LAYER(PreUpdate);
 	}
 	void EventCaller::NativeGameObjectCreate(const GameObject& object) {
 		DEFAULT_HANDLE_LAYER(GameObjectCreate, object);

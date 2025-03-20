@@ -4,8 +4,8 @@
 
 class APP_API ProjectLayer : public Stulu::SceneLayer {
 public:
-    virtual void Initlize(Stulu::Scene* scene) override {
-
+    virtual bool Initlize(Stulu::Scene* scene) override {
+        return true;
     }
 
 };

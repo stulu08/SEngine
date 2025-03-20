@@ -6,7 +6,7 @@ namespace Stulu {
 	public:
 		~ParticleSystemLayer() = default;
 
-		virtual void Initlize(Scene* scene) override;
+		virtual bool Initlize(Scene* scene) override;
 
 		virtual void SceneStart() override;
 		virtual void Update() override;

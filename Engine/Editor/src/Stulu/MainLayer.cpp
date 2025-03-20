@@ -11,6 +11,7 @@
 #include "Panels/Settings.h"
 
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
+#include <Stulu/Physics/Components/Collider.h>
 
 using namespace Stulu;
 
@@ -320,19 +321,6 @@ namespace Editor {
 			if (ImGui::BeginMenu("Settings")) {
 				if (ImGui::MenuItem("VSync", "", App::get().getWindow().isVSync())) {
 					App::get().getWindow().setVSync(!App::get().getWindow().isVSync());
-				}
-				if (PhysX::isPVDRunning()) {
-					if (ImGui::MenuItem("Stop PhysX Visual Debugger")) {
-						PhysX::stopPVD();
-					}
-				}
-				else {
-					if (ImGui::MenuItem("Start PhysX Visual Debugger")) {
-						if (!PhysX::started()) {
-							PhysX::startUp();
-						}
-						PhysX::startPVD();
-					}
 				}
 
 

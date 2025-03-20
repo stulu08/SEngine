@@ -5,11 +5,12 @@
 namespace Stulu {
 	class STULU_API SceneLayer {
 	public:
-		virtual void Initlize(Scene* scene) = 0;
+		virtual bool Initlize(Scene* scene) = 0;
 		virtual ~SceneLayer() = default;
 
 		virtual void SceneStart() { }
 		virtual void Update() { }
+		virtual void PreUpdate() { }
 		virtual void SceneExit() {}
 
 		virtual void Render() { }

@@ -13,10 +13,10 @@ namespace Stulu {
 			SceneExit();
 		}
 
-		virtual void Initlize(Scene* scene) override;
+		virtual bool Initlize(Scene* scene) override;
 
 		virtual void SceneStart() override;
-		virtual void Update() override;
+		virtual void PreUpdate() override;
 		virtual void SceneExit() override;
 		virtual void GameObjectDestory(const GameObject& object) override;
 
