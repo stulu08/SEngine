@@ -157,14 +157,14 @@ namespace Stulu {
     void PhysicsScene::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {
         BEGIN_SERIALIZE_COMPONENT(BoxColliderComponent);
         {
-            SERIALIZE_PROPERTY(SerializedBoxColliderComponent, PhysicsMaterial);
+            SERIALIZE_PROPERTY(SerializedBoxColliderComponent, material);
             SERIALIZE_PROPERTY(SerializedBoxColliderComponent, Size);
             SERIALIZE_PROPERTY(SerializedBoxColliderComponent, Offset);
         }
         END_SERIALIZE_COMPONENT();
         BEGIN_SERIALIZE_COMPONENT(SphereColliderComponent);
         {
-            SERIALIZE_PROPERTY(SerializedSphereColliderComponent, PhysicsMaterial);
+            SERIALIZE_PROPERTY(SerializedSphereColliderComponent, material);
             SERIALIZE_PROPERTY(SerializedSphereColliderComponent, Radius);
             SERIALIZE_PROPERTY(SerializedSphereColliderComponent, Offset);
         }
@@ -172,17 +172,17 @@ namespace Stulu {
 
         BEGIN_SERIALIZE_COMPONENT(CapsuleColliderComponent);
         {
-            SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, PhysicsMaterial);
+            SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, material);
             SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Radius);
             SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Height);
             SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Offset);
-            SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Horizontal);
+            SERIALIZE_PROPERTY(SerializedCapsuleColliderComponent, Vertical);
         }
         END_SERIALIZE_COMPONENT();
 
         BEGIN_SERIALIZE_COMPONENT(MeshColliderComponent);
         {
-            SERIALIZE_PROPERTY(SerializedMeshColliderComponent, PhysicsMaterial);
+            SERIALIZE_PROPERTY(SerializedMeshColliderComponent, material);
             SERIALIZE_PROPERTY(SerializedMeshColliderComponent, Convex);
             SERIALIZE_MESH(SerializedMeshColliderComponent, Mesh);
         }
@@ -191,12 +191,12 @@ namespace Stulu {
         BEGIN_SERIALIZE_COMPONENT(RigidbodyComponent);
         {
             SERIALIZE_PROPERTY(SerializedRigidbodyComponent, UseGravity);
-            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationX);
-            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationY);
-            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationZ);
-            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveX);
-            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveY);
-            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveZ);
+            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationLockX);
+            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationLockY);
+            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RotationLockZ);
+            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveLockX);
+            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveLockY);
+            SERIALIZE_PROPERTY(SerializedRigidbodyComponent, MoveLockZ);
             SERIALIZE_PROPERTY(SerializedRigidbodyComponent, Kinematic);
             SERIALIZE_PROPERTY(SerializedRigidbodyComponent, RetainAccelaration);
             SERIALIZE_PROPERTY(SerializedRigidbodyComponent, Mass);
@@ -208,7 +208,7 @@ namespace Stulu {
     void PhysicsScene::DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {
         BEGIN_DESERIALIZE_COMPONENT(BoxColliderComponent);
         {
-            DESERIALIZE_PROPERTY(AddedBoxColliderComponent, PhysicsMaterial);
+            DESERIALIZE_PROPERTY(AddedBoxColliderComponent, material);
             DESERIALIZE_PROPERTY(AddedBoxColliderComponent, Size);
             DESERIALIZE_PROPERTY(AddedBoxColliderComponent, Offset);
         }
@@ -216,7 +216,7 @@ namespace Stulu {
 
         BEGIN_DESERIALIZE_COMPONENT(SphereColliderComponent);
         {
-            DESERIALIZE_PROPERTY(AddedSphereColliderComponent, PhysicsMaterial);
+            DESERIALIZE_PROPERTY(AddedSphereColliderComponent, material);
             DESERIALIZE_PROPERTY(AddedSphereColliderComponent, Radius);
             DESERIALIZE_PROPERTY(AddedSphereColliderComponent, Offset);
         }
@@ -224,17 +224,17 @@ namespace Stulu {
 
         BEGIN_DESERIALIZE_COMPONENT(CapsuleColliderComponent);
         {
-            DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, PhysicsMaterial);
+            DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, material);
             DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Radius);
             DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Height);
             DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Offset);
-            DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Horizontal);
+            DESERIALIZE_PROPERTY(AddedCapsuleColliderComponent, Vertical);
         }
         END_DESERIALIZE_COMPONENT();
 
         BEGIN_DESERIALIZE_COMPONENT(MeshColliderComponent);
         {
-            DESERIALIZE_PROPERTY(AddedMeshColliderComponent, PhysicsMaterial);
+            DESERIALIZE_PROPERTY(AddedMeshColliderComponent, material);
             DESERIALIZE_PROPERTY(AddedMeshColliderComponent, Convex);
             DESERIALIZE_MESH(AddedMeshColliderComponent, Mesh);
             AddedMeshColliderComponent.BuildConvex();
@@ -244,12 +244,12 @@ namespace Stulu {
         BEGIN_DESERIALIZE_COMPONENT(RigidbodyComponent);
         {
             DESERIALIZE_PROPERTY(AddedRigidbodyComponent, UseGravity);
-            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationX);
-            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationY);
-            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationZ);
-            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveX);
-            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveY);
-            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveZ);
+            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationLockX);
+            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationLockY);
+            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RotationLockZ);
+            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveLockX);
+            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveLockY);
+            DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MoveLockZ);
             DESERIALIZE_PROPERTY(AddedRigidbodyComponent, Kinematic);
             DESERIALIZE_PROPERTY(AddedRigidbodyComponent, RetainAccelaration);
             DESERIALIZE_PROPERTY(AddedRigidbodyComponent, Mass);

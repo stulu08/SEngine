@@ -33,6 +33,13 @@ namespace Editor {
 		void StartRuntime();
 		void StopRuntime();
 
+		void AddShortCut(Shortcut&& shortcut) {
+			m_shortcuts.push_back(std::move(shortcut));
+		}
+		std::vector<Shortcut>& GetShortcuts() {
+			return m_shortcuts;
+		}
+
 		template<class T, class ...Args>
 		inline void AddPanel(Args&& ...args) {
 			m_panels.insert({ typeid(T).hash_code(), new T(std::forward<Args>(args)...) });

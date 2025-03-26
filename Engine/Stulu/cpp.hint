@@ -4,3 +4,4 @@
 #define STULU_API __declspec(dllexport)
 #define STULU_API __declspec(dllimport)
 #define STULU_API
+#define COLOR_WHITE_VEC4 {1.0f,1.0f,1.0f,1.0f}

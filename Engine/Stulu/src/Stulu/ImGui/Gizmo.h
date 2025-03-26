@@ -62,6 +62,9 @@ namespace Stulu {
 		static void drawSphere(const glm::mat4& transformation, const glm::vec4& color = COLOR_WHITE_VEC4);
 		static void drawSphere(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const glm::vec4& color = COLOR_WHITE_VEC4);
 
+		static void DrawArc(const glm::vec3& center, const glm::vec3& right, const glm::vec3& up, float radius, float startAngle, float endAngle, int segments, const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawCapsule(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, float radius, float height, bool vertical, const glm::vec4& colo = COLOR_WHITE_VEC4);
+
 		static void drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color = {1,1,1,1}, bool border = false, float overrideBorderSize = 0);
 		static bool drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& position, 
 			const glm::vec2& size = {50,50}, const glm::vec4& color = {1,1,1,1}, 

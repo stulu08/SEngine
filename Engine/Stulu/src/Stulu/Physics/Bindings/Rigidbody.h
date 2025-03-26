@@ -47,5 +47,26 @@ namespace StuluBindings {
 		static inline float getMass(uint64_t go) {
 			return Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::RigidbodyComponent>().GetMass();
 		}
+
+		static inline void setAngularLock(uint64_t go, int32_t index, bool value) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetRotationLock(index, value);
+		}
+		static inline bool getAngularLock(uint64_t go, int32_t index) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::RigidbodyComponent>();
+			return rb.HasRotationLock(index);
+		}
+		static inline void setLinearLock(uint64_t go, int32_t index, bool value) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetMoveLock(index, value);
+		}
+		static inline bool getLinearLock(uint64_t go, int32_t index) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::RigidbodyComponent>();
+			return rb.HasMoveLock(index);
+		}
 	};
 }

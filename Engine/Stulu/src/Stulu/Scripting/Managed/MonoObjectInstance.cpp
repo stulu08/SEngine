@@ -87,10 +87,7 @@ namespace Stulu {
 		CallMethod(ctor, args, false);
 	}
 	Mono::Object MonoObjectInstance::CallMethod(Mono::Method method, void** args, bool isStatic) {
-		if (method) {
-			return m_assembly->InvokeMethod(method, isStatic ? NULL : m_object, args);
-		}
-		return nullptr;
+		return m_assembly->InvokeMethod(method, isStatic ? NULL : m_object, args);
 	}
 
 	void MonoObjectInstance::Reload() {

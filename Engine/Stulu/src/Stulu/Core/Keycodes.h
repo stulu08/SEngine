@@ -3,7 +3,7 @@
 namespace Stulu::Keyboard {
 	using KeyCode = uint32_t;
 
-	enum : KeyCode {
+	enum Enum: KeyCode {
 		NONE = 0,
 		Space = 32,
 		Apostroph = 39, /* ' */

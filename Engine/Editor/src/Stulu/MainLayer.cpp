@@ -9,6 +9,7 @@
 #include "Panels/AssetBrowser.h"
 #include "Panels/Inspector.h"
 #include "Panels/Settings.h"
+#include "Panels/Shortcut.h"
 
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 #include <Stulu/Physics/Components/Collider.h>
@@ -19,6 +20,14 @@ namespace Editor {
 	MainLayer::MainLayer()
 		: Layer("EditorLayer"), m_preview() {
 		
+		LoadShotcuts();
+	}
+	MainLayer::~MainLayer()
+	{}
+
+	static Mono::Method debugMethod = nullptr;
+
+	void MainLayer::onAttach() {
 		AddPanel<HierarchyPanel>();
 		AddPanel<ProfilingPanel>();
 		AddPanel<AssetBrowser>(App::get().GetProject().GetAssetPath());
@@ -30,14 +39,6 @@ namespace Editor {
 		m_scenePanel = &GetPanel<ScenePanel>();
 		m_gamePanel = &GetPanel<GamePanel>();
 
-		LoadShotcuts();
-	}
-	MainLayer::~MainLayer()
-	{}
-
-	static Mono::Method debugMethod = nullptr;
-
-	void MainLayer::onAttach() {
 		ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
 
 		Style::LoadAll();
@@ -45,8 +46,13 @@ namespace Editor {
 		NewScene();
 
 		debugMethod = App::get().getAssemblyManager()->getScriptCoreAssembly()->CreateMethod("Editor", "Editor", "DebugTest");
+
+		std::sort(m_shortcuts.begin(), m_shortcuts.end(), std::greater<Shortcut>());
+		AddPanel<ShortcutPanel>();
 	}
 	void MainLayer::onUpdate(Timestep timestep) {
+		ST_PROFILING_SCOPE("Editor - Update");
+
 		CallPanels<&Panel::Update>();
 
 		DrawObjectOutlines();
@@ -96,6 +102,8 @@ namespace Editor {
 
 	}
 	void MainLayer::onEvent(Event& e) {
+		ST_PROFILING_SCOPE("Editor - Event");
+
 		EventDispatcher dispatcher(e);
 		// shortcuts should be always checked, when imgui wants to capture the keyboard events are stopped resulting in the layer not receiving the keyboard event
 		//dispatcher.dispatch<KeyDownEvent>(ST_BIND_EVENT_FN(MainLayer::CheckShortcuts));
@@ -110,6 +118,8 @@ namespace Editor {
 	}
 
 	void MainLayer::onRenderGizmo() {
+		ST_PROFILING_SCOPE("Editor - Gizmos");
+
 		CallPanels<&Panel::DrawImGuizmo>();
 
 		GetActiveScene()->getCaller()->onDrawGizmos();
@@ -267,16 +277,24 @@ namespace Editor {
 		RenderCommand::setWireFrame(true);
 		if (selected.hasComponent<CapsuleColliderComponent>()) {
 			CapsuleColliderComponent& capsuleCollider = selected.getComponent<CapsuleColliderComponent>();
-			glm::vec3 position = tc.GetWorldPosition() + capsuleCollider.GetOffset();
-			glm::vec3 scale;
-			if (capsuleCollider.GetHorizontal())
-				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.GetRadius(), capsuleCollider.GetHeight() / 2.0f, capsuleCollider.GetRadius()));
-			else
-				scale = tc.GetWorldScale() * (glm::vec3(capsuleCollider.GetHeight() / 2.0f, capsuleCollider.GetRadius(), capsuleCollider.GetRadius()));
+			const glm::vec3 position = tc.GetWorldPosition() + capsuleCollider.GetOffset();
+			glm::quat rotation = tc.GetWorldRotation();
+			const float radius = capsuleCollider.GetRadius() * 2.0f;
+			const float halfHeight = (capsuleCollider.GetHeight() * 0.5f);
 
-			Renderer::submit(Stulu::Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
+			glm::vec3 capsuleScale;
+			if (capsuleCollider.GetVertical()) {
+				capsuleScale = tc.GetWorldScale() * glm::vec3(radius, radius, halfHeight);
+				rotation *= glm::quat(glm::vec3(glm::radians(90.0f), 0, 0));
+			}
+			else {
+				capsuleScale = tc.GetWorldScale() * glm::vec3(halfHeight, radius, radius);
+			}
+
+			Renderer::submit(
+				Stulu::Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
 				Resources::GetHighliteShader(),
-				Math::createMat4(position, tc.GetWorldRotation(), scale));
+				Math::createMat4(position, rotation, capsuleScale));
 		}
 		if (selected.hasComponent<MeshColliderComponent>()) {
 			MeshColliderComponent& meshCollider = selected.getComponent<MeshColliderComponent>();
@@ -420,13 +438,13 @@ namespace Editor {
 	void MainLayer::LoadShotcuts() {
 
 		// Open Scene Ctrl+0
-		m_shortcuts.push_back(Shortcut([&]() { OpenScene(); return true; }, Keyboard::O, false, true));
+		m_shortcuts.push_back(Shortcut("Open Scene", [&]() { OpenScene(); return true; }, Keyboard::O, false, true));
 		// Save Scene Ctrl+S
-		m_shortcuts.push_back(Shortcut([&]() { SaveScene(m_currentScenePath, false); return true; }, Keyboard::S, false, true));
+		m_shortcuts.push_back(Shortcut("Save Scene", [&]() { SaveScene(m_currentScenePath, false); return true; }, Keyboard::S, false, true));
 		// Save Scene As Ctrl+Shift+S
-		m_shortcuts.push_back(Shortcut([&]() { SaveScene(m_currentScenePath, true); return true; }, Keyboard::S, true, true));
+		m_shortcuts.push_back(Shortcut("Save Scene as", [&]() { SaveScene(m_currentScenePath, true); return true; }, Keyboard::S, true, true));
 		// Switch Runtime Mode Ctrl+Alt+P
-		m_shortcuts.push_back(Shortcut(([&]() {
+		m_shortcuts.push_back(Shortcut("Switch Runtime Mode", ([&]() {
 			if (this->IsRuntime())
 				StopRuntime();
 			else

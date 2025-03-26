@@ -114,6 +114,16 @@ namespace Stulu {
 
         physics->GetPhysicsScene()->addActor(*m_actor);
         m_physics = physics;
+
+        for (int i = 0; i < 2; i++) {
+            SetRotationLock(i, HasRotationLock(i));
+            SetMoveLock(i, HasMoveLock(i));
+        }
+        SetKinematic(Kinematic);
+        SetRetainAcceleration(RetainAccelaration);
+        SetUseGravity(UseGravity);
+        SetMass(Mass);
+        SetMassCenterPosition(MassCenterPosition);
     }
 	void RigidbodyComponent::SetTransform(glm::vec3 position, glm::quat rotation) {
 		if (!RuntimeCanChange())
@@ -151,108 +161,98 @@ namespace Stulu {
 	}
 
     void RigidbodyComponent::SetRotationLock(uint8_t index, bool value) {
-        if (!RuntimeCanChange()) {
-            return;
-        }
-
-        physx::PxRigidDynamic* actor = GetDynamicActor();
-        if (!actor) {
-            return;
-        }
-        
-        physx::PxRigidDynamicLockFlags flags = actor->getRigidDynamicLockFlags();
+        physx::PxRigidDynamicLockFlags flags = (physx::PxRigidDynamicLockFlag::Enum)0;
+        if (RuntimeCanChange())
+            flags = GetDynamicActor()->getRigidDynamicLockFlags();
 
         switch (index) {
-        case 0: RotationX = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X; break;
-        case 1: RotationY = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y; break;
-        case 2: RotationZ = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z; break;
+        case 0: RotationLockX = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X; break;
+        case 1: RotationLockY = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y; break;
+        case 2: RotationLockZ = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z; break;
         default: return;
         }
-        actor->setRigidDynamicLockFlags(flags);
+
+        if (RuntimeCanChange())
+            GetDynamicActor()->setRigidDynamicLockFlags(flags);
     }
 
     void RigidbodyComponent::SetMoveLock(uint8_t index, bool value) {
-        if (!RuntimeCanChange()) {
-            return;
-        }
 
-        physx::PxRigidDynamic* actor = GetDynamicActor();
-        if (!actor) {
-            return;
-        }
-
-        physx::PxRigidDynamicLockFlags flags = actor->getRigidDynamicLockFlags();
+        physx::PxRigidDynamicLockFlags flags = (physx::PxRigidDynamicLockFlag::Enum)0;
+        if (RuntimeCanChange())
+            flags = GetDynamicActor()->getRigidDynamicLockFlags();
 
         switch (index) {
-        case 0: MoveX = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X; break;
-        case 1: MoveY = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y; break;
-        case 2: MoveZ = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z; break;
+        case 0: MoveLockX = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X; break;
+        case 1: MoveLockY = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y; break;
+        case 2: MoveLockZ = value; flags = value ? flags | physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z : flags & ~physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z; break;
         default: return;
         }
 
-        actor->setRigidDynamicLockFlags(flags);
+        if (RuntimeCanChange())
+            GetDynamicActor()->setRigidDynamicLockFlags(flags);
     }
 
     void RigidbodyComponent::SetKinematic(bool value) {
+        Kinematic = value;
         if (!RuntimeCanChange()) {
             return;
         }
-        Kinematic = value;
         physx::PxRigidDynamic* actor = GetDynamicActor();
         actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, value);
     }
 
     void RigidbodyComponent::SetRetainAcceleration(bool value) {
+        RetainAccelaration = value;
         if (!RuntimeCanChange()) {
             return;
         }
         
-        RetainAccelaration = value;
         if (!Kinematic) {
             physx::PxRigidDynamic* actor = GetDynamicActor();
             actor->setRigidBodyFlag(physx::PxRigidBodyFlag::Enum::eRETAIN_ACCELERATIONS, value);
         }
     }
     void RigidbodyComponent::SetUseGravity(bool value) {
+        UseGravity = value;
         if (!RuntimeCanChange()) {
             return;
         }
-        UseGravity = value;
         physx::PxRigidDynamic* actor = GetDynamicActor();
         actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !value);
     }
     void RigidbodyComponent::SetMass(float value) {
+        Mass = value;
         if (!RuntimeCanChange()) {
             return;
         }
         if (value <= 0.0f) {
             return;
         }
-        Mass = value;
         physx::PxRigidDynamic* actor = GetDynamicActor();
         actor->setMass(value);
     }
     void RigidbodyComponent::SetMassCenterPosition(const glm::vec3& value) {
+        MassCenterPosition = value;
         if (!RuntimeCanChange()) {
             return;
         }
-        MassCenterPosition = value;
         physx::PxRigidDynamic* actor = GetDynamicActor();
         actor->setCMassLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(value)));
     }
     bool RigidbodyComponent::HasRotationLock(uint8_t index) const {
         switch (index) {
-        case 0: return RotationX;
-        case 1: return RotationY;
-        case 2: return RotationZ;
+        case 0: return RotationLockX;
+        case 1: return RotationLockY;
+        case 2: return RotationLockZ;
         default: return false;
         }
     }
     bool RigidbodyComponent::HasMoveLock(uint8_t index) const {
         switch (index) {
-        case 0: return MoveX;
-        case 1: return MoveY;
-        case 2: return MoveZ;
+        case 0: return MoveLockX;
+        case 1: return MoveLockY;
+        case 2: return MoveLockZ;
         default: return false;
         }
     }

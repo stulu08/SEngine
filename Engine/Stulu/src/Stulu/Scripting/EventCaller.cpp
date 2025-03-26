@@ -10,7 +10,7 @@ namespace Stulu {
 
 
 	EventCaller::EventCaller(Scene* scene)
-		: m_scene(scene) {
+		: m_scene(scene), m_initManagedMethod(nullptr) {
 
 		for (auto& [id, func] : s_registeredSceneLayers) {
 			auto [layerHash, layerPtr] = func(scene);
@@ -18,6 +18,7 @@ namespace Stulu {
 				m_layer.insert(func(scene));
 		}
 		m_manager = Application::get().getAssemblyManager();
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
 	}
 
 	void EventCaller::ConstructManaged(const GameObject& object) {
@@ -45,12 +46,10 @@ namespace Stulu {
 		}
 	}
 	bool EventCaller::InitManagedGameObject(const GameObject& gameObject, Ref<MonoObjectInstance>& script) {
-		Mono::Method func = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
-		if (func) {
+		if (m_initManagedMethod) {
 			uint64_t id = (uint64_t)gameObject.GetID();
-			void* args[1];
-			args[0] = &id;
-			m_manager->getAppAssembly()->InvokeMethod(func, script->getObject(), args);
+			void* args[1] = { &id };
+			script->CallMethod(m_initManagedMethod, args, false);
 			script->SetInitilized();
 			return true;
 		}

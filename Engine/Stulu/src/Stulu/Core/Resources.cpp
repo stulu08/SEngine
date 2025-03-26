@@ -53,7 +53,7 @@ namespace Stulu {
 
 		AssetsManager::add(assetPath + "/Meshes/capsule.fbx");
 		AssetsManager::add(assetPath + "/Meshes/ico_sphere.fbx");
-		AssetsManager::add(assetPath + "/Meshes/high_res_sphere.obj");
+		AssetsManager::add(assetPath + "/Meshes/high_res_sphere.fbx");
 		AssetsManager::add(assetPath + "/Meshes/sphere.fbx");
 		
 	}

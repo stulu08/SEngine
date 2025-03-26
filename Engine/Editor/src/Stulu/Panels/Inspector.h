@@ -6,17 +6,21 @@
 namespace Editor {
 	class InspectorRenderer {
 	public:
-		InspectorRenderer(Stulu::Mono::ReflectionType refType, const std::string& header, Stulu::Mono::Class inspectorClass, Stulu::ScriptAssembly* assembly)
-			: m_refType(refType), m_header(header), 
+		InspectorRenderer(Stulu::Mono::ReflectionType refType, const std::string& header, Stulu::Mono::Class inspectorClass, int32_t prio, Stulu::ScriptAssembly* assembly)
+			: m_refType(refType), m_header(header), m_prio(prio),
 			m_object(Stulu::createRef<Stulu::MonoObjectInstance>(inspectorClass, assembly)){}
 
 		InspectorRenderer(InspectorRenderer&&) = default;
+		InspectorRenderer& operator=(InspectorRenderer&&) = default;
 
 		InspectorRenderer(const InspectorRenderer&) = delete;
 		InspectorRenderer& operator=(const InspectorRenderer&) = delete;
 
 		inline Stulu::Mono::ReflectionType GetType() const {
 			return m_refType;
+		}
+		inline int32_t GetPriority() const {
+			return m_prio;
 		}
 		inline const std::string& GetHeader() const {
 			return m_header;
@@ -28,6 +32,7 @@ namespace Editor {
 		Stulu::Ref<Stulu::MonoObjectInstance> m_object;
 		Stulu::Mono::ReflectionType m_refType;
 		std::string m_header;
+		int32_t m_prio;
 	};
 
 	class InspectorPanel : public Panel {

@@ -434,6 +434,58 @@ namespace Stulu {
 		drawSphere(Math::createMat4(position, rotation, scale), color);
 	}
 
+	void Gizmo::DrawArc(const glm::vec3& center, const glm::vec3& right, const glm::vec3& up, float radius, float startAngle, float endAngle, int segments, const glm::vec4& color) {
+		for (int i = 0; i < segments; ++i) {
+			float theta1 = startAngle + (endAngle - startAngle) * (i / (float)segments);
+			float theta2 = startAngle + (endAngle - startAngle) * ((i + 1) / (float)segments);
+
+			glm::vec3 p1 = center + right * glm::cos(theta1) * radius + up * glm::sin(theta1) * radius;
+			glm::vec3 p2 = center + right * glm::cos(theta2) * radius + up * glm::sin(theta2) * radius;
+
+			drawLine(p1, p2, color);
+		}
+	}
+
+	void Gizmo::drawCapsule(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, float radius, float height, bool vertical, const glm::vec4& color) {
+		const int segments = 16; // Number of segments for arc rendering
+		float halfHeight = (height * 0.5f) - radius; // Cylinder part height
+
+		// Capsule orientation axes
+		glm::vec3 up = glm::vec3(0, 1, 0); // Default: vertical along Y
+		glm::vec3 right = glm::vec3(1, 0, 0); // Local X-axis
+		glm::vec3 forward = glm::vec3(0, 0, 1); // Local Z-axis
+
+		if (vertical) {
+			up = glm::vec3(1, 0, 0); // Align along X-axis
+			right = glm::vec3(0, 1, 0);
+		}
+
+		// Apply object rotation
+		up = rotation * up;
+		right = rotation * right;
+		forward = rotation * forward;
+
+		// Compute capsule top/bottom
+		glm::vec3 bottom = position - up * halfHeight;
+		glm::vec3 top = position + up * halfHeight;
+
+		// Draw the cylinder edges
+		drawLine(bottom + right * radius, top + right * radius, color);
+		drawLine(bottom - right * radius, top - right * radius, color);
+		drawLine(bottom + forward * radius, top + forward * radius, color);
+		drawLine(bottom - forward * radius, top - forward * radius, color);
+
+		// Draw top and bottom circles (caps)
+		drawCircle(top, glm::vec2(radius * scale.x, radius * scale.z), rotation, color);
+		drawCircle(bottom, glm::vec2(radius * scale.x, radius * scale.z), rotation, color);
+
+		// Draw arcs on the sides
+		DrawArc(bottom, forward, up, radius, 0, glm::pi<float>(), segments, color);
+		DrawArc(top, forward, up, radius, glm::pi<float>(), glm::two_pi<float>(), segments, color);
+		DrawArc(bottom, right, up, radius, 0, glm::pi<float>(), segments, color);
+		DrawArc(top, right, up, radius, glm::pi<float>(), glm::two_pi<float>(), segments, color);
+	}
+
 
 	void Gizmo::drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, bool border, float border_size) {
 		ImVec2 p_min(pos.x + s_data.mX, pos.y + s_data.mY);

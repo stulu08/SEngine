@@ -11,6 +11,7 @@
 #include "PxPhysicsAPI.h"
 
 #include "Bindings/Rigidbody.h"
+#include "Bindings/Collider.h"
 
 namespace Stulu {
     PhysicsModule* PhysicsModule::s_instance;
@@ -175,7 +176,7 @@ namespace Stulu {
         Component::Register<MeshColliderComponent>("Stulu.MeshColliderComponent");
 
         auto& manager = Application::get().getAssemblyManager();
-
+        
         manager->RegisterFunction("Stulu.InternalCalls::rigidbody_addForce(ulong,Stulu.Vector3&,uint)", StuluBindings::Rigidbody::addForce);
         manager->RegisterFunction("Stulu.InternalCalls::rigidbody_useGravity(ulong)", StuluBindings::Rigidbody::getuseGravity);
         manager->RegisterFunction("Stulu.InternalCalls::rigidbody_kinematic(ulong)", StuluBindings::Rigidbody::getKinematic);
@@ -187,5 +188,35 @@ namespace Stulu {
         manager->RegisterFunction("Stulu.InternalCalls::rigidbody_mass(ulong,single)", StuluBindings::Rigidbody::setMass);
         manager->RegisterFunction("Stulu.InternalCalls::rigidbody_massCenterSet(ulong,Stulu.Vector3&)", StuluBindings::Rigidbody::setMassCenterPos);
         manager->RegisterFunction("Stulu.InternalCalls::rigidbody_massCenterGet(ulong,Stulu.Vector3&)", StuluBindings::Rigidbody::getMassCenterPos);
+        manager->RegisterFunction("Stulu.InternalCalls::rigidbody_massCenterGet(ulong,Stulu.Vector3&)", StuluBindings::Rigidbody::getMassCenterPos);
+        manager->RegisterFunction("Stulu.InternalCalls::rigidbody_lockAngularVelocity(ulong,int)", StuluBindings::Rigidbody::getAngularLock);
+        manager->RegisterFunction("Stulu.InternalCalls::rigidbody_lockAngularVelocity(ulong,int,bool)", StuluBindings::Rigidbody::setAngularLock);
+        manager->RegisterFunction("Stulu.InternalCalls::rigidbody_lockLinearVelocity(ulong,int)", StuluBindings::Rigidbody::getLinearLock);
+        manager->RegisterFunction("Stulu.InternalCalls::rigidbody_lockLinearVelocity(ulong,int,bool)", StuluBindings::Rigidbody::setLinearLock);
+
+		manager->RegisterFunction("Stulu.InternalCalls::boxcollider_getMaterial(ulong,Stulu.PhysicsMaterial&)", StuluBindings::BoxCollider::getMaterial);
+		manager->RegisterFunction("Stulu.InternalCalls::boxcollider_updateMaterial(ulong,Stulu.PhysicsMaterial&)", StuluBindings::BoxCollider::setMaterial);
+		manager->RegisterFunction("Stulu.InternalCalls::boxcollider_getOffset(ulong,Stulu.Vector3&)", StuluBindings::BoxCollider::getOffset);
+		manager->RegisterFunction("Stulu.InternalCalls::boxcollider_setOffset(ulong,Stulu.Vector3&)", StuluBindings::BoxCollider::setOffset);
+		manager->RegisterFunction("Stulu.InternalCalls::boxcollider_getSize(ulong,Stulu.Vector3&)", StuluBindings::BoxCollider::getSize);
+		manager->RegisterFunction("Stulu.InternalCalls::boxcollider_setSize(ulong,Stulu.Vector3&)", StuluBindings::BoxCollider::setSize);
+		
+        manager->RegisterFunction("Stulu.InternalCalls::spherecollider_getMaterial(ulong,Stulu.PhysicsMaterial&)", StuluBindings::SphereCollider::getMaterial);
+		manager->RegisterFunction("Stulu.InternalCalls::spherecollider_updateMaterial(ulong,Stulu.PhysicsMaterial&)", StuluBindings::SphereCollider::setMaterial);
+		manager->RegisterFunction("Stulu.InternalCalls::spherecollider_getOffset(ulong,Stulu.Vector3&)", StuluBindings::SphereCollider::getOffset);
+		manager->RegisterFunction("Stulu.InternalCalls::spherecollider_setOffset(ulong,Stulu.Vector3&)", StuluBindings::SphereCollider::setOffset);
+		manager->RegisterFunction("Stulu.InternalCalls::spherecollider_radius(ulong)", StuluBindings::SphereCollider::getRadius);
+		manager->RegisterFunction("Stulu.InternalCalls::spherecollider_radius(ulong,single)", StuluBindings::SphereCollider::setRadius);
+		
+        manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_getMaterial(ulong,Stulu.PhysicsMaterial&)", StuluBindings::CapsuleCollider::getMaterial);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_updateMaterial(ulong,Stulu.PhysicsMaterial&)", StuluBindings::CapsuleCollider::setMaterial);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_getOffset(ulong,Stulu.Vector3&)", StuluBindings::CapsuleCollider::getOffset);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_setOffset(ulong,Stulu.Vector3&)", StuluBindings::CapsuleCollider::setOffset);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_radius(ulong)", StuluBindings::CapsuleCollider::getRadius);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_radius(ulong,single)", StuluBindings::CapsuleCollider::setRadius);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_height(ulong)", StuluBindings::CapsuleCollider::getHeight);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_height(ulong,single)", StuluBindings::CapsuleCollider::setHeight);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_vertical(ulong)", StuluBindings::CapsuleCollider::getVertical);
+		manager->RegisterFunction("Stulu.InternalCalls::capsuleCollider_vertical(ulong,bool)", StuluBindings::CapsuleCollider::setVertical);
     }
 }

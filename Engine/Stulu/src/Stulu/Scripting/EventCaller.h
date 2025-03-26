@@ -49,6 +49,7 @@ namespace Stulu {
 		Scene* m_scene;
 		std::unordered_map<size_t, SceneLayer*> m_layer;
 		Ref<AssemblyManager> m_manager;
+		Mono::Method m_initManagedMethod;
 
 		static std::unordered_map<size_t, std::function<std::pair<size_t, SceneLayer*>(Scene*)>> s_registeredSceneLayers;
 

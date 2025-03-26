@@ -13,13 +13,16 @@ namespace Editor
 		{
 			this.type = type;
 			this.name = type.Name;
+			this.priority = 5000;
 		}
-		public InspectorRendererAttribute(Type type, string name)
+		public InspectorRendererAttribute(Type type, string name, int priority = 5000)
 		{
 			this.type = type;
 			this.name = name;
+			this.priority = priority;
 		}
 		public Type type;
 		public string name;
+		public int priority;
 	}
 }

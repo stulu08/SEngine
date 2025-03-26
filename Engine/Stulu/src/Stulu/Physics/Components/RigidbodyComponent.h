@@ -95,8 +95,8 @@ namespace Stulu {
 		physx::PxRigidDynamic* GetDynamicActor() const;
 	private:
 		bool UseGravity = true;
-		bool RotationX = true, RotationY = true, RotationZ = true;
-		bool MoveX = true, MoveY = true, MoveZ = true;
+		bool RotationLockX = false, RotationLockY = false, RotationLockZ = false;
+		bool MoveLockX = false, MoveLockY = false, MoveLockZ = false;
 		bool Kinematic = false;
 		bool RetainAccelaration = false;
 		float Mass = 1.0f;

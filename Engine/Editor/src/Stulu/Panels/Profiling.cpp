@@ -207,21 +207,19 @@ namespace Editor {
 		Ref<Scene> scene = App::get().GetLayer().GetActiveScene();
 		if (scene->PhysicsEnable() && scene->getCaller()->HasLayer<PhysicsScene>()) {
 			const auto& physics = scene->getCaller()->GetLayer<PhysicsScene>();
-			bool value = false;
-
-			for (auto enumValue : magic_enum::enum_values<PhysicsHelper::DebugViuals>()) {
-				bool value = physics.GetDebugVisual(enumValue) > 0.0f;
-				std::string enumName = std::string(magic_enum::enum_name(enumValue));
-				if (Controls::Bool(enumName, value)) {
-					physics.SetDebugVisual(enumValue, value ? 1.0f : 0.0f);
+			if (physics.IsValid()) {
+				bool value = false;
+				for (auto enumValue : magic_enum::enum_values<PhysicsHelper::DebugViuals>()) {
+					bool value = physics.GetDebugVisual(enumValue) > 0.0f;
+					std::string enumName = std::string(magic_enum::enum_name(enumValue));
+					if (Controls::Bool(enumName, value)) {
+						physics.SetDebugVisual(enumValue, value ? 1.0f : 0.0f);
+					}
 				}
+				return;
 			}
 		}
-		else {
-			ImGui::Text("Only availabe during runtime");
-		}
-
-		
+		ImGui::Text("Only availabe during runtime");
 	}
 
 	void ProfilingPanel::DrawResources() {

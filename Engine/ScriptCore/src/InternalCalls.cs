@@ -139,6 +139,64 @@ namespace Stulu {
 		internal extern static void rigidbody_massCenterGet(ulong entityId, out Vector3 scale);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void rigidbody_massCenterSet(ulong entityId, ref Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_lockAngularVelocity(ulong entityId, int index);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void rigidbody_lockAngularVelocity(ulong entityId, int index, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool rigidbody_lockLinearVelocity(ulong entityId, int index);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void rigidbody_lockLinearVelocity(ulong entityId, int index, bool value);
+		#endregion
+		#region BoxCollider
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void boxcollider_getMaterial(ulong entityId, out PhysicsMaterial materialRef);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void boxcollider_updateMaterial(ulong entityId, ref PhysicsMaterial materialRef);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void boxcollider_getOffset(ulong entityId, out Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void boxcollider_setOffset(ulong entityId, ref Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void boxcollider_getSize(ulong entityId, out Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void boxcollider_setSize(ulong entityId, ref Vector3 value);
+		#endregion
+		#region SphereCollider
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spherecollider_getMaterial(ulong entityId, out PhysicsMaterial materialRef);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spherecollider_updateMaterial(ulong entityId, ref PhysicsMaterial materialRef);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spherecollider_getOffset(ulong entityId, out Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spherecollider_setOffset(ulong entityId, ref Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float spherecollider_radius(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void spherecollider_radius(ulong entityId, float value);
+		#endregion
+		#region CapsuleCollider
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_getMaterial(ulong entityId, out PhysicsMaterial materialRef);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_updateMaterial(ulong entityId, ref PhysicsMaterial materialRef);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_getOffset(ulong entityId, out Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_setOffset(ulong entityId, ref Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float capsuleCollider_radius(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_radius(ulong entityId, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static float capsuleCollider_height(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_height(ulong entityId, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool capsuleCollider_vertical(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void capsuleCollider_vertical(ulong entityId, bool value);
 		#endregion
 		#region Renderer
 		[MethodImpl(MethodImplOptions.InternalCall)]

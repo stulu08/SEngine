@@ -19,12 +19,24 @@ namespace Editor {
             ControlHelpMark.clear();
         }
 
+        inline void Text(const std::string& text) {
+            ImGui::TextWrapped(text.c_str());
+        }
+        inline void Text(const char* fmt, ...)
+        {
+            va_list args;
+            va_start(args, fmt);
+            ImGui::TextWrappedV(fmt, args);
+            va_end(args);
+        }
+
         inline bool LabeledBaseControl(const std::string& label, std::function<bool()> drawControl, float columnWidth = 0.0f) {
             ImGui::PushID(label.c_str());
 
             if (columnWidth == 0) {
-                columnWidth = ImGui::GetContentRegionMax().x / 2.0f;
+                columnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
             }
+
             ImGui::Columns(2, 0, false);
 
             // col 1
@@ -47,12 +59,6 @@ namespace Editor {
             ImGui::PopID();
 
             return changed;
-        }
-        inline bool LabeledBaseControlBig(const std::string& label, std::function<bool()> drawControl, float columnWidth = 0.0f) {
-            if (columnWidth == 0) {
-                columnWidth = ImGui::GetContentRegionMax().x / 3.0f;
-            }
-            return LabeledBaseControl(label, drawControl, columnWidth);
         }
 	}
 }

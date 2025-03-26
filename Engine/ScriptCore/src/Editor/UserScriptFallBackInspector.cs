@@ -6,7 +6,7 @@ using System.Runtime.Remoting.Messaging;
 
 namespace Editor
 {
-	[InspectorRenderer(typeof(ScriptingComponent), "##UserScripts")]
+	[InspectorRenderer(typeof(ScriptingComponent), "##UserScripts", 0)]
 	internal class UserScriptFallBackInspector : Inspector
 	{
 		private Dictionary<Type, bool> inspectorCache = new Dictionary<Type, bool>();

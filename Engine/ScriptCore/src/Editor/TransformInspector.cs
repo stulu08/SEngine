@@ -3,7 +3,7 @@ using Stulu;
 
 namespace Editor
 {
-	[InspectorRenderer(typeof(TransformComponent), Icons.Arrows + " Transform")]
+	[InspectorRenderer(typeof(TransformComponent), Icons.Arrows + " Transform", -50)]
 	internal class TransformInspector : Inspector
 	{
 		public override void Render(GameObject gameObject) {

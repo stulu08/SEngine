@@ -50,8 +50,10 @@ namespace Editor {
 			/// (WIP) Nav: left direction may move to this TreeNode() from any of its child (items submitted between TreeNode and TreePop)
 			NavLeftJumpsBackHere = 1 << 17,
 		}
-
-
+		/// <summary>
+		/// Draws text
+		/// </summary>
+		public static void Text(string text) => EditorCalls.ImGui_Text(text);
 		/// <summary>
 		/// Draws a vector 3 control
 		/// </summary>
@@ -94,5 +96,13 @@ namespace Editor {
 
 			return EditorCalls.ImGui_Combo(name, ref currentValue, namesString);
         }
+		/// <summary>
+		/// Pushes an id to the id stack, use this if you have controls with same name in a context
+		/// </summary>
+		public static void PushID(string id) => EditorCalls.ImGui_PushID(id);
+		/// <summary>
+		/// Pops the last it from the stack
+		/// </summary>
+		public static void PopID() => EditorCalls.ImGui_PopID();
 	}
 }

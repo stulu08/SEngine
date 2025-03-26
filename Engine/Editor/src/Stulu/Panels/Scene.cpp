@@ -10,12 +10,175 @@
 
 using namespace Stulu;
 
+constexpr uint32_t NoneFlag = (uint32_t)GizmoTransformEditMode::None;
+constexpr uint32_t UniversalFlag = (uint32_t)GizmoTransformEditMode::Universal;
+
+constexpr uint32_t TranslateFlag = (uint32_t)GizmoTransformEditMode::Translate;
+constexpr uint32_t TranslateFlag_X = (uint32_t)GizmoTransformEditMode::Translate_X;
+constexpr uint32_t TranslateFlag_Y = (uint32_t)GizmoTransformEditMode::Translate_Y;
+constexpr uint32_t TranslateFlag_Z = (uint32_t)GizmoTransformEditMode::Translate_Z;
+
+constexpr uint32_t RotateFlag = (uint32_t)GizmoTransformEditMode::Rotate;
+constexpr uint32_t RotateFlag_X = (uint32_t)GizmoTransformEditMode::Rotate_X;
+constexpr uint32_t RotateFlag_Y = (uint32_t)GizmoTransformEditMode::Rotate_Y;
+constexpr uint32_t RotateFlag_Z = (uint32_t)GizmoTransformEditMode::Rotate_Z;
+
+constexpr uint32_t ScaleFlag = (uint32_t)GizmoTransformEditMode::Scale;
+constexpr uint32_t ScaleFlag_X = (uint32_t)GizmoTransformEditMode::Scale_X;
+constexpr uint32_t ScaleFlag_Y = (uint32_t)GizmoTransformEditMode::Scale_Y;
+constexpr uint32_t ScaleFlag_Z = (uint32_t)GizmoTransformEditMode::Scale_Z;
+
 namespace Editor {
 	ScenePanel::ScenePanel()
 	: m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1), Panel("Scene") {
+		auto& layer = App::get().GetLayer();
 
+		// toogle translate (alt + g)
+		layer.AddShortCut(Shortcut("Gizmos - Toogle Translate", ([&]() {
+			m_gizmoMode ^= TranslateFlag;
+			return true;
+		}), Keyboard::G, false, false, true));
+
+		// toogle rotate (alt + r)
+		layer.AddShortCut(Shortcut("Gizmos - Toogle Rotate", ([&]() {
+			m_gizmoMode ^= RotateFlag;
+			return true;
+		}), Keyboard::R, false, false, true));
+
+		// toogle scale  (alt + s)
+		layer.AddShortCut(Shortcut("Gizmos - Toogle Scale", ([&]() {
+			m_gizmoMode ^= ScaleFlag;
+			return true;
+		}), Keyboard::S, false, false, true));
+
+		// set only translate (g)
+		layer.AddShortCut(Shortcut("Gizmos - Translate", ([&]() {
+			m_gizmoMode = TranslateFlag;
+			return true;
+		}), Keyboard::G, false, false, false));
+
+		// set only rotate (r)
+		layer.AddShortCut(Shortcut("Gizmos - Rotate", ([&]() {
+			m_gizmoMode = RotateFlag;
+			return true;
+		}), Keyboard::R, false, false, false));
+
+		// set only scale (s)
+		layer.AddShortCut(Shortcut("Gizmos - Scale", ([&]() {
+			m_gizmoMode = ScaleFlag;
+			return true;
+		}), Keyboard::S, false, false, false));
+
+		// disable all (q)
+		layer.AddShortCut(Shortcut("Gizmos - Disable Gizmos", ([&]() {
+			m_gizmoMode = NoneFlag;
+			return true;
+		}), Keyboard::Q, false, false, false));
+
+		// enable all (u)
+		layer.AddShortCut(Shortcut("Gizmos - Use Universal Gizmo", ([&]() {
+			m_gizmoMode = Universal;
+			return true;
+		}), Keyboard::U, false, false, false));
+
+
+		// toogle x axis (alt + x)
+		layer.AddShortCut(Shortcut("Gizmos - Toggle X Axis", ([&]() {
+			if (m_gizmoMode & TranslateFlag) {
+				m_gizmoMode ^= TranslateFlag_X;
+			}
+			if (m_gizmoMode & RotateFlag) {
+				m_gizmoMode ^= RotateFlag_X;
+			}
+			if (m_gizmoMode & ScaleFlag) {
+				m_gizmoMode ^= ScaleFlag_X;
+			}
+			return true;
+		}), Keyboard::X, false, false, true));
+
+		// toogle y axis (alt + y)
+		layer.AddShortCut(Shortcut("Gizmos - Toggle Y Axis", ([&]() {
+			if (m_gizmoMode & TranslateFlag) {
+				m_gizmoMode ^= TranslateFlag_Y;
+			}
+			if (m_gizmoMode & RotateFlag) {
+				m_gizmoMode ^= RotateFlag_Y;
+			}
+			if (m_gizmoMode & ScaleFlag) {
+				m_gizmoMode ^= ScaleFlag_Y;
+			}
+			return true;
+		}), Keyboard::Y, false, false, true));
+
+		// toogle z axis (alt + z)
+		layer.AddShortCut(Shortcut("Gizmos - Toggle Z Axis", ([&]() {
+			if (m_gizmoMode & TranslateFlag) {
+				m_gizmoMode ^= TranslateFlag_Z;
+			}
+			if (m_gizmoMode & RotateFlag) {
+				m_gizmoMode ^= RotateFlag_Z;
+			}
+			if (m_gizmoMode & ScaleFlag) {
+				m_gizmoMode ^= ScaleFlag_Z;
+			}
+			return true;
+		}), Keyboard::Z, false, false, true));
+
+		// only x axis (x)
+		layer.AddShortCut(Shortcut("Gizmos - Use X Axis only", ([&]() {
+			if (m_gizmoMode & TranslateFlag) {
+				m_gizmoMode = m_gizmoMode & ~TranslateFlag;
+				m_gizmoMode |= TranslateFlag_X;
+			}
+			if (m_gizmoMode & RotateFlag) {
+				m_gizmoMode = m_gizmoMode & ~RotateFlag;
+				m_gizmoMode |= RotateFlag_X;
+			}
+			if (m_gizmoMode & ScaleFlag) {
+				m_gizmoMode = m_gizmoMode & ~ScaleFlag;
+				m_gizmoMode |= ScaleFlag_X;
+			}
+			return true;
+			}), Keyboard::X, false, false, false));
+
+		// only y axis (y)
+		layer.AddShortCut(Shortcut("Gizmos - Use Y Axis only", ([&]() {
+			if (m_gizmoMode & TranslateFlag) {
+				m_gizmoMode = m_gizmoMode & ~TranslateFlag;
+				m_gizmoMode |= TranslateFlag_Y;
+			}
+			if (m_gizmoMode & RotateFlag) {
+				m_gizmoMode = m_gizmoMode & ~RotateFlag;
+				m_gizmoMode |= RotateFlag_Y;
+			}
+			if (m_gizmoMode & ScaleFlag) {
+				m_gizmoMode = m_gizmoMode & ~ScaleFlag;
+				m_gizmoMode |= ScaleFlag_Y;
+			}
+			return true;
+			}), Keyboard::Y, false, false, false));
+
+		// only z axis (z)
+		layer.AddShortCut(Shortcut("Gizmos - Use Z Axis only", ([&]() {
+			if (m_gizmoMode & TranslateFlag) {
+				m_gizmoMode = m_gizmoMode & ~TranslateFlag;
+				m_gizmoMode |= TranslateFlag_Z;
+			}
+			if (m_gizmoMode & RotateFlag) {
+				m_gizmoMode = m_gizmoMode & ~RotateFlag;
+				m_gizmoMode |= RotateFlag_Z;
+			}
+			if (m_gizmoMode & ScaleFlag) {
+				m_gizmoMode = m_gizmoMode & ~ScaleFlag;
+				m_gizmoMode |= ScaleFlag_Z;
+			}
+			return true;
+			}), Keyboard::Z, false, false, false));
 	}
 	void ScenePanel::DrawImGui() {
+		ST_PROFILING_SCOPE("ImGui - Scene Panel");
+
+
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		m_width = (uint32_t)glm::max(viewportSize.x, 1.0f);
 		m_height = (uint32_t)glm::max(viewportSize.y, 1.0f);
@@ -148,11 +311,6 @@ namespace Editor {
 		const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove;
 
 		if (showToolbar) {
-			const uint32_t NoneFlag = (uint32_t)GizmoTransformEditMode::None;
-			const uint32_t TranslateFlag = (uint32_t)GizmoTransformEditMode::Translate;
-			const uint32_t RotateFlag = (uint32_t)GizmoTransformEditMode::Rotate;
-			const uint32_t ScaleFlag = (uint32_t)GizmoTransformEditMode::Scale;
-
 			ImGui::SetNextWindowBgAlpha(0.5f);
 			ImGui::SetNextWindowPos(startPos + m_windowPadding);
 

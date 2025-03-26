@@ -15,6 +15,8 @@ namespace Editor {
 	}
 
 	void InspectorPanel::DrawImGui() {
+		ST_PROFILING_SCOPE("ImGui - Inspector");
+
 		auto& layer = App::get().GetLayer();
 		const auto& selectedObjects = layer.GetPanel<Editor::HierarchyPanel>().GetSelected();
 
@@ -52,16 +54,23 @@ namespace Editor {
 				if (!StuluBindings::GameObject::hasComponent(id, inspector.GetType())) {
 					continue;
 				}
+				const float offsetX = ImGui::GetStyle().FramePadding.x * 3.0f;
+
 				const std::string& header = inspector.GetHeader();
 				bool isHeaderID = header.rfind("##", 0) == 0;
-
-				if (!isHeaderID && ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed)) {
-					inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
-					ImGui::TreePop();
+				if (!isHeaderID) {
+					if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed)) {
+						ImGui::Indent(offsetX);
+						inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
+						ImGui::Unindent(offsetX);
+						ImGui::TreePop();
+					}
 				}
 				else {
 					ImGui::PushID(header.c_str());
+					ImGui::Indent(offsetX);
 					inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
+					ImGui::Unindent(offsetX);
 					ImGui::PopID();
 				}
 
@@ -126,9 +135,11 @@ namespace Editor {
 
 		Mono::ClassField typeField = m_inspectorAttribute.GetFieldFromName("type");
 		Mono::ClassField nameField = m_inspectorAttribute.GetFieldFromName("name");
+		Mono::ClassField priotityField = m_inspectorAttribute.GetFieldFromName("priority");
 
 		CORE_ASSERT(typeField, "Field 'type' not found!");
 		CORE_ASSERT(nameField, "Field 'name' not found!");
+		CORE_ASSERT(priotityField, "Field 'priority' not found!");
 
 		for (Mono::Class& inspector : classes) {
 			Mono::CustomAttrInfo atrrInfo = Mono::CustomAttrInfo::FromClass(inspector);
@@ -139,14 +150,20 @@ namespace Editor {
 
 				Mono::ReflectionType reftype = nullptr;
 				Mono::String header = nullptr;
+				int32_t prio = 0;
 
 				typeField.GetValue(atrributeObject, &reftype);
 				nameField.GetValue(atrributeObject, &header);
+				priotityField.GetValue(atrributeObject, &prio);
 				
-				m_inspectors.push_back(std::move(InspectorRenderer(reftype, header.ToUtf8(), inspector, assembly.get())));
+				m_inspectors.push_back(std::move(InspectorRenderer(reftype, header.ToUtf8(), inspector, prio, assembly.get())));
 			}
 
 			atrrInfo.Free();
 		}
+
+		std::sort(m_inspectors.begin(), m_inspectors.end(), [](const InspectorRenderer& left, const InspectorRenderer& right) {
+			return left.GetPriority() < right.GetPriority();
+		});
 	}
 }

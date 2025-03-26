@@ -18,7 +18,8 @@ namespace Stulu {
 
 		void Release();
 
-		PhysicsMaterial PhysicsMaterial;
+		PhysicsMaterial material;
+		void SetMaterial(PhysicsMaterial& newMaterial);
 
 		physx::PxShape* GetShape() const {
 			return m_shape;
@@ -64,8 +65,8 @@ namespace Stulu {
 		glm::vec3 GetOffset() const { return Offset; }
 		glm::vec3 GetSize() const { return Size; }
 
-		void SetOffset(glm::vec3 value) { Offset = value; }
-		void SetSize(glm::vec3 value) { Size = value; }
+		void SetOffset(glm::vec3 value);
+		void SetSize(glm::vec3 value);
 	private:
 		friend class PhysicsScene;
 		glm::vec3 Offset = glm::vec3(0.0f);
@@ -82,8 +83,8 @@ namespace Stulu {
 		glm::vec3 GetOffset() const { return Offset; }
 		float GetRadius() const { return Radius; }
 
-		void SetOffset(glm::vec3 value) { Offset = value; }
-		void SetRadius(float value) { Radius = value; }
+		void SetOffset(glm::vec3 value);
+		void SetRadius(float value);
 	private:
 		friend class PhysicsScene;
 		glm::vec3 Offset = glm::vec3(0.0f);
@@ -100,20 +101,19 @@ namespace Stulu {
 		glm::vec3 GetOffset() const { return Offset; }
 		float GetRadius() const { return Radius; }
 		float GetHeight() const { return Height; }
-		bool GetHorizontal() const { return Horizontal; }
+		bool GetVertical() const { return Vertical; }
 
-		void SetOffset(glm::vec3 value) { Offset = value; }
-		void SetRadius(float value) { Radius = value; }
-		void SetHeight(float value) { Height = value; }
-		void SetHorizontal(bool value) { Horizontal = value; }
+		void SetOffset(glm::vec3 value);
+		void SetRadius(float value);
+		void SetHeight(float value);
+		void SetVertical(bool value);
 	private:
 		friend class PhysicsScene;
 
 		glm::vec3 Offset = glm::vec3(0.0f);
-		float Radius = 1.0f;
+		float Radius = 0.5f;
 		float Height = 2.0f;
-		// if true: height * scale.y; else: height * scale.x;
-		bool Horizontal = false;
+		bool Vertical = true;
 	};
 	class STULU_API MeshColliderComponent : public Collider {
 	public:
@@ -134,9 +134,8 @@ namespace Stulu {
 			return Convex;
 		}
 
-		void SetMesh(const MeshAsset& asset) {
-			Mesh = asset;
-		}
+		void SetMesh(const MeshAsset& asset);
+
 		void SetConvexMesh(const Ref<Stulu::Mesh>& mesh) {
 			ConvexMesh = mesh;
 		}

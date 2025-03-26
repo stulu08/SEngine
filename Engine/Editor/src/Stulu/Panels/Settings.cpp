@@ -9,6 +9,8 @@ namespace Editor {
 		: Panel("Settings") {}
 
 	void SettingsPanel::DrawImGui() {
+		ST_PROFILING_SCOPE("ImGui - Settings");
+
 		if (ImGui::CollapsingHeader("Physics")) {
 			DrawPhysics();
 		}

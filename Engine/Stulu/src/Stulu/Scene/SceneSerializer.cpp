@@ -330,7 +330,7 @@ namespace Stulu {
 
 					BEGIN_DESERIALIZE_COMPONENT(ScriptingComponent);
 					{
-						auto manager = Application::get().getAssemblyManager();
+						const auto& manager = Application::get().getAssemblyManager();
 						for (auto inst : componentNode["Scripts"]) {
 							Mono::Class exists = Mono::Class::FromName(manager->getAppAssembly()->getImage(), inst["Namespace"].as<std::string>(), inst["Name"].as<std::string>());
 							if (exists) {

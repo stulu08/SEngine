@@ -16,7 +16,7 @@ namespace Stulu {
 
 		if (HasActorAttached()) {
 			const auto& actorComponent = GetActor();
-			if(actorComponent.GetActor())
+			if (actorComponent.GetActor())
 				actorComponent.GetActor()->detachShape(*m_shape);
 		}
 		
@@ -24,10 +24,24 @@ namespace Stulu {
 		if (m_shape && m_shape->isReleasable())
 			m_shape->release();
 
-		if (PhysicsMaterial.GetMaterial() && PhysicsMaterial.GetMaterial()->isReleasable())
-			PhysicsMaterial.GetMaterial()->release();
+		if (material.GetMaterial() && material.GetMaterial()->isReleasable())
+			material.GetMaterial()->release();
 
 		m_shape = nullptr;
+	}
+
+	void Collider::SetMaterial(PhysicsMaterial& newMaterial) {
+		if (m_shape) {
+			newMaterial.CreateMaterial();
+			physx::PxMaterial* mat = newMaterial.GetMaterial();
+			m_shape->setMaterials(&mat, 1);
+
+			if (material.GetMaterial() && material.GetMaterial()->isReleasable())
+				material.GetMaterial()->release();
+		}
+
+		material = newMaterial;
+
 	}
 
 	inline bool Collider::HasActorAttached() const {
@@ -68,11 +82,11 @@ namespace Stulu {
 		RigidActorComponent& actorComponent = GetActor();
 		const auto& transform = gameObject.getComponent<TransformComponent>();
 
-		PhysicsMaterial.CreateMaterial();
+		material.CreateMaterial();
 
 		m_shape = physx::PxRigidActorExt::createExclusiveShape(
 			*actorComponent.GetActor(), 
-			physx::PxBoxGeometry(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale() * Size)), *PhysicsMaterial.GetMaterial());
+			physx::PxBoxGeometry(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale() * Size)), *material.GetMaterial());
 
 		m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset)));
 
@@ -80,6 +94,21 @@ namespace Stulu {
 			GetRigidBody().WakeUp();
 		}
 	}
+	void BoxColliderComponent::SetOffset(glm::vec3 value) {
+		Offset = value;
+		if (m_shape) {
+			m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset)));
+		}
+
+	}
+	void BoxColliderComponent::SetSize(glm::vec3 value) {
+		Size = value;
+		if (m_shape) {
+			const auto& transform = gameObject.getComponent<TransformComponent>();
+			m_shape->setGeometry(physx::PxBoxGeometry(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale() * Size)));
+		}
+	}
+
 	void SphereColliderComponent::Create(PhysicsScene* physics) {
 		if (!physics->IsValid())
 			return;
@@ -89,17 +118,37 @@ namespace Stulu {
 		RigidActorComponent& actorComponent = GetActor();
 		const auto& transform = gameObject.getComponent<TransformComponent>();
 
-		PhysicsMaterial.CreateMaterial();
+		material.CreateMaterial();
 
 		m_shape = physx::PxRigidActorExt::createExclusiveShape(
 			*actorComponent.GetActor(),
-			physx::PxSphereGeometry(transform.GetWorldScale().x * Radius), *PhysicsMaterial.GetMaterial());
+			physx::PxSphereGeometry(transform.GetWorldScale().x * Radius), *material.GetMaterial());
 
 		m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset)));
 
 		if (HasRigidBody()) {
 			GetRigidBody().WakeUp();
 		}
+	}
+	void SphereColliderComponent::SetOffset(glm::vec3 value) {
+		Offset = value;
+		if (m_shape) {
+			m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset)));
+		}
+
+	}
+	void SphereColliderComponent::SetRadius(float value) {
+		Radius = value;
+		if (m_shape) {
+			const auto& transform = gameObject.getComponent<TransformComponent>();
+			m_shape->setGeometry(physx::PxSphereGeometry(transform.GetWorldScale().x * Radius));
+		}
+	}
+
+	physx::PxCapsuleGeometry CreateCapsule(bool Vertical, float Radius, float Height, const glm::vec3& scale) {
+		float scaledRadius = Radius * ((Vertical) ? scale.z : scale.x);
+		float scaledHalfHeight = ((Height * 0.5f) - Radius) * ((Vertical) ? scale.x : scale.y);
+		return physx::PxCapsuleGeometry(scaledRadius, scaledHalfHeight);
 	}
 	void CapsuleColliderComponent::Create(PhysicsScene* physics) {
 		if (!physics->IsValid())
@@ -110,22 +159,49 @@ namespace Stulu {
 		RigidActorComponent& actorComponent = GetActor();
 		const auto& transform = gameObject.getComponent<TransformComponent>();
 
-		PhysicsMaterial.CreateMaterial();
-
-		physx::PxCapsuleGeometry geometry;
-		if (Horizontal)
-			geometry = physx::PxCapsuleGeometry(transform.GetWorldScale().x * Radius / 2.0f, transform.GetWorldScale().y * (Height / 4.0f));
-		else
-			geometry = physx::PxCapsuleGeometry(transform.GetWorldScale().y * Radius / 2.0f, transform.GetWorldScale().x * (Height / 4.0f));
+		material.CreateMaterial();
 
 		m_shape = physx::PxRigidActorExt::createExclusiveShape(
 			*actorComponent.GetActor(),
-			geometry, *PhysicsMaterial.GetMaterial());
+			CreateCapsule(Vertical, Radius, Height, transform.GetWorldScale()), *material.GetMaterial());
 
-		m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset)));
+		physx::PxQuat rotation = Vertical ? physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1)) : physx::PxQuat(physx::PxIdentity);
+		m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset), rotation));
 
 		if (HasRigidBody()) {
 			GetRigidBody().WakeUp();
+		}
+	}
+	void CapsuleColliderComponent::SetOffset(glm::vec3 value) {
+		Offset = value;
+		if (m_shape) {
+			physx::PxQuat rotation = Vertical ? physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1)) : physx::PxQuat(physx::PxIdentity);
+			m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset), rotation));
+		}
+
+	}
+	void CapsuleColliderComponent::SetVertical(bool value) {
+		Vertical = value;
+		if (m_shape) {
+			const auto& transform = gameObject.getComponent<TransformComponent>();
+			physx::PxQuat rotation = Vertical ? physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1)) : physx::PxQuat(physx::PxIdentity);
+			m_shape->setLocalPose(physx::PxTransform(PhysicsHelper::Vec3ToPhysX(Offset), rotation));
+			m_shape->setGeometry(CreateCapsule(Vertical, Radius, Height, transform.GetWorldScale()));
+		}
+	}
+	void CapsuleColliderComponent::SetRadius(float value) {
+		Radius = glm::max(0.0000001f, value);
+		if (m_shape) {
+			const auto& transform = gameObject.getComponent<TransformComponent>();
+			m_shape->setGeometry(CreateCapsule(Vertical, Radius, Height, transform.GetWorldScale()));
+		}
+	}
+	void CapsuleColliderComponent::SetHeight(float value) {
+		Height = glm::max(0.0000001f, value);
+
+		if (m_shape) {
+			const auto& transform = gameObject.getComponent<TransformComponent>();
+			m_shape->setGeometry(CreateCapsule(Vertical, Radius, Height, transform.GetWorldScale()));
 		}
 	}
 	void MeshColliderComponent::Create(PhysicsScene* physics) {
@@ -142,7 +218,7 @@ namespace Stulu {
 		CreateActor();
 		RigidActorComponent& actorComponent = GetActor();
 		const auto& transform = gameObject.getComponent<TransformComponent>();
-		PhysicsMaterial.CreateMaterial();
+		material.CreateMaterial();
 
 		if (Convex) {
 			if (ConvexMesh == nullptr) {
@@ -153,7 +229,7 @@ namespace Stulu {
 			m_shape = physx::PxRigidActorExt::createExclusiveShape(
 				*actorComponent.GetActor(),
 				physx::PxConvexMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))),
-				*PhysicsMaterial.GetMaterial());
+				*material.GetMaterial());
 
 			if (HasRigidBody()) {
 				GetRigidBody().WakeUp();
@@ -172,7 +248,35 @@ namespace Stulu {
 			m_shape = physx::PxRigidActorExt::createExclusiveShape(
 				*actorComponent.GetActor(),
 				physx::PxTriangleMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))),
-				*PhysicsMaterial.GetMaterial());
+				*material.GetMaterial());
+		}
+	}
+	void MeshColliderComponent::SetMesh(const MeshAsset& value) {
+		Mesh = value;
+		if (m_shape) {
+			const auto& transform = gameObject.getComponent<TransformComponent>();
+			
+			if (Convex) {
+				if (ConvexMesh == nullptr) {
+					BuildConvex();
+				}
+
+				physx::PxConvexMesh* physxMesh = PhysicsHelper::CreateConvexMesh(ConvexMesh);
+				m_shape->setGeometry(physx::PxConvexMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))));
+				
+			}
+			else {
+				if (Mesh.mesh == nullptr) {
+					CORE_WARN("No mesh specified for Mesh Collider");
+					return;
+				}
+				if (HasRigidBody()) {
+					CORE_ERROR("Cannot use a rigidbody on a static mesh, use a convex mesh instead");
+					return;
+				}
+				physx::PxTriangleMesh* physxMesh = PhysicsHelper::CreateTriangleMesh(Mesh.mesh);
+				m_shape->setGeometry(physx::PxTriangleMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))));
+			}
 		}
 	}
 	void MeshColliderComponent::BuildConvex() {

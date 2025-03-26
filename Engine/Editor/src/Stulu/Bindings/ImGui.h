@@ -5,6 +5,9 @@
 namespace StuluBindings {
 	class ImGui {
 	public:
+		static inline void Text(Stulu::Mono::String text) {
+			::Editor::Controls::Text(text.ToUtf8().c_str());
+		}
 		static inline bool Vector3(Stulu::Mono::String monoName, struct Vector3* value, float speed) {
 			glm::vec3* valuePtr = (glm::vec3*)value;
 			return ::Editor::Controls::Vector3(monoName.ToUtf8(), *valuePtr, speed);
@@ -20,6 +23,9 @@ namespace StuluBindings {
 		}
 		static inline bool Combo(Stulu::Mono::String monoName, int32_t& value, Stulu::Mono::String monoNames) {
 			return ::Editor::Controls::Combo(monoName.ToUtf8(), value, monoNames.ToUtf8());
+		}
+		static inline void PushID(Stulu::Mono::String id) {
+			::ImGui::PushID(id.ToUtf8().c_str());
 		}
 	};
 }

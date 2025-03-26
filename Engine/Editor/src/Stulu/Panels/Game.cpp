@@ -18,6 +18,8 @@ namespace Editor {
 	}
 
 	void GamePanel::DrawImGui() {
+		ST_PROFILING_SCOPE("ImGui - Game Panel");
+
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		m_width = (uint32_t)glm::max(viewportSize.x, 1.0f);
 		m_height = (uint32_t)glm::max(viewportSize.y, 1.0f);
