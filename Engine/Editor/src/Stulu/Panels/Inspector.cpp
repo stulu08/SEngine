@@ -6,6 +6,8 @@
 
 #include <Stulu/Scripting/Managed/Bindings/Bindings.h>
 #include <Stulu/Scripting/Managed/Bindings/Components/GameObject.h>
+
+#include "Stulu/MainLayer.h"
 using namespace Stulu;
 
 namespace Editor {

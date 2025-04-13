@@ -22,6 +22,8 @@ namespace Editor {
 		void onRenderGizmo() override;
 		void onEvent(Event& e) override;
 
+		void onLoadFinish();
+
 		inline bool IsRuntime() const { return m_runtime; }
 		inline Ref<Scene>& GetActiveScene() { return IsRuntime() ? m_runtimeScene : m_editorScene; }
 		inline const Ref<Scene>& GetActiveScene() const { return IsRuntime() ? m_runtimeScene : m_editorScene; }

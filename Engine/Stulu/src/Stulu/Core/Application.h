@@ -8,6 +8,7 @@
 #include "Stulu/Core/Version.h"
 #include "Stulu/Core/Time.h"
 #include "Stulu/Core/Platform.h"
+#include "Stulu/Core/CpuDispatcher.h"
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
@@ -25,6 +26,8 @@ namespace Stulu {
 		std::string AppNativeAssembly;
 
 		Renderer::API api = Renderer::API::OpenGL;
+
+		uint64_t threadPoolSize = std::thread::hardware_concurrency() - 1;
 
 		bool HideWindowOnSart = false;
 		bool StartPhysicsEngine = false;
@@ -61,7 +64,8 @@ namespace Stulu {
 		const Ref<ScriptAssembly>& getScriptCoreAssembly() const;
 		inline ImGuiLayer* getImGuiLayer() const { return m_imguiLayer; }
 		inline Window& getWindow() const { return *m_window; }
-		
+		inline CpuDispatcher& GetCpuDispatcher() const { return *m_cpuDispatcher; }
+
 		static Application& get();
 		inline const ApplicationInfo& getApplicationInfo() const { return m_appInfo; }
 		
@@ -80,6 +84,7 @@ namespace Stulu {
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
 
+		Scope<CpuDispatcher> m_cpuDispatcher;
 		Scope<Window> m_window;
 		ImGuiLayer* m_imguiLayer;
 		LayerStack m_layerStack;

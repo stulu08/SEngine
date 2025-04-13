@@ -40,16 +40,25 @@ namespace Editor {
 		m_gamePanel = &GetPanel<GamePanel>();
 
 		ImGui::SetCurrentContext(Application::get().getImGuiLayer()->getContext());
-
 		Style::LoadAll();
-
-		NewScene();
-
+		
 		debugMethod = App::get().getAssemblyManager()->getScriptCoreAssembly()->CreateMethod("Editor", "Editor", "DebugTest");
+	}
+	void MainLayer::onLoadFinish() {
+		App::get().GetPrefs().Section("Editor");
+		std::string scenePath = App::get().GetPrefs().Get("Scene", "");
+		if (std::filesystem::exists(scenePath)) {
+			OpenScene(scenePath);
+		}
+		else {
+			NewScene();
+		}
 
 		std::sort(m_shortcuts.begin(), m_shortcuts.end(), std::greater<Shortcut>());
 		AddPanel<ShortcutPanel>();
 	}
+
+
 	void MainLayer::onUpdate(Timestep timestep) {
 		ST_PROFILING_SCOPE("Editor - Update");
 
@@ -78,6 +87,10 @@ namespace Editor {
 				ImGui::Text("Parent: %" IM_PRIu64, (uint64_t)transform.GetParent());
 				ImGui::Text("Childs: %" IM_PRIu64, (uint64_t)transform.GetChildren().size());
 			}
+			static Stulu::UUID texture = Stulu::UUID::null;
+			Controls::Texture2D("Texture Test", texture);
+			static Stulu::UUID material = Stulu::UUID::null;
+			Controls::Material("Material Test", material);
 
 			App::get().getAssemblyManager()->getScriptCoreAssembly()->InvokeMethod(debugMethod, NULL, NULL);
 		}
@@ -338,7 +351,9 @@ namespace Editor {
 			}
 			if (ImGui::BeginMenu("Settings")) {
 				if (ImGui::MenuItem("VSync", "", App::get().getWindow().isVSync())) {
-					App::get().getWindow().setVSync(!App::get().getWindow().isVSync());
+					const bool value = !App::get().getWindow().isVSync();
+					App::get().getWindow().setVSync(value);
+					App::get().GetPrefs().Set("Editor", "Vsync", value);
 				}
 
 
@@ -401,6 +416,7 @@ namespace Editor {
 		SceneSerializer ss(newScene);
 		if (ss.deSerialze(path)) {
 			OpenScene(newScene);
+			App::get().GetPrefs().Set("Editor", "Scene", path);
 		}
 	}
 	void MainLayer::OpenScene() {

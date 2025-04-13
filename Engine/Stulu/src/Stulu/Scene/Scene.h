@@ -31,7 +31,7 @@ namespace Stulu {
 	class STULU_API Scene {
 	public:
 		Scene();
-		Scene(const SceneData data);
+		Scene(const SceneData data, bool createSceneCaller = true);
 		~Scene();
 
 		GameObject createGameObject(entt::entity id = entt::null);

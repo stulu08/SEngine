@@ -2,6 +2,7 @@
 #include "SceneSerializer.h"
 
 #include "Stulu.h"
+#include <Stulu/Physics/PhysicsScene.h>
 
 
 namespace Stulu {
@@ -147,16 +148,18 @@ namespace Stulu {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
-		out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
 
-		SERIALIZE(m_scene->getData(), shaderFlags);
-		SERIALIZE(m_scene->getData().graphicsData, env_lod);
-		SERIALIZE(m_scene->getData().graphicsData, shadowDistance);
-		SERIALIZE(m_scene->getData().graphicsData, shadowFar);
-		SERIALIZE(m_scene->getData().graphicsData, shadowMapSize);
-		SERIALIZE(m_scene->getData(), enablePhsyics3D);
+		SERIALIZE_BEGINMAP("Settings");
+			SERIALIZE(m_scene->getData(), shaderFlags);
+			SERIALIZE(m_scene->getData().graphicsData, env_lod);
+			SERIALIZE(m_scene->getData().graphicsData, shadowDistance);
+			SERIALIZE(m_scene->getData().graphicsData, shadowFar);
+			SERIALIZE(m_scene->getData().graphicsData, shadowMapSize);
+			SERIALIZE(m_scene->getData(), enablePhsyics3D);
+		SERIALIZE_ENDMAP();
+		
+		m_scene->getCaller()->SerializerScene(out);
 
-		out << YAML::EndMap;
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
 		for (auto [id, comp] : m_scene->getRegistry().storage<GameObjectBaseComponent>().each()) {
 			GameObject go = { id, m_scene.get() };
@@ -165,9 +168,6 @@ namespace Stulu {
 
 			SerializerGameObject(out, go);
 		}
-		([&](entt::entity id) {
-				
-			});
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 
@@ -183,26 +183,28 @@ namespace Stulu {
 		if (!FileExists(path.c_str()))
 			return false;
 
-
-
 		Scene* backupScene = StuluBindings::GetCurrentScene();
 		StuluBindings::SetCurrentScene(m_scene.get());
 
 		try {
 			YAML::Node data = YAML::LoadFile(path);
 			std::string SceneName = data["Scene"].as<std::string>();
+
 			if (data["Settings"]) {
 				YAML::Node settings = data["Settings"];
 
 				DESERIALIZE(m_scene->getData(), shaderFlags, settings);
-
 				DESERIALIZE(m_scene->getData().graphicsData, env_lod, settings);
 				DESERIALIZE(m_scene->getData().graphicsData, shadowDistance, settings);
 				DESERIALIZE(m_scene->getData().graphicsData, shadowFar, settings);
 				DESERIALIZE(m_scene->getData().graphicsData, shadowMapSize, settings);
 				
 				DESERIALIZE(m_scene->getData(), enablePhsyics3D, settings);
+
 			}
+
+			m_scene->getCaller()->DeserializerScene(data);
+
 
 			auto gos = data["GameObjects"];
 			if (gos) {

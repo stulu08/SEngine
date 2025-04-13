@@ -20,11 +20,13 @@ namespace Stulu {
 		if(Application::get().getAssemblyManager())
 			m_caller = createRef<EventCaller>(this);
 	}
-	Scene::Scene(const SceneData data) 
+	Scene::Scene(const SceneData data, bool createSceneCaller)
 		: m_data(data) {
 		m_renderer = createScope<SceneRenderer>(this);
-		if (Application::get().getAssemblyManager())
+		
+		if (Application::get().getAssemblyManager() && createSceneCaller) {
 			m_caller = createRef<EventCaller>(this);
+		}
 	}
 	Scene::~Scene() {
 		m_registry.clear();
@@ -71,7 +73,6 @@ namespace Stulu {
 
 	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
 		ST_PROFILING_SCOPE("Scene - Editor Update");
-		m_renderer->LoadLights();
 		if (render) {
 			renderSceneEditor(camera);
 		}
@@ -99,7 +100,6 @@ namespace Stulu {
 		if (updatesRan)
 			return;
 		m_caller->onUpdate();
-		m_renderer->LoadLights();
 		setupSceneForRendering(true);
 		updatesRan = true;
 	}
@@ -115,15 +115,7 @@ namespace Stulu {
 
 	void Scene::setupSceneForRendering(bool callEvents) {
 		m_renderer->Begin();
-		//register all objects
-		{
-			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
-			for (auto gameObject : group) {
-				if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
-					m_renderer->RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
-				}
-			}
-		}
+
 		if(callEvents) {
 			m_caller->onRender();
 		}
@@ -161,14 +153,6 @@ namespace Stulu {
 		ST_PROFILING_SCOPE("Scene - Editor Render");
 
 		m_renderer->Begin();
-		{
-			auto group = m_registry.view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
-			for (auto gameObject : group) {
-				if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
-					m_renderer->RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
-				}
-			}
-		}
 		GameObject mc = getMainCamera();
 
 		Renderer::uploadCameraBufferData(camera.getCamera().getProjectionMatrix(), glm::inverse(camera.getTransform().GetWorldTransform()),
@@ -339,10 +323,13 @@ namespace Stulu {
 	}
 
 	Ref<Scene> Scene::copy(Ref<Scene> scene) {
-		Ref<Scene> newScene = createRef<Scene>(scene->m_data);
+		Ref<Scene> newScene = createRef<Scene>(scene->m_data, false);
 
 		newScene->m_viewportWidth = scene->m_viewportWidth;
 		newScene->m_viewportHeight = scene->m_viewportHeight;
+
+		// copy layers
+		newScene->m_caller = createRef<EventCaller>(newScene.get(), scene.get());
 
 		// parent, childs
 		std::unordered_map<entt::entity, std::vector<entt::entity>> parentMap;

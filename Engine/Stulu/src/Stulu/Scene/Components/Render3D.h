@@ -41,8 +41,6 @@ namespace Stulu {
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
-
-		virtual void onComponentAdded(Scene* scene) override;
 	};
 	class MeshFilterComponent : public Component {
 	public:
@@ -63,15 +61,5 @@ namespace Stulu {
 		void setMesh(MeshAsset meshAsset) {
 			mesh = meshAsset;
 		}
-
-		virtual void onComponentAdded(Scene* scene) override;
 	};
-
-
-	inline void MeshRendererComponent::onComponentAdded(Scene* scene) {
-		gameObject.saveAddComponent<MeshFilterComponent>();
-	}
-	inline void MeshFilterComponent::onComponentAdded(Scene* scene) {
-		gameObject.saveAddComponent<MeshRendererComponent>();
-	}
 }

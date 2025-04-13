@@ -8,6 +8,7 @@ namespace Stulu {
 	class STULU_API EventCaller {
 	public:
 		EventCaller(Scene* scene);
+		EventCaller(Scene* scene, Scene* copyTarget);
 
 		void onAwake(const GameObject& object = GameObject::null);
 		void onStart(const GameObject& object = GameObject::null);
@@ -29,21 +30,30 @@ namespace Stulu {
 
 		void SerializerGameObject(YAML::Emitter& out, GameObject& gameObject);
 		void DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path);
+		void SerializerScene(YAML::Emitter& out);
+		void DeserializerScene(YAML::Node& data);
 
 		void CallManagedEvent(Mono::Method method, const GameObject& object = GameObject::null);
 
+		inline bool HasLayer(size_t id) const {
+			return m_layer.find(id) != m_layer.end();
+		}
 		template<class T>
 		inline bool HasLayer() const {
-			return m_layer.find(typeid(T).hash_code()) != m_layer.end();
+			return HasLayer(typeid(T).hash_code());
+		}
+
+		inline SceneLayer* GetLayer(size_t id) {
+			return m_layer.at(id);
 		}
 		template<class T>
 		inline T& GetLayer() {
-			return *dynamic_cast<T*>(m_layer.at(typeid(T).hash_code()));
+			return *dynamic_cast<T*>(GetLayer(typeid(T).hash_code()));
 		}
 
 		template<class T>
 		static inline void RegisterLayer() {
-			s_registeredSceneLayers[typeid(T).hash_code()] = CreateSceneLayer<T>;
+			s_registeredSceneLayers[typeid(T).hash_code()] = { CreateSceneLayer<T>, CopySceneLayer<T> };
 		}
 	private:
 		Scene* m_scene;
@@ -51,11 +61,23 @@ namespace Stulu {
 		Ref<AssemblyManager> m_manager;
 		Mono::Method m_initManagedMethod;
 
-		static std::unordered_map<size_t, std::function<std::pair<size_t, SceneLayer*>(Scene*)>> s_registeredSceneLayers;
+		using LayerCreateFn = std::function<std::pair<size_t, SceneLayer*>(Scene*)>;
+		using LayerCopyFn = std::function<std::pair<size_t, SceneLayer*>(Scene*, const SceneLayer*)>;
+		using LayerRegistryEntry = std::pair<LayerCreateFn, LayerCopyFn>;
+
+		static std::unordered_map<size_t, LayerRegistryEntry> s_registeredSceneLayers;
 
 		template<class T>
 		static inline std::pair<size_t, SceneLayer*> CreateSceneLayer(Scene* scene) {
 			T* layer = new T();
+			if (layer->Initlize(scene))
+				return { typeid(T).hash_code(), layer };
+			else
+				return { 0, nullptr };
+		}
+		template<class T>
+		static inline std::pair<size_t, SceneLayer*> CopySceneLayer(Scene* scene, const SceneLayer* copy) {
+			T* layer = new T(*static_cast<const T*>(copy));
 			if (layer->Initlize(scene))
 				return { typeid(T).hash_code(), layer };
 			else

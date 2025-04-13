@@ -5,6 +5,7 @@
 #include <Stulu/Core/EntryPoint.h>
 
 #include "Bindings/Bindings.h"
+#include "MainLayer.h"
 
 Editor::Project FindProject(int argc, char** argv) {
 	std::string path = "";
@@ -26,11 +27,14 @@ Editor::Project FindProject(int argc, char** argv) {
 
 Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	Editor::Project project = FindProject(argc, argv);
+	Editor::Prefrences prefrences = project.GetConfigPath() + "/Prefrences.ini";
 
 	Log::AddFileSink(project.GetPath() + "/Logs/" + Log::generateTimeString() + ".log");
 	ST_INFO("Loading project: {0}", project.GetPath());
 
 	project.Compile(Editor::EditorBuildSettings);
+
+	prefrences.Section("Window");
 
 	ApplicationInfo info;
 	info.Name = "Stulu Editor";
@@ -38,7 +42,7 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	info.Version = ST_ENGINE_VERSION;
 	info.WindowProps.width = 1280;
 	info.WindowProps.height = 720;
-	info.WindowProps.VSync = false;
+	info.WindowProps.VSync = prefrences.GetAs("Vsync", true);
 	info.DataPath = "Data";
 	info.AppPath = project.GetPath();;
 	info.AppAssetPath = project.GetAssetPath();;
@@ -50,15 +54,15 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	info.StartPhysicsEngine = true;
 	info.LoadDefaultAssets = true;
 
-	return new Editor::App(info, std::move(project));
+	return new Editor::App(info, std::move(project), std::move(prefrences));
 }
 
 namespace Editor {
 	App* App::s_instance = nullptr;
 
 
-	App::App(const ApplicationInfo& info, Project&& project)
-		: Application(info), m_project(std::move(project)) {
+	App::App(const ApplicationInfo& info, Project&& project, Prefrences&& prefs)
+		: Application(info), m_project(std::move(project)), m_prefrences(std::move(prefs)) {
 		s_instance = this;
 
 		getWindow().setWindowIcon(Editor::Resources::GetLogo()->getPath());
@@ -75,8 +79,10 @@ namespace Editor {
 		AssetsManager::setProgessCallback(Application::LoadingScreen);
 		AssetsManager::loadAllFiles(m_project.GetAssetPath());
 		AssetsManager::setProgessCallback(nullptr);
+
+		m_layer->onLoadFinish();
 	}
 	App::~App() {
-		
+		m_prefrences.Save();
 	}
 }

@@ -57,6 +57,8 @@ namespace Stulu {
 
 		void resizeShadowMap();
 
+		void Register3dObjects();
+
 		void drawAll2d(const TransformComponent& camera);
 
 		Ref<FrameBuffer> GetShadowMap() const {
@@ -88,6 +90,10 @@ namespace Stulu {
 		PostProcessingBufferData m_postProcessingBufferData = PostProcessingBufferData();
 
 		Scene* m_scene;
+		
+		CpuDispatcher* m_dispatcher;
+		uint32_t m_startedTasks = 0;
+		std::atomic_uint32_t m_finishedTasks;
 
 		friend class EditorLayer;
 	};

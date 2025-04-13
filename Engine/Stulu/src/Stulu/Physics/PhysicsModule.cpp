@@ -72,6 +72,44 @@ namespace Stulu {
         }
     };
 
+    class PhysicsTask : public Task {
+    public:
+        PhysicsTask(physx::PxBaseTask* task)
+            : m_task(task) {
+            if (m_task) {
+                Assign();
+            }
+        }
+        virtual ~PhysicsTask() {
+            m_task->release();
+        }
+
+        virtual void Run() override {
+            m_task->run();
+        }
+
+        virtual const char* GetName() const override {
+            return m_task->getName();
+        }
+    private:
+        physx::PxBaseTask* m_task;
+    };
+
+    class PhysicsCPUDispatcher : public physx::PxCpuDispatcher {
+    public:
+        PhysicsCPUDispatcher() {
+            m_dispatcher = &(Application::get().GetCpuDispatcher());
+        }
+        void submitTask(physx::PxBaseTask& task) override {
+            m_dispatcher->DispatchTask<PhysicsTask>(&task);
+        }
+        uint32_t getWorkerCount() const override {
+            return static_cast<uint32_t>(m_dispatcher->ThreadCount());
+        }
+    private:
+        CpuDispatcher* m_dispatcher;
+    };
+
 
 	PhysicsModule::PhysicsModule()
 		: Module("PhysicsModule") {
@@ -87,7 +125,7 @@ namespace Stulu {
 
     void PhysicsModule::onDetach() {
         if (m_cpuDispatcher) {
-            m_cpuDispatcher->release();
+            delete m_cpuDispatcher;
             m_cpuDispatcher = nullptr;
         }
         if (m_cooking) {
@@ -159,9 +197,9 @@ namespace Stulu {
             return;
         }
 
-        m_cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(glm::max(std::thread::hardware_concurrency() / 2, 1u));
+        m_cpuDispatcher = new PhysicsCPUDispatcher();
         if (!m_cpuDispatcher) {
-            CORE_ERROR("PxDefaultCpuDispatcherCreate failed!");
+            CORE_ERROR("CpuDispatcher Creation failed!");
             return;
         }
     }

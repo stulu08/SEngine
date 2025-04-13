@@ -2,6 +2,7 @@
 
 #include "Stulu/App.h"
 #include "Stulu/Controls.h"
+#include "Stulu/MainLayer.h"
 
 namespace Editor {
 	ShortcutPanel::ShortcutPanel() 

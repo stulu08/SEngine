@@ -4,8 +4,9 @@
 #include <Stulu/Core/Input.h>
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
-using namespace Stulu;
+#include "Stulu/MainLayer.h"
 
+using namespace Stulu;
 
 namespace Editor {
 	GamePanel::GamePanel() 

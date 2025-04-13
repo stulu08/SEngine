@@ -6,17 +6,41 @@
 
 namespace Stulu {
 
-	std::unordered_map<size_t, std::function<std::pair<size_t, SceneLayer*>(Scene*)>> EventCaller::s_registeredSceneLayers;
+	std::unordered_map<size_t, EventCaller::LayerRegistryEntry> EventCaller::s_registeredSceneLayers;
 
 
 	EventCaller::EventCaller(Scene* scene)
 		: m_scene(scene), m_initManagedMethod(nullptr) {
 
-		for (auto& [id, func] : s_registeredSceneLayers) {
-			auto [layerHash, layerPtr] = func(scene);
-			if(layerHash && layerPtr)
-				m_layer.insert(func(scene));
+		for (auto& [id, funcEntry] : s_registeredSceneLayers) {
+			auto [layerHash, layerPtr] = funcEntry.first(scene);
+			if (layerHash && layerPtr)
+				m_layer.insert({ layerHash, layerPtr });
 		}
+		m_manager = Application::get().getAssemblyManager();
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
+	}
+
+	EventCaller::EventCaller(Scene* scene, Scene* copyTarget)
+		: m_scene(scene), m_initManagedMethod(nullptr) {
+		
+		Ref<EventCaller> targetCaller = copyTarget->getCaller();
+
+		for (auto& [id, funcEntry] : s_registeredSceneLayers) {
+			if (targetCaller->HasLayer(id)) {
+				// copy layer
+				auto [layerHash, layerPtr] = funcEntry.second(scene, targetCaller->GetLayer(id));
+				if (layerHash && layerPtr)
+					m_layer.insert({ layerHash, layerPtr });
+			}
+			else {
+				// create layer
+				auto [layerHash, layerPtr] = funcEntry.first(scene);
+				if (layerHash && layerPtr)
+					m_layer.insert({ layerHash, layerPtr });
+			}
+		}
+
 		m_manager = Application::get().getAssemblyManager();
 		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
 	}
@@ -163,5 +187,11 @@ namespace Stulu {
 	}
 	void EventCaller::DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {
 		DEFAULT_HANDLE_LAYER(DeserializerGameObject, gameObject, deserialized, path);
+	}
+	void EventCaller::SerializerScene(YAML::Emitter& out) {
+		DEFAULT_HANDLE_LAYER(SerializerScene, out);
+	}
+	void EventCaller::DeserializerScene(YAML::Node& data) {
+		DEFAULT_HANDLE_LAYER(DeserializerScene, data);
 	}
 }

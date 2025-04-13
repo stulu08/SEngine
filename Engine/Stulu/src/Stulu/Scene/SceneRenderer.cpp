@@ -15,12 +15,16 @@ namespace Stulu {
 		m_upSampleShader = Renderer::getShaderSystem()->GetShader("Renderer/PostProcessing/Bloom/Up");
 
 		resizeShadowMap();
+
+		m_dispatcher = &Application::get().GetCpuDispatcher();
 	}
 
 	void SceneRenderer::Begin() {
 		for (int i = 0; i < 32; i++) {
 			Resources::getWhiteTexture()->bind(i);
 		}
+		LoadLights();
+		Register3dObjects();
 	}
 	void SceneRenderer::End() {
 		m_drawList.clear();
@@ -259,6 +263,15 @@ namespace Stulu {
 		m_shadowMap = FrameBuffer::create(specs, colorBuffer, depthBuffer);
 	}
 
+	void SceneRenderer::Register3dObjects() {
+		auto group = m_scene->getRegistry().view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
+		for (auto gameObject : group) {
+			if (group.get<MeshFilterComponent>(gameObject).mesh.mesh) {
+				RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
+			}
+		}
+	}
+
 	void SceneRenderer::drawAll2d(const TransformComponent& camera) {
 		ST_PROFILING_SCOPE("Renderer - 2D Pass");
 
@@ -268,22 +281,26 @@ namespace Stulu {
 				Quad, Circle
 			}type;
 		};
-		glm::vec3 camPos = camera.GetWorldPosition();
+		const glm::vec3 camPos = camera.GetWorldPosition();
 		auto quadview = m_scene->getRegistry().view<TransformComponent, SpriteRendererComponent>();
 		auto circleView = m_scene->getRegistry().view<TransformComponent, CircleRendererComponent>();
+
 		std::vector<Entry> drawList;
 		drawList.reserve(quadview.size_hint() + circleView.size_hint());
+		
 		for (auto gameObject : quadview) {
 			drawList.push_back({ gameObject, Entry::Quad });
 		}
 		for (auto gameObject : circleView) {
 			drawList.push_back({ gameObject, Entry::Circle });
 		}
+		
 		std::sort(drawList.begin(), drawList.end(), [=](const Entry& left, const Entry& right)->bool {
 			GameObject le = { left.id, m_scene };
 			GameObject re = { right.id, m_scene };
 			return glm::distance(camPos, le.getComponent<TransformComponent>().GetWorldPosition()) > glm::distance(camPos, re.getComponent<TransformComponent>().GetWorldPosition());
 		});
+
 		for (Entry& entry : drawList) {
 			if (entry.type == Entry::Quad) {
 				auto [transform, sprite] = quadview.get(entry.id);

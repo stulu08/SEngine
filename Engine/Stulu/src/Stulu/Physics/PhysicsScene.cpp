@@ -19,13 +19,16 @@ namespace Stulu {
     }
     
     void PhysicsScene::SceneStart() {
+        if (!m_scene)
+            return;
+        
+        m_enabled = m_scene->PhysicsEnable();
         if (!m_enabled)
             return;
-
+        
         m_time = m_scene->GetSceneRuntime();
 
         auto& phyicsModule = PhysicsModule::Get();
-
         physx::PxSceneDesc sceneDesc(phyicsModule.GetPhysics()->getTolerancesScale());
 
 #if PX_WINDOWS
@@ -122,6 +125,12 @@ namespace Stulu {
     void PhysicsScene::GameObjectDestory(const GameObject& object) {
         if (object.hasComponent<RigidActorComponent>())
             object.removeComponent<RigidActorComponent>();
+    }
+
+    void PhysicsScene::SetGravity(const glm::vec3& value) {
+        m_gravity = value;
+        if (m_physicsScene)
+            m_physicsScene->setGravity(PhysicsHelper::Vec3ToPhysX(value));
     }
 
     void PhysicsScene::SetDebugVisual(PhysicsHelper::DebugViuals option, float value) const {
@@ -256,5 +265,17 @@ namespace Stulu {
             DESERIALIZE_PROPERTY(AddedRigidbodyComponent, MassCenterPosition);
         }
         END_DESERIALIZE_COMPONENT();
+    }
+    void PhysicsScene::SerializerScene(YAML::Emitter& out) {
+        SERIALIZE_BEGINMAP("Physics3D");
+            SERIALIZE_PROPERTY_P(this, m_gravity);
+        SERIALIZE_ENDMAP();
+    }
+    void PhysicsScene::DeserializerScene(YAML::Node& data) {
+        if (data["Physics3D"]) {
+            YAML::Node settings = data["Physics3D"];
+
+            DESERIALIZE_P(this, m_gravity, settings, glm::vec3);
+        }
     }
 }

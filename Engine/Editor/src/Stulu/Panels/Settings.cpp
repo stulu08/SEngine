@@ -1,6 +1,9 @@
 #include "Settings.h"
+
 #include "Stulu/App.h"
 #include "Stulu/Controls.h"
+#include "Stulu/MainLayer.h"
+#include <Stulu/Physics/PhysicsScene.h>
 
 using namespace Stulu;
 
@@ -31,15 +34,22 @@ namespace Editor {
 		}
 	}
 	void SettingsPanel::DrawPhysics() {
-		auto& sceneSettings = App::get().GetLayer().GetActiveScene()->getData();
+		auto& scene = App::get().GetLayer().GetActiveScene();
+		auto& sceneSettings = scene->getData();
 
 		Controls::Bool("Enabled", sceneSettings.enablePhsyics3D);
 
 		if (!sceneSettings.enablePhsyics3D)
 			ImGui::BeginDisabled();
 
+		PhysicsScene& physicsLayer = scene->getCaller()->GetLayer<PhysicsScene>();
 
-
+		glm::vec3 gravity = physicsLayer.GetGravity();
+		if (Controls::Vector3("Scene Gravity", gravity)) {
+			physicsLayer.SetGravity(gravity);
+		}
+		
+		
 		if (!sceneSettings.enablePhsyics3D)
 			ImGui::EndDisabled();
 	}

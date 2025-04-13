@@ -5,11 +5,16 @@
 #include <Stulu/Debug/Profiler.h>
 #include <Stulu/Events/Event.h>
 
+#include "Stulu/App.h"
 namespace Editor {
 	class Panel {
 	public:
 		inline Panel(const std::string windowName, bool defaultOpen = true, ImGuiWindowFlags windowFlags = 0)
-			: m_displayName(windowName), m_open(defaultOpen), m_windowFlags(windowFlags) {}
+			: m_displayName(windowName), m_open(defaultOpen), m_windowFlags(windowFlags) {
+			auto& prefs = App::get().GetPrefs();
+			prefs.Section("Panels");
+			m_open = prefs.GetAs(m_displayName, true);
+		}
 
 		virtual ~Panel() = default;
 
@@ -27,7 +32,11 @@ namespace Editor {
 		inline bool IsFocused() const { return m_focused; }
 		inline bool IsVisible() const { return m_visible; }
 		inline bool IsOpen() const { return m_open; }
-		inline void SetOpen(bool value) { m_open = value; }
+		inline void SetOpen(bool value) { 
+			m_open = value;
+			auto& prefs = App::get().GetPrefs();
+			prefs.Set("Panels", m_displayName, value);
+		}
 		inline const std::string& GetID() const { return m_displayName; }
 		inline const std::string& GetDisplayName() const { return m_displayName; }
 		inline ImGuiWindowFlags GetWindowFlags() const { return m_windowFlags; }
@@ -49,6 +58,10 @@ namespace Editor {
 			}
 			ImGui::End();
 			PostWindow();
+			// window close
+			if (m_open == false) {
+				SetOpen(false);
+			}
 		}
 		
 	}

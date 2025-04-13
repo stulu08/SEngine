@@ -48,8 +48,20 @@ namespace Stulu {
 		inline void AddInternalIncludeFile(const std::string& name, const std::string& content) { m_internalFiles[name] = content; }
 		inline void AddIncludePath(const std::string& path) { m_includeDirs.push_back(path); }
 
-		inline Ref<ShaderEntry> GetEntry(const std::string& name) const { return m_shaders.at(name); }
-		inline Ref<Shader> GetShader(const std::string& name) const { return m_shaders.at(name)->GetShader(); }
+		inline Ref<ShaderEntry> GetEntry(const std::string& name) const {
+			if(m_shaders.find(name) != m_shaders.end())
+				return m_shaders.at(name);
+
+			CORE_ERROR("Shader {0} not found!", name);
+			return nullptr;
+		}
+		inline Ref<Shader> GetShader(const std::string& name) const { 
+			if (m_shaders.find(name) != m_shaders.end())
+				return m_shaders.at(name)->GetShader();
+
+			CORE_ERROR("Shader {0} not found!", name);
+			return nullptr;
+		}
 
 		inline void RemoveShader(const std::string& name) { m_shaders.erase(name); }
 

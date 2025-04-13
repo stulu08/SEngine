@@ -10,6 +10,8 @@
 
 namespace Stulu {
 	class AssetsManager;
+
+
 }
 namespace YAML {
 	template<>

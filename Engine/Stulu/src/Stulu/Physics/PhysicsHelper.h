@@ -9,7 +9,7 @@ namespace physx {
     class PxShape;
     class PxRigidDynamic;
     class PxTolerancesScale;
-    class PxDefaultCpuDispatcher;
+    class PxCpuDispatcher;
     class PxCudaContextManager;
     class PxTransform;
     class PxVec3;

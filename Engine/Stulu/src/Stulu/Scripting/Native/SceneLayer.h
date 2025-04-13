@@ -20,6 +20,9 @@ namespace Stulu {
 		virtual void GameObjectCreate(const GameObject& object) {}
 		virtual void GameObjectDestory(const GameObject& object) {}
 
+		virtual void SerializerScene(YAML::Emitter& out) {}
+		virtual void DeserializerScene(YAML::Node& data) {}
+
 		virtual void SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {}
 		virtual void DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {}
 	};

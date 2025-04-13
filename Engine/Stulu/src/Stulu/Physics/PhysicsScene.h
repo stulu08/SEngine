@@ -23,6 +23,9 @@ namespace Stulu {
 		virtual void SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) override;
 		virtual void DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) override;
 
+		virtual void SerializerScene(YAML::Emitter& out) override;
+		virtual void DeserializerScene(YAML::Node& data) override;
+
 		inline bool IsValid() const { return m_enabled && m_physicsScene; }
 		inline physx::PxScene* GetPhysicsScene() const { return m_physicsScene; }
 		inline physx::PxPhysics* GetContext() const { return PhysicsModule::Get().GetPhysics(); }
@@ -31,6 +34,9 @@ namespace Stulu {
 		float GetDebugVisual(PhysicsHelper::DebugViuals option) const;
 		// Call inside gizom renderer
 		void RenderSceneDebugData() const;
+
+		const glm::vec3& GetGravity() const { return m_gravity; }
+		void SetGravity(const glm::vec3& value);
 
 		void CreatePhysicsObject();
 	private:

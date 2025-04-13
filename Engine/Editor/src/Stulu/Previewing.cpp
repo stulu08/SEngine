@@ -33,13 +33,12 @@ namespace Editor {
 	Ref<Texture> Preview::GetModelPreview(Model& model) {
 		// temporary fix, will rework the whole Assets and Models system
 		Stulu::UUID uuid = Stulu::UUID::null;
-		if (model.getMeshes().size() <= 0)
+		if (model.getMeshes().size() > 0)
 			uuid = model.getMeshes()[0].uuid;
 
 		if (IsCached(uuid)) {
 			return GetCached(uuid);
 		}
-
 		SetupModel(model);
 		auto texture = RenderScene();
 		Cache(uuid, texture);

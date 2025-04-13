@@ -23,14 +23,14 @@ namespace Stulu {
 		inline physx::PxFoundation* GetFoundation() const { return m_foundation; };
 		inline physx::PxCudaContextManager* GetCudaContext() const { return m_cudaContextManager; };
 		inline physx::PxPhysics* GetPhysics() const { return m_physics; };
-		inline physx::PxDefaultCpuDispatcher* GetCpuDispatcher() const { return m_cpuDispatcher; };
+		inline physx::PxCpuDispatcher* GetCpuDispatcher() const { return m_cpuDispatcher; };
 		inline physx::PxCooking* GetCooking() const { return m_cooking; };
 		inline bool CudaSupport() const { return m_cudaContextManager != nullptr; }
 	private:
 		physx::PxFoundation* m_foundation = nullptr;
 		physx::PxCudaContextManager* m_cudaContextManager = nullptr;
 		physx::PxPhysics* m_physics = nullptr;
-		physx::PxDefaultCpuDispatcher* m_cpuDispatcher = nullptr;
+		physx::PxCpuDispatcher* m_cpuDispatcher = nullptr;
 		physx::PxCooking* m_cooking = nullptr;
 
 

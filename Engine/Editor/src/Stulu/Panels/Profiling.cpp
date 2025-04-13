@@ -1,17 +1,16 @@
 #include "Profiling.h"
 
-#include "Stulu/App.h"
-#include "Stulu/MainLayer.h"
-#include "Stulu/Controls.h"
-
 #include <Stulu/Core/Time.h>
 #include <Stulu/Core/Platform.h>
 #include <Stulu/Renderer/Renderer.h>
 #include <Stulu/Scene/SceneRenderer.h>
-
+#include <Stulu/Physics/PhysicsScene.h>
 
 #include <magic_enum/magic_enum.hpp>
-#include <Stulu/Physics/PhysicsScene.h>
+
+#include "Stulu/App.h"
+#include "Stulu/MainLayer.h"
+#include "Stulu/Controls.h"
 
 using namespace Stulu;
 

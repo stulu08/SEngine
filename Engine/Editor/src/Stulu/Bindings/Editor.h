@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/App.h"
+#include "Stulu/MainLayer.h"
 #include "Stulu/Panels/Inspector.h"
 
 namespace StuluBindings {

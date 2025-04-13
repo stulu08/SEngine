@@ -27,6 +27,7 @@ namespace Stulu {
 	Application::Application(const ApplicationInfo& appInfo)
 		:m_appInfo(appInfo) {
 		s_instance = this;
+		m_cpuDispatcher = createScope<CpuDispatcher>(appInfo.threadPoolSize);
 
 		Resources::EngineDataDir = appInfo.DataPath;
 		Resources::AppDataDir = appInfo.AppPath;
@@ -81,6 +82,8 @@ namespace Stulu {
 		m_layerStack.deleteAll();
 		m_layerStack.clear();
 		m_moduleStack.clear();
+
+		m_cpuDispatcher.reset();
 	}
 	void Application::pushLayer(Layer* layer) {
 		m_layerStack.pushLayer(layer);

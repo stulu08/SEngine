@@ -9,6 +9,8 @@
 #define SERIALIZE_PROPERTY_P(obj, field) out << YAML::Key << #field << YAML::Value << obj->field;
 #define SERIALIZE_PROPERTY_PC(obj, field, cast) out << YAML::Key << #field << YAML::Value << (cast)obj->field;
 
+#define SERIALIZE_GETTER_FUNC(func, field) out << YAML::Key << #field << YAML::Value << func();
+
 
 #define SERIALIZE_PROPERTY_IFEXIST(obj, field) \
 if (obj.field) { \
@@ -45,6 +47,14 @@ out << YAML::BeginMap; \
 out << YAML::EndMap; \
 }
 
+#define DESERIALIZE_SETTER_FUNC(func, field, from, datatype) \
+if (from[#field]) \
+	func(from[#field].as<datatype>());
+
+#define DESERIALIZE_SETTER_FUNC_PROPERTY_D(func, field, datatype) \
+if (nodeStack.back().second[#field]) \
+	func(nodeStack.back().second[#field].as<datatype>());
+
 #define DESERIALIZE_PROPERTY_D(obj, field, datatype)  \
 if (nodeStack.back().second[#field]) \
 	obj.field = nodeStack.back().second[#field].as<datatype>();
@@ -59,6 +69,9 @@ if (nodeStack.back().second[#field]) \
 if (nodeStack.back().second[#field]) \
 	obj->field = (cast)nodeStack.back().second[#field].as<datatype>();
 
+#define DESERIALIZE_P(obj, field, from, datatype)  \
+if (from[#field]) \
+	obj->field = from[#field].as<datatype>();
 #define DESERIALIZE_D(obj, field, from, datatype)  \
 if (from[#field]) \
 	obj.field = from[#field].as<datatype>();
