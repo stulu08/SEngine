@@ -1,5 +1,7 @@
 #pragma once
-#include "Stulu/Core/Core.h"
+#include "Stulu/Types/Pointers.h"
+
+#include <string>
 namespace Stulu {
 	class Window;
 	struct API_Infos {

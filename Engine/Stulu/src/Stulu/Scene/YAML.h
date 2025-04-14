@@ -5,7 +5,7 @@
 #include <Stulu/Renderer/Texture.h>
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Physics/PhysicsMaterial.h"
-#include "Stulu/Core/UUID.h"
+#include "Stulu/Types/UUID.h"
 #include "YAMLHelper.h"
 
 namespace Stulu {

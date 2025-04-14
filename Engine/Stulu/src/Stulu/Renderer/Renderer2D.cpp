@@ -8,7 +8,7 @@
 #include "Stulu/Core/Application.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 
 namespace Stulu {
 	struct QuadVertex {

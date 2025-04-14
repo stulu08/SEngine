@@ -1,7 +1,7 @@
 #pragma once
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/VertexArray.h"
-#include "Stulu/Core/UUID.h"
+#include "Stulu/Types/UUID.h"
 #include "glm/glm.hpp"
 #include <Stulu/Scene/VFC.h>
 

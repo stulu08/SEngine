@@ -1,6 +1,6 @@
 #pragma once
 #include "Mono.h"
-#include "Stulu/Core/UUID.h"
+#include "Stulu/Types/UUID.h"
 
 namespace Stulu {
 	class STULU_API MonoObjectInstance;

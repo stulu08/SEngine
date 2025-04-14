@@ -1,7 +1,7 @@
 #include "st_pch.h"
 #include "SceneRenderer.h"
 
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 #include "Stulu/Core/Time.h"
 
 namespace Stulu {

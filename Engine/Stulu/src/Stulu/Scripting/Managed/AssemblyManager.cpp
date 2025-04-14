@@ -3,7 +3,7 @@
 
 #include "Bindings/Bindings.h"
 #include "Stulu/Core/Application.h"
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/GameObject.h"

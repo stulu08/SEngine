@@ -1,7 +1,7 @@
 #include "st_pch.h"
 #ifdef ST_PLATFORM_LINUX
 #include "Stulu/Core/Application.h"
-#include "Stulu/Core/Input.h"
+#include "Stulu/Input/Input.h"
 
 #include <GLFW/glfw3.h>
 

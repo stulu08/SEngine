@@ -1,8 +1,9 @@
 #pragma once
-#include "Stulu/Core/Core.h"
+#include "Stulu/Core/Log.h"
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 namespace Stulu {
 	enum class ShaderType : uint32_t {

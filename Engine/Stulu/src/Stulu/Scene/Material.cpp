@@ -2,7 +2,7 @@
 #include "Material.h"
 #include "Stulu/Scene/AssetsManager.h"
 #include "Stulu/Scene/YAML.h"
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 #include <Stulu/Renderer/Renderer.h>
 
 

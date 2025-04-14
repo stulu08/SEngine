@@ -4,7 +4,7 @@
 #include <Stulu/Renderer/Texture.h>
 #include <Stulu/Renderer/Buffer.h>
 #include <Stulu/Renderer/Renderer.h>
-#include "Stulu/Core/UUID.h"
+#include "Stulu/Types/UUID.h"
 #include <any>
 
 namespace Stulu {

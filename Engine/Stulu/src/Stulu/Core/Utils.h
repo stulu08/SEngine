@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include "Stulu/Core/Log.h"
 
 namespace Stulu {
 	inline std::string ReadFile(const std::string& path) {
@@ -15,8 +16,6 @@ namespace Stulu {
 			inStream.read(&result[0], result.size());
 			inStream.close();
 		}
-		else
-			CORE_ERROR("Could not open File: {0}", path);
 
 		return result;
 	}

@@ -37,16 +37,14 @@ project "Native Assembly"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.Discord}",
+		"%{IncludeDir.ImGui}"
 	}
 	
 	links {
 		"%{Library.Stulu}",
 
 		"ImGui",
-		"yaml-cpp",
-		"Discord C++ Game SDK",
+		"yaml-cpp"
 	}
 	
 	libdirs {

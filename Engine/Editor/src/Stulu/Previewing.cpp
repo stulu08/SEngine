@@ -1,7 +1,7 @@
 #include "Previewing.h"
 #include <Stulu/Scene/Components/Components.h>
 #include <Stulu/Scene/SceneRenderer.h>
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 
 using namespace Stulu;
 

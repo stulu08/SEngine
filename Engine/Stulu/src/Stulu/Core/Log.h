@@ -4,8 +4,8 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/fmt/ostr.h>
 
-#include "Stulu/Core/CoreConfig.h"
-#include "Stulu/Core/PlatformConfig.h"
+#include "Stulu/Types/Pointers.h"
+#include "Stulu/Core/Utils.h"
 
 namespace Stulu {
 	class Log {

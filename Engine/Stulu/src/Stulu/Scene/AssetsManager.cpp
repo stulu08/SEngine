@@ -3,7 +3,7 @@
 #include "Stulu/Scene/YAML.h"
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Scene/Components/Camera.h"
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {

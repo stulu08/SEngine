@@ -2,6 +2,7 @@
 #include "Module.h"
 
 #include "Stulu/Core/Application.h"
+
 #include "Stulu/Modules/ParticleSystem/ParticleSystemModule.h"
 #include "Stulu/Physics/PhysicsModule.h"
 

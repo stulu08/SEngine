@@ -2,7 +2,7 @@
 #include "Renderer.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 #include "Stulu/Renderer/Renderer2D.h"
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 #include "Stulu/Core/Application.h"
 
 namespace Stulu {

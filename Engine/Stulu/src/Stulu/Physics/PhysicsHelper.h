@@ -1,4 +1,6 @@
 #pragma once
+#include "Stulu/Types/Pointers.h"
+#include "Stulu/Core/Log.h"
 #include "Stulu/Math/Math.h"
 
 namespace physx {

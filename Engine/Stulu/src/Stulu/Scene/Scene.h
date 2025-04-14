@@ -1,12 +1,12 @@
 #pragma once
+#include "Stulu/Events/KeyEvent.h" 
+#include "Stulu/Events/MouseEvent.h"
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Camera.h"
-#include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Scene/Model.h"
-#include "Stulu/Core/UUID.h"
-#include "Stulu/Events/MouseEvent.h"
-#include "Stulu/Events/KeyEvent.h" 
+#include "Stulu/Types/Timestep.h"
+#include "Stulu/Types/UUID.h"
 #include <entt.hpp>
 
 namespace Stulu {	

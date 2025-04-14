@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Stulu/Core/Window.h"
+#include "Stulu/Renderer/Window.h"
 
 struct GLFWwindow;
 

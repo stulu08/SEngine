@@ -1,6 +1,6 @@
 #pragma once
-#include "Core.h"
-#include "UUID.h"
+#include "Stulu/Core/Log.h"
+#include "Stulu/Types/UUID.h"
 
 #include <atomic>
 #include <condition_variable>

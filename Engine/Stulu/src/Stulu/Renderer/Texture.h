@@ -1,5 +1,7 @@
 #pragma once
-#include "Stulu/Core/UUID.h"
+#include "Stulu/Types/UUID.h"
+#include "Stulu/Core/Log.h"
+
 namespace Stulu {
 	static inline constexpr int32_t ST_MAX_REFLECTION_LOD = 4;
 	static inline constexpr int32_t ST_REFLECTION_MAP_SIZE = 512;

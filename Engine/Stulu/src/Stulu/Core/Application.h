@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Stulu/Core/Window.h"
-#include "Stulu/Core/Stack.h"
-#include "Stulu/Core/Module.h"
-#include "Stulu/ImGui/ImGuiLayer.h"
-#include "Stulu/Events/ApplicationEvent.h"
-#include "Stulu/Core/Version.h"
-#include "Stulu/Core/Time.h"
-#include "Stulu/Core/Platform.h"
 #include "Stulu/Core/CpuDispatcher.h"
+#include "Stulu/Core/Layer.h"
+#include "Stulu/Core/Module.h"
+#include "Stulu/Core/Platform.h"
+#include "Stulu/Core/Time.h"
+#include "Stulu/Events/ApplicationEvent.h"
+#include "Stulu/ImGui/ImGuiLayer.h"
 #include "Stulu/Renderer/Renderer.h"
+#include "Stulu/Renderer/Window.h"
+#include "Stulu/Types/Version.h"
 
 namespace Stulu {
 	struct ApplicationInfo {

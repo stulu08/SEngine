@@ -1,7 +1,7 @@
 #include "Game.h"
 #include "Stulu/App.h"
 
-#include <Stulu/Core/Input.h>
+#include <Stulu/Input/Input.h>
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 
 #include "Stulu/MainLayer.h"

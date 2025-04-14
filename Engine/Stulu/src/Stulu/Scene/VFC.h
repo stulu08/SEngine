@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Math/Math.h"
+#include "Stulu/Core/Log.h"
 
 namespace Stulu {
 	class STULU_API Mesh;

@@ -1,9 +1,9 @@
 #include "st_pch.h"
 #include "SceneCamera.h"
-#include "Stulu/Core/Input.h"
-#include "Stulu/Core/Keycodes.h"
 #include "Stulu/Core/Application.h"
-#include "Stulu/Core/MouseButtonCodes.h"
+#include "Stulu/Input/Input.h"
+#include "Stulu/Input/Keycodes.h"
+#include "Stulu/Input/MouseButtonCodes.h"
 #include "Stulu/Renderer/RenderCommand.h"
 
 namespace Stulu {

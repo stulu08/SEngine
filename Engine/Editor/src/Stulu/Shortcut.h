@@ -1,4 +1,4 @@
-#include <Stulu/Core/Input.h>
+#include <Stulu/Input/Input.h>
 #include <magic_enum/magic_enum.hpp>
 
 namespace Editor {

@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 #include <stb_image.h>
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 #include <Stulu/Renderer/RenderCommand.h>
 #include <Stulu/Renderer/Renderer.h>
 #include "OpenGlTexture.h"

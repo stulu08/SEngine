@@ -1,7 +1,7 @@
 #pragma once
 #include "Stulu/Panel.h"
 
-#include <Stulu/Core/Stack.h>
+#include <Stulu/Types/Stack.h>
 #include <Stulu/Debug/Profiler.h>
 #include <Stulu/Debug/RenderDataProfiler.h>
 #include <map>

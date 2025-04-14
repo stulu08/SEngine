@@ -9,7 +9,7 @@
 #include "Stulu/Renderer/Renderer.h"
 #include <Stulu/Scene/Material.h>
 #include <Stulu/Scene/AssetsManager.h>
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 namespace Stulu {
     void Stulu::Model::load(const std::string& path) {
         Assimp::Importer importt;

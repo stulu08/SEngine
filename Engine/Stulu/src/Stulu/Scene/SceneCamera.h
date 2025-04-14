@@ -1,10 +1,10 @@
 #pragma once
-#include "Stulu/Renderer/Camera.h"
-#include "Stulu/Core/Timestep.h"
 #include "Stulu/Events/ApplicationEvent.h"
-#include "Stulu/Scene/Components/Components.h"
-#include "Stulu/Events/MouseEvent.h"
 #include "Stulu/Events/KeyEvent.h"
+#include "Stulu/Events/MouseEvent.h"
+#include "Stulu/Renderer/Camera.h"
+#include "Stulu/Scene/Components/Components.h"
+#include "Stulu/Types/Timestep.h"
 
 namespace Stulu {
 	class STULU_API SceneCamera {

@@ -1,6 +1,6 @@
 #include "st_pch.h"
 #include "Input.h"
-#include "Stulu/Core/Input.h"
+#include "Stulu/Input/Input.h"
 
 namespace StuluBindings {
 	bool Input::s_enabled = true;

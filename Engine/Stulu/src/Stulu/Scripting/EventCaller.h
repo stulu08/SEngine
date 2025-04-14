@@ -1,5 +1,5 @@
 #pragma once
-#include "Stulu/Core/Stack.h"
+#include "Stulu/Types/Stack.h"
 #include "Stulu/Scene/GameObject.h"
 #include "Managed/AssemblyManager.h"
 #include "Native/SceneLayer.h"

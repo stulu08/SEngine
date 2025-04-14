@@ -3,7 +3,7 @@
 #include "Stulu/Style.h"
 #include "Stulu/Controls.h"
 #include <Stulu/Resources.h>
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 #include <Stulu/Scene/AssetsManager.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>

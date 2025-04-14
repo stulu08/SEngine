@@ -8,7 +8,7 @@
 #include "Gizmo.h"
 
 #include "Stulu/Core/Application.h"
-#include "Stulu/Core/Input.h"
+#include "Stulu/Input/Input.h"
 #include "Stulu/Core/Utils.h"
 
 #include "backends/imgui_impl_glfw.h"

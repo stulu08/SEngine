@@ -51,7 +51,6 @@ RuntimeBuildDir = "%{wks.location}/Build"
 group "Dependencies"
 dofile (EngineSourceDir .. "/Dependencies/imgui/premake5.lua")
 dofile (EngineSourceDir .. "/Dependencies/yaml-cpp/premake5.lua")
-dofile (EngineSourceDir .. "/Dependencies/discord-game-sdk/CPP SDK.lua")
 group ""
 
 include "Config/Runtime.lua"

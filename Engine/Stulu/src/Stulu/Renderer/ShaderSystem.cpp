@@ -1,7 +1,7 @@
 #include "st_pch.h"
 #include "ShaderSystem.h"
 #include "Stulu/Core/Application.h"
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 
 namespace Stulu {
 	ShaderSystem::ShaderSystem() {

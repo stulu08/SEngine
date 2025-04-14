@@ -1,5 +1,6 @@
 #pragma once
-#include "Stulu/Core/Timestep.h"
+#include "Stulu/Types/Timestep.h"
+
 namespace Stulu {
 	class STULU_API Time {
 	public:

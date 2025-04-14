@@ -1,7 +1,7 @@
 #pragma once
 #include "Stulu/Scene/Material.h"
 #include "Stulu/Renderer/Mesh.h"
-#include "Stulu/Core/UUID.h"
+#include "Stulu/Types/UUID.h"
 #include "YAML.h"
 #include <unordered_map>
 
