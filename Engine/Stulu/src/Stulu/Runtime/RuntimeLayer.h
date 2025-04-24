@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Core/Layer.h"
 #include "Stulu/Scene/Scene.h"
+#include "Stulu/Events/ApplicationEvent.h"
 
 namespace Stulu {
 	class STULU_API RuntimeLayer : public Layer {

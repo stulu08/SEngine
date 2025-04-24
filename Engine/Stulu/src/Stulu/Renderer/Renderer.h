@@ -44,6 +44,10 @@ namespace Stulu{
 		glm::vec3 shadowCasterPos = glm::vec3(0.0);
 		int32_t shadowCaster = -1;
 	};
+	struct GlobalMaterialBufferData {
+		uint32_t alphaMode;
+		float alphaCutOff;
+	};
 	class STULU_API Renderer {
 	public:
 		enum class API {

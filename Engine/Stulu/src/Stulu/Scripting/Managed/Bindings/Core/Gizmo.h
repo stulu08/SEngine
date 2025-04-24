@@ -1,4 +1,5 @@
 #pragma once
+#include "Stulu/ImGui/Gizmo.h"
 
 namespace StuluBindings {
 	class Gizmo {

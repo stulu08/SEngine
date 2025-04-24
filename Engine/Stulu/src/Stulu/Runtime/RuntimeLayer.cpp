@@ -31,7 +31,7 @@ namespace Stulu {
 		{
 			m_activeScene->getRenderer()->GenSceneTexture(m_frameBuffer);
 
-			const auto& shader = Resources::getFullscreenShader();
+			const auto& shader = Resources::FullscreenShader();
 			const auto& vao = Resources::getFullscreenVA();
 			const float z = -1.0f;
 
@@ -67,8 +67,8 @@ namespace Stulu {
 			return;
 		}
 		Ref<Scene> nScene = createRef<Scene>();
-		SceneSerializer ss(nScene);
-		if (ss.deSerialze(path)) {
+		SceneSerializer ss(nScene.get());
+		if (ss.Deserialze(path)) {
 
 			if (m_activeScene)
 				m_activeScene->onRuntimeStop();
@@ -94,7 +94,7 @@ namespace Stulu {
 	}
 	void RuntimeLayer::onRuntimeStart() {
 		Time::Scale = 1.0f;
-		StuluBindings::SetCurrentScene(m_activeScene.get());
+		StuluBindings::SetCurrentRegistry(m_activeScene.get());
 		m_activeScene->onRuntimeStart();
 	}
 	void RuntimeLayer::onRuntimeStop() {

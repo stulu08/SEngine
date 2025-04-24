@@ -133,14 +133,30 @@ namespace Stulu {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count, const uint32_t instanceCount) {
+	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t instanceCount) {
 		vertexArray->bind();
-		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
-		if(instanceCount < 1)
-			glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
-		else
-			glDrawElementsInstanced(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr, instanceCount);
+		const uint32_t count = indicesCount ? indicesCount : vertexArray->getIndexBuffer()->getCount();
+
+		if (instanceCount > 1) {
+			glDrawElementsInstanced(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, instanceCount);
+		}
+		else {
+			glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+		}
 	}
+
+	void OpenGLRenderAPI::drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset, const uint32_t instanceCount) {
+		vertexArray->bind();
+		const uint32_t count = indicesCount ? indicesCount : vertexArray->getIndexBuffer()->getCount();
+
+		if (instanceCount > 1) {
+			glDrawElementsInstancedBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)), instanceCount, vertexOffset);
+		}
+		else {
+			glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)), vertexOffset);
+		}
+	}
+
 	void OpenGLRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) {
 		vertexArray->bind();
 		glDrawArrays(GL_LINES, 0, count);

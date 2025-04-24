@@ -6,8 +6,8 @@ namespace StuluBindings {
 	STULU_API extern Stulu::Ref<Stulu::AssemblyManager> getManager();
 	STULU_API extern MonoDomain* getCoreDomain();
 	STULU_API extern MonoImage* getCoreImage();
-	STULU_API extern Stulu::Scene* GetCurrentScene();
-	STULU_API extern void SetCurrentScene(Stulu::Scene* scene);
+	STULU_API extern Stulu::Registry* GetCurrentRegistry();
+	STULU_API extern void SetCurrentRegistry(Stulu::Registry* scene);
 
 	struct Vector2 {
 		float x, y;

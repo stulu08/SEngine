@@ -5,7 +5,7 @@
 
 namespace Stulu {
 	void TransformComponent::SyncWithPhysics(bool onlyPosition) {
-		if (gameObject.getScene()->PhysicsEnable() && gameObject.hasComponent<RigidActorComponent>()) {
+		if (gameObject.GetRegistry()->IsScene() && gameObject.hasComponent<RigidActorComponent>()) {
 			if (onlyPosition)
 				gameObject.getComponent<RigidActorComponent>().SetPosition(GetWorldPosition());
 			else
@@ -14,7 +14,7 @@ namespace Stulu {
 			
 
 		for (entt::entity child : GetChildren()) {
-			GetScene()->getRegistry().get<TransformComponent>(child).SyncWithPhysics(onlyPosition);
+			GetRegistry()->GetRegistry().get<TransformComponent>(child).SyncWithPhysics(onlyPosition);
 		}
 	}
 }

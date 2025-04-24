@@ -74,7 +74,7 @@ namespace Stulu {
 		for (Mono::Class parent = m_class; parent != nullptr; parent = parent.GetParent()) {
 			void* iter = NULL;
 			while (field = parent.GetFields(&iter)) {
-				Ref<Property> property = Property::Create(getObject(), field);
+				Ref<ManagedProperty> property = ManagedProperty::Create(getObject(), field);
 				if (property) {
 					m_fields.push_back(property);
 				}
@@ -124,7 +124,7 @@ namespace Stulu {
 			m_reloadFieldsChache = nullptr;
 		}
 	}
-	Ref<Property> MonoObjectInstance::FindField(const std::string& name) const {
+	Ref<ManagedProperty> MonoObjectInstance::FindField(const std::string& name) const {
 		for (int i = 0; i < m_fields.size(); i++) {
 			const auto& prop = m_fields.at(i);
 			if (prop->getName() == name)
@@ -155,7 +155,7 @@ namespace Stulu {
 			}
 		}
 	}
-	bool MonoObjectInstance::FieldHasAttribute(Ref<Property> field, Mono::Class attribute) {
+	bool MonoObjectInstance::FieldHasAttribute(Ref<ManagedProperty> field, Mono::Class attribute) {
 		if (attribute) {
 			if (field->getDataType()) {
 				Mono::Class parent = field->getField().GetParent();

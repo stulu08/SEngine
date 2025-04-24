@@ -8,9 +8,12 @@ namespace Stulu{
 		Light = 2,
 		PostProcessing = 3,
 		Scene = 4,
+		// Internal Material Data
 		Material = 5,
-		Last = Material,
-		Next = Material + 1
+		// This binding will be used to upload materials
+		UserMaterial = 6,
+		Last = UserMaterial,
+		Next = Last + 1
 	};
 	enum class ShaderDataType { none = 0,
 		Float, Float2, Float3, Float4,
@@ -86,7 +89,10 @@ namespace Stulu{
 			: m_elements(elements){
 			CalculateOffsetsAndStride();
 		}
-
+		inline void addElement(const BufferElement& ele) { 
+			m_elements.push_back(ele);
+			CalculateOffsetsAndStride();
+		}
 		inline const std::vector<BufferElement>& getElements() const { return m_elements; }
 		inline const uint32_t getStride() const { return m_stride; }
 

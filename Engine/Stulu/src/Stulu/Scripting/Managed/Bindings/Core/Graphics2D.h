@@ -12,12 +12,12 @@ namespace StuluBindings {
 				color->toNative_s());
 		}
 		static inline void drawQuadTexture(struct Vector3* pos, struct Quaternion* rotation, struct Vector3* scale, struct Vector4* color, struct Vector2* tiling, uint64_t id) {
-			Stulu::Asset asset;
-			if (Stulu::AssetsManager::saveGetAndType(id, asset, Stulu::AssetType::Texture2D)) {
-				auto texture = std::any_cast<Stulu::Ref<Stulu::Texture>>(asset.data);
+			using namespace Stulu;
+			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
+			if (asset.IsValid()) {
 				Stulu::Renderer2D::drawTexturedQuad(
 					Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
-					texture, tiling->toNative_s(), color->toNative_s());
+					*asset, tiling->toNative_s(), color->toNative_s());
 			}
 			else {
 				Stulu::Renderer2D::drawQuad(

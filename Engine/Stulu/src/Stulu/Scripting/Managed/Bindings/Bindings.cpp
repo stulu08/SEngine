@@ -29,12 +29,12 @@ namespace StuluBindings {
 		return Stulu::Application::get().getScriptCoreAssembly()->getImage();
 	}
 	
-	static Stulu::Scene* s_activeScene;
-	STULU_API Stulu::Scene* GetCurrentScene() {
-		return s_activeScene;
+	static Stulu::Registry* s_activeRegistry;
+	STULU_API Stulu::Registry* GetCurrentRegistry() {
+		return s_activeRegistry;
 	}
-	STULU_API void SetCurrentScene(Stulu::Scene* scene) {
-		s_activeScene = scene;
+	STULU_API void SetCurrentRegistry(Stulu::Registry* scene) {
+		s_activeRegistry = scene;
 	}
 
 	#define add_call(Name, _Binding) manager->RegisterFunction(std::string("Stulu.InternalCalls::") + Name, StuluBindings::_Binding)

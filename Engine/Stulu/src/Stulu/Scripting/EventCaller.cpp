@@ -54,7 +54,7 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto& [id, comp] : m_scene->getRegistry().storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->GetRegistry().storage<ScriptingComponent>().each()) {
 			const GameObject gameObject = { id, m_scene };
 			ConstructManaged(gameObject);
 		}
@@ -96,7 +96,7 @@ namespace Stulu {
 			}
 			return;
 		}
-		for (auto& [id, comp] : m_scene->getRegistry().storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->GetRegistry().storage<ScriptingComponent>().each()) {
 			const GameObject gameObject = { id, m_scene };
 			CallManagedEvent(method, gameObject);
 		}
@@ -111,7 +111,7 @@ namespace Stulu {
 			} \
 			return; \
 		} \
-		for (auto& [id, comp] : m_scene->getRegistry().storage<ScriptingComponent>().each()) { \
+		for (auto& [id, comp] : m_scene->GetRegistry().storage<ScriptingComponent>().each()) { \
 			const GameObject gameObject = { id, m_scene }; \
 			CallManagedEvent(m_manager->getEvents().name, gameObject); \
 		} \
@@ -181,12 +181,6 @@ namespace Stulu {
 	}
 	void EventCaller::NativeGameObjectDestory(const GameObject& object) {
 		DEFAULT_HANDLE_LAYER(GameObjectDestory, object);
-	}
-	void EventCaller::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {
-		DEFAULT_HANDLE_LAYER(SerializerGameObject, out, gameObject);
-	}
-	void EventCaller::DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {
-		DEFAULT_HANDLE_LAYER(DeserializerGameObject, gameObject, deserialized, path);
 	}
 	void EventCaller::SerializerScene(YAML::Emitter& out) {
 		DEFAULT_HANDLE_LAYER(SerializerScene, out);

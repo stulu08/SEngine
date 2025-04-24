@@ -41,9 +41,9 @@ namespace Stulu {
 				return m_actor;
 			return nullptr;
 		}
-		virtual void onComponentRemove(Scene* scene) override {
-			if (scene->PhysicsEnable())
-				Release();
+		virtual void onComponentRemove(Registry* registry) override {
+			if (!registry->IsScene()) return;
+			if (registry->GetAsScene()->PhysicsEnable()) Release();
 		};
 	protected:
 		physx::PxRigidActor* m_actor = nullptr;
@@ -93,6 +93,9 @@ namespace Stulu {
 		void ComputeMass(float density);
 
 		physx::PxRigidDynamic* GetDynamicActor() const;
+
+		virtual void Serialize(YAML::Emitter& out) const override;
+		virtual void Deserialize(YAML::Node& node) override;
 	private:
 		bool UseGravity = true;
 		bool RotationLockX = false, RotationLockY = false, RotationLockZ = false;

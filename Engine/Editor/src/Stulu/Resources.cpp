@@ -4,28 +4,28 @@
 using namespace Stulu;
 
 namespace Editor {
-	Ref<Stulu::Texture2D>& Resources::GetLogo() {
+	Texture2D* Resources::GetLogo() {
 		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Logo.png");
-		return texture;
+		return texture.get();
 	}
-	Stulu::Ref<Stulu::Texture2D>& Resources::GetDirectoryIcon() {
+	Texture2D* Resources::GetDirectoryIcon() {
 		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Folder.png");
-		return texture;
+		return texture.get();
 	}
-	Stulu::Ref<Stulu::Texture2D>& Resources::GetFileIcon() {
+	Texture2D* Resources::GetFileIcon() {
 		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/File.png");
-		return texture;
+		return texture.get();
 	}
-	Stulu::Ref<Stulu::Texture2D>& Resources::GetSceneIcon() {
+	Texture2D* Resources::GetSceneIcon() {
 		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/Scene.png");
-		return texture;
+		return texture.get();
 	}
-	Stulu::Ref<Stulu::Texture2D>& Resources::GetCodeIcon(const std::string& lowerExtension) {
+	Texture2D* Resources::GetCodeIcon(const std::string& lowerExtension) {
 		static std::unordered_map<std::string, Ref<Texture2D>> m_cache;
 		static Ref<Texture2D> code_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/Code.png");
 
 		if (lowerExtension.empty())
-			return code_texture;
+			return code_texture.get();
 
 		std::string extension = lowerExtension;
 		if (extension[0] == '.')
@@ -35,7 +35,7 @@ namespace Editor {
 		if (m_cache.find(extension) != m_cache.end()) {
 			auto& texture = m_cache.at(extension);
 			if(texture)
-				return texture;
+				return texture.get();
 		}
 		
 		const std::string file = App::GetEditorDataPath() + "/Icons/Files/" + extension + ".png";
@@ -43,11 +43,11 @@ namespace Editor {
 			auto texture = Texture2D::create(file);
 			if (texture) {
 				m_cache.insert({ extension, texture });
-				return texture;
+				return texture.get();
 			}
 		}
 
-		return code_texture;
+		return code_texture.get();
 	}
 	
 	std::string Resources::GetIconsFont() {
@@ -81,20 +81,20 @@ namespace Editor {
 		return shader;
 	}
 
-	Ref<Texture>& Resources::GetDirectionalLightTexture() {
-		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Directionallight.png");
-		return s_texture;
+	Texture2D* Resources::GetDirectionalLightTexture() {
+		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Directionallight.png");
+		return s_texture.get();
 	}
-	Ref<Texture>& Resources::GetLightTexture() {
-		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Light.png");
-		return s_texture;
+	Texture2D* Resources::GetLightTexture() {
+		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Light.png");
+		return s_texture.get();
 	}
-	Ref<Texture>& Resources::GetSpotLightTexture() {
-		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Spotlight.png");
-		return s_texture;
+	Texture2D* Resources::GetSpotLightTexture() {
+		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Spotlight.png");
+		return s_texture.get();
 	}
-	Ref<Texture>& Resources::GetCameraTexture() {
-		static Ref<Texture> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Camera.png");
-		return s_texture;
+	Texture2D* Resources::GetCameraTexture() {
+		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Camera.png");
+		return s_texture.get();
 	}
 }

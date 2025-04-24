@@ -6,8 +6,7 @@
 #include "Stulu/Renderer/Shader.h"
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Types/Timestep.h"
-#include "Stulu/Types/UUID.h"
-#include <entt.hpp>
+#include "Registry.h"
 
 namespace Stulu {	
 	struct SceneGraphicsData {
@@ -22,21 +21,22 @@ namespace Stulu {
 		uint32_t shaderFlags = 0;
 	};
 
-	class GameObject;
 	class STULU_API SceneCamera;
 	class STULU_API MonoObjectInstance;
 	class STULU_API SceneRenderer;
 	class STULU_API EventCaller;
 
-	class STULU_API Scene {
+	class STULU_API Scene : public Registry {
 	public:
 		Scene();
 		Scene(const SceneData data, bool createSceneCaller = true);
 		~Scene();
 
-		GameObject createGameObject(entt::entity id = entt::null);
-		GameObject createGameObject(const std::string& name = "GameObject", entt::entity id = entt::null);
-		void destroyGameObject(GameObject gameObject);
+		virtual GameObject Create(const std::string& name, entt::entity id = entt::null) override;
+		virtual void Destroy(GameObject gameObject) override;
+
+		virtual bool IsScene() const override { return true; }
+		virtual Scene* GetAsScene() override { return this; }
 
 		void onUpdateEditor(SceneCamera& camera, bool render = true);
 		void onRuntimeStart();
@@ -46,14 +46,10 @@ namespace Stulu {
 		void onViewportResize(uint32_t width, uint32_t height);
 		void onEvent(Stulu::Event& e);
 
-		GameObject addModel(Model& model);
-		GameObject addMeshAssetsToScene(MeshAsset& mesh, Model& model);
-		GameObject addMeshAssetToScene(MeshAsset& mesh);
-
 		GameObject getMainCamera();
 		GameObject getMainLight();
 		inline SceneData& getData() { return m_data; }
-		inline Ref<EventCaller>& getCaller() { return m_caller; }
+		inline Ref<EventCaller> getCaller() const { return m_caller; }
 
 		bool PhysicsEnable() const { return m_data.enablePhsyics3D; }
 		SceneRenderer* getRenderer() const { return m_renderer.get(); }
@@ -62,17 +58,6 @@ namespace Stulu {
 		float GetSceneRuntime() const { return m_sceneRuntimeTime; }
 
 		void GeneralUpdates();
-		GameObject findGameObjectByName(const std::string& name);
-
-		template<typename... Components>
-		inline auto getAllGameObjectsWith() {
-			return m_registry.view<Components...>();
-		}
-		template<typename... Components>
-		inline auto getAllGameObjectsAsGroupWith() {
-			return m_registry.group<Components...>();
-		}
-		inline entt::registry& getRegistry() { return m_registry; }
 
 		static Ref<Scene> copy(Ref<Scene> scene);
 
@@ -88,27 +73,9 @@ namespace Stulu {
 		Scope<SceneRenderer> m_renderer = nullptr;
 		Ref<EventCaller> m_caller = nullptr;
 		float m_sceneRuntimeTime = 0.0f;
-		bool updatesRan = false;
-
-		entt::registry m_registry;
-
-		// only for internal usage
-		GameObject createEmptyGameObject(entt::entity id = entt::null);
+		bool m_updatesRan = false;
 
 		void renderSceneEditor(SceneCamera& camera);
-
-		template<typename T>
-		void onComponentAdded(GameObject gameObject, T& component) {
-			component.gameObject = gameObject;
-			component.onComponentAdded(this);
-		}
-		template<typename T>
-		void onComponentRemove(GameObject gameObject, T& component) {
-			component.gameObject = gameObject;
-			component.onComponentRemove(this);
-		}
-
-		friend class GameObject;
 	};
 }
 

@@ -28,8 +28,6 @@ namespace Stulu {
 		void InitManagedRuntimeScript(const GameObject& gameObject, Ref<MonoObjectInstance>& script);
 		bool InitManagedGameObject(const GameObject& gameObject, Ref<MonoObjectInstance>& script);
 
-		void SerializerGameObject(YAML::Emitter& out, GameObject& gameObject);
-		void DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path);
 		void SerializerScene(YAML::Emitter& out);
 		void DeserializerScene(YAML::Node& data);
 

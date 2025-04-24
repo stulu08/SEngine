@@ -1,5 +1,5 @@
 #include "st_pch.h"
-#include "Property.h"
+#include "ManagedProperty.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scripting/Managed/AssemblyManager.h"
 #include "Stulu/Scene/GameObject.h"
@@ -7,7 +7,7 @@
 #include "Stulu/Scripting/Managed/Bindings/Bindings.h"
 
 namespace Stulu {
-	Ref<Property> Property::Create(Mono::Object object, Mono::ClassField field) {
+	Ref<ManagedProperty> ManagedProperty::Create(Mono::Object object, Mono::ClassField field) {
 		if (!object || !field)
 			return nullptr;
 
@@ -21,19 +21,19 @@ namespace Stulu {
 				return createFn(object, field);
 			}
 		}
-		return createRef<MiscProperty>(object, field);
+		return createRef<ManagedMiscProperty>(object, field);
 	}
-	BaseProperty::BaseProperty(Mono::Object object, Mono::ClassField field) {
+	ManagedProperty::ManagedProperty(Mono::Object object, Mono::ClassField field) {
 		this->m_parentObjectPtr = object;
 		this->m_fieldPtr = field;
 	}
-	std::string BaseProperty::getName() const {
+	std::string ManagedProperty::getName() const {
 		return m_fieldPtr.GetName();
 	}
-	std::string BaseProperty::getTypeName() const {
+	std::string ManagedProperty::getTypeName() const {
 		return getDataType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
 	}
-	Mono::Type BaseProperty::getDataType() const {
+	Mono::Type ManagedProperty::getDataType() const {
 		return m_fieldPtr.GetType();
 	}
 #pragma region Primitives
@@ -43,7 +43,7 @@ namespace Stulu {
 	void Int32Property::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<int32_t>());
 	}
-	void Int32Property::CopyValueTo(Ref<Property> other) const {
+	void Int32Property::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Int32Property>(other);
@@ -77,7 +77,7 @@ namespace Stulu {
 	void UInt32Property::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<uint32_t>());
 	}
-	void UInt32Property::CopyValueTo(Ref<Property> other) const {
+	void UInt32Property::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<UInt32Property>(other);
@@ -111,7 +111,7 @@ namespace Stulu {
 	void UInt64Property::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<uint64_t>());
 	}
-	void UInt64Property::CopyValueTo(Ref<Property> other) const {
+	void UInt64Property::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<UInt64Property>(other);
@@ -145,7 +145,7 @@ namespace Stulu {
 	void FloatProperty::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<float>());
 	}
-	void FloatProperty::CopyValueTo(Ref<Property> other) const {
+	void FloatProperty::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<FloatProperty>(other);
@@ -179,7 +179,7 @@ namespace Stulu {
 	void BoolProperty::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<bool>());
 	}
-	void BoolProperty::CopyValueTo(Ref<Property> other) const {
+	void BoolProperty::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<BoolProperty>(other);
@@ -214,7 +214,7 @@ namespace Stulu {
 	void Vector2Property::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<glm::vec2>());
 	}
-	void Vector2Property::CopyValueTo(Ref<Property> other) const {
+	void Vector2Property::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Vector2Property>(other);
@@ -249,7 +249,7 @@ namespace Stulu {
 	void Vector3Property::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<glm::vec3>());
 	}
-	void Vector3Property::CopyValueTo(Ref<Property> other) const {
+	void Vector3Property::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Vector3Property>(other);
@@ -284,7 +284,7 @@ namespace Stulu {
 	void Vector4Property::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue(node["Value"].as<glm::vec4>());
 	}
-	void Vector4Property::CopyValueTo(Ref<Property> other) const {
+	void Vector4Property::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Vector4Property>(other);
@@ -315,7 +315,7 @@ namespace Stulu {
 #pragma endregion
 #pragma region Assets
 	AssetProperty::AssetProperty(Mono::Object object, Mono::ClassField field)
-		: BaseProperty(object, field) {
+		: ManagedProperty(object, field) {
 		const auto& assembly = Application::get().getAssemblyManager()->getAppAssembly();
 		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
 		Mono::Class assetClass = getDataType().GetClass();
@@ -338,12 +338,12 @@ namespace Stulu {
 		}
 	}
 	void AssetProperty::Serialize(YAML::Emitter& out) const {
-		out << YAML::Key << "Value" << (uint64_t)GetValue();
+		out << YAML::Key << "Value" << GetValue();
 	}
 	void AssetProperty::Deserialize(YAML::detail::iterator_value& node) {
-		SetValue(node["Value"].as<uint64_t>());
+		SetValue(node["Value"].as<UUID>());
 	}
-	void AssetProperty::CopyValueTo(Ref<Property> other) const {
+	void AssetProperty::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<AssetProperty>(other);
@@ -377,7 +377,7 @@ namespace Stulu {
 	}
 #pragma endregion
 	GameObjectProperty::GameObjectProperty(Mono::Object object, Mono::ClassField field)
-		: BaseProperty(object, field) {
+		: ManagedProperty(object, field) {
 		const auto& assembly = Application::get().getAssemblyManager()->getAppAssembly();
 		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
 		Mono::Class goClass = getDataType().GetClass();
@@ -407,7 +407,7 @@ namespace Stulu {
 	void GameObjectProperty::Deserialize(YAML::detail::iterator_value& node) {
 		SetValue((entt::entity)node["Value"].as<uint64_t>());
 	}
-	void GameObjectProperty::CopyValueTo(Ref<Property> other) const {
+	void GameObjectProperty::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<GameObjectProperty>(other);
@@ -424,13 +424,13 @@ namespace Stulu {
 		SetValue(*((entt::entity*)source));
 	}
 	entt::entity GameObjectProperty::GetValue() const {
-		GameObject obj = GameObject((entt::entity)GetValueRaw(), StuluBindings::GetCurrentScene());
+		GameObject obj = GameObject((entt::entity)GetValueRaw(), StuluBindings::GetCurrentRegistry());
 		if(obj.IsValid())
 			return obj.GetID();
 		return entt::null;
 	}
 	void GameObjectProperty::SetValue(entt::entity value) {
-		SetValueRaw(GameObject::GetById(value, StuluBindings::GetCurrentScene()));
+		SetValueRaw(GameObject::GetById(value, StuluBindings::GetCurrentRegistry()));
 	}
 	uint64_t GameObjectProperty::GetValueRaw() const {
 		uint64_t outValue = entt::null;

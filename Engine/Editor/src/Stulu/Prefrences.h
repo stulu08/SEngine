@@ -1,5 +1,5 @@
 #pragma once
-#include <Stulu/Core/INI.h>
+#include <Stulu/Serialization/INI.h>
 
 namespace Editor {
 	class Prefrences {

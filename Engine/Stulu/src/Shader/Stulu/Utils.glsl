@@ -22,31 +22,6 @@ vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map)
 	
     return normalize(TBN * tangentNormal);
 }
-
-float filterAlpha(float alpha, uint mode, float cutOut) {
-    if(mode == 1) {
-		if(alpha > cutOut){
-			return 1.0;//full opaque
-		}else{
-			return 0.0;//full transparent
-		}
-	}
-	else if(mode == 2) {
-		return alpha;//keep alpha
-	}
-    else{
-		return 1.0;//ignore alpha
-	}
-
-	float value = -1.0;
-    value += 1.0 * float(when_eq(mode, 1)) * when_gt(alpha, cutOut);
-    value += alpha * float(when_eq(mode, 2));
-    value += 1.0 * float(when_neq(value, -1.0));
-    return value;
-}
-float filterAlpha(float alpha, uint mode) {
-    return filterAlpha(alpha, mode, 1.0);
-}
 vec3 getSkyBoxCoords(vec3 view, mat4 _skyBoxRotation) {
 	return normalize(_skyBoxRotation * vec4(view, 0.0)).xyz;
 }

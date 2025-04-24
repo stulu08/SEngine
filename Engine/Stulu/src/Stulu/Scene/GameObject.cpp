@@ -3,12 +3,11 @@
 #include "Stulu/Scene/Components/Components.h"
 
 namespace Stulu {
-	GameObject GameObject::GetById(entt::entity id, Scene* scene) {
-		if (id == entt::null || scene == nullptr)
+	GameObject GameObject::GetById(entt::entity id, Registry* registry) {
+		if (id == entt::null || registry == nullptr)
 			return GameObject::null;
-		if(scene->getRegistry().valid(id))
-			return { id, scene };
-
+		if(registry->GetRegistry().valid(id))
+			return { id, registry };
 		return GameObject::null;
 	}
 }

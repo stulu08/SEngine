@@ -1,6 +1,6 @@
 #pragma once
 #include "Stulu/Renderer/Shader.h"
-
+#include "Stulu/Renderer/Renderer.h"
 typedef unsigned int GLenum;
 
 namespace Stulu {

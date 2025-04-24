@@ -20,9 +20,6 @@ namespace Stulu {
 		virtual void SceneExit() override;
 		virtual void GameObjectDestory(const GameObject& object) override;
 
-		virtual void SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) override;
-		virtual void DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) override;
-
 		virtual void SerializerScene(YAML::Emitter& out) override;
 		virtual void DeserializerScene(YAML::Node& data) override;
 

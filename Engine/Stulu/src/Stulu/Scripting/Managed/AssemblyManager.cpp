@@ -4,7 +4,7 @@
 #include "Bindings/Bindings.h"
 #include "Stulu/Core/Application.h"
 #include "Stulu/Resources/Resources.h"
-#include "Stulu/Scene/YAML.h"
+#include "Stulu/Serialization/YAML.h"
 #include "Stulu/Scene/Components/Components.h"
 #include "Stulu/Scene/GameObject.h"
 
@@ -95,8 +95,6 @@ namespace Stulu {
 		Stulu::ScriptingComponent& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
 		auto object = Stulu::createRef<Stulu::MonoObjectInstance>(componentChildClass, m_appAssembly.get());
 		comp.runtimeScripts.push_back(object);
-
-		gameObject.getScene()->getCaller()->InitManagedRuntimeScript(gameObject, object);
 	}
 	bool AssemblyManager::ManagedHasComponent(GameObject gameObject, Mono::Class componentChildClass) const {
 		auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();

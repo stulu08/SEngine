@@ -60,8 +60,7 @@ namespace Stulu {
 		LineVertex* lineVertexBufferBase = nullptr;
 		LineVertex* lineVertexBufferPtr = nullptr;
 
-		Ref<Texture2D> whiteTexture;
-		std::array<Ref<Texture>, maxTextureSlots> textureSlots;
+		std::array<Texture2D*, maxTextureSlots> textureSlots;
 		uint32_t slotIndex = 1;
 
 		glm::vec4 quadVertexPositions[4];
@@ -138,15 +137,14 @@ namespace Stulu {
 			s_renderer2Ddata.lineShader = Renderer::getShaderSystem()->GetShader("2D/Line");
 		}
 		{//textures
-			s_renderer2Ddata.whiteTexture = std::dynamic_pointer_cast<Texture2D>(Resources::getWhiteTexture());
 			int samplers[s_renderer2Ddata.maxTextureSlots];
 			for (int i = 0; i < s_renderer2Ddata.maxTextureSlots; i++) {
 				samplers[i] = i;
-				s_renderer2Ddata.whiteTexture->bind(i);//so opengl doesnt warn me for havin an sampler array with empty sampler
+				Resources::WhiteTexture()->bind(i);//so opengl doesnt warn me for havin an sampler array with empty sampler
 			}
 			s_renderer2Ddata.quadShader->bind();
 			s_renderer2Ddata.quadShader->setIntArray("u_textures", samplers, s_renderer2Ddata.maxTextureSlots);
-			s_renderer2Ddata.textureSlots[0] = s_renderer2Ddata.whiteTexture;
+			s_renderer2Ddata.textureSlots[0] = Resources::WhiteTexture();
 		}
 	}
 	void Renderer2D::shutdown() {
@@ -276,14 +274,14 @@ namespace Stulu {
 		drawQuad(Math::createMat4(pos,glm::vec3(.0f,.0f,glm::radians(rotation)),glm::vec3(size,1.0f)), color);
 	}
 
-	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, const Ref<Texture>& texture, const glm::vec2& tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(const glm::mat4& transform, Texture2D* texture, const glm::vec2& tiling, const glm::vec4& color) {
 		if (s_renderer2Ddata.quadIndexCount >= s_renderer2Ddata.maxIndices) {
 			flushQuads();
 			resetQuadBatch();
 		}
 		float texureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_renderer2Ddata.slotIndex; i++) {
-			if (*s_renderer2Ddata.textureSlots[i].get() == *texture.get()) {
+			if (s_renderer2Ddata.textureSlots[i] == texture) {
 				texureIndex = (float)i;
 				break;
 			}
@@ -306,13 +304,13 @@ namespace Stulu {
 
 		s_renderer2Ddata.quadIndexCount += 6;
 	}
-	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(Texture2D* texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(glm::vec3(pos, .0f), glm::vec3(size, 1.0f)),texture, texture->getSettings().tiling * tiling, color);
 	}
-	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(Texture2D* texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
 	}
-	void Renderer2D::drawTexturedQuad(const Ref<Texture2D>& texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
+	void Renderer2D::drawTexturedQuad(Texture2D* texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling, const glm::vec4& color) {
 		drawTexturedQuad(Math::createMat4(pos, glm::vec3(.0f,.0f, glm::radians(rotation)), glm::vec3(size, 1.0f)), texture, texture->getSettings().tiling * tiling, color);
 	}
 	
@@ -323,7 +321,7 @@ namespace Stulu {
 		}
 		float texureIndex = 0.0f;
 		for (uint32_t i = 1; i < s_renderer2Ddata.slotIndex; i++) {
-			if (*s_renderer2Ddata.textureSlots[i].get() == *sprite->getTexture()) {
+			if (s_renderer2Ddata.textureSlots[i] == sprite->getTexture()) {
 				texureIndex = (float)i;
 				break;
 			}

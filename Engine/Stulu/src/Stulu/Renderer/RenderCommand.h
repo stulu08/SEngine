@@ -31,24 +31,13 @@ namespace Stulu{
 		inline static void clear() {
 			s_renderAPI->clear();
 		}
-		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0, const uint32_t instanceCount = 0) {
-#if ST_PROFILING_RENDERDATA
-			ST_PROFILING_RENDERDATA_ADDDRAWCALLS(1);
-			for (auto& vb : vertexArray->getVertexBuffers()) {
-				ST_PROFILING_RENDERDATA_ADDVERTICES(vb->getCount());
-			}
-			ST_PROFILING_RENDERDATA_ADDINDICES(count == 0 ? vertexArray->getIndexBuffer()->getCount() : count);
-#endif
-			s_renderAPI->drawIndexed(vertexArray, count, instanceCount);
+		inline static void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount = 0, const uint32_t instanceCount = 0) {
+			s_renderAPI->drawIndexed(vertexArray, indicesCount, instanceCount);
+		}
+		inline static void drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset = 0, const uint32_t instanceCount = 0) {
+			s_renderAPI->drawIndexedSubMesh(vertexArray, indicesCount, indexOffset, vertexOffset, instanceCount);
 		}
 		inline static void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) {
-#if ST_PROFILING_RENDERDATA
-			ST_PROFILING_RENDERDATA_ADDDRAWCALLS(1);
-			for (auto& vb : vertexArray->getVertexBuffers()) {
-				ST_PROFILING_RENDERDATA_ADDVERTICES(vb->getCount());
-			}
-			ST_PROFILING_RENDERDATA_ADDINDICES(count);
-#endif
 			s_renderAPI->drawLines(vertexArray, count);
 		}
 		struct Limits {

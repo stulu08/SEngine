@@ -41,11 +41,14 @@ namespace Stulu {
 
 		vkCmdClearAttachments(device->getCommandBuffer(), (uint32_t)attachments.size(), attachments.data(), 1, &rect);
 	}
-	void VulkanRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count, const uint32_t instanceCount) {
-
+	void VulkanRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t instanceCount) {
 	}
-	void VulkanRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) {
 
+	void VulkanRenderAPI::drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset, const uint32_t instanceCount) {
+		
+	}
+	void VulkanRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count)
+	{
 	}
 	void VulkanRenderAPI::CreateGraphicsPipeline(VkPipeline& pipeline, VkPipelineLayout& pipelineLayout, const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) const {
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};

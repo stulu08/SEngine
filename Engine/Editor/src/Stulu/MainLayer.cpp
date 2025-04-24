@@ -13,7 +13,7 @@
 
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 #include <Stulu/Physics/Components/Collider.h>
-
+#include <Stulu/Resources/Assets/MeshAsset.h>
 using namespace Stulu;
 
 namespace Editor {
@@ -56,6 +56,26 @@ namespace Editor {
 
 		std::sort(m_shortcuts.begin(), m_shortcuts.end(), std::greater<Shortcut>());
 		AddPanel<ShortcutPanel>();
+
+		/*
+		// Asset Test
+		auto uuid = Stulu::UUID();
+		const auto shader = Renderer::getShaderSystem()->GetEntry("Default/PBR");
+		SharedMaterialAssetData* materialAsset = new SharedMaterialAssetData(uuid, createRef<TestMaterial>(shader));
+
+		auto* manager = new AssetsManager();
+		{
+			manager->AddAsset(materialAsset, uuid, true);
+			auto asset = manager->GetAsset<AssetHandle<SharedMaterialAssetData>>(uuid);
+			manager->UpdatePath(uuid, "PBR.smaterial");
+			asset.GetAsset().Save();
+		}
+		{
+			auto newUUID = manager->LoadFile("PBR.smaterial");
+			auto asset = manager->GetAsset<AssetHandle<SharedMaterialAssetData>>(newUUID);
+			CORE_INFO("{0}", asset->GetShader()->getName());
+		}
+		*/
 	}
 
 
@@ -164,8 +184,8 @@ namespace Editor {
 					RenderCommand::setStencil(StencilMode::WriteToBuffer);
 					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
 						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
-						if (meshFilter.mesh.hasMesh) {
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
+						if (meshFilter.mesh.IsValid()) {
+							Renderer::submit(meshFilter.mesh->GetVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
 						}
 					}
 					RenderCommand::setStencil(StencilMode::DisableWriting);
@@ -181,8 +201,8 @@ namespace Editor {
 
 					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
 						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
-						if (meshFilter.mesh.hasMesh) {
-							Renderer::submit(meshFilter.mesh.mesh->getVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
+						if (meshFilter.mesh.IsValid()) {
+							Renderer::submit(meshFilter.mesh->GetVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
 						}
 					}
 					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
@@ -305,7 +325,8 @@ namespace Editor {
 			}
 
 			Renderer::submit(
-				Stulu::Resources::getCapsuleMeshAsset().mesh->getVertexArray(),
+				Stulu::Resources::CubeMesh()->GetVertexArray(),
+				//Stulu::Resources::getCapsuleMeshAsset().mesh->GetVertexArray(),
 				Resources::GetHighliteShader(),
 				Math::createMat4(position, rotation, capsuleScale));
 		}
@@ -314,13 +335,8 @@ namespace Editor {
 			glm::vec3 position = tc.GetWorldPosition();
 			glm::vec3 scale = tc.GetWorldScale();
 
-			if (meshCollider.GetMesh().hasMesh) {
-				if (meshCollider.GetConvex() && meshCollider.GetConvexMesh())
-					Renderer::submit(meshCollider.GetConvexMesh()->getVertexArray(),
-						Resources::GetHighliteShader(),
-						Math::createMat4(position, tc.GetWorldRotation(), scale));
-				else
-					Renderer::submit(meshCollider.GetMesh().mesh->getVertexArray(),
+			if (meshCollider.GetMesh().IsValid()) {
+					Renderer::submit(meshCollider.GetMesh()->GetVertexArray(),
 						Resources::GetHighliteShader(),
 						Math::createMat4(position, tc.GetWorldRotation(), scale));
 			}
@@ -401,8 +417,8 @@ namespace Editor {
 
 		if (std::filesystem::exists(path)) {
 			m_currentScenePath = path;
-			SceneSerializer ss(m_editorScene);
-			ss.serialze(path);
+			SceneSerializer ss(m_editorScene.get());
+			ss.Serialze(path);
 			ST_TRACE("Saved Scene");
 			return;
 		}
@@ -413,8 +429,8 @@ namespace Editor {
 
 		m_currentScenePath = path;
 		Ref<Scene> newScene = createRef<Scene>();
-		SceneSerializer ss(newScene);
-		if (ss.deSerialze(path)) {
+		SceneSerializer ss(newScene.get());
+		if (ss.Deserialze(path)) {
 			OpenScene(newScene);
 			App::get().GetPrefs().Set("Editor", "Scene", path);
 		}
@@ -440,7 +456,7 @@ namespace Editor {
 			m_runtimeScene = nullptr;
 		}
 
-		StuluBindings::SetCurrentScene(GetActiveScene().get());
+		StuluBindings::SetCurrentRegistry(GetActiveScene().get());
 
 		if (IsRuntime()) {
 			GetActiveScene()->onViewportResize(m_gamePanel->GetWidth(), m_gamePanel->GetHeight());

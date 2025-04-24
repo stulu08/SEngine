@@ -1,6 +1,6 @@
 #pragma once
 #include <Stulu/Scene/GameObject.h>
-#include <Stulu/Scene/AssetsManager.h>
+#include <Stulu/Resources/AssetsManager.h>
 #include <imgui/imgui.h>
 
 namespace Editor {
@@ -47,19 +47,19 @@ namespace Editor {
             return false;
         }
 
-        inline void DragDropAsset(const Stulu::UUID& asset, Stulu::AssetType type) {
+        inline void DragDropAsset(const Stulu::UUID& asset, const std::string& type) {
             if (ImGui::BeginDragDropSource()) {
-                std::string assetType = "ASSET_TYPE_" + std::to_string((uint32_t)type);
+                std::string assetType = "ASSET_TYPE_" + type;
                 ImGui::SetDragDropPayload(assetType.c_str(), &asset, sizeof(Stulu::UUID));
                 ImGui::EndDragDropSource();
             }
         }
-        inline Stulu::UUID ReceiveDragDopAsset(Stulu::AssetType type, bool anyAsset = false) {
+        inline Stulu::UUID ReceiveDragDopAsset(const std::string& type, bool anyAsset = false) {
             Stulu::UUID uuid = Stulu::UUID::null;
 
             if (ImGui::BeginDragDropTarget()) {
                 if (!anyAsset) {
-                    std::string assetType = "ASSET_TYPE_" + std::to_string((uint32_t)type);
+                    std::string assetType = "ASSET_TYPE_" + type;
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(assetType.c_str())) {
                         if (payload->DataSize == sizeof(Stulu::UUID)) {
                             uuid = *static_cast<Stulu::UUID*>(payload->Data);

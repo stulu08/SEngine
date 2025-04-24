@@ -16,11 +16,6 @@ namespace Stulu {
 		void UpdateCamera();
 		Frustum CalculateFrustum(TransformComponent& transform) const;
 
-		virtual void onComponentAdded(Scene* scene) override {
-			if (scene->getViewportWidth() > 0 && scene->getViewportHeight() > 0)
-				ResizeTexture(scene->getViewportWidth(), scene->getViewportHeight());
-		}
-
 		inline bool IsRenderTarget() const {
 			return m_renderTarget != UUID::null;
 		}
@@ -70,6 +65,36 @@ namespace Stulu {
 
 		// internal for scene renderer
 		CameraComponent(const Camera& camera);
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "m_mode" << YAML::Value << (int)m_mode;
+			out << YAML::Key << "m_clearType" << YAML::Value << (int)m_clearType;
+			out << YAML::Key << "m_depth" << YAML::Value << m_depth;
+			out << YAML::Key << "m_fov" << YAML::Value << m_fov;
+			out << YAML::Key << "m_far" << YAML::Value << m_far;
+			out << YAML::Key << "m_clearColor" << YAML::Value << m_clearColor;
+			out << YAML::Key << "m_renderTarget" << YAML::Value << m_renderTarget;
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["m_mode"])
+				m_mode = (CameraMode)node["m_mode"].as<int>();
+			if (node["m_clearType"])
+				m_clearType = (ClearType)node["m_clearType"].as<int>();
+			if (node["m_depth"])
+				m_depth = node["m_depth"].as<int32_t>();
+			if (node["m_fov"])
+				m_fov = node["m_fov"].as<float>();
+			if (node["m_near"])
+				m_near = node["m_near"].as<float>();
+			if (node["m_far"])
+				m_far = node["m_far"].as<float>();
+			if (node["m_clearColor"])
+				m_clearColor = node["m_clearColor"].as<glm::vec4>();
+			if (node["m_renderTarget"])
+				m_renderTarget = node["m_renderTarget"].as<UUID>();
+
+			UpdateCamera();
+		}
 	private:
 		CameraMode m_mode;
 		ClearType m_clearType = ClearType::Color;
@@ -82,6 +107,5 @@ namespace Stulu {
 
 		friend class Scene;
 		friend class SceneRenderer;
-		friend class SceneSerializer;
 	};
 }

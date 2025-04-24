@@ -1,17 +1,32 @@
 #SShader "Default/PBR"
 
-#properity Color()			| albedo
-#properity Color(hdr=true)	| emissionHDRColor
-#properity Range(0.0,1.0)	| metallic
-#properity Range(0.0,1.0)	| roughness
-#properity Range(0.0,1.0)	| ao
+#define auto_align 0
+#define Sampler2D(name, slot, fallback = [Black : White])
+#define Color(name, offset, isHDR)
+#define Float(name, offset, minVal, maxVal)
+#define Float2(name, offset)
+#define Float4(name, offset)
+
+#Expose Sampler2D("Albedo Map", 0, White)
+#Expose Sampler2D("Metallic Map", 1, Black)
+#Expose Sampler2D("Roughness Map", 2, Black)
+#Expose Sampler2D("Normal Map", 3, Black)
+#Expose Sampler2D("Ambient Occlusion Map", 4, Black)
+#Expose Sampler2D("Emission Map", 5, Black)
+
+#Expose Color("Albedo", auto_align)
+#Expose Float("Metallic", auto_align, 0, 1)
+#Expose Float("Roughness", auto_align, 0, 1)
+#Expose Float("Ambient Occlusion", auto_align, 0, 1)
+#Expose Color("Emission", auto_align, true)
+#Expose Float2("Tilling", auto_align)
 
 #include "Stulu/Default/Shader.glsl"
 
-layout(std140, binding = 5) uniform material {
+layout(std140, binding = ST_USER_MATERIAL_BINDING) uniform Material {
 	uint transparencyMode;
 	float alphaCutOff;
-	vec4  albedo;
+	vec4 albedo;
 	float metallic;
 	float roughness;
 	float ao;

@@ -41,7 +41,7 @@ namespace Editor {
 		float m_windowPaddingOriginal = 0.0f;
 
 		inline entt::registry& GetRegistry() {
-			return m_scene->getRegistry();
+			return m_scene->GetRegistry();
 		}
 
 		void DrawGameObject(Stulu::GameObjectBaseComponent& baseComponent, const Stulu::GameObject& parent = Stulu::GameObject::null);

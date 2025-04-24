@@ -1,6 +1,6 @@
 #pragma once
 #include "Stulu/Scene/Scene.h"
-#include "Stulu/Scene/YAML.h"
+#include "Stulu/Serialization/YAML.h"
 
 namespace Stulu {
 	class STULU_API SceneLayer {
@@ -22,8 +22,5 @@ namespace Stulu {
 
 		virtual void SerializerScene(YAML::Emitter& out) {}
 		virtual void DeserializerScene(YAML::Node& data) {}
-
-		virtual void SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {}
-		virtual void DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {}
 	};
 }

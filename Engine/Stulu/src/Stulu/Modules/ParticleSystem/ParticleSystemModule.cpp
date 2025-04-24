@@ -13,6 +13,6 @@ namespace Stulu {
 		EventCaller::RegisterLayer<ParticleSystemLayer>();
 	}
 	void ParticleSystemModule::onAttach() {
-		Component::Register<ParticleSystemComponent>("Stulu.ParticleSystemComponent");
+		Component::Register<ParticleSystemComponent>("ParticleSystemComponent", "Stulu.ParticleSystemComponent");
 	}
 }

@@ -29,7 +29,7 @@ namespace Editor {
 		m_windowPos = ImGui::GetCursorScreenPos();
 
 		auto& texture = m_framebuffer->getColorAttachment();
-		ImGui::Image(texture, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+		ImGui::Image(texture.get(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 	}
 
 	void GamePanel::Update() {

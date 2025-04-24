@@ -14,3 +14,4 @@
 #define ST_USER_TEXTURE_END
 const int st_maxLights;
 #define MAX_REFLECTION_LOD
+#define ST_USER_MATERIAL_BINDING

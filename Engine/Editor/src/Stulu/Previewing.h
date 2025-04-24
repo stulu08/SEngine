@@ -1,26 +1,23 @@
 #pragma once
-#include <Stulu/Renderer/Texture.h>
-#include <Stulu/Scene/Model.h>
-#include <Stulu/Scene/GameObject.h>
-#include <Stulu/Scene/AssetsManager.h>
-#include <Stulu/Scene/Material.h>
+#include <Stulu.h>
 
 namespace Editor {
 	class Preview {
 	public:
-		Preview(size_t CacheSize = 50);
+		Preview(size_t CacheSize = 100);
 		~Preview();
 
-		Stulu::Ref<Stulu::Texture> GetMaterialPreview(Stulu::Ref<Stulu::Material> material);
-		Stulu::Ref<Stulu::Texture> GetModelPreview(Stulu::Model& model);
-		Stulu::Ref<Stulu::Texture> GetSkyboxPreview(Stulu::Ref<Stulu::SkyBox> skybox);
-		Stulu::Ref<Stulu::Texture> GetMeshPreview(Stulu::MeshAsset& mesh);
+		Stulu::Ref<Stulu::Texture2D> GetTexturePreview(Stulu::Texture2DAsset texture);
+		Stulu::Ref<Stulu::Texture2D> GetRenderTexturePreview(Stulu::RenderTextureAsset texture);
+		Stulu::Ref<Stulu::Texture2D> GetMaterialPreview(Stulu::MaterialAsset material);
+		Stulu::Ref<Stulu::Texture2D> GetSkyboxPreview(Stulu::SkyBoxAsset skybox);
+		Stulu::Ref<Stulu::Texture2D> GetMeshPreview(Stulu::MeshAsset mesh);
 
 		inline bool IsCached(Stulu::UUID uuid) const { return m_cache.find(uuid) != m_cache.end(); }
-		inline Stulu::Ref<Stulu::Texture> GetCached(Stulu::UUID uuid) { return m_cache.at(uuid); }
-		void Cache(Stulu::UUID uuid, Stulu::Ref<Stulu::Texture> texture);
+		inline Stulu::Ref<Stulu::Texture2D> GetCached(Stulu::UUID uuid) { return m_cache.at(uuid).second; }
+		void Cache(Stulu::GeneralAsset asset, Stulu::Ref<Stulu::Texture2D> texture);
 	private:
-		std::unordered_map<Stulu::UUID, Stulu::Ref<Stulu::Texture>> m_cache;
+		std::unordered_map<Stulu::UUID, std::pair<Stulu::GeneralAsset, Stulu::Ref<Stulu::Texture2D>>> m_cache;
 
 		Stulu::GameObject m_camera;
 		Stulu::GameObject m_renderObject;
@@ -30,12 +27,11 @@ namespace Editor {
 		size_t m_cacheLimit;
 
 		void SetUpScene();
-		Stulu::Ref<Stulu::Texture> RenderScene();
+		Stulu::Ref<Stulu::Texture2D> RenderScene();
 
-		void SetupMaterial(Stulu::Ref<Stulu::Material> material);
-		void SetupModel(Stulu::Model& model);
-		void SetupSkybox(Stulu::Ref<Stulu::SkyBox> skybox);
-		void SetupMesh(Stulu::MeshAsset& mesh);
+		void SetupMaterial(Stulu::MaterialAsset material);
+		void SetupSkybox(Stulu::SkyBoxAsset skybox);
+		void SetupMesh(Stulu::MeshAsset mesh);
 		void SceneReset();
 
 		void CamDefault();

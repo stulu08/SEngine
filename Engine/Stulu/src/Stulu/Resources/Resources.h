@@ -2,51 +2,96 @@
 #include "Stulu/Core/Core.h"
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Renderer/Texture.h"
-#include "Stulu/Scene/Material.h"
+#include "Stulu/Renderer/Material/TestMaterial.h"
+#include "Stulu/Resources/Assets/MeshAsset.h"
+#include "Stulu/Resources/Assets/TextureAssets.h"
+#include "Stulu/Resources/Assets/MaterialAsset.h"
+
 namespace Stulu {
+	class STULU_API Material;
 	class STULU_API Resources {
 	public:
 		static void load();
 
-		static Ref<Texture> getBlackTexture();
-		static Ref<Texture> getWhiteTexture();
-		static Ref<Texture> getLoadingTexture();
-		static Ref<Texture> getLogoTexture();
+		static Texture2D* BlackTexture();
+		static Texture2D* WhiteTexture();
+		static Texture2D* LoadingTexture();
+		static Texture2D* LogoTexture();
 
-		static Ref<SkyBox> getDefaultSkyBox();
-		static Asset& getDefaultSkyBoxAsset();
+		static SkyBoxAsset DefaultSkyBoxAsset();
+		static inline SkyBox* DefaultSkyBox() { return *DefaultSkyBoxAsset(); }
 
-		static Ref<Mesh> getCubeMesh();
-		static Ref<Mesh> getPlaneMesh();
-		static Ref<Mesh> getSphereMesh();
-		static Ref<Mesh> getHighResSphereMesh();
-		static Ref<Mesh> getIcoSphereMesh();
-		static Ref<Mesh> getCapsuleMesh();
-		static MeshAsset& getCubeMeshAsset();
-		static MeshAsset& getPlaneMeshAsset();
-		static MeshAsset& getSphereMeshAsset();
-		static MeshAsset& getHighResSphereMeshAsset();
-		static MeshAsset& getIcoSphereMeshAsset();
-		static MeshAsset& getCapsuleMeshAsset();
+		static MeshAsset CubeMesh();
+		static MeshAsset PlaneMesh();
+		//static MeshAsset SphereMesh();
+		//static MeshAsset HighResSphereMesh();
+		//static MeshAsset IcoSphereMesh();
+		//static MeshAsset CapsuleMesh();
 
-		static Ref<VertexArray>& getFullscreenVA();
-		static Ref<Shader>& getFullscreenShader();
+		static Ref<VertexArray> getFullscreenVA();
+		static Shader* FullscreenShader();
+		static Shader* SkyBoxShader();
+		static Shader* PBRShader();
 
-		static Ref<Material> getDefaultMaterial();
-		static Ref<Material> getReflectiveMaterial();
-		static Ref<Material> getTerrainMaterial();
+		static MaterialAsset DefaultMaterialAsset();
+		static MaterialAsset ReflectiveMaterialAsset();
+		static inline TestMaterial* DefaultMaterial() { return *DefaultMaterialAsset(); }
+		static inline TestMaterial* ReflectiveMaterial() { return *ReflectiveMaterialAsset(); }
+
+
 		//Creates a material based of the default shader
-		static Ref<Material> createMaterial(const std::string& name, const UUID& uuid = UUID(),
-			const glm::vec4& albedo = { .9f,.9f,.9f,1.0f }, const float& metallic = 0.0f, const float& roughness = 0.5f, const float& ao = .2f, const glm::vec4& emission = { 1.0f,1.0f ,1.0f ,0.0f },
-			const UUID& albedoMap = UUID::null, const UUID& metallicMap = UUID::null, const UUID& roughnessMap = UUID::null, const UUID& aoMap = UUID::null, const UUID& emissionMap = UUID::null,
-			const UUID& normalMap = UUID::null, const glm::vec2& textureTilling = { 1,1 }, TransparencyMode transparencyMode = TransparencyMode::Opaque, float alphaCutOff = .5f
+		static Ref<TestMaterial> CreateMaterial(
+			const std::string& name,
+			const glm::vec4& albedo = { .9f,.9f,.9f,1.0f }, 
+			float metallic = 0.0f, 
+			float roughness = 0.5f, 
+			float ambienOcculission = .2f, 
+			const glm::vec4& emission = { 1.0f,1.0f ,1.0f ,0.0f },
+			const Texture2DAsset& albedoMap = nullptr,
+			const Texture2DAsset& metallicMap = nullptr,
+			const Texture2DAsset& roughnessMap = nullptr,
+			const Texture2DAsset& aoMap = nullptr,
+			const Texture2DAsset& emissionMap = nullptr,
+			const Texture2DAsset& normalMap = nullptr,
+			const glm::vec2& textureTilling = { 1,1 }, 
+			MaterialTransparencyMode transparencyMode = MaterialTransparencyMode::Opaque, 
+			float alphaCutOff = .5f,
+			bool instancing = false
 		);
 
-		static Ref<Shader> getSkyBoxShader();
 
 		// the asset directory of of the Project
 		static std::string AppDataDir;
 		static std::string AppAssetDir;
 		static std::string EngineDataDir;
+
+		static inline const UUID UUIDSkyBoxShader = 7;
+		static inline const UUID UUIDQuadShader = 8;
+		static inline const UUID UUIDPBRShader = 9;
+		static inline const UUID UUIDTerrainShader = 10;
+		
+		static inline const UUID UUIDDefaultSkyBox = 11;
+		static inline const UUID UUIDDefaultMaterial = 12;
+		static inline const UUID UUIDReflectiveMaterial = 13;
+		static inline const UUID UUIDTerrainMaterial = 14;
+		
+		static inline const UUID UUIDBlackTexture = 301;
+		static inline const UUID UUIDWhiteTexture = 302;
+		static inline const UUID UUIDLoadingTexture = 303;
+		static inline const UUID UUIDLogoTexture = 304;
+		
+		static inline const UUID UUIDCubeMesh = 401;
+		static inline const UUID UUIDPlaneMesh = 402;
+		static inline const UUID UUIDSphereMesh = 404;
+		static inline const UUID UUIDCapsuleMesh = 405;
+		static inline const UUID UUIDIIcoSphereMesh = 406;
+		static inline const UUID UUIDIHighResSphereMesh = 407;
+
+		static inline MeshAsset SphereMesh() {
+			return CubeMesh();
+		}
+		static inline MeshAsset CapsuleMesh() {
+			return CubeMesh();
+		}
 	};
 }

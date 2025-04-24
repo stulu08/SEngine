@@ -86,6 +86,7 @@ namespace Stulu {
 
 		Scope<CpuDispatcher> m_cpuDispatcher;
 		Scope<Window> m_window;
+		Scope<AssetsManager> m_assetsManager;
 		ImGuiLayer* m_imguiLayer;
 		LayerStack m_layerStack;
 		Stack<Module> m_moduleStack;

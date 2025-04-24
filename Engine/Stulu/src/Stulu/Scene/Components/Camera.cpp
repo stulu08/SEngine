@@ -36,16 +36,11 @@ namespace Stulu {
 
 
 	void CameraComponent::ResizeTexture(uint32_t width, uint32_t height) {
-
-		if (IsRenderTarget() && AssetsManager::existsAndType(m_renderTarget, AssetType::RenderTexture)) {
-			Asset& asset = AssetsManager::get(m_renderTarget);
-			GetTexture()->uuid = m_renderTarget;
-			asset.data = std::dynamic_pointer_cast<Texture>(GetTexture());
-			// resizeing
+		if (IsRenderTarget()) {
+			RenderTextureAsset asset = AssetsManager::GlobalInstance().GetAsset<RenderTextureAsset>(m_renderTarget);
+			asset.GetAsset()->SetSource(GetTexture());
 		}
-		else {
-			m_cam.ResizeFrameBuffer(width, height);
-		}
+		m_cam.ResizeFrameBuffer(width, height);
 
 	}
 

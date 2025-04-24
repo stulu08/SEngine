@@ -206,12 +206,12 @@ namespace Stulu {
     
 
     void PhysicsModule::LoadBindings() {
-        Component::Register<RigidbodyComponent>("Stulu.RigidbodyComponent");
-        Component::Register<RigidStaticComponent>("Stulu.RigidStaticComponent");
-        Component::Register<BoxColliderComponent>("Stulu.BoxColliderComponent");
-        Component::Register<SphereColliderComponent>("Stulu.SphereColliderComponent");
-        Component::Register<CapsuleColliderComponent>("Stulu.CapsuleColliderComponent");
-        Component::Register<MeshColliderComponent>("Stulu.MeshColliderComponent");
+        Component::Register<RigidbodyComponent>("RigidbodyComponent", "Stulu.RigidbodyComponent");
+        Component::Register<RigidStaticComponent>("RigidStaticComponent", "Stulu.RigidStaticComponent");
+        Component::Register<BoxColliderComponent>("BoxColliderComponent", "Stulu.BoxColliderComponent");
+        Component::Register<SphereColliderComponent>("SphereColliderComponent", "Stulu.SphereColliderComponent");
+        Component::Register<CapsuleColliderComponent>("CapsuleColliderComponent", "Stulu.CapsuleColliderComponent");
+        Component::Register<MeshColliderComponent>("MeshColliderComponent", "Stulu.MeshColliderComponent");
 
         auto& manager = Application::get().getAssemblyManager();
         

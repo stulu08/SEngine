@@ -1,27 +1,27 @@
 #pragma once
 #include "Shader.h"
 
+#include "Material/MaterialProperty.h"
+
 #include <map>
 
 namespace Stulu {
-	class STULU_API ShaderProperity;
-
 	class STULU_API ShaderEntry {
 	public:
 		ShaderEntry(const Ref<Shader>& shader, const std::string& path);
-		ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<ShaderProperity>>& props, const std::string& path);
+		ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<MaterialProperty>>& props, const std::string& path);
 
 		bool HasProperity(std::string name) const;
-		std::vector<Ref<ShaderProperity>>& GetProperities() { return m_props; }
-		const std::vector<Ref<ShaderProperity>>& GetProperities() const { return m_props; }
-		Ref<ShaderProperity> GetProperity(std::string name) const;
+		std::vector<Ref<MaterialProperty>>& GetProperities() { return m_props; }
+		const std::vector<Ref<MaterialProperty>>& GetProperities() const { return m_props; }
+		Ref<MaterialProperty> GetProperity(std::string name) const;
 
 		inline Ref<Shader> GetShader() const { return m_shader; }
 
 		inline std::string GetPath() const { return m_path; }
 	private:
 		Ref<Shader> m_shader;
-		std::vector<Ref<ShaderProperity>> m_props;
+		std::vector<Ref<MaterialProperty>> m_props;
 		std::string m_path;
 
 		friend class ShaderSystem;
@@ -37,7 +37,7 @@ namespace Stulu {
 		
 		void ProcessShader(std::string& source) const;
 
-		Ref<Shader> CreateShader(const std::string& name, const ShaderSource& source, const std::vector<Ref<ShaderProperity>>& properties = {}, const std::string& path = "");
+		Ref<Shader> CreateShader(const std::string& name, const ShaderSource& source, const std::vector<Ref<MaterialProperty>>& properties = {}, const std::string& path = "");
 
 		inline Ref<Shader> CreateShader(const std::string& name, const std::string& vertex, const std::string& fragment) {
 			return CreateShader(name, ShaderSource{ vertex, fragment });
@@ -82,7 +82,7 @@ namespace Stulu {
 		}
 	private:
 		std::string GetShaderName(const std::string& source) const;
-		std::vector<Ref<ShaderProperity>> ProcessProperties(std::string& source) const;
+		std::vector<Ref<MaterialProperty>> ProcessProperties(std::string& source) const;
 		ShaderSource ProcessRegions(std::string& source) const;
 
 		Ref<ShaderCompiler> m_compiler;
@@ -91,73 +91,6 @@ namespace Stulu {
 		std::vector<std::string> m_includeDirs;
 		std::unordered_map<std::string, std::string> m_internalFiles;
 		bool m_spirvSupported;
-	};
-
-	class STULU_API ShaderProperity {
-	public:
-		enum class Type {
-			None, Color, Range, Enum, Marker
-		};
-		virtual Type getType() const = 0;
-		virtual std::string getName() const = 0;
-
-		static Type TypeFromString(const std::string& str);
-	};
-
-	class STULU_API ShaderProperityRange : public ShaderProperity {
-	public:
-		ShaderProperityRange(const std::string& name, const std::string& values);
-		ShaderProperityRange(const std::string& name, const float min, const float max)
-			: m_name(name), m_min(min), m_max(max) {}
-
-		float getMin() const { return m_min; }
-		float getMax() const { return m_max; }
-
-		virtual Type getType() const override { return Type::Range; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		float m_min = .01f, m_max = 1.0f;
-	};
-	class STULU_API ShaderProperityColor : public ShaderProperity {
-	public:
-		ShaderProperityColor(const std::string& name, const std::string& values);
-		ShaderProperityColor(const std::string& name, bool hdr)
-			: m_name(name), m_hdr(hdr) {}
-
-		bool isHDR() const { return m_hdr; }
-
-		virtual Type getType() const override { return Type::Color; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		bool m_hdr = false;
-	};
-	class STULU_API ShaderProperityEnum : public ShaderProperity {
-	public:
-		ShaderProperityEnum(const std::string& name, const std::string& values);
-		ShaderProperityEnum(const std::string& name, const std::vector<std::string>& names)
-			: m_name(name), m_names(names) {}
-
-		const std::vector<std::string>& getNames() const { return m_names; };
-
-		virtual Type getType() const override { return Type::Enum; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		std::vector<std::string> m_names;
-	};
-	class STULU_API ShaderProperityMarker : public ShaderProperity {
-	public:
-		ShaderProperityMarker(const std::string& name, const std::string& text);
-
-		const std::string& getText() const { return m_text; }
-
-		virtual Type getType() const override { return Type::Marker; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		std::string m_text;
 	};
 
 #define ST_USER_TEXTURE_START 5

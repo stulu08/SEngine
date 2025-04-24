@@ -32,10 +32,9 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	Log::AddFileSink(project.GetPath() + "/Logs/" + Log::generateTimeString() + ".log");
 	ST_INFO("Loading project: {0}", project.GetPath());
 
-	project.Compile(Editor::EditorBuildSettings);
+	//project.Compile(Editor::EditorBuildSettings);
 
 	prefrences.Section("Window");
-
 	ApplicationInfo info;
 	info.Name = "Stulu Editor";
 	info.Publisher = "Stulu";
@@ -64,21 +63,23 @@ namespace Editor {
 	App::App(const ApplicationInfo& info, Project&& project, Prefrences&& prefs)
 		: Application(info), m_project(std::move(project)), m_prefrences(std::move(prefs)) {
 		s_instance = this;
+		LoadingScreen(0.0f);
 
 		getWindow().setWindowIcon(Editor::Resources::GetLogo()->getPath());
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION_STR + " - " + m_project.GetPath());
 
 		Editor::LoadEditorBindings();
 		Editor::LoadImGuiBindings();
+		LoadingScreen(0.1f);
 
 		m_layer = new MainLayer();
 		pushLayer(m_layer);
+		LoadingScreen(0.4f);
 
 		ST_INFO("Loading all Project assets from: {0}", m_project.GetAssetPath());
 
-		AssetsManager::setProgessCallback(Application::LoadingScreen);
-		AssetsManager::loadAllFiles(m_project.GetAssetPath());
-		AssetsManager::setProgessCallback(nullptr);
+		AssetsManager::GlobalInstance().LoadDirectoryRecursive(m_project.GetAssetPath());
+		LoadingScreen(0.5f);
 
 		m_layer->onLoadFinish();
 	}

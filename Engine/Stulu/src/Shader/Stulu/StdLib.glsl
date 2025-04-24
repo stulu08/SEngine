@@ -7,5 +7,6 @@
 #include "Stulu/Branchless.glsl"
 #include "Stulu/Utils.glsl"
 #include "Stulu/Math.glsl"
+#include "Stulu/Material.glsl"
 
 #endif

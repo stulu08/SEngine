@@ -32,43 +32,19 @@ namespace Stulu {
 		m_registry.clear();
 	}
 
-	GameObject Scene::createGameObject(entt::entity id) {
-		return createGameObject("GameObject", id);
-	}
-
-	GameObject Scene::createGameObject(const std::string& name, entt::entity id) {
-		GameObject go;
-		if (id == entt::null) {
-			go = { m_registry.create(), this };
-		}
-		else {
-			go = { m_registry.create((entt::entity)id), this };
-			if (go.GetID() != id) {
-				CORE_WARN("Warining GameObject '{0}' could not be assigned to ID: {1}", name, id);
-				CORE_WARN("Instead it was given the ID: {0}", go.GetID());
-			}
-		}
-
-		auto& base = go.addComponent<GameObjectBaseComponent>(!name.empty() ? name : "GameObject");
-		go.addComponent<TransformComponent>();
+	GameObject Scene::Create(const std::string& name, entt::entity id) {
+		GameObject go = Registry::Create(name, id);
 		m_caller->NativeGameObjectCreate(go);
 		return go;
 	}
-	void Scene::destroyGameObject(GameObject gameObject) {
+	void Scene::Destroy(GameObject gameObject) {
 		if (!gameObject) {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
 		}
 		m_caller->NativeGameObjectDestory(gameObject);
 		m_caller->onDestroy(gameObject);
-
-		//destroy all childs
-		TransformComponent& transform = gameObject.getComponent<TransformComponent>();
-		for (entt::entity child : transform.GetChildren()) {
-			destroyGameObject({ child, this });
-		}
-
-		m_registry.destroy(gameObject.GetID());
+		Registry::Destroy(gameObject);
 	}
 
 	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
@@ -79,7 +55,7 @@ namespace Stulu {
 	}
 	void Scene::onUpdateRuntime(bool render) {
 		ST_PROFILING_SCOPE("Scene - Runtime Update");
-		updatesRan = false;
+		m_updatesRan = false;
 
 		// basicly the firt runtime update
 		if (m_sceneRuntimeTime == 0.0f)
@@ -97,11 +73,11 @@ namespace Stulu {
 		}
 	}
 	void Scene::GeneralUpdates() {
-		if (updatesRan)
+		if (m_updatesRan)
 			return;
 		m_caller->onUpdate();
 		setupSceneForRendering(true);
-		updatesRan = true;
+		m_updatesRan = true;
 	}
 	void Scene::renderScene(bool callEvents) {
 		ST_PROFILING_SCOPE("Scene - Runtime Render");
@@ -194,33 +170,12 @@ namespace Stulu {
 	void Scene::onRuntimeStart() {
 		m_caller->NativeSceneStart();
 		m_caller->ConstructManaged();
-
-		for (entt::entity goID : getAllGameObjectsWith<MeshRendererComponent>()) {
-			if (m_registry.get<MeshRendererComponent>(goID).material)
-				m_registry.get<MeshRendererComponent>(goID).material->uploadData();
-		}
 		m_sceneRuntimeTime = 0.0f;
 	}
 	void Scene::onRuntimeStop() {
 		m_caller->onSceneExit();
 		m_caller->onDestroy();
-
 		m_sceneRuntimeTime = 0.0f;
-	}
-
-	GameObject Scene::createEmptyGameObject(entt::entity id) {
-		GameObject go;
-		if (id == entt::null) {
-			go = { m_registry.create(), this };
-		}
-		else {
-			go = { m_registry.create((entt::entity)id), this };
-			if (go.GetID() != id) {
-				CORE_WARN("Warining Internal GameObject could not be assigned to ID: {0}", id);
-				CORE_WARN("Instead it was given the ID: {0}", go.GetID());
-			}
-		}
-		return go;
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
@@ -238,51 +193,6 @@ namespace Stulu {
 		
 	}
 
-	GameObject Scene::addModel(Model& model) {
-		std::vector<MeshAsset>& vec = model.getMeshes();
-		GameObject root = createGameObject(std::filesystem::path(model.getDirectory()).filename().string());
-		for (MeshAsset& mesh : vec) {
-			if (mesh.parentMeshAsset != UUID::null)
-				continue;
-			//root node
-			destroyGameObject(root);
-			root = addMeshAssetsToScene(mesh, model);
-			root.getComponent<TransformComponent>().SetParent(GameObject::null);
-		}
-		return root;
-	}
-	GameObject Scene::addMeshAssetsToScene(MeshAsset& mesh, Model& model) {
-		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
-		auto& tc = go.getComponent<TransformComponent>();
-		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
-		if (mesh.hasMesh) {
-			go.addComponent<MeshFilterComponent>().mesh = mesh;
-			go.saveAddComponent<MeshRendererComponent>().cullmode = mesh.cullMode;
-			if (model.getMaterials().find(mesh.materialIDs[0]) != model.getMaterials().end()) {
-				go.getComponent<MeshRendererComponent>().material = std::any_cast<Ref<Material>>(AssetsManager::get(model.getMaterials()[mesh.materialIDs[0]]->getUUID()).data);
-			}
-		}
-		for (MeshAsset& child : model.getMeshes()) {
-			if (child.parentMeshAsset == mesh.uuid) {
-				GameObject c = addMeshAssetsToScene(child, model);
-				go.getComponent<TransformComponent>().AddChild(c);
-			}
-				
-		}
-		if (mesh.parentMeshAsset == UUID::null)
-			go.getComponent<TransformComponent>().SetParent(GameObject::null);
-		return go;
-	}
-	GameObject Scene::addMeshAssetToScene(MeshAsset& mesh) {
-		GameObject go = createGameObject(mesh.name.c_str() ? mesh.name : "unnamed Mesh");
-		if (mesh.hasMesh) {
-			go.addComponent<MeshFilterComponent>().mesh = mesh;
-			go.saveAddComponent<MeshRendererComponent>().cullmode = mesh.cullMode;
-		}
-		auto& tc = go.getComponent<TransformComponent>();
-		Math::decomposeTransform(mesh.transform, tc.position, tc.rotation, tc.scale);
-		return go;
-	}
 	GameObject Scene::getMainCamera() {
 		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
 		for (auto gameObject : view) {
@@ -312,16 +222,6 @@ namespace Stulu {
 		return otherResult;
 	}
 
-	GameObject Scene::findGameObjectByName(const std::string& name) {
-		auto view = m_registry.view<GameObjectBaseComponent>();
-		for (auto gameObject : view)
-		{
-			if (view.get<GameObjectBaseComponent>(gameObject).name == name)
-				return GameObject(gameObject, this);
-		}
-		return GameObject::null;
-	}
-
 	Ref<Scene> Scene::copy(Ref<Scene> scene) {
 		Ref<Scene> newScene = createRef<Scene>(scene->m_data, false);
 
@@ -339,12 +239,12 @@ namespace Stulu {
 		auto& dstSceneRegistry = newScene->m_registry;
 		auto idView = srcSceneRegistry.view<GameObjectBaseComponent>();
 		for (entt::entity e : idView) {
-			GameObject newGameObject = newScene->createEmptyGameObject(e);
+			GameObject newGameObject = newScene->CreateEmpty(e);
 			// other wise cant use the copy constructor to make them dirty
 			newGameObject.addComponent<TransformComponent>();
 		}
 
-		StuluBindings::SetCurrentScene(newScene.get());
+		StuluBindings::SetCurrentRegistry(newScene.get());
 
 		// Copy components (except GameObjectBaseComponent)
 		for (auto& [id, func] : Component::m_componentCopyList) {

@@ -8,7 +8,7 @@
 #include "Stulu/ImGui/Gizmo.h"
 #include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Renderer/Renderer2D.h"
-#include "Stulu/Scene/AssetsManager.h"
+#include "Stulu/Resources/AssetsManager.h"
 #include "Stulu/Scripting/Managed/AssemblyManager.h"
 
 #include "Stulu/Resources/AssetHandel.h"
@@ -30,6 +30,7 @@ namespace Stulu {
 		:m_appInfo(appInfo) {
 		s_instance = this;
 		m_cpuDispatcher = createScope<CpuDispatcher>(appInfo.threadPoolSize);
+		m_assetsManager = createScope<AssetsManager>();
 
 		Resources::EngineDataDir = appInfo.DataPath;
 		Resources::AppDataDir = appInfo.AppPath;
@@ -46,7 +47,7 @@ namespace Stulu {
 
 		if (appInfo.LoadDefaultAssets) {
 			Renderer::init();
-			LoadingScreen(0.0f);
+			LoadingScreen(0.25f);
 		}
 
 		if (appInfo.HideWindowOnSart) {
@@ -57,6 +58,7 @@ namespace Stulu {
 			CORE_INFO("Loading all Engine assets: {0}", appInfo.DataPath);
 			Resources::load();
 		}
+		LoadingScreen(0.5f);
 
 		if(!appInfo.AppManagedAssembly.empty())
 			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
@@ -71,11 +73,12 @@ namespace Stulu {
 		for (auto& module : m_moduleStack) {
 			m_layerStack.pushLayer(module->GetLayer());
 		}
+		LoadingScreen(0.75f);
 
 		if (appInfo.LoadDefaultAssets) {
 			Gizmo::init();
 		}
-
+		LoadingScreen(1.0f);
 	}
 	Application::~Application() {
 		Renderer2D::shutdown();
@@ -222,14 +225,12 @@ namespace Stulu {
 		const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
 		const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
 
-		Ref<Texture> texture = Resources::getLoadingTexture();
-
 		RenderCommand::setClearColor({ 0,0,0,1 });
 		RenderCommand::clear();
 
 		Renderer::uploadCameraBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
 		Renderer2D::begin();
-		Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .1f, .0f), glm::vec3(.75f)), texture);
+		Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .1f, .0f), glm::vec3(.75f)), Resources::LoadingTexture());
 		Renderer2D::drawSlider(glm::vec3(.0f, -.3f, .0f), glm::vec3(1.f, .1f, 1.0f), progress);
 		Renderer2D::flush();
 

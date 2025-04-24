@@ -7,10 +7,9 @@
 #include <assimp/scene.h>
 #include "Model.h"
 #include "Stulu/Renderer/Renderer.h"
-#include <Stulu/Scene/Material.h>
-#include <Stulu/Scene/AssetsManager.h>
 #include <Stulu/Resources/Resources.h>
 namespace Stulu {
+    /*
     void Stulu::Model::load(const std::string& path) {
         Assimp::Importer importt;
         const aiScene* scene;
@@ -55,7 +54,7 @@ namespace Stulu {
     void Stulu::Model::processNode(aiNode* node, const aiScene* scene, UUID& parent) {
         MeshAsset mesh = { std::string(node->mName.data)};
         if (node->mNumMeshes > 0) {
-            Mesh m;
+            Ref<Mesh> m;
             if (node->mNumMeshes == 1) {
                 aiMesh* a_mesh = scene->mMeshes[node->mMeshes[0]];
                 m = processMesh(a_mesh, scene);
@@ -67,9 +66,9 @@ namespace Stulu {
                 }
             }
             else {
+                m = processMultiMesh(node, scene);
                 for (unsigned int i = 0; i < node->mNumMeshes; i++) {
                     aiMesh* a_mesh = scene->mMeshes[node->mMeshes[i]];
-                    m.addSubMesh(processSubMesh(a_mesh, scene));
                     if (materials.find(a_mesh->mMaterialIndex) != materials.end()) {
                         mesh.materialIDs.push_back(a_mesh->mMaterialIndex);
                         int twosided;// 0 = back, 1 = both
@@ -77,7 +76,6 @@ namespace Stulu {
                         mesh.cullMode = twosided ? CullMode::Back : CullMode::BackAndFront;
                     }
                 }
-                m = Mesh::combine(m);
 
                 if (mesh.materialIDs.size() >= 0) {
                     uint32_t t = mesh.materialIDs[mesh.materialIDs.size() - 1];
@@ -87,17 +85,13 @@ namespace Stulu {
                 
 
             }
-            mesh.mesh = createRef<Mesh>(m);
+            mesh.mesh = m;
             mesh.hasMesh = true;
         }
         if (parent != UUID::null)
             mesh.parentMeshAsset = parent;
 
         aiVector3D a_pos, a_scale;
-
-        //aiQuaternion a_rot;
-        //node->mTransformation.Decompose(a_scale, a_rot, a_pos);
-        //glm::quat rot(a_rot.w, a_rot.x, a_rot.y, a_rot.z);
 
         aiVector3D a_euler;
         node->mTransformation.Decompose(a_scale, a_euler, a_pos);
@@ -212,78 +206,11 @@ namespace Stulu {
             glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity), matallicValue, roughnessValue, .2f, glm::vec4(emissionValue.r, emissionValue.g, emissionValue.b, emiisionStrength),
             albedo, metallic, roughness, ambient, emission, normal, { 1, 1 }, tMode
             );
-        /*
-        aiString albedoPath;
-        aMat->GetTexture(aiTextureType_DIFFUSE, 0, &albedoPath);
-
-        aiString metallicPath;
-        aMat->GetTexture(aiTextureType_AMBIENT, 0, &metallicPath);
-
-        aiString normalPath;
-        aMat->GetTexture(aiTextureType_HEIGHT, 0, &normalPath);
-
-        aiString roughnessPath;
-        aMat->GetTexture(aiTextureType_SHININESS, 0, &roughnessPath);
-
-        aiString ambientPath;
-        aMat->GetTexture(aiTextureType_LIGHTMAP, 0, &ambientPath);
-
-        MaterialDataType albedo = { ShaderDataType::Sampler,MaterialTexture{4,nullptr,Resources::getWhiteTexture(), 1,UUID::null},"albedoMap",4 };
-        if (!std::string(albedoPath.C_Str()).empty()) {
-            UUID albedoUUId = AssetsManager::getFromPath(directory + "/" + std::string(albedoPath.C_Str()));
-            if (AssetsManager::existsAndType(albedoUUId, AssetType::Texture2D))
-                std::any_cast<MaterialTexture&>(albedo.data).uuid = albedoUUId;
-        }
-
-        MaterialDataType metallic = { ShaderDataType::Sampler,MaterialTexture{5,nullptr,Resources::getBlackTexture(),1,UUID::null},"metallicMap",5 };
-        if (!std::string(metallicPath.C_Str()).empty()) {
-            UUID metallicUUId = AssetsManager::getFromPath(directory + "/" + std::string(metallicPath.C_Str()));
-            if (AssetsManager::existsAndType(metallicUUId, AssetType::Texture2D))
-                std::any_cast<MaterialTexture&>(metallic.data).uuid = metallicUUId;
-        }
-
-        MaterialDataType roughness = { ShaderDataType::Sampler,MaterialTexture{6,nullptr,Resources::getBlackTexture(),1,UUID::null},"roughnessMap",6 };
-        if (!std::string(roughnessPath.C_Str()).empty()) {
-            UUID roughnessUUId = AssetsManager::getFromPath(directory + "/" + std::string(roughnessPath.C_Str()));
-            if (AssetsManager::existsAndType(roughnessUUId, AssetType::Texture2D))
-                std::any_cast<MaterialTexture&>(roughness.data).uuid = roughnessUUId;
-        }
-
-        MaterialDataType normal = { ShaderDataType::Sampler,MaterialTexture{7,nullptr,Resources::getBlackTexture(),1,UUID::null},"normalMap",7 };
-        if (!std::string(normalPath.C_Str()).empty()) {
-            UUID normalUUId = AssetsManager::getFromPath(directory + "/" + std::string(normalPath.C_Str()));
-            if (AssetsManager::existsAndType(normalUUId, AssetType::Texture2D))
-                std::any_cast<MaterialTexture&>(normal.data).uuid = normalUUId;
-        }
-
-        MaterialDataType ambient = { ShaderDataType::Sampler,MaterialTexture{8,nullptr,Resources::getBlackTexture(),1,UUID::null},"aoMap",8 };
-        if (!std::string(ambientPath.C_Str()).empty()) {
-            UUID ambientUUId = AssetsManager::getFromPath(directory + "/" + std::string(ambientPath.C_Str()));
-            if (AssetsManager::existsAndType(ambientUUId, AssetType::Texture2D))
-                std::any_cast<MaterialTexture&>(ambient.data).uuid = ambientUUId;
-        }
-        Ref<Material> mat = createRef<Material>(AssetsManager::get(UUID(9)),
-            (std::vector<MaterialDataType>{
-            MaterialDataType{ ShaderDataType::Float4,glm::vec4(albedoColor.r, albedoColor.g, albedoColor.b, opacity),"albedo",0 },
-                MaterialDataType{ ShaderDataType::Float,matallicValue,"metallic",1 },
-                MaterialDataType{ ShaderDataType::Float,roughnessValue,"roughness",2 },
-                MaterialDataType{ ShaderDataType::Float,.1f,"ao",3 },
-                albedo,
-                metallic,
-                roughness,
-                normal,
-                ambient,
-                MaterialDataType{ ShaderDataType::Float2,glm::vec2(1.0f),"textureTilling",9 },
-                MaterialDataType{ ShaderDataType::Int,0,"transparencyMode",10 },
-                MaterialDataType{ ShaderDataType::Float,.0f,"alphaCutOff",11 },
-                MaterialDataType{ ShaderDataType::Int,1,"useGLTFMetallicRoughnessMap",12 },
-        }), name);
-        */
         materials[material] = mat;
         return true;
     }
     
-    Mesh Stulu::Model::processMesh(aiMesh* mesh, const aiScene* scene) {
+    Ref<Mesh> Stulu::Model::processMesh(aiMesh* mesh, const aiScene* scene) {
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         {
@@ -298,7 +225,7 @@ namespace Stulu {
                     vector.x = mesh->mNormals[i].x;
                     vector.y = mesh->mNormals[i].y;
                     vector.z = mesh->mNormals[i].z;
-                    vertex.normal = vector;
+                    vertex.normal = glm::normalize(vector);
                 }
                 if (mesh->mTextureCoords[0]) {
                     glm::vec2 vec;
@@ -323,12 +250,28 @@ namespace Stulu {
                 }
             }
         }
-        return Mesh(vertices, indices);
+        Ref<Mesh> newMesh = createRef<Mesh>(mesh->mName.C_Str());
+        newMesh->SetData(vertices, indices);
+        return newMesh;
     }
-    SubMesh Stulu::Model::processSubMesh(aiMesh* mesh, const aiScene* scene) {
+    Ref<Mesh> Stulu::Model::processMultiMesh(aiNode* node, const aiScene* scene) {
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
-        {
+        std::vector<MeshSubmesh> submeshes;
+
+        size_t vertexOffset = 0;
+        size_t indexOffset = 0;
+
+        for (size_t meshIndex = 0; meshIndex < node->mNumMeshes; meshIndex++) {
+            aiMesh* mesh = scene->mMeshes[node->mMeshes[meshIndex]];
+
+            MeshSubmesh submesh;
+            submesh.name = mesh->mName.C_Str();
+            submesh.vertexOffset = static_cast<uint32_t>(vertexOffset);
+            submesh.indexOffset = static_cast<uint32_t>(indices.size()); // indexOffset in global index buffer
+
+            const size_t vertexStart = vertices.size();
+
             for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
                 Vertex vertex;
                 glm::vec3 vector;
@@ -336,32 +279,46 @@ namespace Stulu {
                 vector.y = mesh->mVertices[i].y;
                 vector.z = mesh->mVertices[i].z;
                 vertex.pos = vector;
+
                 if (mesh->HasNormals()) {
                     vector.x = mesh->mNormals[i].x;
                     vector.y = mesh->mNormals[i].y;
                     vector.z = mesh->mNormals[i].z;
-                    vertex.normal = vector;
+                    vertex.normal = glm::normalize(vector);
                 }
+
                 if (mesh->mTextureCoords[0]) {
                     glm::vec2 vec;
                     vec.x = mesh->mTextureCoords[0][i].x;
                     vec.y = mesh->mTextureCoords[0][i].y;
                     vertex.texCoords = vec;
                 }
-                else
+                else {
                     vertex.texCoords = glm::vec2(0.0f, 0.0f);
+                }
 
                 vertices.push_back(vertex);
             }
-        }
-        {
+
             for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
                 aiFace face = mesh->mFaces[i];
                 for (unsigned int j = 0; j < face.mNumIndices; j++) {
-                    indices.push_back(face.mIndices[j]);
+                    indices.push_back(static_cast<uint32_t>(vertexOffset + face.mIndices[j]));
                 }
             }
+
+            submesh.indexCount = static_cast<uint32_t>(indices.size() - submesh.indexOffset);
+            submeshes.push_back(submesh);
+
+            vertexOffset += mesh->mNumVertices;
         }
-        return SubMesh(vertices, indices);
+
+        Ref<Mesh> newMesh = createRef<Mesh>(node->mName.C_Str());
+        newMesh->SetData(vertices, indices);
+        for (const auto& sm : submeshes) {
+            newMesh->AddSubmesh(sm);
+        }
+        return newMesh;
     }
+    */
 }

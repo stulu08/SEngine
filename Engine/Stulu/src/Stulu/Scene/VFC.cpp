@@ -10,17 +10,30 @@ namespace Stulu {
     bool VFC::s_isEnabled = true;
     BoundingBoxType VFC::s_mode = BoundingBoxType::AABB;
 
-    Ref<BoundingBox> Stulu::VFC::createBoundingBox(const Mesh* mesh) {
+    Ref<BoundingBox> VFC::createBoundingBox(const glm::vec3& center, const glm::vec3& extents) {
         switch (s_mode)
         {
         case Stulu::BoundingBoxType::None:
             break;
         case Stulu::BoundingBoxType::AABB:
-            return createRef<BoundingBoxAABB>(mesh);
+            return createRef<BoundingBoxAABB>(center, extents);
         }
         CORE_ERROR("Could not create BoundingBox!");
         return nullptr;
     }
+    Ref<BoundingBox> VFC::createBoundingBox(const AABB& aabb) {
+        switch (s_mode)
+        {
+        case Stulu::BoundingBoxType::None:
+            break;
+        case Stulu::BoundingBoxType::AABB:
+            return createRef<BoundingBoxAABB>(aabb);
+        }
+        CORE_ERROR("Could not create BoundingBox!");
+        return nullptr;
+    }
+
+
     bool VFC::isInView(const Ref<BoundingBox>& boundingBox) {
         if (!s_isEnabled)
             return true;
@@ -99,35 +112,6 @@ namespace Stulu {
         frustum.topFace = Plane(tc.worldPosition + tc.up * top, -tc.up);
         frustum.bottomFace = Plane(tc.worldPosition + tc.up * bottom, tc.up);
         return frustum;
-    }
-    BoundingBoxAABB::BoundingBoxAABB(const Mesh* mesh) {
-        glm::vec3 min = glm::vec3(.0f);
-        glm::vec3 max = glm::vec3(.0f);
-        
-        if (mesh->getVertices().size() > 0) {
-            min = mesh->getVertices()[0].pos;
-            max = mesh->getVertices()[0].pos;
-            //get furthest point on each axis
-            for (auto& vertex : mesh->getVertices()) {
-                //min
-                if (min.x > vertex.pos.x)
-                    min.x = vertex.pos.x;
-                if (min.y > vertex.pos.y)
-                    min.y = vertex.pos.y;
-                if (min.z > vertex.pos.z)
-                    min.z = vertex.pos.z;
-                //max
-                if (max.x < vertex.pos.x)
-                    max.x = vertex.pos.x;
-                if (max.y < vertex.pos.y)
-                    max.y = vertex.pos.y;
-                if (max.z < vertex.pos.z)
-                    max.z = vertex.pos.z;
-            }
-        }
-        m_center = { (max + min) * 0.5f };
-        m_extents = { max.x - m_center.x, max.y - m_center.y, max.z - m_center.z };
-        m_aabb = { min, max };
     }
     bool BoundingBoxAABB::isOnFrustum(const Frustum& camFrustum) const {
         return (isOnOrForwardPlan(camFrustum.leftFace) &&

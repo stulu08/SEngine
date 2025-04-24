@@ -34,7 +34,10 @@ namespace Stulu {
 			return gameObject.hasComponent<RigidbodyComponent>();
 		}
 
-		virtual void onComponentAdded(Scene* scene) override {
+		virtual void onComponentAdded(Registry* registry) override {
+			if (!registry->IsScene()) return;
+			const Scene* scene = registry->GetAsScene();
+
 			if (scene->PhysicsEnable() && scene->getCaller()->HasLayer<PhysicsScene>()) {
 				PhysicsScene* physicsLayer = &scene->getCaller()->GetLayer<PhysicsScene>();
 				if (physicsLayer->IsValid()) {
@@ -42,7 +45,7 @@ namespace Stulu {
 				}
 			}
 		};
-		virtual void onComponentRemove(Scene* scene) override {
+		virtual void onComponentRemove(Registry* scene) override {
 			if (m_physics->IsValid())
 				Release();
 		};
@@ -67,6 +70,20 @@ namespace Stulu {
 
 		void SetOffset(glm::vec3 value);
 		void SetSize(glm::vec3 value);
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "Offset" << YAML::Value << Offset; 
+			out << YAML::Key << "Size" << YAML::Value << Size;
+			out << YAML::Key << "material" << YAML::Value << material;
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["Offset"])
+				Offset = node["Offset"].as<glm::vec3>();
+			if (node["Size"])
+				Size = node["Size"].as<glm::vec3>();
+			if (node["material"])
+				material = node["material"].as<PhysicsMaterial>();
+		}
 	private:
 		friend class PhysicsScene;
 		glm::vec3 Offset = glm::vec3(0.0f);
@@ -85,6 +102,20 @@ namespace Stulu {
 
 		void SetOffset(glm::vec3 value);
 		void SetRadius(float value);
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "Offset" << YAML::Value << Offset;
+			out << YAML::Key << "Radius" << YAML::Value << Radius;
+			out << YAML::Key << "material" << YAML::Value << material;
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["Offset"])
+				Offset = node["Offset"].as<glm::vec3>();
+			if (node["Radius"])
+				Radius = node["Radius"].as<float>();
+			if (node["material"])
+				material = node["material"].as<PhysicsMaterial>();
+		}
 	private:
 		friend class PhysicsScene;
 		glm::vec3 Offset = glm::vec3(0.0f);
@@ -107,6 +138,26 @@ namespace Stulu {
 		void SetRadius(float value);
 		void SetHeight(float value);
 		void SetVertical(bool value);
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "Offset" << YAML::Value << Offset;
+			out << YAML::Key << "Radius" << YAML::Value << Radius;
+			out << YAML::Key << "Height" << YAML::Value << Height;
+			out << YAML::Key << "Vertical" << YAML::Value << Vertical;
+			out << YAML::Key << "material" << YAML::Value << material;
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["Offset"])
+				Offset = node["Offset"].as<glm::vec3>();
+			if (node["Radius"])
+				Radius = node["Radius"].as<float>();
+			if (node["Height"])
+				Height = node["Height"].as<float>();
+			if (node["Vertical"])
+				Vertical = node["Vertical"].as<bool>();
+			if (node["material"])
+				material = node["material"].as<PhysicsMaterial>();
+		}
 	private:
 		friend class PhysicsScene;
 
@@ -127,25 +178,33 @@ namespace Stulu {
 		const MeshAsset& GetMesh() const {
 			return Mesh;
 		}
-		const Ref<Mesh> GetConvexMesh() const {
-			return ConvexMesh;
-		}
 		bool GetConvex() const {
 			return Convex;
 		}
 
 		void SetMesh(const MeshAsset& asset);
 
-		void SetConvexMesh(const Ref<Stulu::Mesh>& mesh) {
-			ConvexMesh = mesh;
-		}
 		void SetConvex(bool value) {
 			Convex = value;
 		}
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "Convex" << YAML::Value << Convex;
+			out << YAML::Key << "material" << YAML::Value << material;
+			if (Mesh.IsValid())
+				out << YAML::Key << "Mesh" << YAML::Value << Mesh.GetUUID();
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["Convex"])
+				Convex = node["Convex"].as<bool>();
+			if (node["Mesh"])
+				Mesh = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(node["Mesh"].as<UUID>());
+			if (node["material"])
+				material = node["material"].as<PhysicsMaterial>();
+		}
 	private:
 		friend class PhysicsScene;
-		MeshAsset Mesh = { "",nullptr };
-		Ref<Stulu::Mesh> ConvexMesh = nullptr;
+		MeshAsset Mesh;
 		bool Convex = false;
 	};
 }

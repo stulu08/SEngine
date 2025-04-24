@@ -1,27 +1,20 @@
 #pragma once
+#include "Component.h"
 #include "Stulu/Scripting/Managed/AssemblyManager.h"
+
 namespace Stulu {
 
 	class ScriptingComponent : public Component {
 	public:
 		ScriptingComponent() = default;
-		ScriptingComponent(const ScriptingComponent& other)
-			: Component(other) {
-			for (auto& script : other.runtimeScripts) {
-				runtimeScripts.push_back(createRef<MonoObjectInstance>(*script));
-			}
-		}
+		ScriptingComponent(const ScriptingComponent& other);
+
 		std::vector<Ref<MonoObjectInstance>> runtimeScripts;
 
-		Mono::Array FetchObjectArray() {
-			const auto& manager = Application::get().getAssemblyManager();
+		Mono::Array FetchObjectArray();
 
-			Mono::Array list = Mono::Array::New(manager->getCoreDomain(), manager->getComponentClass(), runtimeScripts.size());
-			for (size_t i = 0; i < runtimeScripts.size(); i++) {
-				list.SetRef(i, runtimeScripts[i]->getObject());
-			}
-			return list;
-		}
+		virtual void Serialize(YAML::Emitter& out) const override;
+		virtual void Deserialize(YAML::Node& node) override;
 	};
 
 }

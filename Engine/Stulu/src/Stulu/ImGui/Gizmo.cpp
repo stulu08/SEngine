@@ -162,13 +162,13 @@ namespace Stulu {
 			s_data.sphereVertexArray = VertexArray::create();
 			//copy sphere mesh
 			{
-				Ref<Mesh> sphereMesh = Resources::getSphereMesh();
+				MeshAsset sphereMesh = Resources::SphereMesh();
 
-				Ref<VertexBuffer> vb = VertexBuffer::create((uint32_t)(sphereMesh->getVerticesCount() * sizeof(Vertex)), &sphereMesh->getVertices()[0]);
-				vb->setLayout(Mesh::getDefaultLayout());
+				Ref<VertexBuffer> vb = VertexBuffer::create((uint32_t)(sphereMesh->GetVerticesCount() * sphereMesh->GetStride()), &sphereMesh->GetVertices()[0]);
+				vb->setLayout(Mesh::DefaultVertexLayout());
 				s_data.sphereVertexArray->addVertexBuffer(vb);
 
-				Ref<IndexBuffer> ib = IndexBuffer::create((uint32_t)sphereMesh->getIndicesCount(), sphereMesh->getIndices().data());
+				Ref<IndexBuffer> ib = IndexBuffer::create((uint32_t)sphereMesh->GetIndices().size(), (uint32_t*)sphereMesh->GetIndices().data());
 				s_data.sphereVertexArray->setIndexBuffer(ib);
 			}
 			
@@ -238,7 +238,7 @@ namespace Stulu {
 		RenderCommand::setDepthTesting(false);
 		camera->bind();
 		s_data.drawBuffer->getColorAttachment()->bind(0);
-		Resources::getFullscreenShader()->bind();
+		Resources::FullscreenShader()->bind();
 		float z = -1.0f;
 		Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
 		RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
@@ -381,10 +381,10 @@ namespace Stulu {
 
 	}
 
-	void Gizmo::drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale, const glm::vec4& color) {
+	void Gizmo::drawTexture(Texture2D* texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale, const glm::vec4& color) {
 		Renderer2D::drawTexturedQuad(Math::createMat4(position, rotation, glm::vec3(scale, 1.0f)), texture, glm::vec2(1.0f), color);
 	}
-	void Gizmo::drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale, const glm::vec3& up, const glm::vec4& color) {
+	void Gizmo::drawTextureBillBoard(Texture2D* texture, const glm::vec3& position, const glm::vec2& scale, const glm::vec3& up, const glm::vec4& color) {
 		Renderer2D::drawTexturedQuad(
 			Math::createMat4(position, Math::lookAt(position, s_data.cameraPosition, up), glm::vec3(scale, 1.0f))
 			, texture, { 1.0f,1.0f }, color);
@@ -502,7 +502,7 @@ namespace Stulu {
 			s_data.mDrawList->AddRect(p_min, p_max, ImGui::GetColorU32(ImGuiCol_Border), rounding, ImDrawFlags_RoundCornersAll, border_size);
 		}
 	}
-	bool Gizmo::drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const glm::vec2& uv1, const glm::vec2& uv2, const int borderSize, const glm::vec4& bgColor) {
+	bool Gizmo::drawGUITextureButton(Texture2D* texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const glm::vec2& uv1, const glm::vec2& uv2, const int borderSize, const glm::vec4& bgColor) {
 		ImVec2 _pos(pos.x + s_data.mX, pos.y + s_data.mY);
 		ImVec2 _max(ImVec2(size.x, size.y) + _pos);
 

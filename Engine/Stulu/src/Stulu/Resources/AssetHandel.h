@@ -5,6 +5,12 @@ namespace Stulu {
 	template<class T>
 	class AssetHandle;
 
+	template<typename T, typename = void>
+	struct HasNativeAssetType : std::false_type {};
+	template<typename T>
+	struct HasNativeAssetType<T, std::void_t<typename T::NativeType>> : std::true_type {};
+
+
 	// non-owning handle
 	template<class T = SharedAssetData>
 	class WeakAssetHandle {
@@ -12,13 +18,13 @@ namespace Stulu {
 		using SharedAssetDataType = T;
 
 		WeakAssetHandle() : m_data(nullptr) {}
+		WeakAssetHandle(std::nullptr_t) : m_data(nullptr) {}
 		WeakAssetHandle(SharedAssetData* data) : m_data(data) {}
 
 		AssetHandle<T> Lock() const;
 
 		void ForceLoad() {
 			if (!m_data) return;
-
 			if (IsLoaded()) {
 				CORE_INFO("Asset already loaded, force load not possible!");
 				return;
@@ -26,18 +32,31 @@ namespace Stulu {
 			this->m_data->Load();
 		}
 
-		// Should only be used with valid AssetHandles
-		T* operator->() const { return static_cast<T*>(m_data); }
-		T& operator*() const { return *(static_cast<T*>(m_data)); }
+		auto operator*() const {
+			if constexpr (HasNativeAssetType<T>::value)
+				return static_cast<T*>(m_data)->GetNative();
+			else
+				return static_cast<T*>(m_data);
+		}
+		auto operator->() const {
+			if constexpr (HasNativeAssetType<T>::value)
+				return static_cast<T*>(m_data)->GetNative();
+			else
+				return static_cast<T*>(m_data);
+		}
+
+		T* GetAsset() { return static_cast<T*>(m_data); }
+		const T* GetAsset() const { return static_cast<const T*>(m_data); }
 
 		bool IsValid() const { return m_data; }
 		bool IsLoaded() const { return m_data ? m_data->Loaded() : false; }
+		bool IsMemoryLoaded() const { return m_data ? m_data->IsMemoryLoaded() : false; }
 		UUID GetUUID() const { return m_data ? m_data->GetUUID() : UUID::null; }
-		const std::string& Path() const { return m_data ? m_data->GetPath() : ""; }
-		const bool HasPath() const { return !Path().empty(); }
-		static const std::type_info& TypeID() { return typeid(T); }
+		const std::string& Path() const { return m_data ? m_data->GetPath() : EmptyString(); }
+
+		static std::type_index TypeID() { return typeid(T); }
 	protected:
-		SharedAssetData* m_data;
+		SharedAssetData* m_data = nullptr;
 	};
 
 	/// <summary>
@@ -53,6 +72,7 @@ namespace Stulu {
 
 		// Empty asset
 		AssetHandle() : WeakAssetHandle<T>(nullptr) {}
+		AssetHandle(std::nullptr_t) : WeakAssetHandle<T>(nullptr) {}
 
 		// Increments the ref counter and loads the asset if needed
 		AssetHandle(SharedAssetData* data) 
@@ -97,11 +117,16 @@ namespace Stulu {
 		void Initialize() {
 			if (!this->m_data) return;
 
-			// Check for the correct type
-			if (this->TypeID() != this->m_data->GetTypeID()) {
-				CORE_ERROR("Type mismatch in AssetHandle, expected '{0}', got '{1}'", this->TypeID().name(), this->m_data->GetTypeID().name());
-				return;
+			// check for correct type only if a specific type is provided
+			if constexpr (!std::is_same<T, SharedAssetData>::value) {
+				// Check for the correct type
+				if (WeakAssetHandle<T>::TypeID() != this->m_data->GetTypeID()) {
+					CORE_ERROR("Type mismatch in AssetHandle, expected '{0}', got '{1}'", WeakAssetHandle<T>::TypeID().name(), this->m_data->GetTypeID().name());
+					this->m_data = nullptr;
+					return;
+				}
 			}
+			
 
 			// First strong reference: load the asset
 			if (this->m_data->UseCount() < 1) {
@@ -117,33 +142,5 @@ namespace Stulu {
 		return AssetHandle<T>(); // empty handle
 	}
 
-
-	using Texture2DAsset = AssetHandle<SharedTexture2DAssetData>;
-
-	/*
-	class AssetManager {
-	public:
-		template<class T = AssetHandle<T>>
-		void Get(UUID id) {
-			auto it = m_assets.find(id);
-			if (it != m_assets.end()) {
-				SharedAssetData* data = it->second;
-				if (data) return AssetHandle<T::SharedAssetDataType>(data); // promote to strong handle
-			}
-
-			// Load asset manually
-			T* asset = LoadAssetFromDisk<T>(id);
-			auto* data = new SharedAssetData(id, asset);
-			m_assets[id] = data;
-
-			return AssetHandle<T>(data);
-		}
-		void Test() {
-			Texture2DAsset asset = nullptr;
-			
-		}
-	private:
-		std::unordered_map<UUID, SharedAssetData*> m_assets;
-	};
-	*/
+	using GeneralAsset = AssetHandle<SharedAssetData>;
 }

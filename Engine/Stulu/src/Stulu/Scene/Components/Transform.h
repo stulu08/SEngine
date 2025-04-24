@@ -40,7 +40,7 @@ namespace Stulu {
 
 		// child system
 		inline GameObject GetParent() const {
-			return { parentEntity, GetScene() };
+			return { parentEntity, GetRegistry() };
 		}
 		inline bool HasParent() const {
 			return GetParent().IsValid();
@@ -100,6 +100,24 @@ namespace Stulu {
 			return Math::QuaternionToEuler(rotation);
 		}
 
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "position" << YAML::Value << position;
+			out << YAML::Key << "rotation" << YAML::Value << rotation;
+			out << YAML::Key << "scale" << YAML::Value << scale;
+			if (HasParent()) {
+				out << YAML::Key << "parent" << YAML::Value << parentEntity;
+			}
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["position"])
+				position = node["position"].as<glm::vec3>();
+			if (node["rotation"])
+				rotation = node["rotation"].as<glm::quat>();
+			if (node["scale"])
+				scale = node["scale"].as<glm::vec3>();
+			// parents will be handled after every object is loaded
+		}
+
 	private:
 		mutable glm::mat4 transform = glm::mat4(1.0f);
 		mutable glm::vec3 worldPosition = glm::vec3(0.0f);
@@ -113,14 +131,14 @@ namespace Stulu {
 		entt::entity parentEntity = entt::null;
 		std::vector<entt::entity> children;
 
-		inline Scene* GetScene() const {
-			return gameObject.getScene();
+		inline Registry* GetRegistry() const {
+			return gameObject.GetRegistry();
 		}
 		void MarkDirty() {
 			if (isStatic) return;
 
 			dirty = true;
-			auto& registry = GetScene()->getRegistry();
+			auto& registry = GetRegistry()->GetRegistry();
 			for (auto& child : children) {
 				registry.get<TransformComponent>(child).MarkDirty();
 			}

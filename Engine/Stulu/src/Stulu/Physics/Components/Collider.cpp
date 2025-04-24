@@ -220,12 +220,13 @@ namespace Stulu {
 		const auto& transform = gameObject.getComponent<TransformComponent>();
 		material.CreateMaterial();
 
-		if (Convex) {
-			if (ConvexMesh == nullptr) {
-				BuildConvex();
-			}
+		if (!Mesh.IsValid()) {
+			CORE_WARN("No mesh specified for Mesh Collider");
+			return;
+		}
 
-			physx::PxConvexMesh* physxMesh = PhysicsHelper::CreateConvexMesh(ConvexMesh);
+		if (Convex) {
+			physx::PxConvexMesh* physxMesh = PhysicsHelper::CreateConvexMesh(*Mesh);
 			m_shape = physx::PxRigidActorExt::createExclusiveShape(
 				*actorComponent.GetActor(),
 				physx::PxConvexMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))),
@@ -236,15 +237,11 @@ namespace Stulu {
 			}
 		}
 		else {
-			if (Mesh.mesh == nullptr) {
-				CORE_WARN("No mesh specified for Mesh Collider");
-				return;
-			}
 			if (HasRigidBody()) {
 				CORE_ERROR("Cannot use a rigidbody on a static mesh, use a convex mesh instead");
 				return;
 			}
-			physx::PxTriangleMesh* physxMesh = PhysicsHelper::CreateTriangleMesh(Mesh.mesh);
+			physx::PxTriangleMesh* physxMesh = PhysicsHelper::CreateTriangleMesh(*Mesh);
 			m_shape = physx::PxRigidActorExt::createExclusiveShape(
 				*actorComponent.GetActor(),
 				physx::PxTriangleMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))),
@@ -256,41 +253,24 @@ namespace Stulu {
 		if (m_shape) {
 			const auto& transform = gameObject.getComponent<TransformComponent>();
 			
-			if (Convex) {
-				if (ConvexMesh == nullptr) {
-					BuildConvex();
-				}
+			if (!Mesh.IsValid()) {
+				CORE_WARN("No mesh specified for Mesh Collider");
+				return;
+			}
 
-				physx::PxConvexMesh* physxMesh = PhysicsHelper::CreateConvexMesh(ConvexMesh);
+			if (Convex) {
+				physx::PxConvexMesh* physxMesh = PhysicsHelper::CreateConvexMesh(*Mesh);
 				m_shape->setGeometry(physx::PxConvexMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))));
 				
 			}
 			else {
-				if (Mesh.mesh == nullptr) {
-					CORE_WARN("No mesh specified for Mesh Collider");
-					return;
-				}
 				if (HasRigidBody()) {
 					CORE_ERROR("Cannot use a rigidbody on a static mesh, use a convex mesh instead");
 					return;
 				}
-				physx::PxTriangleMesh* physxMesh = PhysicsHelper::CreateTriangleMesh(Mesh.mesh);
+				physx::PxTriangleMesh* physxMesh = PhysicsHelper::CreateTriangleMesh(*Mesh);
 				m_shape->setGeometry(physx::PxTriangleMeshGeometry(physxMesh, physx::PxMeshScale(PhysicsHelper::Vec3ToPhysX(transform.GetWorldScale()))));
 			}
 		}
-	}
-	void MeshColliderComponent::BuildConvex() {
-		constexpr size_t maxVertices = static_cast<uint64_t>(255) * 3;
-		if (Mesh.mesh) {
-			if (Mesh.mesh->getVerticesCount() > maxVertices) {
-				ConvexMesh = createRef<Stulu::Mesh>(Mesh::copyAndLimit(Mesh.mesh, maxVertices));
-			}
-			else {
-				ConvexMesh = Mesh.mesh;
-			}
-			return;
-		}
-		CORE_WARN("No mesh specified for Mesh Collider");
-
 	}
 }

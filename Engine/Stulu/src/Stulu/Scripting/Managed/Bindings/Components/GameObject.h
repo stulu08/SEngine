@@ -11,7 +11,7 @@ namespace StuluBindings {
 				const auto& manager = getManager();
 
 				auto& componentRegister = manager->GetComponentRegister_Add();
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
 				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
 				if (componentRegister.find(typeName) != componentRegister.end()) {
 					return componentRegister[typeName](gameObject);
@@ -37,7 +37,7 @@ namespace StuluBindings {
 				const auto& manager = getManager();
 
 				auto& componentRegister = manager->GetComponentRegister_Has();
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
 				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
 				if (componentRegister.find(typeName) != componentRegister.end()) {
 					return componentRegister[typeName](gameObject);
@@ -64,7 +64,7 @@ namespace StuluBindings {
 				const auto& manager = getManager();
 
 				auto& componentRegister = manager->GetComponentRegister_Remove();
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
 				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
 				if (componentRegister.find(typeName) != componentRegister.end()) {
 					return componentRegister[typeName](gameObject);
@@ -89,7 +89,7 @@ namespace StuluBindings {
 		static inline MonoObject* getComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
 			Stulu::Mono::Type type = reftype.GetType();
 			if (type) {
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentScene());
+				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
 				if (gameObject != Stulu::GameObject::null) {
 					Stulu::Mono::Class desired = type.GetClass();
 					Stulu::Mono::Object object = getManager()->ManagedGetComponent(gameObject, desired);
@@ -102,7 +102,7 @@ namespace StuluBindings {
 			return nullptr;
 		}
 		static inline uint64_t create(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position, Quaternion rotation, Vector3 scale) {
-			Stulu::GameObject go = GetCurrentScene()->createGameObject(monoName.ToUtf8());
+			Stulu::GameObject go = GetCurrentRegistry()->Create(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
@@ -112,70 +112,70 @@ namespace StuluBindings {
 			return (uint64_t)go.GetID();
 		}
 		static inline void setName(uint64_t go, Stulu::Mono::String name) {
-			Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::GameObjectBaseComponent>().name = name.ToUtf8();
+			Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::GameObjectBaseComponent>().name = name.ToUtf8();
 		}
 		static inline Stulu::Mono::String getName(uint64_t go) {
-			return Stulu::Mono::String::New(getCoreDomain(), Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::GameObjectBaseComponent>().name);
+			return Stulu::Mono::String::New(getCoreDomain(), Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::GameObjectBaseComponent>().name);
 		}
 		static inline void setTag(uint64_t go, Stulu::Mono::String tag) {
-			Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::GameObjectBaseComponent>().tag = tag.ToUtf8();
+			Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::GameObjectBaseComponent>().tag = tag.ToUtf8();
 		}
 		static inline Stulu::Mono::String getTag(uint64_t go) {
-			return Stulu::Mono::String::New(getCoreDomain(), Stulu::GameObject((entt::entity)go, GetCurrentScene()).getComponent<Stulu::GameObjectBaseComponent>().tag);
+			return Stulu::Mono::String::New(getCoreDomain(), Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::GameObjectBaseComponent>().tag);
 		}
 		static inline uint64_t createSphere(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
-			Stulu::GameObject go = GetCurrentScene()->createGameObject(monoName.ToUtf8());
+			Stulu::GameObject go = GetCurrentRegistry()->Create(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getSphereMeshAsset();
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::SphereMesh();
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::SphereColliderComponent>();
 			return (uint64_t)go.GetID();
 		}
 		static inline uint64_t createCube(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
-			Stulu::GameObject go = GetCurrentScene()->createGameObject(monoName.ToUtf8());
+			Stulu::GameObject go = GetCurrentRegistry()->Create(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCubeMeshAsset();
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::CubeMesh();
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::BoxColliderComponent>();
 			return (uint64_t)go.GetID();
 		}
 		static inline uint64_t createCapsule(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
-			Stulu::GameObject go = GetCurrentScene()->createGameObject(monoName.ToUtf8());
+			Stulu::GameObject go = GetCurrentRegistry()->Create(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getCapsuleMeshAsset();
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::CapsuleMesh();
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::CapsuleColliderComponent>();
 			return (uint64_t)go.GetID();
 		}
 		static inline uint64_t createPlane(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position) {
-			Stulu::GameObject go = GetCurrentScene()->createGameObject(monoName.ToUtf8());
+			Stulu::GameObject go = GetCurrentRegistry()->Create(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();
 			base.tag = monoTag.ToUtf8();
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::getPlaneMeshAsset();
+			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::PlaneMesh();
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
-			go.addComponent<Stulu::MeshColliderComponent>().SetMesh(Stulu::Resources::getPlaneMeshAsset());
+			go.addComponent<Stulu::MeshColliderComponent>().SetMesh(Stulu::Resources::PlaneMesh());
 			return (uint64_t)go.GetID();
 		}
 		static inline void destroy(uint64_t id) {
-			GetCurrentScene()->destroyGameObject(Stulu::GameObject((entt::entity)id, GetCurrentScene()));
+			GetCurrentRegistry()->Destroy(Stulu::GameObject((entt::entity)id, GetCurrentRegistry()));
 		}
 	};
 }

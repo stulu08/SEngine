@@ -31,6 +31,7 @@ namespace Stulu {
 			std::string("#define ST_USER_TEXTURE_END ") + std::to_string(ST_USER_TEXTURE_END) + "\n" +
 			std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
 			std::string("#define MAX_REFLECTION_LOD ") + std::to_string(ST_MAX_REFLECTION_LOD) + "\n" +
+			std::string("#define ST_USER_MATERIAL_BINDING ") + std::to_string((int)BufferBinding::UserMaterial) + "\n" +
 			std::string("#endif\n")
 		);
 	}
@@ -195,7 +196,7 @@ namespace Stulu {
 		}
 	}
 
-	Ref<Shader> ShaderSystem::CreateShader(const std::string& name, const ShaderSource& sources, const std::vector<Ref<ShaderProperity>>& properties, const std::string& path) {
+	Ref<Shader> ShaderSystem::CreateShader(const std::string& name, const ShaderSource& sources, const std::vector<Ref<MaterialProperty>>& properties, const std::string& path) {
 		ShaderCompileResult compileResult;
 		m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult);
 
@@ -205,9 +206,11 @@ namespace Stulu {
 		return m_shaders[name]->GetShader();
 	}
 
-	std::vector<Ref<ShaderProperity>> ShaderSystem::ProcessProperties(std::string& source) const {
-		std::vector<Ref<ShaderProperity>> props;
-		const char* token = "#properity ";
+	std::vector<Ref<MaterialProperty>> ShaderSystem::ProcessProperties(std::string& source) const {
+		std::vector<Ref<MaterialProperty>> props;
+		const char* token = "#Expose ";
+
+		size_t offset = 0;
 		for (size_t pos = source.find(token); pos != source.npos; pos = source.find(token, pos + 1)) {
 			if (source[pos - 1] != '\n' && source[pos - 1] != '\r')
 				continue;
@@ -221,11 +224,7 @@ namespace Stulu {
 			const size_t firstBracket = source.find('(', begin);
 			const size_t lastBracket = source.find(')', firstBracket);
 
-			const size_t nameIndicator = source.find('|', lastBracket);
-			const size_t nameBegin = source.find_first_not_of(' ', nameIndicator + 1);
-			const size_t nameEnd = source.find_first_of(" \n\r", nameBegin);
-
-			if (typeStrEnd >= maxEnd || firstBracket >= maxEnd || lastBracket >= maxEnd || nameEnd >= maxEnd) {
+			if (typeStrEnd >= maxEnd || firstBracket >= maxEnd || lastBracket >= maxEnd) {
 				const size_t maxNum = glm::min((size_t)15, maxEnd - pos);
 				CORE_ERROR("Error while parsing shader at: {0}", source.substr(pos, maxNum));
 				CORE_ASSERT(false, "Syntax error");
@@ -234,25 +233,29 @@ namespace Stulu {
 
 			const std::string typeStr = source.substr(typeStrBegin, typeStrEnd - typeStrBegin);
 			const std::string constructValues = source.substr(firstBracket + 1, lastBracket - firstBracket - 1);
-			const std::string name = source.substr(nameBegin, nameEnd - nameBegin);
+			
+			MaterialPropertyType type = MaterialProperty::TypeFromString(typeStr);
+			if (type != MaterialPropertyType::None) {
 
-			switch (ShaderProperity::TypeFromString(typeStr))
-			{
-			case Stulu::ShaderProperity::Type::Range:
-				props.push_back(createRef<ShaderProperityRange>(name, constructValues));
-				break;
-			case Stulu::ShaderProperity::Type::Color:
-				props.push_back(createRef<ShaderProperityColor>(name, constructValues));
-				break;
-			case Stulu::ShaderProperity::Type::Enum:
-				props.push_back(createRef<ShaderProperityEnum>(name, constructValues));
-				break;
-			case Stulu::ShaderProperity::Type::Marker:
-				props.push_back(createRef<ShaderProperityMarker>(name, constructValues));
-				break;
-			default:
-				CORE_ERROR("Not able to create ShaderProperity: {0}", name);
-				break;
+				size_t compCount = MaterialProperty::GetComponentCount(type);
+				if (compCount != 0) {
+					size_t baseAlign = Std140BaseAlignment(compCount);
+					offset = Std140Align(offset, baseAlign);
+				}
+				
+
+				auto prop = MaterialProperty::Construct(type, constructValues, offset);
+				if (prop) {
+					props.push_back(prop);
+				}
+				else {
+					CORE_ERROR("Could not create '{0}' property for shader!", typeStr);
+				}
+
+				if (compCount != 0) {
+					size_t size = Std140Size(compCount);
+					offset += size;
+				}
 			}
 		}
 		return props;
@@ -283,83 +286,17 @@ namespace Stulu {
 		}
 		return sources;
 	}
-	
-	ShaderProperity::Type ShaderProperity::TypeFromString(const std::string& str) {
-		if (str == "Color" || str == "color") {
-			return Type::Color;
-		}
-		if (str == "Range" || str == "range") {
-			return Type::Range;
-		}
-		if (str == "Enum" || str == "enum" || str == "Combo" || str == "combo") {
-			return Type::Enum;
-		}
-		if (str == "Marker" || str == "marker" || str == "Help" || str == "help") {
-			return Type::Marker;
-		}
-		CORE_WARN("Uknown Shader Properity type: {0}", str);
-		return Type::None;
-	}
-	
-	ShaderProperityRange::ShaderProperityRange(const std::string& name, const std::string& values) {
-		m_name = name;
-		std::stringstream stream(values);
-		std::string segment;
-		std::vector<std::string> segments;
-		while (std::getline(stream, segment, ','))
-		{
-			segments.push_back(segment);
-		}
-		if (segments.size() != 2) {
-			CORE_ERROR("Wrong arguments for ShaderProperity Range");
-			return;
-		}
-		m_min = std::stof(segments[0]);
-		m_max = std::stof(segments[1]);
-	}
-	ShaderProperityEnum::ShaderProperityEnum(const std::string& name, const std::string& values) {
-		m_name = name;
-		std::stringstream stream(values);
-		std::string segment;
-		while (std::getline(stream, segment, ',')) {
-			m_names.push_back(segment);
-		}
-	}
-	ShaderProperityMarker::ShaderProperityMarker(const std::string& name, const std::string& text) {
-		m_name = name;
-		m_text = text;
-		size_t index = 0;
-		while (true) {
-			index = m_text.find("\\n", index);
-			if (index == std::string::npos) break;
-
-			m_text.replace(index, 2, "\n");
-
-			index += 2;
-		}
-	}
-	ShaderProperityColor::ShaderProperityColor(const std::string& name, const std::string& values)
-		:m_hdr(false), m_name(name) {
-		std::stringstream stream(values);
-		std::string arg;
-		while (std::getline(stream, arg, ',')) {
-			if (arg._Starts_with("hdr") || arg._Starts_with("HDR")) {
-				if (arg.find("true"))
-					m_hdr = true;
-			}
-		}
-	}
 
 	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::string& path)
 		: m_shader(shader), m_props(), m_path(path) {
 	}
 
-	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<ShaderProperity>>& props, const std::string& path)
+	ShaderEntry::ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<MaterialProperty>>& props, const std::string& path)
 		: m_shader(shader), m_props(props), m_path(path) {
 	}
-	Ref<ShaderProperity> ShaderEntry::GetProperity(std::string name) const {
+	Ref<MaterialProperty> ShaderEntry::GetProperity(std::string name) const {
 		for (auto& prop : m_props) {
-			if(prop->getName() == name){
+			if(prop->GetName() == name){
 				return prop;
 			}
 		}
@@ -367,7 +304,7 @@ namespace Stulu {
 	}
 	bool ShaderEntry::HasProperity(std::string name) const {
 		for (auto& prop : m_props) {
-			if (prop->getName() == name) {
+			if (prop->GetName() == name) {
 				return true;
 			}
 		}

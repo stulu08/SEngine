@@ -144,7 +144,11 @@ namespace Editor {
 
 			if (ImGui::TreeNodeEx(name.c_str(), flags)) {
 				for (auto& prop : properies) {
-					ImGui::TreeNodeEx(prop->getName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %s", prop->getName().c_str(), magic_enum::enum_name(prop->getType()).data());
+					ImGui::TreeNodeEx(prop->GetName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %s (offset: %d, size: %d)", 
+						prop->GetName().c_str(), 
+						magic_enum::enum_name(prop->GetType()).data(),
+						(int)prop->GetOffset(),
+						(int)prop->GetSize());
 					ImGui::TreePop();
 				}
 				ImGui::TreePop();
@@ -182,7 +186,7 @@ namespace Editor {
 		auto& sceneData = scene->getData();
 		
 		if (ImGui::TreeNodeEx("Shadows")) {
-			ImGui::Image(renderer->GetShadowMap()->getDepthAttachment(), glm::vec2(256.0f), { 0,1 }, { 1, 0 });
+			ImGui::Image(renderer->GetShadowMap()->getDepthAttachment().get(), glm::vec2(256.0f), {0,1}, {1, 0});
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNodeEx("Display")) {

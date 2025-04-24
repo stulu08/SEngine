@@ -102,8 +102,8 @@ namespace Stulu {
         STULU_API physx::PxQuat QuatToPhysX(const glm::quat& quat);
         STULU_API glm::quat PhysXToQuat(const physx::PxQuat& quat);
 
-        STULU_API physx::PxTriangleMesh* CreateTriangleMesh(Ref<Mesh>& mesh);
-        STULU_API physx::PxConvexMesh* CreateConvexMesh(Ref<Mesh>& mesh);
+        STULU_API physx::PxTriangleMesh* CreateTriangleMesh(Mesh* mesh);
+        STULU_API physx::PxConvexMesh* CreateConvexMesh(Mesh* mesh);
 
         inline glm::vec4 ColorConvert(physx::PxU32 in) {
             const float s = 1.0f / 255.0f;

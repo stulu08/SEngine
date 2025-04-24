@@ -23,7 +23,8 @@ namespace Stulu {
 		virtual void setStencil(StencilMode v) = 0;
 		virtual void setDepthTesting(bool value) = 0;
 		virtual void clear() = 0;
-		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0, const uint32_t instanceCount = 0) = 0;
+		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount = 0, const uint32_t instanceCount = 0) = 0;
+		virtual void drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset = 0, const uint32_t instanceCount = 0) = 0;
 		virtual void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) = 0;
 
 		virtual const glm::ivec3 getMaxComputeWorkGroupCount() const = 0;

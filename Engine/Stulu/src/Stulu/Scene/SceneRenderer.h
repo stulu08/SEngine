@@ -9,7 +9,7 @@ namespace Stulu {
 	class STULU_API SceneRenderer {
 	public:
 		struct RenderObject {
-			Ref<Material> material;
+			TestMaterial* material;
 			Ref<VertexArray> vertexArray;
 			glm::mat4 transform;
 			glm::mat4 normalMatrix;
@@ -41,7 +41,7 @@ namespace Stulu {
 		void Clear(CameraComponent& cam);
 
 		void RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
-		void RegisterObject(const Ref<VertexArray>& vertexArray, const Ref<Material>& material, const glm::mat4& transform, const Ref<BoundingBox>& transformedBoundingBox = nullptr);
+		void RegisterObject(const Ref<VertexArray>& vertexArray, TestMaterial* material, const glm::mat4& transform, const Ref<BoundingBox>& transformedBoundingBox = nullptr);
 		void RegisterObject(RenderObject&& object);
 
 		//combines all the textures of the cameras, sorting by layer index
@@ -49,11 +49,11 @@ namespace Stulu {
 
 		void ApplyPostProcessing(SceneCamera& camera);
 		void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data = PostProcessingData());
-		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data = PostProcessingData());
+		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& data = PostProcessingData());
 
 		void drawSceneShadow();
 		void drawScene();
-		void drawSkyBox(const Ref<CubeMap>& skybox);
+		void drawSkyBox(const CubeMap* skybox);
 
 		void resizeShadowMap();
 
@@ -65,7 +65,7 @@ namespace Stulu {
 			return m_shadowMap;
 		}
 	private:
-		Ref<Texture> DoBloom(const Ref<FrameBuffer>& destination, const Ref<Texture2D>& source, PostProcessingData& data);
+		Texture* DoBloom(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& data);
 
 		Ref<Shader> m_postProcShader;
 

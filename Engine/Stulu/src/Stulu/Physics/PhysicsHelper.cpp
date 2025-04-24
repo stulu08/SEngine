@@ -24,18 +24,19 @@ namespace Stulu {
             return glm::quat(val.w, val.x, val.y, val.z);
         }
         //mesh needs to be combined
-        physx::PxTriangleMesh* CreateTriangleMesh(Ref<Mesh>& mesh) {
-            Ref<Mesh>& theMesh = createRef<Mesh>(Mesh::combine(*mesh.get()));
+        physx::PxTriangleMesh* CreateTriangleMesh(Mesh* mesh) {
             auto& phyicsModule = PhysicsModule::Get();
 
-            physx::PxTriangleMeshDesc meshDesc;
-            meshDesc.points.count = theMesh->getVerticesCount();
-            meshDesc.points.stride = theMesh->getVertexBuffer()->getStride();
-            meshDesc.points.data = theMesh->getVertices().data();
+            const auto& [positionOffset, Element] = mesh->GetPositionLayoutElement();
 
-            meshDesc.triangles.count = theMesh->getIndicesCount() / 3;
-            meshDesc.triangles.stride = 3 * theMesh->getIndexBuffer()->getStride();
-            meshDesc.triangles.data = theMesh->getIndices().data();
+            physx::PxTriangleMeshDesc meshDesc;
+            meshDesc.points.count = (uint32_t)mesh->GetVerticesCount();
+            meshDesc.points.stride = (uint32_t)mesh->GetStride();
+            meshDesc.points.data = reinterpret_cast<const uint8_t*>(mesh->GetVertices()) + positionOffset;
+
+            meshDesc.triangles.count = (uint32_t)(mesh->GetIndices().size() / 3);
+            meshDesc.triangles.stride = (uint32_t)(3 * mesh->GetVertexArray()->getIndexBuffer()->getStride());
+            meshDesc.triangles.data = mesh->GetIndices().data();
 
 
             physx::PxDefaultMemoryOutputStream writeBuffer;
@@ -50,24 +51,41 @@ namespace Stulu {
             physx::PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
             return phyicsModule.GetPhysics()->createTriangleMesh(readBuffer);
         }
-        physx::PxConvexMesh* CreateConvexMesh(Ref<Mesh>& mesh) {
-            Ref<Mesh>& theMesh = createRef<Mesh>(Mesh::combine(*mesh.get()));
+
+        physx::PxConvexMesh* CreateConvexMesh(Mesh* mesh) {
             auto& phyicsModule = PhysicsModule::Get();
 
-            physx::PxConvexMeshDesc convexDesc;
-            convexDesc.points.count = theMesh->getVerticesCount();
-            convexDesc.points.stride = theMesh->getVertexBuffer()->getStride();
-            convexDesc.points.data = theMesh->getVertices().data();
-            convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eDISABLE_MESH_VALIDATION | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
+            const size_t limit = static_cast<size_t>(255) * 3;
+            const size_t skipCount = (size_t)glm::ceil(mesh->GetVerticesCount() / limit);
+            const size_t count = glm::min(mesh->GetVerticesCount(), limit);
 
-            convexDesc.indices.count = theMesh->getIndicesCount();
-            convexDesc.indices.stride = theMesh->getIndexBuffer()->getStride();
-            convexDesc.indices.data = theMesh->getIndices().data();
+            const auto& [positionOffset, Element] = mesh->GetPositionLayoutElement();
+
+            std::vector<glm::vec3> sampledPoints;
+            sampledPoints.reserve(255);
+            for (size_t i = 0; i < mesh->GetVerticesCount() && sampledPoints.size() < 255; i++) {
+                glm::vec3 pos = *(glm::vec3*)((uint8_t*)mesh->GetVertices() + i * mesh->GetStride() + positionOffset);
+                sampledPoints.push_back(pos);
+            }
+
+            physx::PxConvexMeshDesc convexDesc;
+            convexDesc.points.count = (uint32_t)sampledPoints.size();
+            convexDesc.points.stride = (uint32_t)sizeof(glm::vec3);
+            convexDesc.points.data = sampledPoints.data();
+            convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX
+                | physx::PxConvexFlag::eDISABLE_MESH_VALIDATION
+                | physx::PxConvexFlag::eFAST_INERTIA_COMPUTATION;
 
             physx::PxDefaultMemoryOutputStream buf;
             physx::PxConvexMeshCookingResult::Enum result;
-            if (!phyicsModule.GetCooking()->cookConvexMesh(convexDesc, buf, &result))
-                return NULL;
+            if (!phyicsModule.GetCooking()->cookConvexMesh(convexDesc, buf, &result)) {
+                return nullptr;
+            }
+            if (result == physx::PxTriangleMeshCookingResult::Enum::eFAILURE) {
+                CORE_ERROR("Triangle Cooking failed");
+                return nullptr;
+            }
+
             physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
             return phyicsModule.GetPhysics()->createConvexMesh(input);
         }

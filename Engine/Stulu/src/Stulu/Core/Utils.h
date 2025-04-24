@@ -60,4 +60,8 @@ namespace Stulu {
 
 		return result;
 	}
+	static const std::string& EmptyString() {
+		static std::string str = "";
+		return str;
+	}
 }

@@ -1,231 +1,220 @@
 #pragma once
 
 #include "Stulu/Scripting/Managed/Mono.h"
-#include "Stulu/Scene/AssetsManager.h"
-#include "Stulu/Scene/YAML.h"
+#include "Stulu/Resources/AssetsManager.h"
+#include "Stulu/Serialization/YAML.h"
 
 #include <entt/entt.hpp>
 
 namespace Stulu {
 	class STULU_API MonoObjectInstance;
-	enum class PropertyType : uint32_t {
+	enum class ManagedPropertyType : uint32_t {
 		Other, 
 		Vector4_t, Vector3_t, Vector2_t, 
 		Float_t, Int_t, UInt_t, Bool_t, 
 		AssetHandle, GameObject_t
 	};
-	class STULU_API Property {
+	class STULU_API ManagedProperty {
 	public:
-		virtual ~Property() = default;
+		ManagedProperty(Mono::Object object, Mono::ClassField field);
+		virtual ~ManagedProperty() = default;
 
-		virtual void Serialize(YAML::Emitter& out) const = 0;
-		virtual void Deserialize(YAML::detail::iterator_value& node) = 0;
+		virtual std::string getName() const;
+		virtual std::string getTypeName() const;
+		virtual Mono::Type getDataType() const;
 
-		// copy value to other
-		virtual void CopyValueTo(Ref<Property> other) const = 0;
+		virtual Mono::ClassField getField() const { return m_fieldPtr; };
+		virtual Mono::Object getParentObject() const { return m_parentObjectPtr; };
+
+		virtual size_t getSize() const = 0;
+		virtual ManagedPropertyType getType() const = 0;
 
 		// allocates memory using malloc, the user is responsible for deleting the buffer using free
 		virtual void* CopyValueToBuffer() const = 0;
 		virtual void SetValueFromBuffer(void* source) = 0;
+		// copy value to other
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const = 0;
 
-		virtual size_t getSize() const = 0;
-		virtual PropertyType getType() const = 0;
-		virtual std::string getName() const = 0;
-		virtual std::string getTypeName() const = 0;
-		virtual Mono::Type getDataType() const = 0;
-		virtual Mono::ClassField getField() const = 0;
-		virtual Mono::Object getParentObject() const = 0;
+		virtual void Serialize(YAML::Emitter& out) const = 0;
+		virtual void Deserialize(YAML::detail::iterator_value& node) = 0;
 
-		static Ref<Property> Create(Mono::Object object, Mono::ClassField field);
-	};
-	class STULU_API BaseProperty : public Property {
-	public:
-		BaseProperty(Mono::Object object, Mono::ClassField field);
-		virtual ~BaseProperty() = default;
-
-		virtual std::string getName() const override;
-		virtual std::string getTypeName() const override;
-		virtual Mono::Type getDataType() const override;
-		virtual Mono::ClassField getField() const override { return m_fieldPtr; };
-		virtual Mono::Object getParentObject() const override { return m_parentObjectPtr; };
+		static Ref<ManagedProperty> Create(Mono::Object object, Mono::ClassField field);
 	protected:
 		Mono::ClassField m_fieldPtr = nullptr;
 		Mono::Object m_parentObjectPtr = nullptr;
 	};
-	class STULU_API MiscProperty : public BaseProperty {
+	class STULU_API ManagedMiscProperty : public ManagedProperty {
 	public:
-		MiscProperty(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
-		virtual ~MiscProperty() = default;
+		ManagedMiscProperty(Mono::Object object, Mono::ClassField field)
+			: ManagedProperty(object, field) {};
+		virtual ~ManagedMiscProperty() = default;
 
 		virtual void Serialize(YAML::Emitter& out) const override { };
 		virtual void Deserialize(YAML::detail::iterator_value& node) override { };
 
-		// copy value to other
-		virtual void CopyValueTo(Ref<Property> other) const override { };
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override { };
 		virtual void* CopyValueToBuffer() const override { return nullptr; };
 		virtual void SetValueFromBuffer(void* source) override { };
 
 		virtual size_t getSize() const override { return 0; };
-		virtual PropertyType getType() const override { return PropertyType::Other; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Other; };
 	};
 #pragma region Primitives
-	class STULU_API Int32Property : public BaseProperty {
+	class STULU_API Int32Property : public ManagedProperty {
 	public:
 		Int32Property(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual int32_t GetValue() const;
 		virtual void SetValue(int32_t value);
 
 		virtual size_t getSize() const override { return sizeof(int32_t); };
-		virtual PropertyType getType() const override { return PropertyType::Int_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Int_t; };
 	};
-	class STULU_API UInt32Property : public BaseProperty {
+	class STULU_API UInt32Property : public ManagedProperty {
 	public:
 		UInt32Property(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual uint32_t GetValue() const;
 		virtual void SetValue(uint32_t value);
 
 		virtual size_t getSize() const override { return sizeof(uint32_t); };
-		virtual PropertyType getType() const override { return PropertyType::UInt_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::UInt_t; };
 	};
-	class STULU_API UInt64Property : public BaseProperty {
+	class STULU_API UInt64Property : public ManagedProperty {
 	public:
 		UInt64Property(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual uint64_t GetValue() const;
 		virtual void SetValue(uint64_t value);
 
 		virtual size_t getSize() const override { return sizeof(uint64_t); };
-		virtual PropertyType getType() const override { return PropertyType::UInt_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::UInt_t; };
 	};
-	class STULU_API FloatProperty : public BaseProperty {
+	class STULU_API FloatProperty : public ManagedProperty {
 	public:
 		FloatProperty(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual float GetValue() const;
 		virtual void SetValue(float value);
 
 		virtual size_t getSize() const override { return sizeof(float); };
-		virtual PropertyType getType() const override { return PropertyType::Float_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Float_t; };
 	};
-	class STULU_API BoolProperty : public BaseProperty {
+	class STULU_API BoolProperty : public ManagedProperty {
 	public:
 		BoolProperty(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual bool GetValue() const;
 		virtual void SetValue(bool value);
 
 		virtual size_t getSize() const override { return sizeof(bool); };
-		virtual PropertyType getType() const override { return PropertyType::Bool_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Bool_t; };
 	};
 #pragma endregion
 #pragma region Vectors
-	class STULU_API Vector2Property : public BaseProperty {
+	class STULU_API Vector2Property : public ManagedProperty {
 	public:
 		Vector2Property(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual glm::vec2 GetValue() const;
 		virtual void SetValue(const glm::vec2& value);
 
 		virtual size_t getSize() const override { return sizeof(glm::vec2); };
-		virtual PropertyType getType() const override { return PropertyType::Vector2_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Vector2_t; };
 	};
-	class STULU_API Vector3Property : public BaseProperty {
+	class STULU_API Vector3Property : public ManagedProperty {
 	public:
 		Vector3Property(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual glm::vec3 GetValue() const;
 		virtual void SetValue(const glm::vec3& value);
 
 		virtual size_t getSize() const override { return sizeof(glm::vec3); };
-		virtual PropertyType getType() const override { return PropertyType::Vector3_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Vector3_t; };
 	};
-	class STULU_API Vector4Property : public BaseProperty {
+	class STULU_API Vector4Property : public ManagedProperty {
 	public:
 		Vector4Property(Mono::Object object, Mono::ClassField field)
-			: BaseProperty(object, field) {};
+			: ManagedProperty(object, field) {};
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual glm::vec4 GetValue() const;
 		virtual void SetValue(const glm::vec4& value);
 
 		virtual size_t getSize() const override { return sizeof(glm::vec4); };
-		virtual PropertyType getType() const override { return PropertyType::Vector4_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Vector4_t; };
 	};
 #pragma endregion
 #pragma region Assets
-	class STULU_API AssetProperty : public BaseProperty {
+	class STULU_API AssetProperty : public ManagedProperty {
 	public:
 		AssetProperty(Mono::Object object, Mono::ClassField field);
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual UUID GetValue() const;
 		virtual void SetValue(const UUID& value);
 
 		virtual size_t getSize() const override { return sizeof(UUID); };
-		virtual PropertyType getType() const override { return PropertyType::AssetHandle; };
-		virtual AssetType getAssetType() const = 0;
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::AssetHandle; };
 	protected:
 		Ref<UInt64Property> m_idProperty = nullptr;;
 		Ref<MonoObjectInstance> m_asset = nullptr;
@@ -234,19 +223,16 @@ namespace Stulu {
 	public:
 		Texture2DProperty(Mono::Object object, Mono::ClassField field)
 			: AssetProperty(object, field){}
-
-		virtual AssetType getAssetType() const override { return AssetType::Texture2D; };
-
 	};
 #pragma endregion
-	class STULU_API GameObjectProperty : public BaseProperty {
+	class STULU_API GameObjectProperty : public ManagedProperty {
 	public:
 		GameObjectProperty(Mono::Object object, Mono::ClassField field);
 
 		virtual void Serialize(YAML::Emitter& out) const override;
 		virtual void Deserialize(YAML::detail::iterator_value& node) override;
 
-		virtual void CopyValueTo(Ref<Property> other) const override;
+		virtual void CopyValueTo(Ref<ManagedProperty> other) const override;
 		virtual void* CopyValueToBuffer() const override;
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual entt::entity GetValue() const;
@@ -255,7 +241,7 @@ namespace Stulu {
 		virtual void SetValueRaw(uint64_t value);
 
 		virtual size_t getSize() const override { return sizeof(UUID); };
-		virtual PropertyType getType() const override { return PropertyType::GameObject_t; };
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::GameObject_t; };
 	protected:
 		Ref<UInt64Property> m_idProperty = nullptr;;
 		Ref<MonoObjectInstance> m_gameObject = nullptr;

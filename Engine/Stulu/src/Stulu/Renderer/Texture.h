@@ -55,8 +55,6 @@ namespace Stulu {
 		virtual operator int() = 0;
 
 		virtual TextureSettings& getSettings() = 0;
-
-		UUID uuid;//I dont like it too
 	};
 	class STULU_API Texture2D : public Texture {
 	public:
@@ -93,10 +91,8 @@ namespace Stulu {
 	};
 	class STULU_API SkyBox : public CubeMap {
 	public:
-		static Ref<SkyBox> create(const std::string& path);
-		static Ref<SkyBox> create(uint32_t resolution, void* data);
+		static Ref<SkyBox> create(const std::string& path, uint32_t resolution = 2048);
 		static Ref<SkyBox> create(const std::vector<std::string>& faces, uint32_t resolution);
-		static Ref<SkyBox> create(const std::string& hdrTexturePath, uint32_t resolution);
 		static Ref<SkyBox> createYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
 
 		virtual void bindEnviromente(uint32_t slot = 0) const = 0;
@@ -104,8 +100,9 @@ namespace Stulu {
 		virtual void bindPrefilter(uint32_t slot = 2) const = 0;
 		virtual void bindBRDFLUT(uint32_t slot = 3) const = 0;
 
-		void update(const std::string& path);
-		void updateYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
+		void UpdateSkybox(const std::string& path, uint32_t resolution = 2048);
+		void UpdateSkyboxYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
+
 		virtual void update(uint32_t resolution, void* data) = 0;
 		virtual void update(const std::vector<std::string>& faces, uint32_t resolution) = 0;
 		virtual void update(const std::string& hdrTexturePath, uint32_t resolution) = 0;

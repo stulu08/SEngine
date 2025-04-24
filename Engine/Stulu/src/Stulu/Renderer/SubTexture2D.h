@@ -5,7 +5,7 @@ namespace Stulu {
 	public:
 		SubTexture2D(const Ref<Texture2D>& texture, const glm::vec2& min, const glm::vec2& max);
 
-		const Ref<Texture2D> getTexture() const { return m_texture; };
+		Texture2D* getTexture() const { return m_texture.get(); };
 		const glm::vec2* getTexCoords() const { return m_texCoords; };
 
 		static Ref<SubTexture2D> fromCoords(const glm::vec2& spriteCoords, const glm::vec2& spriteCellSize, const Ref<Texture2D>& texture, const glm::vec2& spriteSize = { 1.0f,1.0f });

@@ -17,13 +17,16 @@ STULU_API ImVec2 operator /(const ImVec2& vec, const glm::vec2& vec2);
 STULU_API ImVec2 operator +(const ImVec2& vec, const glm::vec2& vec2);
 STULU_API ImVec2 operator -(const ImVec2& vec, const glm::vec2& vec2);
 namespace ImGui {
-	STULU_API void Image(const Stulu::Ref<Stulu::Texture>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col);
-	STULU_API void Image(const Stulu::Ref<Stulu::Texture>& texture, const glm::vec2& size, const glm::vec2& uv0 = { 0,0 }, const glm::vec2& uv1 = { 1,1 }, const glm::vec4& tint_col = { 1,1,1,1 }, const glm::vec4& border_col = { 0,0,0,0 });
+	STULU_API void Image(const Stulu::Texture2D* texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col);
+	STULU_API void Image(const Stulu::Texture2D* texture, const glm::vec2& size, const glm::vec2& uv0 = { 0,0 }, const glm::vec2& uv1 = { 1,1 }, const glm::vec4& tint_col = { 1,1,1,1 }, const glm::vec4& border_col = { 0,0,0,0 });
 
 	STULU_API bool ImageButton(const std::string& id, const Stulu::Ref<Stulu::Texture>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col);
 	STULU_API bool ImageButton(const std::string& id, const Stulu::Ref<Stulu::Texture>& texture, const glm::vec2& size, const glm::vec2& uv0 = glm::vec2(0, 0), const glm::vec2& uv1 = glm::vec2(1, 1), const glm::vec4& bg_col = glm::vec4(0, 0, 0, 0), const glm::vec4& tint_col = glm::vec4(1, 1, 1, 1));
 
-	STULU_API ImTextureID StuluTextureToImGui(const Stulu::Ref<Stulu::Texture>& texture);
+	STULU_API ImTextureID StuluTextureToImGui(const Stulu::Texture* texture);
+	inline ImTextureID StuluTextureToImGui(const Stulu::Ref<Stulu::Texture>& texture) {
+		return StuluTextureToImGui(texture.get());
+	}
 
 	STULU_API void StyleColorsOceanDark(ImGuiStyle* dst = NULL);
 	STULU_API void StyleColorsAmoledDark(ImGuiStyle* dst = NULL);

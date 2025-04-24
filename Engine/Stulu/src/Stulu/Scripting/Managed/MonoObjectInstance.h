@@ -1,7 +1,7 @@
 #pragma once
 #include "Stulu/Math/Math.h"
 
-#include "Property/Property.h"
+#include "Property/ManagedProperty.h"
 #include "ScriptAssembly.h"
 
 namespace Stulu {
@@ -15,15 +15,15 @@ namespace Stulu {
 		void CallConstructor(uint32_t paramCount, void** args = nullptr);
 		Mono::Object CallMethod(Mono::Method method, void** args = NULL, bool isStatic = false);
 
-		static bool FieldHasAttribute(Ref<Property> field, Mono::Class attribute);
+		static bool FieldHasAttribute(Ref<ManagedProperty> field, Mono::Class attribute);
 
 		void LoadAllClassFields();
 
 		void BackupFields(bool overwrite = false);
 		void LoadFieldsBackup();
 
-		Ref<Property> FindField(const std::string& name) const;
-		template<class T = Property>
+		Ref<ManagedProperty> FindField(const std::string& name) const;
+		template<class T = ManagedProperty>
 		Ref<T> FindFieldAs(const std::string& name) const {
 			return std::dynamic_pointer_cast<T>(FindField(name));
 		}
@@ -36,8 +36,8 @@ namespace Stulu {
 
 		inline Mono::Object getObject() const { return m_object; }
 		inline Mono::Class getClass() const { return m_class; }
-		inline const std::vector<Ref<Property>>& getFields() const { return m_fields; }
-		inline std::vector<Ref<Property>>& getFields() { return m_fields; }
+		inline const std::vector<Ref<ManagedProperty>>& getFields() const { return m_fields; }
+		inline std::vector<Ref<ManagedProperty>>& getFields() { return m_fields; }
 	private:
 		void CreateObject();
 		void Reload();
@@ -54,7 +54,7 @@ namespace Stulu {
 		Mono::Object m_object = nullptr;
 		ScriptAssembly* m_assembly;
 
-		std::vector<Ref<Property>> m_fields;
+		std::vector<Ref<ManagedProperty>> m_fields;
 
 		friend class ScriptAssembly;
 	};

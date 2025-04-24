@@ -79,7 +79,7 @@ namespace Stulu {
 		} m_events;
 		std::vector<Mono::Class> m_components;
 
-		std::unordered_map<std::string, std::function<Ref<Property>(Mono::Object object, Mono::ClassField field)>> m_propertieRegister;
+		std::unordered_map<std::string, std::function<Ref<ManagedProperty>(Mono::Object object, Mono::ClassField field)>> m_propertieRegister;
 		std::unordered_map<std::string, std::function<void(GameObject)>> m_addComponentRegister;
 		std::unordered_map<std::string, std::function<bool(GameObject)>> m_hasComponentRegister;
 		std::unordered_map<std::string, std::function<bool(GameObject)>> m_removeComponentRegister;

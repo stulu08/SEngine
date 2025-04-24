@@ -6,16 +6,17 @@
 
 namespace Editor {
     namespace Controls {
-        inline bool RenderAssetFrame(const std::string& label, Stulu::UUID& assetID, Stulu::AssetType assetType, const std::string& hint, Stulu::Ref<Stulu::Texture> icon, bool useIcon = true) {
+        template<class T /* = AssetHandle<SharedAssetData> */>
+        inline bool RenderAssetFrame(const std::string& label, Stulu::UUID& assetID, const std::string& hint, Stulu::Texture2D* icon, bool useIcon = true) {
             const ImVec2 fontSize = ImVec2(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
             const float frameWidth = ImGui::GetContentRegionAvail().x - 1.0f;
             const ImVec2 origPos = ImGui::GetCursorPos();
             const ImVec2 origScreenPos = ImGui::GetCursorScreenPos();
             const ImVec2 spacing = ImGui::GetStyle().ItemInnerSpacing;
             const ImVec2 padding = ImGui::GetStyle().FramePadding;
-            const bool hasValue = Stulu::AssetsManager::existsAndType(assetID, assetType);
+            const bool hasValue = Stulu::AssetsManager::GlobalInstance().TypeCheck<T>(assetID);
+            const std::string typeStr = Stulu::AssetsManager::GlobalInstance().GetTypeNameT<T>();
             bool changed = false;
-
 
             ImGui::SetCursorPosY(origPos.y - padding.y);
             // main frame
@@ -52,7 +53,7 @@ namespace Editor {
             const ImVec2 size = ImVec2(frameWidth - (2.0f * padding.x), fontSize.y);
             ImGui::SetCursorPos(ImagePos);
             ImGui::Dummy(size);
-            if (Stulu::UUID uuid = ReceiveDragDopAsset(assetType)) {
+            if (Stulu::UUID uuid = ReceiveDragDopAsset(typeStr)) {
                 assetID = uuid;
                 changed = true;
             }
@@ -86,17 +87,18 @@ namespace Editor {
             return LabeledBaseControl(label, [&]() {
                 ImGui::PushItemWidth(-1);
                 
-                Stulu::Ref<Stulu::Texture> texture = nullptr;
+                Stulu::Texture2D* texture = nullptr;
                 std::string hint = "";
-                if (Stulu::AssetsManager::existsAndType(textureID, Stulu::AssetType::Texture2D)) {
-                    texture = Stulu::AssetsManager::getAs<Stulu::Ref<Stulu::Texture>&>(textureID);
-                    hint = std::filesystem::path(Stulu::AssetsManager::get(textureID).path).stem().string();
+                if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::Texture2DAsset>(textureID)) {
+                    Stulu::Texture2DAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::Texture2DAsset>(textureID);
+                    texture = *asset;
+                    hint = std::filesystem::path(asset.Path()).stem().string();
                 }
                 else {
                     hint = "Texture2D";
                 }
                 
-                bool changed = RenderAssetFrame(label, textureID, Stulu::AssetType::Texture2D, hint, texture, true);
+                bool changed = RenderAssetFrame<Stulu::Texture2DAsset>(label, textureID, hint, texture, true);
 
                 ImGui::PopItemWidth();
                 return changed;
@@ -108,14 +110,15 @@ namespace Editor {
                 ImGui::PushItemWidth(-1);
 
                 std::string hint = "";
-                if (Stulu::AssetsManager::existsAndType(materialID, Stulu::AssetType::Material)) {
-                    hint = Stulu::AssetsManager::getAs<Stulu::Ref<Stulu::Material>>(materialID)->getName();
+                if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::MaterialAsset>(materialID)) {
+                    Stulu::MaterialAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(materialID);
+                    hint = asset.Path();
                 }
                 else {
                     hint = "No material";
                 }
 
-                bool changed = RenderAssetFrame(label, materialID, Stulu::AssetType::Material, hint, nullptr, false);
+                bool changed = RenderAssetFrame<Stulu::MaterialAsset>(label, materialID, hint, nullptr, false);
 
                 ImGui::PopItemWidth();
                 return changed;

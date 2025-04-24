@@ -7,7 +7,7 @@ namespace Stulu {
 		return true;
 	}
 	void ParticleSystemLayer::SceneStart() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneStart) {
@@ -16,7 +16,7 @@ namespace Stulu {
 		}
 	}
 	void ParticleSystemLayer::Update() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneUpdate) {
@@ -26,13 +26,13 @@ namespace Stulu {
 		}
 	}
 	void ParticleSystemLayer::Render2D() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			particle.draw();
 		}
 	}
-
+	/*
 	void ParticleSystemLayer::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {
 		BEGIN_SERIALIZE_COMPONENT(ParticleSystemComponent);
 		{
@@ -109,9 +109,9 @@ namespace Stulu {
 		}
 		END_DESERIALIZE_COMPONENT();
 	}
-
+	*/
 	void ParticleSystemLayer::ClearAllParticles() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			particle.clear();

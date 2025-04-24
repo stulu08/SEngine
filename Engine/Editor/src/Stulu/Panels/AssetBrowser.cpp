@@ -4,7 +4,7 @@
 #include "Stulu/Controls.h"
 #include <Stulu/Resources.h>
 #include <Stulu/Resources/Resources.h>
-#include <Stulu/Scene/AssetsManager.h>
+#include <Stulu/Resources/AssetsManager.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
 #include <magic_enum/magic_enum.hpp>
@@ -64,7 +64,7 @@ namespace Editor {
 			}
 
 			if (!disabled) {
-				Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset(AssetType::Unknown, true);
+				Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset("", true);
 				if (receivedUUID != Stulu::UUID::null) {
 					MoveAsset(m_path.parent_path(), receivedUUID);
 				}
@@ -170,7 +170,7 @@ namespace Editor {
 				SetPath(entryPath);
 			}
 
-			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset(AssetType::Unknown, true);
+			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset("", true);
 			if (receivedUUID != Stulu::UUID::null) {
 				MoveAsset(entry.path(), receivedUUID);
 			}
@@ -198,10 +198,9 @@ namespace Editor {
 
 
 		// asset popups
-		if (!m_selectedPopupAsset)
+		if (!std::filesystem::exists(m_selectedPopupFile))
 			return;
 
-		Asset& asset = *m_selectedPopupAsset;
 		if (ImGui::BeginPopupModal("Delete Asset", 0, ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImGui::Text("Delete this file? You will not be able to restore it!");
 			if (ImGui::Button("Cancel")) {
@@ -209,7 +208,7 @@ namespace Editor {
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Delete")) {
-				DeletePath(asset.path);
+				DeletePath(m_selectedPopupFile);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
@@ -222,10 +221,10 @@ namespace Editor {
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Rename")) {
-				const auto name = std::filesystem::path(asset.path).parent_path() / m_assetRenameString;
-				if (RenameAsset(name, asset)) {
-					ImGui::CloseCurrentPopup();
-				}
+				const auto name = std::filesystem::path(m_selectedPopupFile).parent_path() / m_assetRenameString;
+				//if (RenameAsset(name, m_selectedPopupAsset)) {
+				//	ImGui::CloseCurrentPopup();
+				//}
 			}
 			ImGui::EndPopup();
 		}
@@ -262,36 +261,37 @@ namespace Editor {
 		else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
 			action = FileInteractAction::RightClick;
 		}
+		SharedAssetData* asset = nullptr;
 
 		// draggin
-		const auto uuid = AssetsManager::getFromPath(path);
-		if (uuid == Stulu::UUID::null) {
-			AssetsManager::add(path.string());
-		}
-
-		auto& asset = AssetsManager::get(uuid);
-		Controls::DragDropAsset(uuid, asset.type);
-		
-		if (asset.type == AssetType::Directory) {
-			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset(AssetType::Unknown, true);
+		if (std::filesystem::is_directory(path)) {
+			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset("", true);
 			if (receivedUUID != Stulu::UUID::null) {
-				MoveAsset(asset.path, receivedUUID);
+				MoveAsset(path, receivedUUID);
 			}
 			// directory icon is colored
 			tintColor = ImVec4(1, 1, 1, 1);
+		}
+		else {
+			asset = AssetsManager::GlobalInstance().GetFromPath(path.string());
+			if (!asset) {
+				Stulu::UUID uuid = AssetsManager::GlobalInstance().LoadFile(path.string());
+				asset = AssetsManager::GlobalInstance().GetRaw(uuid);
+			}
+			Controls::DragDropAsset(asset->GetUUID(), asset->GetTypeName());
 		}
 		
 		// menu
 		if (ImGui::BeginPopupContextItem("ASSET_CONTEXT_MENU")) {
 			if (ImGui::MenuItem("Rename")) {
-				m_assetRenameString = std::filesystem::path(asset.path).filename().string();
+				m_assetRenameString = path.filename().string();
 				ImGui::OpenPopup("Rename Asset");
 			}
 			if (ImGui::MenuItem("Delete")) {
 				ImGui::OpenPopup("Delete Asset");
 			}
 			ImGui::EndPopup();
-			m_selectedPopupAsset = &asset;
+			m_selectedPopupFile = path;
 		}
 
 		// bg
@@ -309,7 +309,8 @@ namespace Editor {
 		const ImVec2 imageSize = iconSize - offset;
 
 		ImGui::SetCursorPos(pos + (offset / 2.0f));
-		ImGui::Image(GetIcon(asset, path.extension().string()), imageSize, { 0,1 }, { 1,0 }, tintColor, { 0,0,0,0 });
+		Texture2D* icon = asset ? GetIcon(asset, path.extension().string()) : Resources::GetDirectoryIcon();
+		ImGui::Image(icon, imageSize, { 0,1 }, { 1,0 }, tintColor, { 0,0,0,0 });
 		
 		// header
 		ImVec2 namePos = pos + ImVec2(0.0f, iconSize.y) + ImVec2(padding.x, padding.y);
@@ -336,7 +337,7 @@ namespace Editor {
 		if (!isDirectory) {
 			ImGui::PushFontSmall();
 
-			std::string tag = magic_enum::enum_name<AssetType>(asset.type).data();
+			std::string tag = asset ? asset->GetTypeName() : "Directory";
 			std::transform(tag.begin(), tag.end(), tag.begin(), ::toupper);
 
 			ImVec2 typeSize = ImGui::CalcTextSize(tag.c_str());
@@ -350,8 +351,6 @@ namespace Editor {
 		// dummy for adding item size to cursor pos and cursor_prev_line so SameLine will work again
 		ImGui::SetCursorPos(pos);
 		ImGui::Dummy(totalSize);
-
-
 
 		return action;
 	}
@@ -378,14 +377,16 @@ namespace Editor {
 	}
 
 	bool AssetBrowser::MoveAsset(const std::filesystem::path& targetDir, Stulu::UUID& receivedUUID) {
-		Stulu::Asset& received = AssetsManager::get(receivedUUID);
-		const auto newPath = targetDir / std::filesystem::path(received.path).filename();
+		SharedAssetData* received = AssetsManager::GlobalInstance().GetRaw(receivedUUID);
+		if (!received) return false;
+
+		const auto newPath = targetDir / std::filesystem::path(received->GetPath()).filename();
 		return RenameAsset(newPath, received);
 	}
 
-	bool AssetBrowser::RenameAsset(const std::filesystem::path& targetName, Stulu::Asset& asset) {
+	bool AssetBrowser::RenameAsset(const std::filesystem::path& targetName, Stulu::SharedAssetData* asset) {
 		const auto newPathMeta = std::filesystem::path(targetName.string() + ".meta");
-		const auto oldPathMeta = std::filesystem::path(asset.path + ".meta");
+		const auto oldPathMeta = std::filesystem::path(asset->GetPath() + ".meta");
 
 		if (std::filesystem::exists(targetName)) {
 			ST_ERROR("Cannot override: {0}", targetName);
@@ -400,37 +401,38 @@ namespace Editor {
 			ST_ERROR("Cannot find: {0}", oldPathMeta);
 			return false;
 		}
-		if (!std::filesystem::exists(asset.path)) {
-			ST_ERROR("Cannot find: {0}", asset.path);
+		if (!std::filesystem::exists(asset->GetPath())) {
+			ST_ERROR("Cannot find: {0}", asset->GetPath());
 			return false;
 		}
 
-		std::filesystem::rename(asset.path, targetName);
+		std::filesystem::rename(asset->GetPath(), targetName);
 		std::filesystem::rename(oldPathMeta, newPathMeta);
 
-		asset.path = targetName.string();
-
-		return true;
+		return AssetsManager::GlobalInstance().UpdatePath(asset->GetUUID(), targetName.string());
 	}
-
-	Ref<Texture> AssetBrowser::GetIcon(Asset& asset, const std::string& extension) {
-		switch (asset.type)
-		{
-		case Stulu::AssetType::Texture2D:
-			return std::any_cast<Ref<Texture>&>(asset.data);
-		case Stulu::AssetType::RenderTexture:
-			return std::any_cast<Ref<Texture>&>(asset.data);
-		case Stulu::AssetType::SkyBox:
-			return m_preview.GetSkyboxPreview(std::dynamic_pointer_cast<SkyBox>(std::any_cast<Ref<Texture>>(asset.data)));
-		case Stulu::AssetType::Model:
-			return m_preview.GetModelPreview(std::any_cast<Model&>(asset.data));
-		case Stulu::AssetType::Mesh:
-			return m_preview.GetMeshPreview(std::any_cast<MeshAsset&>(asset.data));
-		case Stulu::AssetType::Material:
-			return m_preview.GetMaterialPreview(std::any_cast<Ref<Material>>(asset.data));
-		case Stulu::AssetType::Directory:
-			return Resources::GetDirectoryIcon();
-		case Stulu::AssetType::Scene:
+	Stulu::Texture2D* AssetBrowser::GetIcon(Stulu::SharedAssetData* asset, const std::string& extension) {
+		if (asset->GetTypeID() == Texture2DAsset::TypeID()) {
+			Texture2DAsset texture = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(asset->GetUUID());
+			return m_preview.GetTexturePreview(texture).get();
+		}
+		if (asset->GetTypeID() == RenderTextureAsset::TypeID()) {
+			RenderTextureAsset texture = AssetsManager::GlobalInstance().GetAsset<RenderTextureAsset>(asset->GetUUID());
+			return m_preview.GetRenderTexturePreview(texture).get();
+		}
+		if (asset->GetTypeID() == SkyBoxAsset::TypeID()) {
+			SkyBoxAsset texture = AssetsManager::GlobalInstance().GetAsset<SkyBoxAsset>(asset->GetUUID());
+			return m_preview.GetSkyboxPreview(texture).get();
+		}
+		if (asset->GetTypeID() == MeshAsset::TypeID()) {
+			MeshAsset meshAsset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(asset->GetUUID());
+			return m_preview.GetMeshPreview(meshAsset).get();
+		}
+		if (asset->GetTypeID() == MaterialAsset::TypeID()) {
+			MaterialAsset materialAsset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(asset->GetUUID());
+			return m_preview.GetMaterialPreview(materialAsset).get();
+		}
+		if (asset->GetTypeID() == SceneAsset::TypeID()) {
 			return Resources::GetSceneIcon();
 		}
 

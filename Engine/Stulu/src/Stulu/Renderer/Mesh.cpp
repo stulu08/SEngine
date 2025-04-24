@@ -1,207 +1,133 @@
 #include "st_pch.h"
 #include "Mesh.h"
+#include "RenderCommand.h"
 
 namespace Stulu {
-	BufferLayout Mesh::s_defaultLayout = {
-		{ Stulu::ShaderDataType::Float3, "a_pos" },
-		{ Stulu::ShaderDataType::Float3, "a_normal" },
-		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-		{ Stulu::ShaderDataType::Float4, "a_color" },
-	};
+	Mesh::Mesh(const std::string& name)
+		: m_defaultVertexLayout(false), m_defaultSkinnedVertexLayout(false), m_vertices(nullptr), m_verticesCount(0), m_name(name) {}
 
-	SubMesh::SubMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
-		m_vertices = vertices;
-		m_indices = indices;
-		m_verticesCount = vertices.size();
-		m_indicesCount = indices.size();
-		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-		Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-
-		m_vertexArray = Stulu::VertexArray::create();
-		vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(m_verticesCount * sizeof(Vertex)), &vertices[0]);
-		vertexBuffer->setLayout(Mesh::getDefaultLayout());
-		m_vertexArray->addVertexBuffer(vertexBuffer);
-		indexBuffer = Stulu::IndexBuffer::create((uint32_t)m_indicesCount, m_indices.data());
-		m_vertexArray->setIndexBuffer(indexBuffer);
-	}
-	Mesh::Mesh() {
-		m_vertexArray = Stulu::VertexArray::create();
-		recalculate();
-	}
 	Mesh::~Mesh() {
-	}
-	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
-		m_vertexArray = Stulu::VertexArray::create();
-		setVertices(vertices);
-		setIndices(indices);
-		recalculate();
-	}
-	Mesh::Mesh(Vertex* vertices, uint32_t verticesCount, uint32_t* indices, uint32_t indicesCount) {
-		m_vertexArray = Stulu::VertexArray::create();
-		std::vector<Vertex> vertVec(vertices, vertices + verticesCount);
-		std::vector<uint32_t> indicVec(indices, indices + indicesCount);
-		setVertices(vertVec);
-		setIndices(indicVec);
-		recalculate();
+		if (m_vertices) {
+			delete[] m_vertices;
+			m_verticesCount = 0;
+		}
 	}
 
-	void Mesh::setVertices(const std::vector<Vertex>& vertices, const BufferLayout& layout) {
-		if (!m_vertexArray->getVertexBuffers().empty())
-			m_vertexArray->clearVertexBuffers();
+	void Mesh::SetData(const ByteType* vertices, size_t verticesCount, const uint32_t* indices, uint32_t indicesCount, const BufferLayout& layout)  {
+		if (m_vertices) {
+			delete[] m_vertices;
+			m_verticesCount = 0;
+		}
 
-		m_vertices.clear();
-		m_vertices = vertices;
-		m_verticesCount = (uint32_t)m_vertices.size();
+		m_defaultVertexLayout = false;
+		m_defaultSkinnedVertexLayout = false;
 
-		Stulu::Ref<Stulu::VertexBuffer> vertexBuffer = VertexBuffer::create(layout.getStride() * m_verticesCount, m_vertices.data());
-		vertexBuffer->setLayout(layout);
-		m_vertexArray->addVertexBuffer(vertexBuffer);
+		const size_t verticesSize = verticesCount * layout.getStride();
+
+		m_vertices = new ByteType[verticesSize];
+		m_verticesCount = verticesCount;
+		memcpy_s(m_vertices, verticesSize, vertices, verticesSize);
+
+		m_indices = std::vector<uint32_t>(indices, indices + indicesCount);
+		ConstructMesh(layout);
 	}
-	void Mesh::setIndices(const std::vector<uint32_t>& indices) {
-		m_indices = indices;
-		m_indicesCount = (uint32_t)m_indices.size();
 
-		Stulu::Ref<Stulu::IndexBuffer> indexBuffer = IndexBuffer::create(m_indicesCount, m_indices.data());
-		m_vertexArray->setIndexBuffer(indexBuffer);
+	void Mesh::SetData(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
+		const ByteType* data = (ByteType*)vertices.data();
+		SetData(data, vertices.size(), indices.data(), (uint32_t)indices.size(), DefaultVertexLayout());
+		m_defaultVertexLayout = true;
+	}
+	void Mesh::SetData(const std::vector<SkinnedVertex>& vertices, const std::vector<uint32_t>& indices) {
+		const ByteType* data = (ByteType*)vertices.data();
+		SetData(data, vertices.size(), indices.data(),(uint32_t)indices.size(), DefaultSkinnedVertexLayout());
+		m_defaultSkinnedVertexLayout = true;
 	}
 
+	void Mesh::ConstructMesh(const BufferLayout& layout) {
+		const size_t verticesSize = m_verticesCount * layout.getStride();
 
-	const void Mesh::recalculate() {
-		m_boundingBox = VFC::createBoundingBox(this);
+		auto vb = VertexBuffer::create((uint32_t)verticesSize, m_vertices);
+		vb->setLayout(layout);
+
+		auto ib = IndexBuffer::create((uint32_t)m_indices.size(), m_indices.data());
+
+		m_vertexArray = VertexArray::create();
+		m_vertexArray->setIndexBuffer(ib);
+		m_vertexArray->addVertexBuffer(vb);
+
+		RecalculateBounds();
 	}
-	const void Mesh::calculateNormals() {
-		if (m_vertices.size() == 0)
+	void Mesh::AddSubmesh(uint32_t indexOffset, uint32_t indexCount, uint32_t vertexOffset, const std::string& name) {
+		MeshSubmesh mesh;
+		mesh.indexOffset = indexOffset;
+		mesh.indexCount = indexCount;
+		mesh.vertexOffset = vertexOffset;
+		mesh.name = name;
+
+		m_submeshes.push_back(mesh);
+	}
+	void Mesh::AddSubmesh(const MeshSubmesh& sm) {
+		m_submeshes.push_back(sm);
+	}
+	void Mesh::RenderCommandDraw(int32_t subMesh, uint32_t instanceCount) const {
+		if (subMesh < 0 || subMesh >= m_submeshes.size()) {
+			RenderCommand::drawIndexed(m_vertexArray, 0, instanceCount);
 			return;
-		size_t indexCount = m_indices.size();
-
-		std::vector<Vertex> vertices = m_vertices;
-
-		vertices.reserve(vertices.size());
-
-		for (int i = 0; i < indexCount; i += 3)
-		{
-			// get the three vertices that make the faces
-			glm::vec3 p0 = vertices[m_indices[i + 0]].pos;
-			glm::vec3 p1 = vertices[m_indices[i + 1]].pos;
-			glm::vec3 p2 = vertices[m_indices[i + 2]].pos;
-
-			glm::vec3 e1 = p1 - p0;
-			glm::vec3 e2 = p2 - p0;
-			glm::vec3 normal = glm::cross(e1, e2);
-			normal = glm::normalize(normal);
-
-			// Store the face's normal for each of the vertices that make up the face.
-			vertices[m_indices[i + 0]].normal += normal;
-			vertices[m_indices[i + 1]].normal += normal;
-			vertices[m_indices[i + 2]].normal += normal;
 		}
 
-
-		// Now loop through each vertex vector, and avarage out all the normals stored.
-		for (int i = 0; i < vertices.size(); ++i)
-		{
-			vertices[i].normal = glm::normalize(vertices[i].normal);
-		}
-
-		setVertices(vertices);
+		const MeshSubmesh& mesh = m_submeshes[subMesh];
+		RenderCommand::drawIndexedSubMesh(m_vertexArray, mesh.indexCount, mesh.indexOffset, mesh.vertexOffset, instanceCount);
 	}
 
-	Vertex Mesh::getFurthestVertexFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
-		if (m_vertices.size() == 0)
-			return Vertex();
-		if (vertLimit == 0 || vertLimit > getVerticesCount())
-			vertLimit = getVerticesCount();
-
-		uint32_t skipCount = (uint32_t)glm::ceil(getVerticesCount() / vertLimit);
-
-		Vertex furthest = Vertex{ glm::vec3(.0f),glm::vec3(.0f),glm::vec2(.0f) };
-
-		float dist = 0;
-		if (getVertices().size() > 0)
-			dist = glm::distance(getVertices()[0].pos, pos);
-
-		for (uint32_t i = 0, j = 0; i < getVerticesCount(); i += skipCount) {
-			if (j >= vertLimit)
-				break;
-			if (dist < glm::distance(getVertices()[i].pos, pos)) {
-				furthest = getVertices()[i];
-				dist = glm::distance(getVertices()[i].pos, pos);
-			}
-			j++;
+	const std::string& Mesh::GetName(int32_t index) const {
+		if (index < 0 || index >= m_submeshes.size()) {
+			return m_name;
 		}
-		return furthest;
+
+		return m_submeshes[index].name;
 	}
-	glm::vec3 Mesh::getFurthesteachAxisFromPos(const glm::vec3& pos, uint64_t vertLimit) const {
-		if (m_vertices.size() == 0)
-			return glm::vec3(0.f);
-		if (vertLimit == 0 || vertLimit > getVerticesCount())
-			vertLimit = getVerticesCount();
+	void Mesh::RecalculateBounds() {
+		glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
+		glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
 
-		uint32_t skipCount = (uint32_t)glm::ceil(getVerticesCount() / vertLimit);
+		const auto [positionOffset, positionElement] = GetPositionLayoutElement();
+		const size_t stride = GetStride();
 
-		float maxX = 0;
-		float maxY = 0;
-		float maxZ = 0;
+		for (size_t i = 0; i < m_verticesCount; i++) {
+			ByteType* vertex = m_vertices + (i * stride);
 
-		for (uint32_t i = 0, j = 0; i < getVerticesCount(); i += skipCount) {
-			if (j >= vertLimit)
-				break;
-			if (maxX < getVertices()[i].pos.x) {
-				maxX = getVertices()[i].pos.x;
+			glm::vec3 pos = glm::vec3(0.0f);
+
+			if (positionElement.type == ShaderDataType::Float3) {
+				pos = *((const glm::vec3*)vertex + positionOffset);
 			}
-			if (maxY < getVertices()[i].pos.y) {
-				maxY = getVertices()[i].pos.y;
+			else if (positionElement.type == ShaderDataType::Float4) {
+				glm::vec4 vec4Pos = *((const glm::vec4*)vertex + positionOffset);
+				pos = { vec4Pos.x, vec4Pos.y, vec4Pos.z };
 			}
-			if (maxZ < getVertices()[i].pos.z) {
-				maxZ = getVertices()[i].pos.z;
+			else {
+				continue;
 			}
-			j++;
+
+			//min
+			min = glm::min(min, pos);
+			max = glm::max(max, pos);
+			
 		}
-		return { maxX,maxY,maxZ };
+		m_bounds = VFC::createBoundingBox({ min,max });
 	}
-	Mesh Mesh::copyAndLimit(const Ref<Mesh>& srcMesh, uint64_t vertLimit) {
-		if (vertLimit == 0 || vertLimit > srcMesh->getVerticesCount())
-			vertLimit = srcMesh->getVerticesCount();
 
-		Ref<Mesh> mesh = createRef<Mesh>(Mesh::combine(srcMesh));
+	void Mesh::CalculateNormals() {
+		if (!m_vertices || m_verticesCount == 0)
+			return;
 
-		uint32_t skipCount = (uint32_t)glm::ceil(mesh->getVerticesCount() / vertLimit);
-
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
-		vertices.resize(vertLimit);
-		indices.resize(vertLimit);
-
-		for (uint32_t i = 0, j = 0; i < mesh->getVerticesCount(); i += skipCount) {
-			if (j >= vertLimit)
-				break;
-			vertices[j] = mesh->getVertices()[i];
-			indices[j] = j;
-			j++;
+		if (m_defaultVertexLayout) {
+			CalculateNormalsInternal((Vertex*)m_vertices);
+			ConstructMesh(DefaultVertexLayout());
 		}
-		mesh.reset();
-		return Mesh(vertices, indices);
-	}
-	Mesh Mesh::combine(const Mesh& mesh) {
-		return combine(createRef<Mesh>(mesh));
-	}
-	Mesh Mesh::combine(const Ref<Mesh>& mesh) {
-		if (mesh->m_subMeshCount == 0)
-			return *mesh.get();
-
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
-		uint32_t indicesOffset = 0;
-
-		for (auto& sub : mesh->m_subMeshes) {
-			indicesOffset = (uint32_t)vertices.size();
-			for (auto& vertex : sub.m_vertices) {
-				vertices.push_back(vertex);
-			}
-			for (auto& index : sub.m_indices) {
-				indices.push_back(index + indicesOffset);
-			}
+		else if (m_defaultSkinnedVertexLayout) {
+			CalculateNormalsInternal((SkinnedVertex*)m_vertices);
+			ConstructMesh(DefaultVertexLayout());
 		}
-		return Mesh(vertices, indices);
 	}
 }

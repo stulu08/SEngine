@@ -160,6 +160,45 @@ namespace Stulu {
 		return m_actor->is<physx::PxRigidDynamic>();
 	}
 
+    void RigidbodyComponent::Serialize(YAML::Emitter& out) const {
+        out << YAML::Key << "UseGravity" << YAML::Value << UseGravity;
+        out << YAML::Key << "RotationLockX" << YAML::Value << RotationLockX;
+        out << YAML::Key << "RotationLockY" << YAML::Value << RotationLockY;
+        out << YAML::Key << "RotationLockZ" << YAML::Value << RotationLockZ;
+        out << YAML::Key << "MoveLockX" << YAML::Value << MoveLockX;
+        out << YAML::Key << "MoveLockY" << YAML::Value << MoveLockY;
+        out << YAML::Key << "MoveLockZ" << YAML::Value << MoveLockZ;
+        out << YAML::Key << "Kinematic" << YAML::Value << Kinematic;
+        out << YAML::Key << "RetainAccelaration" << YAML::Value << RetainAccelaration;
+        out << YAML::Key << "Mass" << YAML::Value << Mass;
+        out << YAML::Key << "MassCenterPosition" << YAML::Value << MassCenterPosition;
+    }
+
+    void RigidbodyComponent::Deserialize(YAML::Node& node) {
+        if (node["UseGravity"])
+            UseGravity = node["UseGravity"].as<bool>();
+        if (node["RotationLockX"])
+            RotationLockX = node["RotationLockX"].as<bool>();
+        if (node["RotationLockY"])
+            RotationLockY = node["RotationLockY"].as<bool>();
+        if (node["RotationLockZ"])
+            RotationLockZ = node["RotationLockZ"].as<bool>();
+        if (node["MoveLockX"])
+            MoveLockX = node["MoveLockX"].as<bool>();
+        if (node["MoveLockY"])
+            MoveLockY = node["MoveLockY"].as<bool>();
+        if (node["MoveLockZ"])
+            MoveLockZ = node["MoveLockZ"].as<bool>();
+        if (node["Kinematic"])
+            Kinematic = node["Kinematic"].as<bool>();
+        if (node["RetainAccelaration"])
+            RetainAccelaration = node["RetainAccelaration"].as<bool>();
+        if (node["Mass"])
+            Mass = node["Mass"].as<float>();
+        if (node["MassCenterPosition"])
+            MassCenterPosition = node["MassCenterPosition"].as<glm::vec3>();
+    }
+
     void RigidbodyComponent::SetRotationLock(uint8_t index, bool value) {
         physx::PxRigidDynamicLockFlags flags = (physx::PxRigidDynamicLockFlag::Enum)0;
         if (RuntimeCanChange())

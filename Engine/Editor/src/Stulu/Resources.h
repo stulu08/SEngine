@@ -4,11 +4,11 @@
 namespace Editor {
 	class Resources {
 	public:
-		static Stulu::Ref<Stulu::Texture2D>& GetLogo();
-		static Stulu::Ref<Stulu::Texture2D>& GetDirectoryIcon();
-		static Stulu::Ref<Stulu::Texture2D>& GetFileIcon();
-		static Stulu::Ref<Stulu::Texture2D>& GetSceneIcon();
-		static Stulu::Ref<Stulu::Texture2D>& GetCodeIcon(const std::string& extension = "");
+		static Stulu::Texture2D* GetLogo();
+		static Stulu::Texture2D* GetDirectoryIcon();
+		static Stulu::Texture2D* GetFileIcon();
+		static Stulu::Texture2D* GetSceneIcon();
+		static Stulu::Texture2D* GetCodeIcon(const std::string& extension = "");
 
 		static std::string GetIconsFont();
 		static std::string GetFont();
@@ -19,9 +19,9 @@ namespace Editor {
 		static Stulu::Ref<Stulu::Shader>& GetTransparentShader();
 
 
-		static Stulu::Ref<Stulu::Texture>& GetLightTexture();
-		static Stulu::Ref<Stulu::Texture>& GetDirectionalLightTexture();
-		static Stulu::Ref<Stulu::Texture>& GetSpotLightTexture();
-		static Stulu::Ref<Stulu::Texture>& GetCameraTexture();
+		static Stulu::Texture2D* GetLightTexture();
+		static Stulu::Texture2D* GetDirectionalLightTexture();
+		static Stulu::Texture2D* GetSpotLightTexture();
+		static Stulu::Texture2D* GetCameraTexture();
 	};
 }

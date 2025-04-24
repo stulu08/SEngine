@@ -195,7 +195,7 @@ namespace Editor {
 		m_windowPos = ImGui::GetCursorScreenPos();
 
 		auto& texture = m_sceneCamera.getCamera().getFrameBuffer()->getColorAttachment();
-		ImGui::Image(texture, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+		ImGui::Image(texture.get(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 
 		glm::vec2 windowPos = glm::vec2(ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Min.y);
 		Gizmo::setRect(windowPos.x, windowPos.y, (float)m_width, (float)m_height);
@@ -203,10 +203,10 @@ namespace Editor {
 
 		Gizmo::setWindow(GetID(), &OpenPtr());
 
-		Stulu::UUID sceneUUID = Controls::ReceiveDragDopAsset(AssetType::Scene);
+		Stulu::UUID sceneUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<SceneAsset>());
 		if (sceneUUID != Stulu::UUID::null) {
-			Asset& asset = AssetsManager::get(sceneUUID);
-			App::get().GetLayer().OpenScene(asset.path);
+			SceneAsset asset = AssetsManager::GlobalInstance().GetAsset<SceneAsset>(sceneUUID);
+			App::get().GetLayer().OpenScene(asset.Path());
 		}
 	}
 	void ScenePanel::DrawImGuizmo() {
@@ -223,7 +223,7 @@ namespace Editor {
 		const glm::vec3& cameraPos = sceneCamera.getTransform().GetWorldPosition();
 		const float gizmoViewDistance = 50.0f;
 		//draw all cameras
-		for (entt::entity goID : scene->getAllGameObjectsWith<CameraComponent>()) {
+		for (entt::entity goID : scene->GetAllWith<CameraComponent>()) {
 			GameObject go = GameObject(goID, scene.get());
 			TransformComponent& transf = go.getComponent<TransformComponent>();
 			float camDistance = glm::distance(cameraPos, transf.GetWorldPosition());
@@ -233,7 +233,7 @@ namespace Editor {
 					glm::vec3(.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))), Resources::GetCameraTexture());
 		}
 		//draw all lights
-		for (entt::entity goID : scene->getAllGameObjectsWith<LightComponent>()) {
+		for (entt::entity goID : scene->GetAllWith<LightComponent>()) {
 			GameObject go = GameObject(goID, scene.get());
 			TransformComponent& transf = go.getComponent<TransformComponent>();
 			LightComponent& light = go.getComponent<LightComponent>();

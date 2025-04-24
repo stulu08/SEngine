@@ -3,22 +3,25 @@
 
 namespace Stulu {
 	std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&, Scene*)>> Component::m_componentCopyList;
+	std::unordered_map<size_t, std::function<void(YAML::Emitter&, GameObject)>> Component::m_componentSerializeList;
+	std::unordered_map<size_t, std::function<void(YAML::Node&, GameObject)>> Component::m_componentDeserializeList;
+	std::unordered_map<size_t, std::string> Component::m_componentTable;
 	
 	void Component::RegisterBaseComponents() {
-		Register<GameObjectBaseComponent>("Stulu.GameObjectBaseComponent");
-		Register<TransformComponent>("Stulu.TransformComponent");
+		Register<GameObjectBaseComponent>("GameObjectBaseComponent", "Stulu.GameObjectBaseComponent");
+		Register<TransformComponent>("TransformComponent", "Stulu.TransformComponent");
 
-		Register<SpriteRendererComponent>("Stulu.SpriteRendererComponent");
-		Register<CircleRendererComponent>("Stulu.CircleRendererComponent");
+		Register<SpriteRendererComponent>("SpriteRendererComponent", "Stulu.SpriteRendererComponent");
+		Register<CircleRendererComponent>("CircleRendererComponent", "Stulu.CircleRendererComponent");
 		
-		Register<LightComponent>("Stulu.LightComponent");
-		Register<MeshRendererComponent>("Stulu.MeshRendererComponent");
-		Register<MeshFilterComponent>("Stulu.MeshFilterComponent");
+		Register<LightComponent>("LightComponent", "Stulu.LightComponent");
+		Register<MeshRendererComponent>("MeshRendererComponent", "Stulu.MeshRendererComponent");
+		Register<MeshFilterComponent>("MeshFilterComponent", "Stulu.MeshFilterComponent");
 		
-		Register<SkyBoxComponent>("Stulu.SkyBoxComponent");
-		Register<PostProcessingComponent>("Stulu.PostProcessingComponent");
-		Register<CameraComponent>("Stulu.CameraComponent");
+		Register<SkyBoxComponent>("SkyBoxComponent", "Stulu.SkyBoxComponent");
+		Register<PostProcessingComponent>("PostProcessingComponent", "Stulu.PostProcessingComponent");
+		Register<CameraComponent>("CameraComponent", "Stulu.CameraComponent");
 		
-		Register<ScriptingComponent>("Stulu.ScriptingComponent");
+		Register<ScriptingComponent>("ScriptingComponent", "Stulu.ScriptingComponent");
 	}
 }

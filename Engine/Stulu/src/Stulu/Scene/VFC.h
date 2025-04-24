@@ -22,7 +22,6 @@ namespace Stulu {
 	class STULU_API BoundingBoxAABB : public BoundingBox {
 	public:
 		BoundingBoxAABB() = default;
-		BoundingBoxAABB(const Mesh* mesh);
 		BoundingBoxAABB(const AABB& aabb)
 			: m_center{ (aabb.max + aabb.min) * 0.5f }, m_extents{ aabb.max.x - m_center.x, aabb.max.y - m_center.y, aabb.max.z - m_center.z }, m_aabb(aabb),
 			m_transformedCenter(m_center), m_transformedExtents(m_extents) {}
@@ -88,7 +87,8 @@ namespace Stulu {
 	};
 	class STULU_API VFC {
 	public:
-		static Ref<BoundingBox> createBoundingBox(const Mesh* mesh);
+		static Ref<BoundingBox> createBoundingBox(const glm::vec3& center, const glm::vec3& extents);
+		static Ref<BoundingBox> createBoundingBox(const AABB& aabb);
 		static bool isInView(const Ref<BoundingBox>& boundingBox);
 		static bool isInView(const BoundingBox* boundingBox);
 		static Frustum setCamera(float aspect, float zNear, float zFar, float fovY, TransformComponent& transform);
