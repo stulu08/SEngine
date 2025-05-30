@@ -29,7 +29,7 @@ project "Managed Assembly"
 		optimize "off"
 
 	filter "configurations:Release"
-		runtime "Release"
+		runtime "Debug"
 		optimize "on"
 	
 	filter "configurations:Dist"

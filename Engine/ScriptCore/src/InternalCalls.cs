@@ -3,7 +3,7 @@ using System.Data;
 using System.Runtime.CompilerServices;
 
 namespace Stulu {
-	using _UUID = System.UInt64;
+	using IDType = System.UInt64;
 	static internal class InternalCalls {
 		#region Application
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -204,7 +204,7 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void renderer2D_drawQuad(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void renderer2D_drawTexturedQuad(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, ref Vector2 tiling, _UUID textureID);
+		internal extern static void renderer2D_drawTexturedQuad(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, ref Vector2 tiling, IDType textureID);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void renderer2D_drawCircle(ref Vector3 pos, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color, float thickness, float fade);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -230,17 +230,17 @@ namespace Stulu {
 		#endregion
 		#region Texture2D
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static float texture2d_getWidth(_UUID textureID);
+		internal extern static float texture2d_getWidth(IDType textureID);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static float texture2d_getHeight(_UUID textureID);
+		internal extern static float texture2d_getHeight(IDType textureID);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static string texture2d_getPath(_UUID textureID);
+		internal extern static string texture2d_getPath(IDType textureID);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static _UUID texture2d_findbypath(string path);
+		internal extern static IDType texture2d_findbypath(string path);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static _UUID texture2d_getWhiteTexture();
+		internal extern static IDType texture2d_getWhiteTexture();
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static _UUID texture2d_getBlackTexture();
+		internal extern static IDType texture2d_getBlackTexture();
 		#endregion
 		#region Folders
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -248,9 +248,9 @@ namespace Stulu {
 		#endregion
 		#region SpriteRenderer
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static _UUID spriteRenComp_getTexture(ulong entityId);
+		internal extern static IDType spriteRenComp_getTexture(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void spriteRenComp_setTexture(ulong entityId, _UUID id);
+		internal extern static void spriteRenComp_setTexture(ulong entityId, IDType id);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void spriteRenComp_getTiling(ulong entityId, out Vector2 tiling);
 		[MethodImpl(MethodImplOptions.InternalCall)]

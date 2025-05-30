@@ -6,14 +6,14 @@ namespace Stulu {
 	class STULU_API MonoObjectInstance;
 	class STULU_API ScriptAssembly {
 	public:
-		inline ScriptAssembly(const std::string& assembly) {
-			Load(assembly);
+		inline ScriptAssembly(const std::string& assembly, bool loadDebugSymboles = false) {
+			Load(assembly, loadDebugSymboles);
 		}
 		inline ~ScriptAssembly() {
 			Unload();
 		}
 
-		void Load(const std::string& assembly);
+		void Load(const std::string& assembly, bool loadDebugSymboles = false);
 		void Unload();
 
 		std::vector<Mono::Class> LoadAllClasses(Mono::Class parentClass);
@@ -34,7 +34,7 @@ namespace Stulu {
 		Mono::Assembly getAssembly() const { return m_assembly; }
 		Mono::Image getImage() const { return m_image; }
 	private:
-		void LoadAssembly(const std::string& assembly);
+		void LoadAssembly(const std::string& assembly, bool loadDebugSymboles = false);
 
 		Mono::Assembly m_assembly = nullptr;
 		Mono::Image m_image = nullptr;

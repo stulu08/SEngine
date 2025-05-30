@@ -38,6 +38,10 @@ namespace Stulu {
 			Renderer2D::init();
 		}
 	}
+	void Renderer::Shutdown() {
+		Renderer2D::shutdown();
+		s_data = Data();
+	}
 	void Renderer::onWindowResize(WindowResizeEvent& e) {
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}

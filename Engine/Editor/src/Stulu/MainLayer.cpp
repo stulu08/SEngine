@@ -22,12 +22,26 @@ namespace Editor {
 		
 		LoadShotcuts();
 	}
-	MainLayer::~MainLayer()
-	{}
+	MainLayer::~MainLayer() {
+		for (auto& [hash, panel] : m_panels) {
+			if(panel)
+				delete panel;
+		}
+	}
 
 	static Mono::Method debugMethod = nullptr;
 
 	void MainLayer::onAttach() {
+		{
+			AddPanel<LogPanel>();
+			auto sink = createRef<MemoryLogSink>();
+			sink->set_formatter(std::make_unique<spdlog::pattern_formatter>("%v"));
+			Log::AddSink(sink);
+			m_logPanel = &GetPanel<LogPanel>();
+		}
+
+
+
 		AddPanel<HierarchyPanel>();
 		AddPanel<ProfilingPanel>();
 		AddPanel<AssetBrowser>(App::get().GetProject().GetAssetPath());
@@ -56,26 +70,6 @@ namespace Editor {
 
 		std::sort(m_shortcuts.begin(), m_shortcuts.end(), std::greater<Shortcut>());
 		AddPanel<ShortcutPanel>();
-
-		/*
-		// Asset Test
-		auto uuid = Stulu::UUID();
-		const auto shader = Renderer::getShaderSystem()->GetEntry("Default/PBR");
-		SharedMaterialAssetData* materialAsset = new SharedMaterialAssetData(uuid, createRef<TestMaterial>(shader));
-
-		auto* manager = new AssetsManager();
-		{
-			manager->AddAsset(materialAsset, uuid, true);
-			auto asset = manager->GetAsset<AssetHandle<SharedMaterialAssetData>>(uuid);
-			manager->UpdatePath(uuid, "PBR.smaterial");
-			asset.GetAsset().Save();
-		}
-		{
-			auto newUUID = manager->LoadFile("PBR.smaterial");
-			auto asset = manager->GetAsset<AssetHandle<SharedMaterialAssetData>>(newUUID);
-			CORE_INFO("{0}", asset->GetShader()->getName());
-		}
-		*/
 	}
 
 
@@ -106,7 +100,11 @@ namespace Editor {
 				auto& transform = selected.getComponent<TransformComponent>();
 				ImGui::Text("Parent: %" IM_PRIu64, (uint64_t)transform.GetParent());
 				ImGui::Text("Childs: %" IM_PRIu64, (uint64_t)transform.GetChildren().size());
+				if (ImGui::Button("Make reflective")) {
+					selected.getComponent<MeshRendererComponent>().material = Stulu::Resources::ReflectiveMaterialAsset();
+				}
 			}
+
 			static Stulu::UUID texture = Stulu::UUID::null;
 			Controls::Texture2D("Texture Test", texture);
 			static Stulu::UUID material = Stulu::UUID::null;
@@ -184,8 +182,8 @@ namespace Editor {
 					RenderCommand::setStencil(StencilMode::WriteToBuffer);
 					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
 						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
-						if (meshFilter.mesh.IsValid()) {
-							Renderer::submit(meshFilter.mesh->GetVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
+						if (meshFilter.GetMesh().IsValid()) {
+							Renderer::submit(meshFilter.GetMesh()->GetVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
 						}
 					}
 					RenderCommand::setStencil(StencilMode::DisableWriting);
@@ -201,8 +199,8 @@ namespace Editor {
 
 					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
 						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
-						if (meshFilter.mesh.IsValid()) {
-							Renderer::submit(meshFilter.mesh->GetVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
+						if (meshFilter.GetMesh().IsValid()) {
+							Renderer::submit(meshFilter.GetMesh()->GetVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
 						}
 					}
 					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
@@ -227,6 +225,14 @@ namespace Editor {
 			}
 		}
 
+		// bounding box
+		if (selected.hasComponent<MeshRendererComponent>()) {
+			TransformComponent& transform = selected.getComponent<TransformComponent>();
+
+			const BoundingBox& box = transform.GetBounds();
+			glm::mat4 trans = Math::createMat4(box.getTransformedCenter(), box.getTransformedExtents());
+			Gizmo::drawOutlineCube(trans, COLOR_CYAN);
+		}
 
 		//camera view frustum
 		if (selected.hasComponent<CameraComponent>()) {
@@ -395,6 +401,9 @@ namespace Editor {
 
 		GetActiveScene()->onRuntimeStart();
 		ImGui::SetWindowFocus(m_gamePanel->GetID().c_str());
+
+		if (m_logPanel->IsClearOnPlay())
+			m_logPanel->Clear();
 	}
 	void MainLayer::StopRuntime() {
 		GetActiveScene()->onRuntimeStop();

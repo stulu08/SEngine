@@ -39,9 +39,9 @@ namespace Editor {
 
 		Controls::Bool("Enabled", sceneSettings.enablePhsyics3D);
 
-		if (!sceneSettings.enablePhsyics3D)
-			ImGui::BeginDisabled();
-
+		if (!sceneSettings.enablePhsyics3D || !scene->getCaller()->HasLayer<PhysicsScene>())
+			return;
+		
 		PhysicsScene& physicsLayer = scene->getCaller()->GetLayer<PhysicsScene>();
 
 		glm::vec3 gravity = physicsLayer.GetGravity();
@@ -49,9 +49,6 @@ namespace Editor {
 			physicsLayer.SetGravity(gravity);
 		}
 		
-		
-		if (!sceneSettings.enablePhsyics3D)
-			ImGui::EndDisabled();
 	}
 }
 

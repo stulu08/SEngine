@@ -12,7 +12,7 @@ namespace Stulu {
 		Other, 
 		Vector4_t, Vector3_t, Vector2_t, 
 		Float_t, Int_t, UInt_t, Bool_t, 
-		AssetHandle, GameObject_t
+		Texture2D_t, GameObject_t
 	};
 	class STULU_API ManagedProperty {
 	public:
@@ -214,15 +214,19 @@ namespace Stulu {
 		virtual void SetValue(const UUID& value);
 
 		virtual size_t getSize() const override { return sizeof(UUID); };
-		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::AssetHandle; };
 	protected:
-		Ref<UInt64Property> m_idProperty = nullptr;;
-		Ref<MonoObjectInstance> m_asset = nullptr;
+		Mono::Method m_initMethod = nullptr;
+		Mono::ClassField m_idField = nullptr;
+		Mono::ClassField m_gcField = nullptr;
+
+		static inline constexpr uint32_t GC_NULL = 0;
 	};
 	class STULU_API Texture2DProperty : public AssetProperty {
 	public:
 		Texture2DProperty(Mono::Object object, Mono::ClassField field)
 			: AssetProperty(object, field){}
+
+		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::Texture2D_t; };
 	};
 #pragma endregion
 	class STULU_API GameObjectProperty : public ManagedProperty {
@@ -237,13 +241,11 @@ namespace Stulu {
 		virtual void SetValueFromBuffer(void* source) override;
 		virtual entt::entity GetValue() const;
 		virtual void SetValue(entt::entity value);
-		virtual uint64_t GetValueRaw() const;
-		virtual void SetValueRaw(uint64_t value);
 
 		virtual size_t getSize() const override { return sizeof(UUID); };
 		virtual ManagedPropertyType getType() const override { return ManagedPropertyType::GameObject_t; };
 	protected:
-		Ref<UInt64Property> m_idProperty = nullptr;;
-		Ref<MonoObjectInstance> m_gameObject = nullptr;
+		Mono::Method m_initMethod = nullptr;
+		Mono::ClassField m_idField = nullptr;
 	};
 }

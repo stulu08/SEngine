@@ -490,77 +490,78 @@ namespace Stulu {
 	}
 
 	void renderCube() {
-		static Ref<VertexArray> s_cubeVAO = nullptr;
-		if (!s_cubeVAO) {
-			std::vector<Vertex> vertices{
-				//top
-				{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//bottom														 		 
-				{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//right															 		 
-				{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//left															 		 
-				{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//front															 		 
-				{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
-				//back															 		 
-				{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-			};
-			std::vector<uint32_t> indices{
-				//top
-				0,1,2,
-				2,3,0,
-				//bottom
-				6,5,4,
-				4,7,6,
-				//right
-				8,9,10,
-				10,11,8,
-				//left
-				14,13,12,
-				12,15,14,
-				//front
-				18,17,16,
-				16,19,18,
-				//back
-				20,21,22,
-				22,23,20
-			};
-
-
-			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-
-			s_cubeVAO = Stulu::VertexArray::create();
-			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
-			vertexBuffer->setLayout(BufferLayout{
-				{ Stulu::ShaderDataType::Float3, "a_pos" },
-				{ Stulu::ShaderDataType::Float3, "a_normal" },
-				{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-				{ Stulu::ShaderDataType::Float4, "a_color" },
-				});
-			s_cubeVAO->addVertexBuffer(vertexBuffer);
-			indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
-			s_cubeVAO->setIndexBuffer(indexBuffer);
-		}
+		//static Ref<VertexArray> s_cubeVAO = nullptr;
+		//if (!s_cubeVAO) {
+		//	std::vector<Vertex> vertices{
+		//		//top
+		//		{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+		//		{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+		//		{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+		//		{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+		//		//bottom														 		 
+		//		{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+		//		{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+		//		{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+		//		{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+		//		//right															 		 
+		//		{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+		//		{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+		//		{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+		//		{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+		//		//left															 		 
+		//		{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
+		//		{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
+		//		{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
+		//		{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
+		//		//front															 		 
+		//		{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+		//		{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+		//		{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
+		//		{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
+		//		//back															 		 
+		//		{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+		//		{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+		//		{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		//		{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+		//	};
+		//	std::vector<uint32_t> indices{
+		//		//top
+		//		0,1,2,
+		//		2,3,0,
+		//		//bottom
+		//		6,5,4,
+		//		4,7,6,
+		//		//right
+		//		8,9,10,
+		//		10,11,8,
+		//		//left
+		//		14,13,12,
+		//		12,15,14,
+		//		//front
+		//		18,17,16,
+		//		16,19,18,
+		//		//back
+		//		20,21,22,
+		//		22,23,20
+		//	};
+		//
+		//
+		//	Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
+		//	Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
+		//
+		//	s_cubeVAO = Stulu::VertexArray::create();
+		//	vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
+		//	vertexBuffer->setLayout(BufferLayout{
+		//		{ Stulu::ShaderDataType::Float3, "a_pos" },
+		//		{ Stulu::ShaderDataType::Float3, "a_normal" },
+		//		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
+		//		{ Stulu::ShaderDataType::Float4, "a_color" },
+		//		});
+		//	s_cubeVAO->addVertexBuffer(vertexBuffer);
+		//	indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
+		//	s_cubeVAO->setIndexBuffer(indexBuffer);
+		//}
+		auto s_cubeVAO = Resources::CubeMesh()->GetVertexArray();
 		s_cubeVAO->bind();
 		glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
 		glBindVertexArray(0);

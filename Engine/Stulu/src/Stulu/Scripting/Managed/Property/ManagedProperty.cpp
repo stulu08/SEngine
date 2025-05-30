@@ -321,21 +321,16 @@ namespace Stulu {
 		Mono::Class assetClass = getDataType().GetClass();
 
 		if (assetClass) {
-			uint64_t id = 0;
-			m_asset = createRef<MonoObjectInstance>(assetClass, assembly.get());
-			m_idProperty = m_asset->FindFieldAs<UInt64Property>("_id");
-
-			// get value if already asigned
-			Mono::Object asignedAsset = m_fieldPtr.GetValueObject(domain, m_parentObjectPtr);
-			if (asignedAsset) {
-				UInt64Property other = UInt64Property(asignedAsset, m_idProperty->getField());
-				uint64_t id = other.GetValue();
-				SetValue(id);
-			}
+			m_idField = assetClass.GetFieldFromName("assetID");
+			m_gcField = assetClass.GetFieldFromName("gcHandle");
+			m_initMethod = assetClass.GetMethodFromNameInHierarchy("Initilize", 1);
 		}
 		else {
-			CORE_ERROR("Cant create AssetProperty, assetClass == 0")
+			CORE_ERROR("AssetProperty: Missing 'assetClass' field.");
 		}
+		CORE_ASSERT(m_idField, "AssetProperty: Missing 'assetID' field.");
+		CORE_ASSERT(m_gcField, "AssetProperty: Missing 'gcHandle' field.");
+		CORE_ASSERT(m_initMethod, "AssetProperty: Missing 'Initialize' method.");
 	}
 	void AssetProperty::Serialize(YAML::Emitter& out) const {
 		out << YAML::Key << "Value" << GetValue();
@@ -360,52 +355,61 @@ namespace Stulu {
 		SetValue(*((uint64_t*)source));
 	}
 	UUID AssetProperty::GetValue() const {
-		UUID outValue = UUID::null;
-		if (m_idProperty)
-			outValue = m_idProperty->GetValue();
-		else
-			CORE_ERROR("Cant get value of asset, m_idProperty == 0");
-		return outValue;
+		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
+		Mono::Object assetHandle = m_fieldPtr.GetValueObject(domain, m_parentObjectPtr);
 
+		uint64_t id = UUID::null;
+		if (assetHandle) {
+			m_idField.GetValue(assetHandle, &id);
+		}
+		return id;
 	}
 	void AssetProperty::SetValue(const UUID& value) {
-		if (m_idProperty) {
-			m_idProperty->SetValue((uint64_t)value);
+		if (value == UUID::null) {
+			m_fieldPtr.SetValue(m_parentObjectPtr, nullptr);
+			return;
 		}
-		else
-			CORE_ERROR("Cant set value of asset, m_idProperty == 0");
+
+		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
+		const auto& assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
+
+		Mono::Class assetClass = m_fieldPtr.GetType().GetClass();
+		if (!assetClass) {
+			CORE_ERROR("AssetProperty::SetValue: Cannot resolve class.");
+			return;
+		}
+		Mono::Object newAssetHandle = Mono::Object::New(domain, assetClass);
+
+		// reset garbage collector handle
+		m_gcField.SetValue(newAssetHandle, (void*)&GC_NULL);
+
+		uint64_t assetID = value;
+		void* arguments[1] = { &assetID };
+		assembly->InvokeMethod(m_initMethod, newAssetHandle, arguments);
+		m_fieldPtr.SetValue(m_parentObjectPtr, newAssetHandle);
 	}
 #pragma endregion
 	GameObjectProperty::GameObjectProperty(Mono::Object object, Mono::ClassField field)
 		: ManagedProperty(object, field) {
 		const auto& assembly = Application::get().getAssemblyManager()->getAppAssembly();
 		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
-		Mono::Class goClass = getDataType().GetClass();
+		Mono::Class gameObjectClass = getDataType().GetClass();
 
-		if (goClass) {
-			m_gameObject = createRef<MonoObjectInstance>(goClass, assembly.get());
-			m_idProperty = m_gameObject->FindFieldAs<UInt64Property>("ID");
-
-			// get value if already asigned
-			Mono::Object assignedGo = m_fieldPtr.GetValueObject(domain, m_parentObjectPtr);
-			if (assignedGo) {
-				UInt32Property other = UInt32Property(assignedGo, m_idProperty->getField());
-				uint32_t id = other.GetValue();
-				SetValueRaw(id);
-			}
-			else {
-				SetValueRaw(entt::null);
-			}
+		if (gameObjectClass) {
+			m_idField = gameObjectClass.GetFieldFromName("ID");
+			m_initMethod = gameObjectClass.GetMethodFromName("Init", 1);
 		}
 		else {
-			CORE_ERROR("Cant create GameObjectProperty, goClass == 0")
+			CORE_ERROR("GameObjectProperty: Missing 'gameObjectClass' field.");
 		}
+		CORE_ASSERT(m_idField, "GameObjectProperty: Missing 'ID' field.");
+		CORE_ASSERT(m_initMethod, "GameObjectProperty: Missing 'Init' method.");
 	}
 	void GameObjectProperty::Serialize(YAML::Emitter& out) const {
 		out << YAML::Key << "Value" << (uint64_t)GetValue();
 	}
 	void GameObjectProperty::Deserialize(YAML::detail::iterator_value& node) {
-		SetValue((entt::entity)node["Value"].as<uint64_t>());
+		SetValue(node["Value"].as<entt::entity>());
 	}
 	void GameObjectProperty::CopyValueTo(Ref<ManagedProperty> other) const {
 		if (other->getType() != this->getType())
@@ -424,28 +428,34 @@ namespace Stulu {
 		SetValue(*((entt::entity*)source));
 	}
 	entt::entity GameObjectProperty::GetValue() const {
-		GameObject obj = GameObject((entt::entity)GetValueRaw(), StuluBindings::GetCurrentRegistry());
-		if(obj.IsValid())
-			return obj.GetID();
-		return entt::null;
+		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
+		Mono::Object objectHandle = m_fieldPtr.GetValueObject(domain, m_parentObjectPtr);
+
+		entt::entity id = entt::null;
+		if (objectHandle) {
+			m_idField.GetValue(objectHandle, &id);
+		}
+		return id;
 	}
 	void GameObjectProperty::SetValue(entt::entity value) {
-		SetValueRaw(GameObject::GetById(value, StuluBindings::GetCurrentRegistry()));
-	}
-	uint64_t GameObjectProperty::GetValueRaw() const {
-		uint64_t outValue = entt::null;
-		if (m_idProperty)
-			outValue = m_idProperty->GetValue();
-		else
-			CORE_ERROR("Cant get value of GameObject, m_idProperty == 0");
-
-		return (uint64_t)outValue;
-	}
-	void GameObjectProperty::SetValueRaw(uint64_t value) {
-		if (m_idProperty) {
-			m_idProperty->SetValue(value);
+		if (value == entt::null) {
+			m_fieldPtr.SetValue(m_parentObjectPtr, nullptr);
+			return;
 		}
-		else
-			CORE_ERROR("Cant set value of GameObject, m_idProperty == 0");
+
+		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
+		const auto& assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
+
+		Mono::Class gameObjectClass = m_fieldPtr.GetType().GetClass();
+		if (!gameObjectClass) {
+			CORE_ERROR("GameObjectProperty::SetValue: Cannot resolve class.");
+			return;
+		}
+		Mono::Object newGameObjectHandle = Mono::Object::New(domain, gameObjectClass);
+
+		entt::entity objectID = value;
+		void* arguments[1] = { &objectID };
+		assembly->InvokeMethod(m_initMethod, newGameObjectHandle, arguments);
+		m_fieldPtr.SetValue(m_parentObjectPtr, newGameObjectHandle);
 	}
 }

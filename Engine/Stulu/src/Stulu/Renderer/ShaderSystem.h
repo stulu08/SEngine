@@ -93,10 +93,6 @@ namespace Stulu {
 		bool m_spirvSupported;
 	};
 
-#define ST_USER_TEXTURE_START 5
-#define ST_USER_TEXTURE_END 15
-#define ST_USER_TEXTURE_COUNT (ST_USER_TEXTURE_END - ST_USER_TEXTURE_START)
-
 #define ST_ShaderViewFlags_DisplayLighting ((uint32_t)ShaderViewFlags::DisplayLighting)
 #define ST_ShaderViewFlags_DisplayDiffuse ((uint32_t)ShaderViewFlags::DisplayDiffuse)
 #define ST_ShaderViewFlags_DisplaySpecular ((uint32_t)ShaderViewFlags::DisplaySpecular)

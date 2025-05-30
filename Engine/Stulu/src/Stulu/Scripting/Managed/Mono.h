@@ -237,6 +237,7 @@ namespace Stulu {
 			ClassField GetFields(void** iter) const;
 
 			Method GetMethodFromName(const std::string& name, int param_count) const;
+			Method GetMethodFromNameInHierarchy(const std::string& name, int param_count) const;
 
 			inline bool operator ==(const Class& left) const {
 				return this->m_class == left.m_class;
@@ -410,6 +411,7 @@ namespace Stulu {
 				return m_thread;
 			}
 
+			static Thread Attach(Domain domain);
 			static Thread GetCurrent();
 			static Thread GetMain();
 			static void SetMain(Thread thread);
@@ -423,9 +425,9 @@ namespace Stulu {
 				: m_handle(ptr) {};
 
 			void Free();
-			Object GetTarget();
+			Object GetTarget() const;
 
-			inline operator uint32_t () {
+			inline operator uint32_t () const {
 				return m_handle;
 			}
 
@@ -520,11 +522,31 @@ namespace Stulu {
 			ST_MONO_API Domain JitThreadAttach(Domain domain);
 		}
 
+		namespace Debug {
+			enum class Format {
+				NONE,
+				MONO,
+				/* Deprecated, the mdb debugger is not longer supported. */
+				DEBUGGER
+			};
+
+			ST_MONO_API void Init(Format format);
+			ST_MONO_API void CreateDomain(Domain domain);
+			ST_MONO_API void OpenImageFromMemory(Image image, const char* data, int32_t dataLen);
+		}
+
+		namespace GC {
+			ST_MONO_API void Collect(int generations);
+			ST_MONO_API int MaxGenerations();
+		}
+
 		ST_MONO_API void SetDirs(const std::string& assembly_dir, const std::string& config_dir);
 		ST_MONO_API Domain GetRootDomain();
 		ST_MONO_API Class GetObjectClass();
+		ST_MONO_API Class GetExceptionClass();
 		ST_MONO_API void AddInternallCall(const std::string& name, const void* method);
 		ST_MONO_API Object RuntimeInvoke(Method method, void* obj, void** params, MonoObject** exc = NULL);
 		ST_MONO_API void RuntimeObjectInit(Object object);
+		ST_MONO_API void PrintUnhandledException(Object object);
 	}
 }

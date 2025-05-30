@@ -8,11 +8,30 @@
 #include "Assets/MaterialAsset.h"
 
 namespace Stulu {
+	static struct StuluResourceStorage {
+		Texture2DAsset BlackTexture;
+		Texture2DAsset WhiteTexture;
+		Texture2DAsset LoadingTexture;
+		Texture2DAsset LogoTexture;
+		SkyBoxAsset DefaultSkybox;
+		MeshAsset CubeMesh;
+		MeshAsset PlaneMesh;
+		Ref<VertexArray> QuadVertexArray;
+		ShaderAsset FullScreenShader;
+		ShaderAsset SkyboxShader;
+		ShaderAsset PBRShader;
+		MaterialAsset DefaultMaterial;
+		MaterialAsset ReflectiveMaterial;
+
+	} s_storage;
+
 	std::string Resources::AppDataDir = "";
 	std::string Resources::AppAssetDir = "";
 	std::string Resources::EngineDataDir = "Data/";
 
 	void Resources::load() {
+		ReleaseAll();
+
 		PBRShader();
 		SkyBoxShader();
 
@@ -29,9 +48,12 @@ namespace Stulu {
 		PlaneMesh();
 	}
 
+	void Resources::ReleaseAll() {
+		s_storage = StuluResourceStorage();
+	}
+
 	Texture2D* Resources::BlackTexture() {
-		static Texture2DAsset tex;
-		if (!tex.IsValid()) {
+		if (!s_storage.BlackTexture.IsValid()) {
 			Ref<Texture2D> blackTexture = Texture2D::create(1, 1);
 			static uint32_t datablack = 0x00000000;
 			blackTexture->setData(&datablack, sizeof(uint32_t));
@@ -40,14 +62,13 @@ namespace Stulu {
 			if (!AssetsManager::GlobalInstance().Contains(UUIDBlackTexture)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDBlackTexture, true);
 			}
-			tex = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDBlackTexture);
+			s_storage.BlackTexture = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDBlackTexture);
 		}
 
-		return *tex;
+		return *s_storage.BlackTexture;
 	}
 	Texture2D* Resources::WhiteTexture() {
-		static Texture2DAsset tex;
-		if (!tex.IsLoaded()) {
+		if (!s_storage.WhiteTexture.IsLoaded()) {
 			Ref<Texture2D> whiteTexture = Texture2D::create(1, 1);
 			static uint32_t dataWhite = 0xffffffff;
 			whiteTexture->setData(&dataWhite, sizeof(uint32_t));
@@ -56,52 +77,48 @@ namespace Stulu {
 			if (!AssetsManager::GlobalInstance().Contains(UUIDWhiteTexture)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDWhiteTexture, true);
 			}
-			tex = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDWhiteTexture);
+			s_storage.WhiteTexture = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDWhiteTexture);
 		}
-		return *tex;
+		return *s_storage.WhiteTexture;
 	}
 	Texture2D* Resources::LoadingTexture() {
-		static Texture2DAsset tex;
-		if (!tex.IsLoaded()) {
+		if (!s_storage.LoadingTexture.IsLoaded()) {
 			const std::string path = EngineDataDir + "/Stulu/Textures/Loading.png";
 			SharedTexture2DAssetData* asset = new SharedTexture2DAssetData(UUIDLoadingTexture, path);
 			if (!AssetsManager::GlobalInstance().Contains(UUIDLoadingTexture)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDLoadingTexture, true);
 			}
-			tex = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDLoadingTexture);
+			s_storage.LoadingTexture = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDLoadingTexture);
 		}
-		return *tex;
+		return *s_storage.LoadingTexture;
 
 	}
 	Texture2D* Resources::LogoTexture() {
-		static Texture2DAsset tex;
-		if (!tex.IsLoaded()) {
+		if (!s_storage.LogoTexture.IsLoaded()) {
 			const std::string path = EngineDataDir + "/Stulu/Textures/PNG - Logo - White.png";
 			SharedTexture2DAssetData* asset = new SharedTexture2DAssetData(UUIDLogoTexture, path);
 			if (!AssetsManager::GlobalInstance().Contains(UUIDLogoTexture)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDLogoTexture, true);
 			}
-			tex = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDLogoTexture);
+			s_storage.LogoTexture = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(UUIDLogoTexture);
 		}
-		return *tex;
+		return *s_storage.LogoTexture;
 	}
 
 	SkyBoxAsset Resources::DefaultSkyBoxAsset() {
-		static SkyBoxAsset tex;
-		if (!tex.IsLoaded()) {
+		if (!s_storage.DefaultSkybox.IsLoaded()) {
 			const std::string path = EngineDataDir + "/Stulu/SkyBox/Default.hdr";
 			SharedSkyBoxAssetData* asset = new SharedSkyBoxAssetData(UUIDDefaultSkyBox, path);
 			if (!AssetsManager::GlobalInstance().Contains(UUIDDefaultSkyBox)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDDefaultSkyBox, true);
 			}
-			tex = AssetsManager::GlobalInstance().GetAsset<SkyBoxAsset>(UUIDDefaultSkyBox);
+			s_storage.DefaultSkybox = AssetsManager::GlobalInstance().GetAsset<SkyBoxAsset>(UUIDDefaultSkyBox);
 		}
-		return tex;
+		return s_storage.DefaultSkybox;
 	}
 
 	MeshAsset Resources::CubeMesh() {
-		static MeshAsset meshAsset;
-		if (!meshAsset.IsLoaded()) {
+		if (!s_storage.CubeMesh.IsLoaded()) {
 			static std::vector<Vertex> vertices{
 				//top
 				{glm::vec3(-0.5f,  0.5f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
@@ -162,13 +179,12 @@ namespace Stulu {
 			if (!AssetsManager::GlobalInstance().Contains(UUIDCubeMesh)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDCubeMesh, true);
 			}
-			meshAsset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(UUIDCubeMesh);
+			s_storage.CubeMesh = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(UUIDCubeMesh);
 		}
-		return meshAsset;
+		return s_storage.CubeMesh;
 	}
 	MeshAsset Resources::PlaneMesh() {
-		static MeshAsset meshAsset;
-		if (!meshAsset.IsLoaded()) {
+		if (!s_storage.PlaneMesh.IsLoaded()) {
 			static std::vector<Vertex> vertices{
 			{glm::vec3(-0.5f,  0.0f,  0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
 			{glm::vec3(-0.5f,  0.0f, -0.5f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
@@ -182,22 +198,21 @@ namespace Stulu {
 
 			Ref<Mesh> mesh = createRef<Mesh>("Plane");
 			mesh->SetData(vertices, indices);
-			SharedMeshAssetData* asset = new SharedMeshAssetData(UUIDCubeMesh, mesh);
+			SharedMeshAssetData* asset = new SharedMeshAssetData(UUIDPlaneMesh, mesh);
 
-			if (!AssetsManager::GlobalInstance().Contains(UUIDCubeMesh)) {
-				AssetsManager::GlobalInstance().AddAsset(asset, UUIDCubeMesh, true);
+			if (!AssetsManager::GlobalInstance().Contains(UUIDPlaneMesh)) {
+				AssetsManager::GlobalInstance().AddAsset(asset, UUIDPlaneMesh, true);
 			}
-			meshAsset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(UUIDCubeMesh);
+			s_storage.PlaneMesh = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(UUIDPlaneMesh);
 		}
-		return meshAsset;
+		return s_storage.PlaneMesh;
 	}
 
 	Ref<VertexArray> Resources::getFullscreenVA() {
-		static Ref<VertexArray> m_quadVertexArray;
-		if (!m_quadVertexArray) {
+		if (!s_storage.QuadVertexArray) {
 			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
 			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-			m_quadVertexArray = Stulu::VertexArray::create();
+			s_storage.QuadVertexArray = Stulu::VertexArray::create();
 			const float vertices[20]{
 				-1.0f,-1.0f,.0f, 0.0f,0.0f,
 				1.0f,-1.0f,.0f, 1.0f,0.0f,
@@ -209,49 +224,46 @@ namespace Stulu {
 		{ Stulu::ShaderDataType::Float3, "a_pos" },
 		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
 				});
-			m_quadVertexArray->addVertexBuffer(vertexBuffer);
+			s_storage.QuadVertexArray->addVertexBuffer(vertexBuffer);
 			uint32_t indices[6]{
 				0,1,2,
 				2,3,0
 			};
 			indexBuffer = Stulu::IndexBuffer::create(6u, indices);
-			m_quadVertexArray->setIndexBuffer(indexBuffer);
+			s_storage.QuadVertexArray->setIndexBuffer(indexBuffer);
 		}
-		return m_quadVertexArray;
+		return s_storage.QuadVertexArray;
 	}
 
 	Shader* Resources::FullscreenShader() {
-		static ShaderAsset shaderAsset;
-		if (!shaderAsset.IsLoaded()) {
+		if (!s_storage.FullScreenShader.IsLoaded()) {
 			SharedShaderAssetData* asset = new SharedShaderAssetData(UUIDQuadShader, Renderer::getShaderSystem()->GetShader("Renderer/QuadFullScreen"));
 			if (!AssetsManager::GlobalInstance().Contains(UUIDQuadShader)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDQuadShader, true);
 			}
-			shaderAsset = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDQuadShader);
+			s_storage.FullScreenShader = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDQuadShader);
 		}
-		return *shaderAsset;
+		return *s_storage.FullScreenShader;
 	}
 	Shader* Resources::SkyBoxShader() {
-		static ShaderAsset shaderAsset;
-		if (!shaderAsset.IsLoaded()) {
+		if (!s_storage.SkyboxShader.IsLoaded()) {
 			SharedShaderAssetData* asset = new SharedShaderAssetData(UUIDSkyBoxShader, Renderer::getShaderSystem()->GetShader("Renderer/SkyBox"));
 			if (!AssetsManager::GlobalInstance().Contains(UUIDSkyBoxShader)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDSkyBoxShader, true);
 			}
-			shaderAsset = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDSkyBoxShader);
+			s_storage.SkyboxShader = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDSkyBoxShader);
 		}
-		return *shaderAsset;
+		return *s_storage.SkyboxShader;
 	}
 	Shader* Resources::PBRShader() {
-		static ShaderAsset shaderAsset;
-		if (!shaderAsset.IsLoaded()) {
+		if (!s_storage.PBRShader.IsLoaded()) {
 			SharedShaderAssetData* asset = new SharedShaderAssetData(UUIDPBRShader, Renderer::getShaderSystem()->GetShader("Default/PBR"));
 			if (!AssetsManager::GlobalInstance().Contains(UUIDPBRShader)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDPBRShader, true);
 			}
-			shaderAsset = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDPBRShader);
+			s_storage.PBRShader = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDPBRShader);
 		}
-		return *shaderAsset;
+		return *s_storage.PBRShader;
 	}
 
 	Ref<TestMaterial> Resources::CreateMaterial(
@@ -298,29 +310,27 @@ namespace Stulu {
 	}
 
 	MaterialAsset Resources::DefaultMaterialAsset() {
-		static MaterialAsset material;
-		if (!material.IsLoaded()) {
+		if (!s_storage.DefaultMaterial.IsLoaded()) {
 			Ref<TestMaterial> defaultMaterial = CreateMaterial("Default");
 
 			SharedMaterialAssetData* asset = new SharedMaterialAssetData(UUIDDefaultMaterial, defaultMaterial);
 			if (!AssetsManager::GlobalInstance().Contains(UUIDDefaultMaterial)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDDefaultMaterial, true);
 			}
-			material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(UUIDDefaultMaterial);
+			s_storage.DefaultMaterial = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(UUIDDefaultMaterial);
 		}
-		return material;
+		return s_storage.DefaultMaterial;
 	}
 	MaterialAsset Resources::ReflectiveMaterialAsset() {
-		static MaterialAsset material;
-		if (!material.IsLoaded()) {
+		if (!s_storage.ReflectiveMaterial.IsLoaded()) {
 			Ref<TestMaterial> defaultMaterial = CreateMaterial("Default Reflective", glm::vec4(1.0f), 1.0f, 0.0f, 1.0f);
 
 			SharedMaterialAssetData* asset = new SharedMaterialAssetData(UUIDReflectiveMaterial, defaultMaterial);
 			if (!AssetsManager::GlobalInstance().Contains(UUIDReflectiveMaterial)) {
 				AssetsManager::GlobalInstance().AddAsset(asset, UUIDReflectiveMaterial, true);
 			}
-			material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(UUIDReflectiveMaterial);
+			s_storage.ReflectiveMaterial = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(UUIDReflectiveMaterial);
 		}
-		return material;
+		return s_storage.ReflectiveMaterial;
 	}
 }

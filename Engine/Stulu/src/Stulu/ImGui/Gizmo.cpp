@@ -21,13 +21,13 @@ namespace Stulu {
 		glm::vec4 color = glm::vec4(1.0f);
 	};
 	static struct Data {
-		glm::mat4 viewMatrix;
-		glm::mat4 projMatrix;
-		glm::vec3 cameraPosition;
+		glm::mat4 viewMatrix = glm::mat4(1.0f);
+		glm::mat4 projMatrix = glm::mat4(1.0f);
+		glm::vec3 cameraPosition = glm::vec3(0.0f);
 
 		std::string window;
-		bool* windowOpen;
-		bool windowBeginCalled;
+		bool* windowOpen = nullptr;
+		bool windowBeginCalled = false;
 
 		float mX = 0.f;
 		float mY = 0.f;
@@ -36,7 +36,7 @@ namespace Stulu {
 		float mXMax = 0.f;
 		float mYMax = 0.f;
 		float mDisplayRatio = 1.f;
-		ImDrawList* mDrawList;
+		ImDrawList* mDrawList = nullptr;
 
 		Ref<FrameBuffer> drawBuffer;
 
@@ -44,19 +44,20 @@ namespace Stulu {
 		static const uint32_t maxCubes = 1000;
 		static const uint32_t maxIndices = maxCubes * 36;
 		static const uint32_t maxVertices = maxCubes * 8;
+		
 		Ref<Shader> cubeShader;
 		Ref<VertexArray> cubeVertexArray;
 		Ref<VertexBuffer> cubeVertexBuffer;
 		uint32_t cubeIndexCount = 0;
-		CubeVertex* cubeVertexBufferBase = nullptr;
+		Scope<CubeVertex[]> cubeVertexBufferBase = nullptr;
 		CubeVertex* cubeVertexBufferPtr = nullptr;
 		glm::vec4 cubeVertexPositions[8];
 
 		//using instancing
-		static const uint32_t maxSpheres = 180; //the buffer has 16kb or smth like this and 180 * sizeof(SphereInstanceData) is smth near 15kb thats why not more than 180, 187 is also find and it breaks at 200 cause yes
+		static const uint32_t maxSpheres = ST_MAX_INSTANCES; //the buffer has 16kb or smth like this and 180 * sizeof(SphereInstanceData) is smth near 15kb thats why not more than 180, 187 is also find and it breaks at 200 cause yes
 		Ref<Shader> sphereShader;
 		Ref<VertexArray> sphereVertexArray;
-		SphereInstanceData* sphereDataBufferBase = nullptr;
+		Scope<SphereInstanceData[]> sphereDataBufferBase = nullptr;
 		SphereInstanceData* sphereDataBufferPtr = nullptr;
 		uint32_t sphereInstanceCount = 0;
 
@@ -85,9 +86,9 @@ namespace Stulu {
 
 		{//cubes
 			Ref<IndexBuffer> indexBuffer;
-			uint32_t* cubeIndices = new uint32_t[s_data.maxIndices];
+			std::vector<uint32_t> cubeIndices = std::vector<uint32_t>(s_data.maxIndices);
 			uint32_t offset = 0;
-			for (uint32_t i = 0; i < s_data.maxIndices; i += 36) {
+			for (size_t i = 0; i < s_data.maxIndices; i += 36) {
 				//front
 				cubeIndices[i +  0] = offset + 0;
 				cubeIndices[i +  1] = offset + 1;
@@ -134,8 +135,8 @@ namespace Stulu {
 
 				offset += 8;
 			}
-			indexBuffer = IndexBuffer::create(s_data.maxIndices, cubeIndices);
-			delete[] cubeIndices;
+			indexBuffer = IndexBuffer::create(s_data.maxIndices, cubeIndices.data());
+			
 			s_data.cubeVertexPositions[0] = { -.5f, -.5f, .5f, 1.0f };
 			s_data.cubeVertexPositions[1] = {  .5f, -.5f, .5f, 1.0f };
 			s_data.cubeVertexPositions[2] = {  .5f,  .5f, .5f, 1.0f };
@@ -155,7 +156,7 @@ namespace Stulu {
 				});
 			s_data.cubeVertexArray->addVertexBuffer(s_data.cubeVertexBuffer);
 			s_data.cubeVertexArray->setIndexBuffer(indexBuffer);
-			s_data.cubeVertexBufferBase = new CubeVertex[s_data.maxVertices];
+			s_data.cubeVertexBufferBase = Scope<CubeVertex[]>(new CubeVertex[s_data.maxVertices]);
 			s_data.cubeShader = Renderer::getShaderSystem()->GetShader("Gizmo/Cube");
 		}
 		{//spheres
@@ -172,9 +173,12 @@ namespace Stulu {
 				s_data.sphereVertexArray->setIndexBuffer(ib);
 			}
 			
-			s_data.sphereDataBufferBase = new SphereInstanceData[s_data.maxSpheres];
+			s_data.sphereDataBufferBase = Scope<SphereInstanceData[]>(new SphereInstanceData[s_data.maxSpheres]);
 			s_data.cubeShader = Renderer::getShaderSystem()->GetShader("Gizmo/Sphere");
 		}
+	}
+	void Gizmo::ShutDown() {
+		s_data = Data();
 	}
 	bool Gizmo::Begin() {
 		const bool windowOpen = s_data.windowOpen ? *s_data.windowOpen : true;
@@ -273,12 +277,13 @@ namespace Stulu {
 		
 		glm::mat4 transform = tc.GetWorldTransform();
 		
-		float* snapArray = new float[3]{ snap.x, snap.y, snap.z };
+		const float* snapPtr = glm::value_ptr(snap);
 		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
-			snapArray = nullptr;
+			snapPtr = nullptr;
 		
+
 		ImGuizmo::MANIPULATED operated = ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
-			(ImGuizmo::OPERATION)((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapArray);
+			(ImGuizmo::OPERATION)((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapPtr);
 
 		if (ImGuizmo::IsUsing() && operated) {
 			s_data.used = true;
@@ -529,16 +534,16 @@ namespace Stulu {
 
 	void Gizmo::resetCubes() {
 		s_data.cubeIndexCount = 0;
-		s_data.cubeVertexBufferPtr = s_data.cubeVertexBufferBase;
+		s_data.cubeVertexBufferPtr = s_data.cubeVertexBufferBase.get();
 	}
 	void Gizmo::resetSpheres() {
 		s_data.sphereInstanceCount = 0;
-		s_data.sphereDataBufferPtr = s_data.sphereDataBufferBase;
+		s_data.sphereDataBufferPtr = s_data.sphereDataBufferBase.get();
 	}
 	void Gizmo::flushCubes() {
 		if (s_data.cubeIndexCount > 0) {
-			uint32_t dataSize = uint32_t((uint8_t*)s_data.cubeVertexBufferPtr - (uint8_t*)s_data.cubeVertexBufferBase);
-			s_data.cubeVertexBuffer->setData(s_data.cubeVertexBufferBase, dataSize);
+			uint32_t dataSize = uint32_t((uint8_t*)s_data.cubeVertexBufferPtr - (uint8_t*)s_data.cubeVertexBufferBase.get());
+			s_data.cubeVertexBuffer->setData(s_data.cubeVertexBufferBase.get(), dataSize);
 
 			s_data.cubeShader->bind();
 			RenderCommand::drawIndexed(s_data.cubeVertexArray, s_data.cubeIndexCount);
@@ -547,9 +552,9 @@ namespace Stulu {
 	void Gizmo::flushSpheres() {
 		if (s_data.sphereInstanceCount > 0) {
 			
-			uint32_t dataSize = uint32_t((uint8_t*)s_data.sphereDataBufferPtr - (uint8_t*)s_data.sphereDataBufferBase);
+			uint32_t dataSize = uint32_t((uint8_t*)s_data.sphereDataBufferPtr - (uint8_t*)s_data.sphereDataBufferBase.get());
 			//uint32_t dataSize = s_data.sphereInstanceCount * (uint32_t)sizeof(SphereInstanceData);
-			Renderer::uploadBufferData(BufferBinding::Model, s_data.sphereDataBufferBase, dataSize);
+			Renderer::uploadBufferData(BufferBinding::Model, s_data.sphereDataBufferBase.get(), dataSize);
 
 			s_data.sphereShader->bind();
 			RenderCommand::drawIndexed(s_data.sphereVertexArray, 0, s_data.sphereInstanceCount);

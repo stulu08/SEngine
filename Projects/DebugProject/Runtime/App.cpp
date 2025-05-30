@@ -1,7 +1,7 @@
 #include "App.h"
 #include <Stulu/Core/EntryPoint.h>
 
-#include "Stulu/Scene/YAML.h"
+#include "Stulu/Serialization/YAML.h"
 #include "Stulu/Runtime/RuntimeLayer.h"
 
 namespace Stulu {
@@ -29,9 +29,7 @@ namespace Stulu {
 	RuntimeApp::RuntimeApp(const ApplicationInfo& info) 
 		: Application(info) {
 		
-		AssetsManager::setProgessCallback(Application::LoadingScreen);
-		AssetsManager::loadAllFiles(info.AppAssetPath);
-		AssetsManager::setProgessCallback(nullptr);
+		AssetsManager::GlobalInstance().LoadDirectoryRecursive(info.AppAssetPath);
 
 		pushLayer(new RuntimeLayer("Data/Assets/scenes/Physx Test.scene"));
 

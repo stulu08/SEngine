@@ -24,6 +24,11 @@ namespace Stulu {
 		inline auto GetAllAsGroupWith() {
 			return m_registry.group<Components...>();
 		}
+		
+		inline bool IsValid(entt::entity go) const {
+			return m_registry.valid(go);
+		}
+
 		inline entt::registry& GetRegistry() { return m_registry; }
 		GameObject FindByName(const std::string& name);
 

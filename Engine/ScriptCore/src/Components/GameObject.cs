@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace Stulu {
 	public class GameObject {
+
 		//store components already got from InternalCalls
 		private Dictionary<Type, GameObjectAttached> m_componentCache = new Dictionary<Type, GameObjectAttached>();
-		internal GameObject() { Init(); }
-		internal GameObject(ulong id) { Init(id); }
-		public GameObject(GameObject other) { InitFromOther(other); }
 		public GameObject(String name) => InitFromOther(Create(name, "default", Vector3.Zero, Quaternion.Identy, Vector3.One));
 		public GameObject(String name, String tag) => InitFromOther(Create(name, tag, Vector3.Zero, Quaternion.Identy, Vector3.One));
 		public GameObject(String name, String tag, Vector3 position) => InitFromOther(Create(name, tag, position, Quaternion.Identy, Vector3.One));
@@ -24,6 +22,7 @@ namespace Stulu {
 		public GameObject(String name, Vector3 position, Vector3 rotation) => InitFromOther(Create(name, "default", position, rotation, Vector3.One));
 		public GameObject(String name, Vector3 position, Quaternion rotation, Vector3 scale) => InitFromOther(Create(name, "default", position, rotation, scale));
 		public GameObject(String name, Vector3 position, Vector3 rotation, Vector3 scale) => InitFromOther(Create(name, "default", position, rotation, scale));
+
 
 		public static GameObject Create(String name, String tag, Vector3 postion, Vector3 rotation, Vector3 Scale) => Create(name, tag, postion, new Quaternion(rotation,1.0f), Scale);
 		public static GameObject Create(String name, String tag, Vector3 postion, Quaternion rotation, Vector3 Scale) {
@@ -94,13 +93,13 @@ namespace Stulu {
 					return null;
 				}
 				Component comp = compObj as Component;
-				comp.initilize(ID);
+				comp.Initilize(ID);
 				m_componentCache.Add(type, comp);
 				return (T)compObj;
 			}
 			else {
 				T comp = new T();
-				comp.initilize(ID);
+				comp.Initilize(ID);
 				m_componentCache.Add(type, (GameObjectAttached)comp);
 				return (T)comp;
 			}
@@ -114,14 +113,36 @@ namespace Stulu {
 				m_componentCache.Remove(type);
 			return rmoved;
 		}
-		internal void InitFromOther(GameObject other) {
-			this.ID = other.ID;
+
+
+		internal static ulong NULL_ID = System.UInt64.MaxValue;
+		internal ulong ID;
+		private GameObject(ulong id) { Init(id); }
+
+		internal static GameObject CreateInternal(UUID id)
+		{
+			if (id == NULL_ID)
+				return null;
+			return new GameObject(id);
 		}
 
+		internal void InitFromOther(GameObject other) => Init(other.ID);
 		internal void Init(ulong id = UInt64.MaxValue) {
+			if(id == NULL_ID)
+			{
+				Log.EngineWarn("Using invalid handle 'null placeholder' for gameobject");
+			}
+			if(m_componentCache == null)
+			{
+				m_componentCache = new Dictionary<Type, GameObjectAttached>();
+			}
+			else
+			{
+				m_componentCache.Clear();
+			}
 			this.ID = id;
 		}
-		internal ulong ID;
+
 
 		public override string ToString() {
 			return $"GameObject({ID})";

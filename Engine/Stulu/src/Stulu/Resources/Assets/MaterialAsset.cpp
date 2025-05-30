@@ -31,8 +31,9 @@ namespace Stulu {
 			material->SetAlphaCutOut(yaml["Cutout"].as<float>());
 
 		if (yaml["Properties"]) {
+			YAML::Node props = yaml["Properties"];
 			for (const auto& prop : material->GetProperities()) {
-				prop->Deserializer(yaml["Properties"]);
+				prop->Deserializer(props);
 				prop->ApplyValue(material.get());
 			}
 		}

@@ -70,9 +70,7 @@ namespace Editor {
 				}
 				else {
 					ImGui::PushID(header.c_str());
-					ImGui::Indent(offsetX);
 					inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
-					ImGui::Unindent(offsetX);
 					ImGui::PopID();
 				}
 

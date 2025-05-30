@@ -10,6 +10,8 @@ namespace Stulu {
 		EventCaller(Scene* scene);
 		EventCaller(Scene* scene, Scene* copyTarget);
 
+		~EventCaller();
+
 		void onAwake(const GameObject& object = GameObject::null);
 		void onStart(const GameObject& object = GameObject::null);
 		void onUpdate(const GameObject& object = GameObject::null);
@@ -52,6 +54,9 @@ namespace Stulu {
 		template<class T>
 		static inline void RegisterLayer() {
 			s_registeredSceneLayers[typeid(T).hash_code()] = { CreateSceneLayer<T>, CopySceneLayer<T> };
+		}
+		static inline void ClearRegisteredLayers() {
+			s_registeredSceneLayers.clear();
 		}
 	private:
 		Scene* m_scene;

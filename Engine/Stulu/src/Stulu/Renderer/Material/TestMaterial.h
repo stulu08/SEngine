@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Texture.h"
+#include "Stulu/Renderer/Shader.h"
 
 namespace Stulu {
 	class STULU_API MaterialProperty;
@@ -18,7 +19,6 @@ namespace Stulu {
 		TestMaterial(Ref<ShaderEntry> shaderEntry);
 
 		void SetData(size_t offset, size_t size, const void* data);
-		void SetSampler(uint32_t slot, Texture* tetxure);
 
 		// will bind everything beside the shader
 		void RenderReady();

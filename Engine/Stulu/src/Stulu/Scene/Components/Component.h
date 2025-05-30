@@ -41,6 +41,12 @@ namespace Stulu {
 			RegisterNative<T>(nativeName);
 			RegisterManaged<T>(managedName);
 		}
+		static inline void ClearRegisteredComponents() {
+			m_componentCopyList.clear();
+			m_componentSerializeList.clear();
+			m_componentDeserializeList.clear();
+			m_componentTable.clear();
+		}
 
 		static void RegisterBaseComponents();
 
@@ -76,6 +82,7 @@ namespace Stulu {
 		}
 		template<class T>
 		static inline void SerializeComponent(YAML::Emitter& out, GameObject gameObject) {
+			ST_FILE_PROFILING_FUNCTION();
 			if (gameObject.hasComponent<T>()) {
 				const T& component = gameObject.getComponent<T>();
 				out << YAML::Key << GetNativeComponentName<T>();
@@ -86,6 +93,7 @@ namespace Stulu {
 		}
 		template<class T>
 		static inline void DeserializeComponent(YAML::Node& node, GameObject gameObject) {
+			ST_FILE_PROFILING_FUNCTION();
 			YAML::Node componentNode = node[GetNativeComponentName<T>()];
 			if (componentNode) {
 				T& component = gameObject.saveAddComponent<T>();
@@ -115,7 +123,7 @@ namespace Stulu {
 			if (node["name"])
 				name = node["name"].as<std::string>();
 			if (node["tag"])
-				name = node["tag"].as<std::string>();
+				tag = node["tag"].as<std::string>();
 		}
 	};
 	// defined here to keep the function inline and prevent Declaraton problems

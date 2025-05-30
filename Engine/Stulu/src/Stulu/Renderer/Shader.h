@@ -3,6 +3,10 @@
 #include "ShaderCompiler.h"
 
 namespace Stulu {
+#define ST_USER_TEXTURE_START 5
+#define ST_USER_TEXTURE_END 15
+#define ST_USER_TEXTURE_COUNT (ST_USER_TEXTURE_END - ST_USER_TEXTURE_START)
+#define ST_MAX_INSTANCES 180
 	enum class AccesMode {
 		ReadOnly = 0x88B8,
 		WriteOnly = 0x88B9,

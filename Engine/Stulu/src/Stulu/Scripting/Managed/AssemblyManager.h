@@ -7,7 +7,9 @@
 namespace Stulu {
 	class STULU_API AssemblyManager {
 	public:
-		AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyDir = ".", const std::string& monoConfigDir = ".");
+		AssemblyManager(
+			const std::string& assemblyPath, const std::string& coreAssemblyPath, bool debugging = false,
+			const std::string& monoAssemblyDir = ".", const std::string& monoConfigDir = ".");
 		~AssemblyManager();
 
 		void Reload();
@@ -48,6 +50,9 @@ namespace Stulu {
 		Mono::Domain getRootDomain() const { return m_monoDomain; }
 		Mono::Domain getCoreDomain() const { return m_coreDomain; }
 
+		bool DebugEnabled() const { return m_enabledDebugging; }
+		Mono::Method GetStackTraceMethod() const { return m_exceptionStackTraceMethod; }
+
 		Mono::Class getComponentClass() const { return m_componentClass; }
 		Mono::Class getGoAttachedClass() const { return m_gameObjectAttachedClass; }
 		const auto& getEvents() const { return m_events; }
@@ -61,6 +66,7 @@ namespace Stulu {
 		Ref<ScriptAssembly> m_appAssembly = nullptr;
 		Ref<ScriptAssembly> m_scriptCoreAssembly = nullptr;
 		std::filesystem::path m_corePath, m_appPath;
+		bool m_enabledDebugging;
 
 		Mono::Domain m_monoDomain = nullptr;
 		Mono::Domain m_coreDomain = nullptr;
@@ -78,6 +84,8 @@ namespace Stulu {
 			Mono::Method onSceneExit = nullptr;
 		} m_events;
 		std::vector<Mono::Class> m_components;
+
+		Mono::Method m_exceptionStackTraceMethod = nullptr;
 
 		std::unordered_map<std::string, std::function<Ref<ManagedProperty>(Mono::Object object, Mono::ClassField field)>> m_propertieRegister;
 		std::unordered_map<std::string, std::function<void(GameObject)>> m_addComponentRegister;

@@ -28,9 +28,9 @@ namespace Editor
 				inspectorCache[script.GetType()] = hasInspector;
 				if (hasInspector) return;
 
-				if(ImGui.TreeNode(script.GetType().Name, ImGui.TreeNodeFlags.DefaultOpen | ImGui.TreeNodeFlags.Framed)) {
+				if(EditorCalls.ImGui_TreeNodeIndent(script.GetType().Name, (uint)(ImGui.TreeNodeFlags.DefaultOpen | ImGui.TreeNodeFlags.Framed))) {
 					RenderScript(script);
-					ImGui.TreePop();
+					EditorCalls.ImGui_TreePopUnindent();
 				}
 			}
 		}
@@ -42,36 +42,63 @@ namespace Editor
 				{
 					continue;
 				}
-				
-				Type fieldType = field.FieldType;
 
-				if (fieldType == typeof(Vector3)) {
-					Vector3 value = (Vector3)field.GetValue(component);
-					if (ImGui.Vector3(field.Name, ref value)) { 
-						field.SetValue(component, value);
-					}
-					continue;
-				}
-				if (fieldType == typeof(bool))
+				DefaultControl(component, field);
+			}
+		}
+
+		public static bool DefaultControl(Component component, FieldInfo field)
+		{
+			Type fieldType = field.FieldType;
+
+			if (fieldType == typeof(Vector3))
+			{
+				Vector3 value = (Vector3)field.GetValue(component);
+				if (ImGui.Vector3(field.Name, ref value))
 				{
-					bool value = (bool)field.GetValue(component);
-					if (ImGui.Bool(field.Name, ref value))
-					{
-						field.SetValue(component, value);
-					}
-					continue;
+					field.SetValue(component, value);
 				}
-				if (fieldType == typeof(float))
+				return true;
+			}
+			if (fieldType == typeof(bool))
+			{
+				bool value = (bool)field.GetValue(component);
+				if (ImGui.Bool(field.Name, ref value))
 				{
-					float value = (float)field.GetValue(component);
-					if (ImGui.Float(field.Name, ref value))
-					{
-						field.SetValue(component, value);
-					}
-					continue;
+					field.SetValue(component, value);
 				}
+				return true;
+			}
+			if (fieldType == typeof(float))
+			{
+				float value = (float)field.GetValue(component);
+				if (ImGui.Float(field.Name, ref value))
+				{
+					field.SetValue(component, value);
+				}
+				return true;
+			}
+			if (fieldType == typeof(Texture2D))
+			{
+				Texture2D value = (Texture2D)field.GetValue(component);
+				if (ImGui.Texture2D(field.Name, ref value))
+				{
+					field.SetValue(component, value);
+				}
+				return true;
+			}
+			if (fieldType == typeof(GameObject))
+			{
+				GameObject value = (GameObject)field.GetValue(component);
+				if (ImGui.GameObject(field.Name, ref value))
+				{
+					field.SetValue(component, value);
+				}
+				return true;
 
 			}
+			
+			return false;
 		}
 	}
 }

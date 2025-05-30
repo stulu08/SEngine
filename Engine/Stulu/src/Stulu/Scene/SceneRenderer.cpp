@@ -25,6 +25,7 @@ namespace Stulu {
 		}
 		LoadLights();
 		Register3dObjects();
+		m_stats = RenderStats();
 	}
 	void SceneRenderer::End() {
 		m_drawList.clear();
@@ -184,6 +185,7 @@ namespace Stulu {
 			}
 			if (object.vertexArray) {
 				Renderer::submit(object.vertexArray, nullptr, object.transform, object.normalMatrix);
+				m_stats.shadowDrawCalls++;
 			}
 		}
 	}
@@ -205,6 +207,7 @@ namespace Stulu {
 			RenderCommand::setCullMode(object.cullmode);
 			if (object.vertexArray) {
 				Renderer::submit(object.vertexArray, nullptr, object.transform, object.normalMatrix);
+				m_stats.drawCalls++;
 			}
 		}
 
@@ -220,6 +223,7 @@ namespace Stulu {
 			RenderCommand::setCullMode(object.cullmode);
 			if (object.vertexArray) {
 				Renderer::submit(object.vertexArray, nullptr, object.transform, object.normalMatrix);
+				m_stats.drawCalls++;
 			}
 		}
 	}
@@ -259,7 +263,7 @@ namespace Stulu {
 	void SceneRenderer::Register3dObjects() {
 		auto group = m_scene->GetRegistry().view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 		for (auto gameObject : group) {
-			if (group.get<MeshFilterComponent>(gameObject).mesh.IsValid()) {
+			if (group.get<MeshFilterComponent>(gameObject).GetMesh().IsValid()) {
 				RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
 			}
 		}
@@ -310,19 +314,13 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::RegisterObject(MeshRendererComponent& meshRenderer, MeshFilterComponent& meshFilter, TransformComponent& transform) {
-		if (!meshFilter.mesh.IsLoaded())
+		if (!meshFilter.GetMesh().IsLoaded())
 			return;
-		Mesh* mesh = *meshFilter.mesh;
+		Mesh* mesh = *meshFilter.GetMesh();
 		TestMaterial* material = meshRenderer.material.IsLoaded() ? *meshRenderer.material : Resources::DefaultMaterial();
-
 		glm::mat4 normalMatrix = glm::transpose(glm::inverse(Math::createMat4(transform.GetWorldPosition(), transform.GetWorldRotation(), {1,1,1})));
-
-		Ref<BoundingBox> boundingBox;
-		if (mesh->GetBoundingBox()) {
-			boundingBox = mesh->GetBoundingBox()->copy();
-			boundingBox->applyTransform(transform);
-		}
-
+		BoundingBox& boundingBox = transform.GetBounds();
+		
 		if (material->IsTransparent())
 			m_transparentDrawList.push_back(RenderObject {
 				material,
@@ -330,7 +328,7 @@ namespace Stulu {
 				transform.GetWorldTransform(), 
 				normalMatrix, 
 				meshRenderer.cullmode,
-				boundingBox
+				&boundingBox
 				});
 		else
 			m_drawList.push_back(RenderObject {
@@ -339,10 +337,10 @@ namespace Stulu {
 				transform.GetWorldTransform(),
 				normalMatrix,
 				meshRenderer.cullmode,
-				boundingBox
+				&boundingBox
 			});
 	}
-	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, TestMaterial* providedMaterial, const glm::mat4& transform, const Ref<BoundingBox>& transformedBoundingBox) {
+	void SceneRenderer::RegisterObject(const Ref<VertexArray>& vertexArray, TestMaterial* providedMaterial, const glm::mat4& transform, BoundingBox* transformedBoundingBox) {
 		if (!vertexArray)
 			return;
 		TestMaterial* material = ((providedMaterial != nullptr) ? providedMaterial : Resources::DefaultMaterial());

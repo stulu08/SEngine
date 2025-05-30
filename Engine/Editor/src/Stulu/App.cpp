@@ -33,6 +33,7 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	ST_INFO("Loading project: {0}", project.GetPath());
 
 	//project.Compile(Editor::EditorBuildSettings);
+	project.Compile(Editor::ManagedOnlyBuildSettings);
 
 	prefrences.Section("Window");
 	ApplicationInfo info;
@@ -52,6 +53,7 @@ Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	info.EnableImgui = true;
 	info.StartPhysicsEngine = true;
 	info.LoadDefaultAssets = true;
+	info.DebugFeatures = Editor::StandartBuildConfig != Editor::BuildConfiguration::Dist;
 
 	return new Editor::App(info, std::move(project), std::move(prefrences));
 }
@@ -84,6 +86,7 @@ namespace Editor {
 		m_layer->onLoadFinish();
 	}
 	App::~App() {
+		Editor::Resources::ReleaseAll();
 		m_prefrences.Save();
 	}
 }

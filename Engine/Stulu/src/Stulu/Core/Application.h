@@ -34,6 +34,8 @@ namespace Stulu {
 		bool EnableImgui = true;
 		// this includes default assets, gizmo and renderer
 		bool LoadDefaultAssets = true;
+		// include mono debug features
+		bool DebugFeatures = false;
 	};
 	class STULU_API AssemblyManager;
 	class STULU_API ScriptAssembly;

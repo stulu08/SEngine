@@ -61,7 +61,7 @@ namespace Stulu {
 
 		const std::string& GetName(int32_t index = -1) const;
 
-		const Ref<BoundingBox>& GetBoundingBox() const { return m_bounds; }
+		const BoundingBox& GetBoundingBox() const { return m_bounds; }
 
 		bool IsDefaultLayout() const { return m_defaultVertexLayout; }
 		bool IsDefaultSkinnedLayout() const { return m_defaultSkinnedVertexLayout; }
@@ -73,7 +73,7 @@ namespace Stulu {
 		static const BufferLayout DefaultSkinnedVertexLayout();
 	private:
 		Ref<VertexArray> m_vertexArray;
-		Ref<BoundingBox> m_bounds;
+		BoundingBox m_bounds;
 
 		std::string m_name;
 		ByteType* m_vertices;

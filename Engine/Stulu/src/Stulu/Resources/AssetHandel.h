@@ -1,5 +1,8 @@
 #pragma once
 #include "AssetData.h"
+namespace StuluBindings {
+	class AssetHandle;
+}
 
 namespace Stulu {
 	template<class T>
@@ -29,6 +32,7 @@ namespace Stulu {
 				CORE_INFO("Asset already loaded, force load not possible!");
 				return;
 			}
+			CORE_TRACE("Loading: {0}", m_data->GetPath());
 			this->m_data->Load();
 		}
 
@@ -102,9 +106,7 @@ namespace Stulu {
 
 		// Releases the refrence and unloads the asset if needed
 		void Release() {
-			if (this->m_data && this->m_data->DecRef() < 1) {
-				this->m_data->Unload();
-			}
+			DecRefCount();
 			this->m_data = nullptr;
 		}
 
@@ -126,14 +128,25 @@ namespace Stulu {
 					return;
 				}
 			}
-			
+			IncRefCount();
+		}
 
+		// used by bindings
+		void IncRefCount() {
 			// First strong reference: load the asset
 			if (this->m_data->UseCount() < 1) {
+				CORE_TRACE("Loading: {0}", this->m_data->GetPath());
 				this->m_data->Load();
 			}
 			this->m_data->IncRef();
 		}
+		void DecRefCount() {
+			if (this->m_data && this->m_data->DecRef() < 1) {
+				this->m_data->Unload();
+			}
+		}
+
+		friend class StuluBindings::AssetHandle;
 	};
 
 	template<typename T>

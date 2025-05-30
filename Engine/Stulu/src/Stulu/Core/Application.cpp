@@ -61,7 +61,7 @@ namespace Stulu {
 		LoadingScreen(0.5f);
 
 		if(!appInfo.AppManagedAssembly.empty())
-			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
+			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll", appInfo.DebugFeatures);
 
 		Component::RegisterBaseComponents();
 
@@ -81,14 +81,26 @@ namespace Stulu {
 		LoadingScreen(1.0f);
 	}
 	Application::~Application() {
-		Renderer2D::shutdown();
-		m_window.reset();
+		Gizmo::ShutDown();
+		Resources::ReleaseAll();
+		Renderer::Shutdown();
 
+		// layerstack also contains modules
 		m_layerStack.deleteAll();
 		m_layerStack.clear();
 		m_moduleStack.clear();
 
+		m_assetsManager.reset();
+
+		Component::ClearRegisteredComponents();
+		EventCaller::ClearRegisteredLayers();
+
+		m_window.reset();
+		m_assembly.reset();
+
 		m_cpuDispatcher.reset();
+
+		s_instance = nullptr;
 	}
 	void Application::pushLayer(Layer* layer) {
 		m_layerStack.pushLayer(layer);

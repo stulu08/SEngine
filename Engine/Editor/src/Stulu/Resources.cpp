@@ -4,28 +4,60 @@
 using namespace Stulu;
 
 namespace Editor {
+	static struct EdtitorResourceStorage {
+		Ref<Texture2D> LogoTexture;
+		Ref<Texture2D> DirectoryTexture;
+		Ref<Texture2D> FileTexture;
+		Ref<Texture2D> SceneTextuer;
+		Ref<Texture2D> CodeTexture;
+		Ref<Texture2D> LightTexture;
+		Ref<Texture2D> DirLightTexture;
+		Ref<Texture2D> SpotlighTexture;
+		Ref<Texture2D> CameraTexture;
+		std::unordered_map<std::string, Ref<Texture2D>> CodeTextureCache;
+
+		Ref<Shader> OutlineShader;
+		Ref<Shader> TransparentShader;
+		Ref<Shader> HighliteShader;
+	} s_storage;
+
+	void Resources::ReleaseAll() {
+		s_storage = EdtitorResourceStorage();
+	}
+
 	Texture2D* Resources::GetLogo() {
-		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Logo.png");
-		return texture.get();
+		if (!s_storage.LogoTexture) {
+			s_storage.LogoTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Logo.png");
+		}
+		return s_storage.LogoTexture.get();
 	}
 	Texture2D* Resources::GetDirectoryIcon() {
-		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Folder.png");
-		return texture.get();
+		if(!s_storage.DirectoryTexture) {
+			s_storage.DirectoryTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Folder.png");
+		}
+		return s_storage.DirectoryTexture.get();
 	}
 	Texture2D* Resources::GetFileIcon() {
-		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/File.png");
-		return texture.get();
+		if (!s_storage.FileTexture) {
+			s_storage.FileTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/File.png");
+		}
+		return s_storage.FileTexture.get();
 	}
 	Texture2D* Resources::GetSceneIcon() {
-		static Ref<Texture2D> texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/Scene.png");
-		return texture.get();
+		if (!s_storage.SceneTextuer) {
+			s_storage.SceneTextuer = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/Scene.png");
+		}
+		return s_storage.SceneTextuer.get();
 	}
 	Texture2D* Resources::GetCodeIcon(const std::string& lowerExtension) {
-		static std::unordered_map<std::string, Ref<Texture2D>> m_cache;
-		static Ref<Texture2D> code_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/Code.png");
+		auto& m_cache = s_storage.CodeTextureCache;
+
+		if (!s_storage.CodeTexture) {
+			s_storage.CodeTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Files/Code.png");
+		}
 
 		if (lowerExtension.empty())
-			return code_texture.get();
+			return s_storage.CodeTexture.get();
 
 		std::string extension = lowerExtension;
 		if (extension[0] == '.')
@@ -47,7 +79,7 @@ namespace Editor {
 			}
 		}
 
-		return code_texture.get();
+		return s_storage.CodeTexture.get();
 	}
 	
 	std::string Resources::GetIconsFont() {
@@ -60,41 +92,46 @@ namespace Editor {
 		return App::GetEditorDataPath() + "/Fonts/EditorFontBold.otf";
 	}
 	Ref<Shader>& Resources::GetOutlineShader() {
-		static Ref<Shader> shader;
-		if (!shader) {
-			shader = Renderer::getShaderSystem()->GetShader("Editor/Outline");
+		if (!s_storage.OutlineShader) {
+			s_storage.OutlineShader = Renderer::getShaderSystem()->GetShader("Editor/Outline");
 		}
-		return shader;
+		return s_storage.OutlineShader;
 	}
 	Ref<Shader>& Resources::GetHighliteShader() {
-		static Ref<Shader> shader;
-		if (!shader) {
-			shader = Renderer::getShaderSystem()->GetShader("Editor/Green");
+		if (!s_storage.HighliteShader) {
+			s_storage.HighliteShader = Renderer::getShaderSystem()->GetShader("Editor/Green");
 		}
-		return shader;
+		return s_storage.HighliteShader;
 	}
 	Stulu::Ref<Stulu::Shader>& Resources::GetTransparentShader() {
-		static Ref<Shader> shader;
-		if (!shader) {
-			shader = Renderer::getShaderSystem()->GetShader("Editor/Transparent");
+		if (!s_storage.TransparentShader) {
+			s_storage.TransparentShader = Renderer::getShaderSystem()->GetShader("Editor/Transparent");
 		}
-		return shader;
+		return s_storage.TransparentShader;
 	}
 
 	Texture2D* Resources::GetDirectionalLightTexture() {
-		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Directionallight.png");
-		return s_texture.get();
+		if(!s_storage.DirLightTexture) {
+			s_storage.DirLightTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Directionallight.png");
+		}
+		return s_storage.DirLightTexture.get();
 	}
 	Texture2D* Resources::GetLightTexture() {
-		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Light.png");
-		return s_texture.get();
+		if (!s_storage.LightTexture) {
+			s_storage.LightTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Light.png");
+		}
+		return s_storage.LightTexture.get();
 	}
 	Texture2D* Resources::GetSpotLightTexture() {
-		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Spotlight.png");
-		return s_texture.get();
+		if (!s_storage.SpotlighTexture) {
+			s_storage.SpotlighTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Spotlight.png");
+		}
+		return s_storage.SpotlighTexture.get();
 	}
 	Texture2D* Resources::GetCameraTexture() {
-		static Ref<Texture2D> s_texture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Camera.png");
-		return s_texture.get();
+		if (!s_storage.CameraTexture) {
+			s_storage.CameraTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Gizmo/Camera.png");
+		}
+		return s_storage.CameraTexture.get();
 	}
 }

@@ -3,6 +3,8 @@ using System;
 
 namespace Stulu {
 	public struct UUID {
+		public static UUID Null = 0;
+
 		public UUID(UInt64 id) {
 			this.ID = id;
 		}
@@ -17,6 +19,6 @@ namespace Stulu {
 			return ID.ToString();
 		}
 
-		UInt64 ID;
+		public UInt64 ID;
 	}
 }

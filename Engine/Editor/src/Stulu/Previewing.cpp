@@ -14,8 +14,9 @@ namespace Editor {
 		SetUpScene();
 	}
 
-	Preview::~Preview()
-	{
+	Preview::~Preview() {
+		m_cache.clear();
+		m_scene.reset();
 	}
 
 	Stulu::Ref<Stulu::Texture2D> Preview::GetTexturePreview(Stulu::Texture2DAsset textureAsset) {
@@ -108,14 +109,14 @@ namespace Editor {
 		m_camera.addComponent<SkyBoxComponent>().texture = Resources::DefaultSkyBoxAsset();
 		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 		m_renderObject = m_scene->Create("RenderObject");
-		m_renderObject.saveAddComponent<MeshFilterComponent>().mesh = Resources::CubeMesh();
+		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(Resources::CubeMesh());
 		m_renderObject.saveAddComponent<MeshRendererComponent>().material = material;
 	}
 	void Preview::SetupSkybox(SkyBoxAsset skybox) {
 		m_camera.addComponent<SkyBoxComponent>().texture = skybox;
 		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 		m_renderObject = m_scene->Create("RenderObject");
-		m_renderObject.saveAddComponent<MeshFilterComponent>().mesh = Resources::CubeMesh();
+		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(Resources::CubeMesh());
 		m_renderObject.saveAddComponent<MeshRendererComponent>().material = Resources::ReflectiveMaterialAsset();
 	}
 	void Preview::SetupMesh(MeshAsset mesh) {
@@ -126,11 +127,10 @@ namespace Editor {
 			return;
 
 		m_renderObject = m_scene->Create("RenderObject");
-		m_renderObject.saveAddComponent<MeshFilterComponent>().mesh = mesh;
+		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(mesh);
 		m_renderObject.saveAddComponent<MeshRendererComponent>().material = Resources::DefaultMaterialAsset();
 
-		Ref<BoundingBoxAABB> boundings = std::dynamic_pointer_cast<BoundingBoxAABB>(mesh->GetBoundingBox());
-		glm::vec3 furthest = glm::abs(boundings->getExtents());
+		glm::vec3 furthest = glm::abs(mesh->GetBoundingBox().getExtents());
 
 		const float zoom = 2.0f;
 		m_camera.getComponent<CameraComponent>().SetFar(std::max({ glm::abs(furthest.x), glm::abs(furthest.y), glm::abs(furthest.z) }) * 2.0f * zoom);
@@ -156,7 +156,7 @@ namespace Editor {
 		if (m_camera.hasComponent<CameraComponent>())
 			m_camera.removeComponent<CameraComponent>();
 
-		CameraComponent& cam = m_camera.addComponent<CameraComponent>(CameraMode::Perspective);
+		CameraComponent& cam = m_camera.addComponent<CameraComponent>(CameraMode::Perspective, m_scene->getViewportWidth(), m_scene->getViewportHeight());
 		cam.SetClearColor(glm::vec4(.0f));
 		cam.SetClearType(ClearType::Color);
 

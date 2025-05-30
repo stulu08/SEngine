@@ -7,6 +7,7 @@
 
 #include "Panels/Scene.h"
 #include "Panels/Game.h"
+#include "Panels/LogPanel.h"
 
 using namespace Stulu;
 
@@ -72,6 +73,7 @@ namespace Editor {
 		Preview m_preview;
 		ScenePanel* m_scenePanel;
 		GamePanel* m_gamePanel;
+		LogPanel* m_logPanel;
 		std::vector<Shortcut> m_shortcuts;
 
 		void DrawObjectOutlines();

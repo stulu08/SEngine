@@ -49,45 +49,51 @@ namespace Stulu {
 		Ref<Shader> lineShader;
 
 		uint32_t quadIndexCount = 0;
-		QuadVertex* quadVertexBufferBase = nullptr;
+		Scope<QuadVertex[]> quadVertexBufferBase = nullptr;
 		QuadVertex* quadVertexBufferPtr = nullptr;
 
-		uint32_t circleIndexCount = 0;
-		CircleVertex* circleVertexBufferBase = nullptr;
+		uint32_t circleIndexCount = 0; 
+		Scope<CircleVertex[]> circleVertexBufferBase = nullptr;
 		CircleVertex* circleVertexBufferPtr = nullptr;
 
 		uint32_t lineVertexCount = 0;
-		LineVertex* lineVertexBufferBase = nullptr;
+		Scope<LineVertex[]> lineVertexBufferBase = nullptr;
 		LineVertex* lineVertexBufferPtr = nullptr;
 
 		std::array<Texture2D*, maxTextureSlots> textureSlots;
 		uint32_t slotIndex = 1;
 
-		glm::vec4 quadVertexPositions[4];
+		glm::vec4 quadVertexPositions[4] = {
+			{ -.5f, -.5f, .0f, 1.0f },
+			{ .5f, -.5f, .0f, 1.0f },
+			{ .5f,  .5f, .0f, 1.0f },
+			{ -.5f,  .5f, .0f, 1.0f }
+		};
 
-		glm::mat4 view;
-		glm::mat4 proj;
+		glm::mat4 view = glm::mat4(1.0f);
+		glm::mat4 proj = glm::mat4(1.0f);
 		Ref<Camera> camera;
 	};
 
-	static Renderer2DData s_renderer2Ddata;
+	static Renderer2DData s_renderer2Ddata = Renderer2DData();
 	void Renderer2D::init() {
 		Ref<IndexBuffer> indexBuffer;
 		{//indices
-			uint32_t* quadIndices = new uint32_t[s_renderer2Ddata.maxIndices];
-			uint32_t offset = 0;
-			for (uint32_t i = 0; i < s_renderer2Ddata.maxIndices; i += 6) {
-				quadIndices[i + 0] = offset + 0;
-				quadIndices[i + 1] = offset + 1;
-				quadIndices[i + 2] = offset + 2;
+			std::vector<uint32_t> quadIndices = std::vector<uint32_t>(s_renderer2Ddata.maxIndices);
 
-				quadIndices[i + 3] = offset + 2;
-				quadIndices[i + 4] = offset + 3;
-				quadIndices[i + 5] = offset + 0;
+			size_t offset = 0;
+			for (size_t i = 0; i < s_renderer2Ddata.maxIndices; i += 6) {
+				quadIndices[i + 0] = static_cast<uint32_t>(offset + 0);
+				quadIndices[i + 1] = static_cast<uint32_t>(offset + 1);
+				quadIndices[i + 2] = static_cast<uint32_t>(offset + 2);
+
+				quadIndices[i + 3] = static_cast<uint32_t>(offset + 2);
+				quadIndices[i + 4] = static_cast<uint32_t>(offset + 3);
+				quadIndices[i + 5] = static_cast<uint32_t>(offset + 0);
 				offset += 4;
 			}
-			indexBuffer = IndexBuffer::create(s_renderer2Ddata.maxIndices, quadIndices);
-			delete[] quadIndices;
+			indexBuffer = IndexBuffer::create(s_renderer2Ddata.maxIndices, quadIndices.data());
+
 			s_renderer2Ddata.quadVertexPositions[0] = { -.5f, -.5f, .0f, 1.0f };
 			s_renderer2Ddata.quadVertexPositions[1] = { .5f, -.5f, .0f, 1.0f };
 			s_renderer2Ddata.quadVertexPositions[2] = { .5f,  .5f, .0f, 1.0f };
@@ -106,7 +112,7 @@ namespace Stulu {
 				});
 			s_renderer2Ddata.quadVertexArray->addVertexBuffer(s_renderer2Ddata.quadVertexBuffer);
 			s_renderer2Ddata.quadVertexArray->setIndexBuffer(indexBuffer);
-			s_renderer2Ddata.quadVertexBufferBase = new QuadVertex[s_renderer2Ddata.maxVertices];
+			s_renderer2Ddata.quadVertexBufferBase = Scope<QuadVertex[]>(new QuadVertex[s_renderer2Ddata.maxVertices]);
 			s_renderer2Ddata.quadShader = Renderer::getShaderSystem()->GetShader("2D/Quad");
 		}
 		{//circles
@@ -121,7 +127,7 @@ namespace Stulu {
 				});
 			s_renderer2Ddata.circleVertexArray->addVertexBuffer(s_renderer2Ddata.circleVertexBuffer);
 			s_renderer2Ddata.circleVertexArray->setIndexBuffer(indexBuffer);
-			s_renderer2Ddata.circleVertexBufferBase = new CircleVertex[s_renderer2Ddata.maxVertices];
+			s_renderer2Ddata.circleVertexBufferBase = Scope<CircleVertex[]>(new CircleVertex[s_renderer2Ddata.maxVertices]);
 			s_renderer2Ddata.circleShader = Renderer::getShaderSystem()->GetShader("2D/Circle");
 		}
 		{
@@ -133,7 +139,7 @@ namespace Stulu {
 				{ ShaderDataType::Float4, "a_color"    },
 				});
 			s_renderer2Ddata.lineVertexArray->addVertexBuffer(s_renderer2Ddata.lineVertexBuffer);
-			s_renderer2Ddata.lineVertexBufferBase = new LineVertex[s_renderer2Ddata.maxVertices];
+			s_renderer2Ddata.lineVertexBufferBase = Scope<LineVertex[]>(new LineVertex[s_renderer2Ddata.maxVertices]);
 			s_renderer2Ddata.lineShader = Renderer::getShaderSystem()->GetShader("2D/Line");
 		}
 		{//textures
@@ -148,6 +154,7 @@ namespace Stulu {
 		}
 	}
 	void Renderer2D::shutdown() {
+		s_renderer2Ddata = Renderer2DData();
 	}
 	void Renderer2D::begin() {
 		resetQuadBatch();
@@ -177,8 +184,8 @@ namespace Stulu {
 
 	void Renderer2D::flushQuads(bool bindCam) {
 		if (s_renderer2Ddata.quadIndexCount > 0) {
-			uint32_t dataSize = uint32_t((uint8_t*)s_renderer2Ddata.quadVertexBufferPtr - (uint8_t*)s_renderer2Ddata.quadVertexBufferBase);
-			s_renderer2Ddata.quadVertexBuffer->setData(s_renderer2Ddata.quadVertexBufferBase, dataSize);
+			uint32_t dataSize = uint32_t((uint8_t*)s_renderer2Ddata.quadVertexBufferPtr - (uint8_t*)s_renderer2Ddata.quadVertexBufferBase.get());
+			s_renderer2Ddata.quadVertexBuffer->setData(s_renderer2Ddata.quadVertexBufferBase.get(), dataSize);
 			for (uint32_t i = 0; i < s_renderer2Ddata.slotIndex; i++)
 				s_renderer2Ddata.textureSlots[i]->bind(i);
 			s_renderer2Ddata.quadShader->bind();
@@ -197,8 +204,8 @@ namespace Stulu {
 
 	void Renderer2D::flushCircles(bool bindCam) {
 		if (s_renderer2Ddata.circleIndexCount > 0) {
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.circleVertexBufferPtr - (uint8_t*)s_renderer2Ddata.circleVertexBufferBase);
-			s_renderer2Ddata.circleVertexBuffer->setData(s_renderer2Ddata.circleVertexBufferBase, dataSize);
+			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.circleVertexBufferPtr - (uint8_t*)s_renderer2Ddata.circleVertexBufferBase.get());
+			s_renderer2Ddata.circleVertexBuffer->setData(s_renderer2Ddata.circleVertexBufferBase.get(), dataSize);
 			s_renderer2Ddata.circleShader->bind();
 			RenderCommand::setCullMode(CullMode::BackAndFront);
 			if (bindCam) {
@@ -215,8 +222,8 @@ namespace Stulu {
 
 	void Renderer2D::flushLines(bool bindCam) {
 		if (s_renderer2Ddata.lineVertexCount > 0) {
-			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.lineVertexBufferPtr - (uint8_t*)s_renderer2Ddata.lineVertexBufferBase);
-			s_renderer2Ddata.lineVertexBuffer->setData(s_renderer2Ddata.lineVertexBufferBase, dataSize);
+			uint32_t dataSize = (uint32_t)((uint8_t*)s_renderer2Ddata.lineVertexBufferPtr - (uint8_t*)s_renderer2Ddata.lineVertexBufferBase.get());
+			s_renderer2Ddata.lineVertexBuffer->setData(s_renderer2Ddata.lineVertexBufferBase.get(), dataSize);
 			s_renderer2Ddata.lineShader->bind();
 			RenderCommand::setCullMode(CullMode::BackAndFront);
 			if (bindCam) {
@@ -234,17 +241,17 @@ namespace Stulu {
 	void Renderer2D::resetQuadBatch() {
 		s_renderer2Ddata.slotIndex = 1;
 		s_renderer2Ddata.quadIndexCount = 0;
-		s_renderer2Ddata.quadVertexBufferPtr = s_renderer2Ddata.quadVertexBufferBase;
+		s_renderer2Ddata.quadVertexBufferPtr = s_renderer2Ddata.quadVertexBufferBase.get();
 	}
 
 	void Renderer2D::resetCircleBatch() {
 		s_renderer2Ddata.circleIndexCount = 0;
-		s_renderer2Ddata.circleVertexBufferPtr = s_renderer2Ddata.circleVertexBufferBase;
+		s_renderer2Ddata.circleVertexBufferPtr = s_renderer2Ddata.circleVertexBufferBase.get();
 	}
 
 	void Renderer2D::resetLineBatch() {
 		s_renderer2Ddata.lineVertexCount = 0;
-		s_renderer2Ddata.lineVertexBufferPtr = s_renderer2Ddata.lineVertexBufferBase;
+		s_renderer2Ddata.lineVertexBufferPtr = s_renderer2Ddata.lineVertexBufferBase.get();
 	}
 
 	void Renderer2D::drawQuad(const glm::mat4& transform, const glm::vec4& color) {

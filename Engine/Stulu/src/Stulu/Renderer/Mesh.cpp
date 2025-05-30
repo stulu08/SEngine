@@ -114,7 +114,7 @@ namespace Stulu {
 			max = glm::max(max, pos);
 			
 		}
-		m_bounds = VFC::createBoundingBox({ min,max });
+		m_bounds = AABB{ min, max };
 	}
 
 	void Mesh::CalculateNormals() {

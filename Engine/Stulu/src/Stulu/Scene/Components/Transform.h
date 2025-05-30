@@ -20,6 +20,7 @@ namespace Stulu {
 			this->children = other.children;
 			this->isStatic = other.isStatic;
 			this->updatePhysics = other.updatePhysics;
+			this->m_bounds = other.m_bounds;
 			this->dirty = true;
 		}
 
@@ -100,6 +101,12 @@ namespace Stulu {
 			return Math::QuaternionToEuler(rotation);
 		}
 
+		inline void SetBounds(const BoundingBox& bounds) { 
+			m_bounds = bounds; 
+			m_bounds.applyTransform(*this); 
+		}
+		inline BoundingBox& GetBounds() { return m_bounds; }
+
 		virtual void Serialize(YAML::Emitter& out) const override {
 			out << YAML::Key << "position" << YAML::Value << position;
 			out << YAML::Key << "rotation" << YAML::Value << rotation;
@@ -117,7 +124,6 @@ namespace Stulu {
 				scale = node["scale"].as<glm::vec3>();
 			// parents will be handled after every object is loaded
 		}
-
 	private:
 		mutable glm::mat4 transform = glm::mat4(1.0f);
 		mutable glm::vec3 worldPosition = glm::vec3(0.0f);
@@ -127,6 +133,8 @@ namespace Stulu {
 		mutable bool dirty : 1;
 		mutable bool isStatic : 1;
 		mutable bool updatePhysics : 1;
+
+		mutable BoundingBox m_bounds;
 
 		entt::entity parentEntity = entt::null;
 		std::vector<entt::entity> children;
@@ -258,6 +266,8 @@ namespace Stulu {
 				worldScale = scale;
 			}
 			dirty = false;
+			// if put above "dirty = false" recursive call, will end in stack overflow, since applyTransform uses GetWorldScale, ...
+			m_bounds.applyTransform(*this);
 		}
 		return transform;
 	}

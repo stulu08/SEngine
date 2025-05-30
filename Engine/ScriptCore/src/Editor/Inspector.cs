@@ -17,12 +17,12 @@ namespace Editor
 
 		internal void Impl_Render(ulong goID)
 		{
-			GameObject gameObject = new GameObject(goID);
+			GameObject gameObject = GameObject.CreateInternal(goID);
 			Render(gameObject);
 		}
 		internal void Impl_RenderGizmos(ulong goID)
 		{
-			GameObject gameObject = new GameObject(goID);
+			GameObject gameObject = GameObject.CreateInternal(goID);
 			RenderGizmos(gameObject);
 		}
 	}

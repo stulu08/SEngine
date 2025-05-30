@@ -64,9 +64,6 @@ namespace Stulu {
 	void TestMaterial::SetData(size_t offset, size_t size, const void* data) {
 		m_buffer->setData(data, (uint32_t)size, (uint32_t)offset);
 	}
-	void TestMaterial::SetSampler(uint32_t slot, Texture* texture) {
-		texture->bind(slot);
-	}
 
 	void TestMaterial::RenderReady() {
 		GlobalMaterialBufferData data{ (uint32_t)m_transparencyMode, m_cutOut };

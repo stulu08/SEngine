@@ -6,6 +6,10 @@ namespace Stulu {
 	struct SceneRendererCreateData {
 		uint32_t shadowMapSize = 1024;
 	};
+	struct RenderStats {
+		size_t drawCalls;
+		size_t shadowDrawCalls;
+	};
 	class STULU_API SceneRenderer {
 	public:
 		struct RenderObject {
@@ -14,7 +18,7 @@ namespace Stulu {
 			glm::mat4 transform;
 			glm::mat4 normalMatrix;
 			CullMode cullmode = CullMode::Back;
-			Ref<BoundingBox> boundingBox = nullptr;
+			BoundingBox* boundingBox = nullptr;
 			inline RenderObject& operator=(RenderObject& b) {
 				material = b.material;//material
 				vertexArray = b.vertexArray;//mesh
@@ -41,7 +45,7 @@ namespace Stulu {
 		void Clear(CameraComponent& cam);
 
 		void RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
-		void RegisterObject(const Ref<VertexArray>& vertexArray, TestMaterial* material, const glm::mat4& transform, const Ref<BoundingBox>& transformedBoundingBox = nullptr);
+		void RegisterObject(const Ref<VertexArray>& vertexArray, TestMaterial* material, const glm::mat4& transform, BoundingBox* transformedBoundingBox = nullptr);
 		void RegisterObject(RenderObject&& object);
 
 		//combines all the textures of the cameras, sorting by layer index
@@ -60,6 +64,10 @@ namespace Stulu {
 		void Register3dObjects();
 
 		void drawAll2d(const TransformComponent& camera);
+
+		const RenderStats& GetStats() const {
+			return m_stats;
+		}
 
 		Ref<FrameBuffer> GetShadowMap() const {
 			return m_shadowMap;
@@ -94,6 +102,8 @@ namespace Stulu {
 		CpuDispatcher* m_dispatcher;
 		uint32_t m_startedTasks = 0;
 		std::atomic_uint32_t m_finishedTasks;
+
+		RenderStats m_stats;
 
 		friend class EditorLayer;
 	};

@@ -16,6 +16,8 @@ public class SpectatorCamera : Component {
 	public float FireRate = 20.0f;
 	[ShowInEditor]
 	public bool AutoFire = false;
+	[ShowInEditor]
+	public Texture2D Texture;
 
 	KeyCode front = KeyCode.W;
 	KeyCode back = KeyCode.S;
@@ -31,6 +33,12 @@ public class SpectatorCamera : Component {
 
 	public override void onStart() {
 		mouse = transform.eulerAngles;
+
+		Log.Trace("Test");
+		Log.Info("Test");
+		Log.Warn("Test");
+		Log.Error("Test");
+		Log.Critical("Test");
 	}
 	public override void onUpdate() {
 		if (Input.getKeyDown(KeyCode.Escape))
@@ -71,5 +79,7 @@ public class SpectatorCamera : Component {
 
 	public override void onDrawGizmos() {
 		Gizmo.drawOutlinedCube(transform.position, Color.Cyan);
+		if(Texture != null)
+			Graphics2D.drawTexturedQuad(Texture, transform.position, Color.White);
 	}
 }

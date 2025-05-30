@@ -112,19 +112,26 @@ namespace Stulu {
 		using TextureType = TextureAsset<T>;
 		static constexpr MaterialPropertyType PropertyType = Type;
 
-		InternalSamplerMaterialProperty(const TextureType& texture, const std::string& name, size_t slot, DefaultMaterialTexture default = DefaultMaterialTexture::Black)
-			: MaterialProperty(name, slot), m_value(texture), m_defaultTexture(default) {}
+		InternalSamplerMaterialProperty(const TextureType& texture, const std::string& name, uint32_t binding, size_t offset, DefaultMaterialTexture defaultTex = DefaultMaterialTexture::Black)
+			: MaterialProperty(name, offset), m_binding(binding), m_value(texture), m_defaultTexture(defaultTex) {}
 
-		virtual size_t GetSlot() const { return GetOffset(); }
-		virtual size_t GetSize() const override { return 0; }
+		virtual uint32_t GetSlot() const { return ST_USER_TEXTURE_START + m_binding; }
+		virtual size_t GetSize() const override { return sizeof(float); }
 		virtual MaterialPropertyType GetType() const { return PropertyType; }
 
 		virtual void ApplyValue(TestMaterial* material) const override {
+			float hasValue = 0.0f;
 			if (m_value.IsValid()) {
-				material->SetSampler((uint32_t)GetOffset(), static_cast<Texture*>(*GetValue()));
+				GetValue()->bind(GetSlot());
+				hasValue = 1.0f;
 			}
 			else {
-				material->SetSampler((uint32_t)GetOffset(), GetDefaultTexture(m_defaultTexture));
+				GetDefaultTexture(m_defaultTexture)->bind(GetSlot());
+			}
+			// prevent uploading if already assigned
+			if (m_lastCheck != hasValue) {
+				material->SetData(GetOffset(), GetSize(), &hasValue);
+				m_lastCheck = hasValue;
 			}
 		}
 
@@ -136,13 +143,12 @@ namespace Stulu {
 			out << YAML::EndMap;
 		};
 		virtual void Deserializer(YAML::Node& node) {
-			UUID uuid;
 			if (node[m_name]) {
-				auto textureNode = node[m_name];
-				if(node["Default"])
-					m_defaultTexture = (DefaultMaterialTexture)node["Default"].as<uint32_t>();
-				if (node["UUID"]) {
-					m_value = AssetsManager::GlobalInstance().GetAsset<TextureType>(node["UUID"].as<UUID>());
+				YAML::Node textureNode = node[m_name];
+				if(textureNode["Default"])
+					m_defaultTexture = (DefaultMaterialTexture)textureNode["Default"].as<uint32_t>();
+				if (textureNode["UUID"]) {
+					m_value = AssetsManager::GlobalInstance().GetAsset<TextureType>(textureNode["UUID"].as<UUID>());
 				}
 
 			}
@@ -152,6 +158,8 @@ namespace Stulu {
 		void SetValue(const TextureType& val) { m_value = val; }
 	private:
 		TextureType m_value;
+		uint32_t m_binding;
+		mutable float m_lastCheck = -1.0f;
 		DefaultMaterialTexture m_defaultTexture;
 	};
 

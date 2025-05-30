@@ -130,7 +130,7 @@ namespace StuluBindings {
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::SphereMesh();
+			go.addComponent<Stulu::MeshFilterComponent>().SetMesh(Stulu::Resources::SphereMesh());
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::SphereColliderComponent>();
@@ -143,7 +143,7 @@ namespace StuluBindings {
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::CubeMesh();
+			go.addComponent<Stulu::MeshFilterComponent>().SetMesh(Stulu::Resources::CubeMesh());
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::BoxColliderComponent>();
@@ -155,7 +155,7 @@ namespace StuluBindings {
 			base.tag = monoTag.ToUtf8();
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::CapsuleMesh();
+			go.addComponent<Stulu::MeshFilterComponent>().SetMesh(Stulu::Resources::CapsuleMesh());
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::CapsuleColliderComponent>();
@@ -168,7 +168,7 @@ namespace StuluBindings {
 			auto& tc = go.getComponent<Stulu::TransformComponent>();
 			tc.position = position.toNative_s();
 
-			go.addComponent<Stulu::MeshFilterComponent>().mesh = Stulu::Resources::PlaneMesh();
+			go.addComponent<Stulu::MeshFilterComponent>().SetMesh(Stulu::Resources::PlaneMesh());
 			go.addComponent<Stulu::MeshRendererComponent>();
 			go.addComponent<Stulu::RigidbodyComponent>();
 			go.addComponent<Stulu::MeshColliderComponent>().SetMesh(Stulu::Resources::PlaneMesh());

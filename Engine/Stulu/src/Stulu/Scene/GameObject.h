@@ -21,7 +21,7 @@ namespace Stulu {
 		inline T& addComponent(Args&&... args) const {
 			if (hasComponent<T>()) {
 				CORE_WARN("GameObject already has component, returning component");
-				return getComponent<T>();
+				return m_registry->m_registry.get<T>(m_entity);
 			}
 			T& component = m_registry->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
 			component.gameObject = { m_entity,m_registry };
@@ -31,7 +31,7 @@ namespace Stulu {
 		template<typename T, typename... Args>
 		inline T& saveAddComponent(Args&&... args) const {
 			if (hasComponent<T>()) 
-				return getComponent<T>();
+				return m_registry->m_registry.get<T>(m_entity);
 			T& component = m_registry->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
 			m_registry->onComponentAdded<T>(*this, component);
 			component.gameObject = {m_entity,m_registry};
@@ -53,6 +53,7 @@ namespace Stulu {
 			return true;
 		}
 
+		inline Registry* GetRegistry() { return m_registry; }
 		inline Registry* GetRegistry() const { return m_registry; }
 
 		// defined after GameObjectBaseComponent to keep the function inline

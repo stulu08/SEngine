@@ -4,7 +4,7 @@
 	/// </summary>
 	public static class Log {
 		internal enum Level {
-			trace = 0, info = 1, warn = 2, error = 3, critical = 4
+			trace = 0, info = 2, warn = 3, error = 4, critical = 5
 		};
 		/// <summary>
 		///Prints the message to the console as a critical message

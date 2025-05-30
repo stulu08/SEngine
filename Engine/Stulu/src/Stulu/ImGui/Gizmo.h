@@ -29,6 +29,7 @@ namespace Stulu {
 	class STULU_API Gizmo {
 	public:
 		static void init();
+		static void ShutDown();
 		static bool Begin();
 		// always call end
 		static void End();

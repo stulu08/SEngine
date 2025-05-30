@@ -24,6 +24,7 @@ namespace Stulu {
 		Instance = this;
 	}
 	AssetsManager::~AssetsManager() {
+		m_assets.clear();
 	}
 
 	AssetsManager& AssetsManager::GlobalInstance() {
@@ -39,7 +40,6 @@ namespace Stulu {
 
 			const std::string& file = entry.path().string();
 			LoadFile(file);
-			CORE_TRACE("Loading: {0}", file);
 		}
 	}
 
@@ -126,6 +126,7 @@ namespace Stulu {
 		}
 
 		if (forceLoad) {
+			CORE_TRACE("Loading: {0}", path);
 			asset->IncRef();
 			asset->Load();
 		}
@@ -150,6 +151,7 @@ namespace Stulu {
 		}
 
 		if (forceLoad) {
+			CORE_TRACE("Loading: {0}", asset->GetPath());
 			asset->IncRef();
 			asset->Load();
 		}

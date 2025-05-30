@@ -32,11 +32,12 @@ namespace Stulu {
 			std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
 			std::string("#define MAX_REFLECTION_LOD ") + std::to_string(ST_MAX_REFLECTION_LOD) + "\n" +
 			std::string("#define ST_USER_MATERIAL_BINDING ") + std::to_string((int)BufferBinding::UserMaterial) + "\n" +
+			std::string("#define ST_MAX_INSTANCES ") + std::to_string(ST_MAX_INSTANCES) + "\n" +
 			std::string("#endif\n")
 		);
 	}
 	ShaderSystem::~ShaderSystem() {
-
+		
 	}
 
 	Ref<Shader> ShaderSystem::AddShader(const std::string& path) {

@@ -15,3 +15,4 @@
 const int st_maxLights;
 #define MAX_REFLECTION_LOD
 #define ST_USER_MATERIAL_BINDING
+#define ST_MAX_INSTANCES

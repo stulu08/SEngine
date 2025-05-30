@@ -51,6 +51,8 @@ namespace Stulu {
 		case Stulu::MaterialPropertyType::Float:
 		case Stulu::MaterialPropertyType::Int:
 		case Stulu::MaterialPropertyType::UInt:
+		case Stulu::MaterialPropertyType::Sampler2D:
+		case Stulu::MaterialPropertyType::SkyBox:
 			return 1;
 
 		case Stulu::MaterialPropertyType::Float2:
@@ -66,8 +68,6 @@ namespace Stulu {
 		case Stulu::MaterialPropertyType::Color:
 			return 4;
 
-		case Stulu::MaterialPropertyType::Sampler2D:
-		case Stulu::MaterialPropertyType::SkyBox:
 		case Stulu::MaterialPropertyType::None:
 			return 0;
 		}
@@ -99,6 +99,16 @@ namespace Stulu {
 		}
 		return 0.0f;
 	}
+	static uint32_t ParseUInt(std::string& str) {
+		str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+		try {
+			return std::stoul(str);
+		}
+		catch (std::exception ex) {
+			CORE_ERROR("Error parsing offset: {0}", ex.what());
+		}
+		return 0;
+	}
 	static bool ParseBool(std::string& str) {
 		str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 		std::transform(str.begin(), str.end(), str.begin(), [](char c) { return std::tolower(c); });
@@ -115,13 +125,13 @@ namespace Stulu {
 				segments.push_back(segment);
 			}
 		}
-		
+
 		// needs (name, offset, ...) at least
 		if (segments.size() < 2) {
 			CORE_ERROR("To less arguments for ShaderProperity");
 			return nullptr;
 		}
-		
+
 
 		// find name, "Name" ,
 		const std::string& nameSeg = segments[0];
@@ -135,13 +145,10 @@ namespace Stulu {
 
 		// read the offset/binding
 		size_t offset = ParseSizeT(segments[1]);
-		if (!IsTextureType(type)) {
-			if (offset == 0)
-				offset = expectedOffset;
-			else if (offset != expectedOffset)
-				CORE_WARN("Offset of Material will be overwritten!");
-		}
-		
+		if (offset == 0)
+			offset = expectedOffset;
+		else if (offset != expectedOffset)
+			CORE_WARN("Offset of Material will be overwritten!");
 
 		switch (type)
 		{
@@ -181,25 +188,33 @@ namespace Stulu {
 
 		case Stulu::MaterialPropertyType::Sampler2D:
 			{
+				uint32_t binding = 0;
+				if (segments.size() >= 3) binding = ParseUInt(segments[2]);
+				else CORE_ERROR("Missing binding slot for Texture Property inside shader, assuming 0");
+
 				DefaultMaterialTexture texture = DefaultMaterialTexture::Black;
-				if (segments.size() >= 3) {
-					std::string& str = segments[2];
+				if (segments.size() >= 4) {
+					std::string& str = segments[3];
 					str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 					std::transform(str.begin(), str.end(), str.begin(), [](char c) { return std::tolower(c); });
 					texture = str == "white" ? DefaultMaterialTexture::White : DefaultMaterialTexture::Black;
 				}
-				return createRef<MaterialSampler2DProperty>(nullptr, name, offset, texture);
+				return createRef<MaterialSampler2DProperty>(nullptr, name, binding, offset, texture);
 			}
 		case Stulu::MaterialPropertyType::SkyBox:
 			{
+				uint32_t binding = 0;
+				if (segments.size() >= 3) binding = ParseUInt(segments[2]);
+				else CORE_ERROR("Missing binding slot for Texture Property inside shader, assuming 0");
+
 				DefaultMaterialTexture texture = DefaultMaterialTexture::Black;
-				if (segments.size() >= 3) {
-					std::string& str = segments[2];
+				if (segments.size() >= 4) {
+					std::string& str = segments[3];
 					str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 					std::transform(str.begin(), str.end(), str.begin(), [](char c) { return std::tolower(c); });
 					texture = str == "white" ? DefaultMaterialTexture::White : DefaultMaterialTexture::Black;
 				}
-				return createRef<MaterialSamplerSkyBoxProperty>(nullptr, name, offset, texture);
+				return createRef<MaterialSamplerSkyBoxProperty>(nullptr, name, binding, offset, texture);
 			}
 		}
 		return nullptr;

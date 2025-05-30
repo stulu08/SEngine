@@ -9,8 +9,9 @@
 #include "Stulu/Scene/GameObject.h"
 
 namespace Stulu {
-	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, const std::string& monoAssemblyPath, const std::string& monoConfigPath) 
-		: m_corePath(coreAssemblyPath), m_appPath(assemblyPath) {
+	AssemblyManager::AssemblyManager(const std::string& assemblyPath, const std::string& coreAssemblyPath, bool debuggin,
+		const std::string& monoAssemblyPath, const std::string& monoConfigPath) 
+		: m_corePath(coreAssemblyPath), m_appPath(assemblyPath), m_enabledDebugging(debuggin) {
 		
 		InitMono();
 		CreateAppDomain();
@@ -27,11 +28,26 @@ namespace Stulu {
 
 	void AssemblyManager::InitMono() {
 		Mono::SetDirs(Resources::EngineDataDir + "/mono/lib/", Resources::EngineDataDir + "/mono/etc/");
+
+		if (m_enabledDebugging) {
+			static std::array<const char*, 2> argv = {
+				"--debugger-agent=transport=dt_socket,address=127.0.0.1:2550,server=y,suspend=n,loglevel=3,logfile=MonoDebugger.log",
+				"--soft-breakpoints"
+			};
+			Mono::JIT::ParseOptions((int)argv.size(), (char**)argv.data());
+			Mono::Debug::Init(Mono::Debug::Format::MONO);
+		}
+
 		m_monoDomain = Mono::JIT::Init("StuluEngine");
 		if (!m_monoDomain) {
 			CORE_ERROR("Mono Domain creation failed");
 			return;
 		}
+
+		if (m_enabledDebugging) {
+			Mono::Debug::CreateDomain(m_monoDomain);
+		}
+
 		Mono::Thread::SetMain(Mono::Thread::GetCurrent());
 	}
 	
@@ -41,8 +57,8 @@ namespace Stulu {
 	}
 	
 	void AssemblyManager::LoadAssemblies() {
-		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_corePath.string());
-		m_appAssembly = createRef<ScriptAssembly>(m_appPath.string());
+		m_scriptCoreAssembly = createRef<ScriptAssembly>(m_corePath.string(), m_enabledDebugging);
+		m_appAssembly = createRef<ScriptAssembly>(m_appPath.string(), m_enabledDebugging);
 	}
 
 	void AssemblyManager::LoadDefaults() {
@@ -59,7 +75,8 @@ namespace Stulu {
 
 		m_gameObjectAttachedClass = m_scriptCoreAssembly->CreateClass("Stulu", "GameObjectAttached");
 		m_componentClass = m_scriptCoreAssembly->CreateClass("Stulu", "Component");
-
+		m_exceptionStackTraceMethod = Mono::GetExceptionClass().GetMethodFromName("get_StackTrace", 0);
+		
 		m_events.onAwake = m_componentClass.GetMethodFromName("Impl_onAwake", 0);
 		m_events.onStart = m_componentClass.GetMethodFromName("Impl_onStart", 0);
 		m_events.onUpdate = m_componentClass.GetMethodFromName("Impl_onUpdate", 0);
@@ -81,7 +98,7 @@ namespace Stulu {
 
 		//CreateAppDomain();
 		//m_scriptCoreAssembly->Load(m_corePath.string());
-		m_appAssembly->Load(m_appPath.string());
+		m_appAssembly->Load(m_appPath.string(), m_enabledDebugging);
 
 		LoadDefaults();
 	}

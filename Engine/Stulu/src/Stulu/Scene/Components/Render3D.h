@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 
+#include "Transform.h"
 #include <Stulu/Resources/Assets/MaterialAsset.h>
 
 namespace Stulu {
@@ -90,20 +91,37 @@ namespace Stulu {
 	};
 	class MeshFilterComponent : public Component {
 	public:
-		MeshAsset mesh;
 
 		MeshFilterComponent() = default;
 		MeshFilterComponent(const MeshFilterComponent&) = default;
-		MeshFilterComponent(MeshAsset& mesh)
-			: mesh(mesh) {}
+		MeshFilterComponent(MeshAsset& meshAsset) {
+			SetMesh(meshAsset);
+		}
+
+		void SetMesh(const MeshAsset& meshAsset) {
+			this->mesh = meshAsset;
+			if (mesh.IsLoaded()) {
+				TransformComponent& transform = gameObject.saveAddComponent<TransformComponent>();
+				transform.SetBounds(mesh->GetBoundingBox());
+			}
+		}
+		MeshAsset GetMesh() const {
+			return mesh;
+		}
+
 
 		virtual void Serialize(YAML::Emitter& out) const override {
 			if (mesh.IsValid())
 				out << YAML::Key << "mesh" << YAML::Value << mesh.GetUUID();
 		}
 		virtual void Deserialize(YAML::Node& node) override {
-			if (node["mesh"])
-				mesh = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(node["mesh"].as<UUID>());
+			if (node["mesh"]) {
+				auto asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(node["mesh"].as<UUID>());
+				SetMesh(asset);
+			}
 		}
+
+	private:
+		MeshAsset mesh;
 	};
 }

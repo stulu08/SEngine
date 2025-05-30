@@ -9,8 +9,13 @@ namespace Stulu {
 	//default components
 	public class GameObjectAttached {
 		public GameObject gameObject { get; internal set; }
-		internal void initilize(ulong goId) {
-			this.gameObject = new GameObject(goId);
+		internal void Initilize(ulong goId) {
+			gameObject = GameObject.CreateInternal(goId);
+		}
+		internal void InitilizeFromObject(GameObject gameObject)
+		{
+			ulong id = gameObject == null ? GameObject.NULL_ID : gameObject.ID;
+			Initilize(id);
 		}
 		public ulong id { get => gameObject.ID; }
 

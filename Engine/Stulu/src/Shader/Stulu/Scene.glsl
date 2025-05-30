@@ -52,7 +52,7 @@ struct InstanceData{
 };
 layout(std140, binding = 1) uniform modelDatayout(std140, binding = 1) uniform modelData
 {
-		InstanceData instanceData[180];
+		InstanceData instanceData[ST_MAX_INSTANCES];
 };
  --------------------------------------------
  */

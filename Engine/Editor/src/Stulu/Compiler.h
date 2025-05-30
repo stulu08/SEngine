@@ -47,6 +47,7 @@ namespace Editor {
 		BuildTarget targets = BuildTarget::Native | BuildTarget::Managed;
 	};
 
+	constexpr BuildSettings ManagedOnlyBuildSettings = { StandartBuildConfig, BuildTarget::Managed };
 	constexpr BuildSettings EditorBuildSettings = { StandartBuildConfig, BuildTarget::Native | BuildTarget::Managed };
 	constexpr BuildSettings RuntimeBuildSettings = { StandartBuildConfig, BuildTarget::Native | BuildTarget::Managed | BuildTarget::Runtime };
 

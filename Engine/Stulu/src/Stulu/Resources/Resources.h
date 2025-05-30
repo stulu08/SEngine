@@ -12,6 +12,7 @@ namespace Stulu {
 	class STULU_API Resources {
 	public:
 		static void load();
+		static void ReleaseAll();
 
 		static Texture2D* BlackTexture();
 		static Texture2D* WhiteTexture();

@@ -6,8 +6,6 @@
 vec3 getNormalFromMap(vec3 world, vec2 tex, vec3 normal, sampler2D map)
 {
 	vec3 textureValue = texture(map, tex).xyz;
-	if(textureValue == vec3(0))
-		return normal;
     vec3 tangentNormal = textureValue * 2.0 - 1.0;
 	
     vec3 Q1  = dFdx(world);

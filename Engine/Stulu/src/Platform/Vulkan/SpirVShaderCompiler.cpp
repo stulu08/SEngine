@@ -103,7 +103,7 @@ namespace Stulu {
 			glslang::GlslangToSpv(*intermediate, dat);
 			result.Add(stage, CompiledShaderData{ dat });
 
-			shader.release();
+			shader.reset();
 		}
 
 

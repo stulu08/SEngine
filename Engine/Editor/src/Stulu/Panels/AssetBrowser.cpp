@@ -229,6 +229,9 @@ namespace Editor {
 			ImGui::EndPopup();
 		}
 	}
+	static std::string AssetClassToDisplayString(const std::string& typeString) {
+		return typeString.substr(0, typeString.find("Asset"));
+	}
 
 	FileInteractAction AssetBrowser::DrawFileFrame(const std::filesystem::path& path, bool selected) {
 		const float descriptionHeight = m_iconSize / 2.0f;
@@ -337,7 +340,7 @@ namespace Editor {
 		if (!isDirectory) {
 			ImGui::PushFontSmall();
 
-			std::string tag = asset ? asset->GetTypeName() : "Directory";
+			std::string tag = asset ? AssetClassToDisplayString(asset->GetTypeName()) : "Directory";
 			std::transform(tag.begin(), tag.end(), tag.begin(), ::toupper);
 
 			ImVec2 typeSize = ImGui::CalcTextSize(tag.c_str());

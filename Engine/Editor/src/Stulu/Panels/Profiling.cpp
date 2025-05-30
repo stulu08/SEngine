@@ -160,16 +160,11 @@ namespace Editor {
 
 		if (ImGui::TreeNodeEx("Render Stats")) {
 
-			ImGui::TreeNodeEx("DrawCalls", ImGuiTreeNodeFlags_Leaf, "Drawcalls: % d", ST_PROFILING_RENDERDATA_GETDRAWCALLS());
-			ImGui::TreePop();
+			RenderStats stats = App::get().GetLayer().GetActiveScene()->getRenderer()->GetStats();
 
-			ImGui::TreeNodeEx("Vertices", ImGuiTreeNodeFlags_Leaf, "Vertices: %d", ST_PROFILING_RENDERDATA_GETVERTICES());
+			ImGui::TreeNodeEx("3DDrawCalls", ImGuiTreeNodeFlags_Leaf, "3D Draw Calls: % d", stats.drawCalls);
 			ImGui::TreePop();
-
-			ImGui::TreeNodeEx("Indices", ImGuiTreeNodeFlags_Leaf, "Indices: %d", ST_PROFILING_RENDERDATA_GETINDICES());
-			ImGui::TreePop();
-
-			ImGui::TreeNodeEx("Triangles", ImGuiTreeNodeFlags_Leaf, "Triangles: %d", (int)(ST_PROFILING_RENDERDATA_GETINDICES() / 3));
+			ImGui::TreeNodeEx("ShadowDrawCalls", ImGuiTreeNodeFlags_Leaf, "Shadow Draw Calls: % d", stats.shadowDrawCalls);
 			ImGui::TreePop();
 
 			ImGui::TreePop();

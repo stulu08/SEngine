@@ -58,6 +58,7 @@ namespace Stulu{
 		};
 
 		static void init();
+		static void Shutdown();
 		static void onWindowResize(WindowResizeEvent& e);
 
 		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader = nullptr);

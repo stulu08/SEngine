@@ -17,6 +17,7 @@
 #include "Core/Input.h"
 #include "Core/Log.h"
 #include "Core/Texture2D.h"
+#include "Core/Asset.h"
 
 namespace StuluBindings {
 	STULU_API Stulu::Ref<Stulu::AssemblyManager> getManager() {
@@ -95,6 +96,11 @@ namespace StuluBindings {
 		add_call("quaternion_toEuler(Stulu.Quaternion&,Stulu.Vector3&)", Quaternion::ToEuler);
 
 		add_call("folders_assetPath()", Folders::AssetsPath);
+
+		manager->RegisterFunction("Stulu.AssetHandle::DropAssetHandle(uint,ulong)", AssetHandle::ReleaseHandle);
+		manager->RegisterFunction("Stulu.AssetHandle::InitAssetHandle(object,ulong)", AssetHandle::InitHandle);
+		manager->RegisterFunction("Stulu.AssetHandle::GetAssetLoaded(ulong)", AssetHandle::GetLoaded);
+		manager->RegisterFunction("Stulu.AssetHandle::GetAssetPath(ulong)", AssetHandle::GetPath);
 	}
 	void LoadComponentsBindings() {
 		Stulu::Ref<Stulu::AssemblyManager> manager = getManager();

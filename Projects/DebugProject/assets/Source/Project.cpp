@@ -15,7 +15,7 @@ public:
 	virtual void onAttach() override {
         Stulu::EventCaller::RegisterLayer<ProjectLayer>();
 
-        Stulu::Component::Register<FreeCamera>("FreeCameraComponent");
+        Stulu::Component::Register<FreeCamera>("FreeCameraComponent", "FreeCameraComponent");
 	}
 	virtual void onUpdate(Stulu::Timestep ts) override {
 		

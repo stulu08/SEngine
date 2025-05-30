@@ -8,7 +8,7 @@
 #include <mono/metadata/reflection.h>
 #include <mono/metadata/threads.h>
 #include <mono/metadata/mono-debug.h>
-#include <mono/metadata/reflection.h>
+#include <mono/metadata/mono-gc.h>
 
 namespace Stulu {
 	namespace Mono {
@@ -56,6 +56,18 @@ namespace Stulu {
 		}
 		Method Class::GetMethodFromName(const std::string& name, int param_count)  const {
 			return mono_class_get_method_from_name(m_class, name.c_str(), param_count);
+		}
+		Method Class::GetMethodFromNameInHierarchy(const std::string& name, int param_count) const {
+			MonoClass* klass = m_class;
+			while (klass)
+			{
+				MonoMethod* method = mono_class_get_method_from_name(klass, name.c_str(), param_count);
+				if (method)
+					return method;
+
+				klass = mono_class_get_parent(klass);
+			}
+			return nullptr;
 		}
 		Class Class::FromName(Image image, const std::string& nameSpace, const std::string& name) {
 			return mono_class_from_name(image, nameSpace.c_str(), name.c_str());
@@ -228,6 +240,9 @@ namespace Stulu {
 		MethodDesc MethodDesc::FromMethod(Method method) {
 			return mono_method_desc_from_method(method);
 		}
+		Thread Thread::Attach(Domain domain) {
+			return mono_thread_attach(domain);
+		}
 		Thread Thread::GetCurrent() {
 			return mono_thread_current();
 		}
@@ -239,9 +254,8 @@ namespace Stulu {
 		}
 		void GCHandle::Free() {
 			mono_gchandle_free(m_handle);
-			m_handle = 0;
 		}
-		Mono::Object GCHandle::GetTarget() {
+		Mono::Object GCHandle::GetTarget() const {
 			return mono_gchandle_get_target(m_handle);
 		}
 		GCHandle GCHandle::New(Mono::Object obj, bool pinned) {
@@ -265,6 +279,9 @@ namespace Stulu {
 		ST_MONO_API Class GetObjectClass() {
 			return mono_get_object_class();
 		}
+		ST_MONO_API Class GetExceptionClass() {
+			return mono_get_exception_class();
+		}
 		ST_MONO_API void AddInternallCall(const std::string& name, const void* method) {
 			return mono_add_internal_call(name.c_str(), method);
 		}
@@ -274,7 +291,9 @@ namespace Stulu {
 		ST_MONO_API void RuntimeObjectInit(Mono::Object object) {
 			mono_runtime_object_init(object);
 		}
-
+		ST_MONO_API void PrintUnhandledException(Object object) {
+			mono_print_unhandled_exception(object);
+		}
 		ST_MONO_API Domain JIT::Init(const std::string& file) {
 			return mono_jit_init(file.c_str());
 		}
@@ -290,6 +309,9 @@ namespace Stulu {
 		ST_MONO_API void JIT::set_crash_chaining(bool chain_signals) {
 			return mono_set_crash_chaining(chain_signals);
 		}
+		ST_MONO_API void JIT::ParseOptions(int argc, char** argv) {
+			mono_jit_parse_options(argc, argv);
+		}
 		ST_MONO_API void JIT::SetAotMode(AotMode mode) {
 			return mono_jit_set_aot_mode((MonoAotMode)mode);
 		}
@@ -302,9 +324,6 @@ namespace Stulu {
 				return (MonoBreakPolicy)pc(method);
 			};
 			mono_set_break_policy(wrapper);
-		}
-		void JIT::ParseOptions(int argc, char* argv[]) {
-			return mono_jit_parse_options(argc, argv);
 		}
 		ST_MONO_API char* JIT::GetRuntimeBuildInfo() {
 			return mono_get_runtime_build_info();
@@ -324,5 +343,22 @@ namespace Stulu {
 		ST_MONO_API void JIT::set_signal_chaining(bool chain_signals) {
 			return mono_set_signal_chaining(chain_signals);
 		}
-}
+		ST_MONO_API void Debug::Init(Format format) {
+			mono_debug_init((MonoDebugFormat)format);
+		}
+		ST_MONO_API void Debug::CreateDomain(Domain domain) {
+			mono_debug_domain_create(domain);
+		}
+		ST_MONO_API void Debug::OpenImageFromMemory(Image image, const char* data, int32_t dataLen) {
+			mono_debug_open_image_from_memory(image, (const mono_byte*)data, dataLen);
+		}
+
+		ST_MONO_API void GC::Collect(int generations) {
+			mono_gc_collect(generations);
+		}
+		ST_MONO_API int GC::MaxGenerations()
+		{
+			return mono_gc_max_generation();
+		}
+	}
 }

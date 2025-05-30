@@ -40,6 +40,7 @@ namespace Stulu {
 		inline virtual void SetUUID(UUID newId) { m_id = newId; }
 		virtual std::type_index GetTypeID() const = 0;
 		virtual const char* GetTypeName() const = 0;
+		virtual bool Loaded() const = 0;
 
 		virtual inline bool IsMemoryLoaded() const {
 			return m_path.empty() || (m_path.rfind(MemoryAssetPath, 0) == 0);
@@ -48,7 +49,6 @@ namespace Stulu {
 		virtual void Unload() = 0;
 		virtual bool Load() = 0;
 		virtual bool Save() const { return true; };
-		virtual bool Loaded() const = 0;
 
 		virtual bool HasExtension(const std::string& extension) const { return false; };
 

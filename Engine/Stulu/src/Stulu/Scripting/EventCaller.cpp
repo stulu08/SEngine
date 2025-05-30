@@ -3,6 +3,7 @@
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/Components/Components.h"
+#include "Stulu/Scripting/Managed/Bindings/Core/Asset.h"
 
 namespace Stulu {
 
@@ -18,7 +19,7 @@ namespace Stulu {
 				m_layer.insert({ layerHash, layerPtr });
 		}
 		m_manager = Application::get().getAssemblyManager();
-		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("Initilize", 1);
 	}
 
 	EventCaller::EventCaller(Scene* scene, Scene* copyTarget)
@@ -42,7 +43,15 @@ namespace Stulu {
 		}
 
 		m_manager = Application::get().getAssemblyManager();
-		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("Initilize", 1);
+	}
+
+	EventCaller::~EventCaller() {
+		for (auto& [hash, layer] : m_layer) {
+			if (layer)
+				delete layer;
+		}
+		m_layer.clear();
 	}
 
 	void EventCaller::ConstructManaged(const GameObject& object) {
@@ -169,6 +178,9 @@ namespace Stulu {
 		}
 
 		DEFAULT_HANDLE_MANAGED(onSceneExit);
+
+		// check assets created inside managed code
+		StuluBindings::AssetHandle::CleanUpAssets(true);
 	}
 	void EventCaller::NativeSceneStart() {
 		DEFAULT_HANDLE_LAYER(SceneStart);
