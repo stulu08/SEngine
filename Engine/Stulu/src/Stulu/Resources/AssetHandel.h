@@ -59,6 +59,8 @@ namespace Stulu {
 		const std::string& Path() const { return m_data ? m_data->GetPath() : EmptyString(); }
 
 		static std::type_index TypeID() { return typeid(T); }
+		// dynamic type check
+		static inline bool TypeCheck(SharedAssetData* data) { return dynamic_cast<T*>(data) != nullptr; }
 	protected:
 		SharedAssetData* m_data = nullptr;
 	};
@@ -119,14 +121,11 @@ namespace Stulu {
 		void Initialize() {
 			if (!this->m_data) return;
 
-			// check for correct type only if a specific type is provided
-			if constexpr (!std::is_same<T, SharedAssetData>::value) {
-				// Check for the correct type
-				if (WeakAssetHandle<T>::TypeID() != this->m_data->GetTypeID()) {
-					CORE_ERROR("Type mismatch in AssetHandle, expected '{0}', got '{1}'", WeakAssetHandle<T>::TypeID().name(), this->m_data->GetTypeID().name());
-					this->m_data = nullptr;
-					return;
-				}
+			// Check for the correct type
+			if (!WeakAssetHandle<T>::TypeCheck(m_data)) {
+				CORE_ERROR("Type mismatch in AssetHandle, expected '{0}', got '{1}'", WeakAssetHandle<T>::TypeID().name(), this->m_data->GetTypeID().name());
+				this->m_data = nullptr;
+				return;
 			}
 			IncRefCount();
 		}

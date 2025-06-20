@@ -51,7 +51,7 @@ namespace Editor {
                 }
                 imageOffset += spacing.x;
             }
-
+            
             // draw dummy around frame for drag drop
             const ImVec2 size = ImVec2(frameWidth - (2.0f * padding.x), fontSize.y);
             ImGui::SetCursorPos(ImagePos);
@@ -181,7 +181,6 @@ namespace Editor {
                 else {
                     hint = "Texture2D";
                 }
-                
                 bool changed = RenderAssetFrame<Stulu::Texture2DAsset>(label, textureID, hint, texture, true);
 
                 ImGui::PopItemWidth();
@@ -199,7 +198,7 @@ namespace Editor {
                     hint = asset.Path();
                 }
                 else {
-                    hint = "No material";
+                    hint = "No Material";
                 }
 
                 bool changed = RenderAssetFrame<Stulu::MaterialAsset>(label, materialID, hint, nullptr, false);

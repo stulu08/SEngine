@@ -51,7 +51,7 @@ namespace Stulu {
 			const auto it = Find(id);
 			if (it != m_assets.end()) {
 				SharedAssetData* data = it->second.get();
-				if (data) return data->GetTypeID() == T::TypeID();
+				if (data) return T::TypeCheck(data);
 			}
 			return false;
 		}
