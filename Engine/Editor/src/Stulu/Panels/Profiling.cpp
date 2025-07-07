@@ -179,7 +179,7 @@ namespace Editor {
 
 		const auto& renderer = scene->getRenderer();
 		auto& sceneData = scene->getData();
-		
+
 		if (ImGui::TreeNodeEx("Shadows")) {
 			ImGui::Image(renderer->GetShadowMap()->getDepthAttachment().get(), glm::vec2(256.0f), {0,1}, {1, 0});
 			ImGui::TreePop();

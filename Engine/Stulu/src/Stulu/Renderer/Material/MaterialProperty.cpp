@@ -26,9 +26,13 @@ namespace Stulu {
 		if (type == "sampler2d")
 			return MaterialPropertyType::Sampler2D;
 		if (type == "cubemap")
+			return MaterialPropertyType::Cubemap;
+		if (type == "skybox")
 			return MaterialPropertyType::SkyBox;
 		if (type == "color")
 			return MaterialPropertyType::Color;
+
+		CORE_ERROR("MaterialPropertyType not found!");
 
 		return MaterialPropertyType::None;
 	}
@@ -53,6 +57,7 @@ namespace Stulu {
 		case Stulu::MaterialPropertyType::UInt:
 		case Stulu::MaterialPropertyType::Sampler2D:
 		case Stulu::MaterialPropertyType::SkyBox:
+		case Stulu::MaterialPropertyType::Cubemap:
 			return 1;
 
 		case Stulu::MaterialPropertyType::Float2:
@@ -71,6 +76,7 @@ namespace Stulu {
 		case Stulu::MaterialPropertyType::None:
 			return 0;
 		}
+		CORE_ERROR("MaterialPropertyType not found!");
 		return 0;
 	}
 
@@ -152,7 +158,7 @@ namespace Stulu {
 
 		switch (type)
 		{
-		case Stulu::MaterialPropertyType::Float:
+			case Stulu::MaterialPropertyType::Float:
 			{
 				float min = 0.0f, max = 0.0f;
 				if (segments.size() >= 3)
@@ -162,31 +168,34 @@ namespace Stulu {
 				return createRef<MaterialFloatProperty>(0.0f, name, offset, min, max);
 			}
 
-		case Stulu::MaterialPropertyType::Color:
+			case Stulu::MaterialPropertyType::Color:
 			{
 				bool hdr = false;
 				if (segments.size() >= 3)
 					hdr = ParseBool(segments[2]);
 				return createRef<MaterialColorProperty>(glm::vec4(1.0f), name, offset, hdr);
 			}
-		case Stulu::MaterialPropertyType::Float2:
-			return createRef<MaterialFloat2Property>(glm::vec2(0.0f), name, offset);
-		case Stulu::MaterialPropertyType::Float3:
-			return createRef<MaterialFloat3Property>(glm::vec3(0.0f), name, offset);
-		case Stulu::MaterialPropertyType::Float4:
-			return createRef<MaterialFloat4Property>(glm::vec4(0.0f), name, offset);
-		case Stulu::MaterialPropertyType::Int:
-			return createRef<MaterialIntProperty>(0, name, offset);
-		case Stulu::MaterialPropertyType::Int2:
-			return createRef<MaterialInt2Property>(glm::i32vec2(0), name, offset);
-		case Stulu::MaterialPropertyType::Int3:
-			return createRef<MaterialInt2Property>(glm::i32vec3(0), name, offset);
-		case Stulu::MaterialPropertyType::Int4:
-			return createRef<MaterialInt2Property>(glm::i32vec4(0), name, offset);
-		case Stulu::MaterialPropertyType::UInt:
-			return createRef<MaterialUIntProperty>(0u, name, offset);
+			case Stulu::MaterialPropertyType::Float2:
+				return createRef<MaterialFloat2Property>(glm::vec2(0.0f), name, offset);
+			case Stulu::MaterialPropertyType::Float3:
+				return createRef<MaterialFloat3Property>(glm::vec3(0.0f), name, offset);
+			case Stulu::MaterialPropertyType::Float4:
+				return createRef<MaterialFloat4Property>(glm::vec4(0.0f), name, offset);
+			case Stulu::MaterialPropertyType::Int:
+				return createRef<MaterialIntProperty>(0, name, offset);
+			case Stulu::MaterialPropertyType::Int2:
+				return createRef<MaterialInt2Property>(glm::i32vec2(0), name, offset);
+			case Stulu::MaterialPropertyType::Int3:
+				return createRef<MaterialInt2Property>(glm::i32vec3(0), name, offset);
+			case Stulu::MaterialPropertyType::Int4:
+				return createRef<MaterialInt2Property>(glm::i32vec4(0), name, offset);
+			case Stulu::MaterialPropertyType::UInt:
+				return createRef<MaterialUIntProperty>(0u, name, offset);
+			case Stulu::MaterialPropertyType::SkyBox:
+				return createRef<MaterialSkyBoxProperty>(nullptr, name, offset);
 
-		case Stulu::MaterialPropertyType::Sampler2D:
+
+			case Stulu::MaterialPropertyType::Sampler2D:
 			{
 				uint32_t binding = 0;
 				if (segments.size() >= 3) binding = ParseUInt(segments[2]);
@@ -201,7 +210,7 @@ namespace Stulu {
 				}
 				return createRef<MaterialSampler2DProperty>(nullptr, name, binding, offset, texture);
 			}
-		case Stulu::MaterialPropertyType::SkyBox:
+			case Stulu::MaterialPropertyType::Cubemap:
 			{
 				uint32_t binding = 0;
 				if (segments.size() >= 3) binding = ParseUInt(segments[2]);
@@ -214,9 +223,11 @@ namespace Stulu {
 					std::transform(str.begin(), str.end(), str.begin(), [](char c) { return std::tolower(c); });
 					texture = str == "white" ? DefaultMaterialTexture::White : DefaultMaterialTexture::Black;
 				}
-				return createRef<MaterialSamplerSkyBoxProperty>(nullptr, name, binding, offset, texture);
+				return createRef<MaterialSamplerCubeMapProperty>(nullptr, name, binding, offset, texture);
 			}
 		}
+
+		CORE_ERROR("MaterialPropertyType not found!");
 		return nullptr;
 	}
 }

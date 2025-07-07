@@ -14,6 +14,7 @@ namespace Stulu {
 		Color,
 		Sampler2D, 
 		SkyBox,
+		Cubemap,
 		None
 	};
 	enum class DefaultMaterialTexture {
@@ -70,7 +71,7 @@ namespace Stulu {
 		static size_t GetComponentCount(MaterialPropertyType);
 
 		static inline bool IsTextureType(MaterialPropertyType type){
-			return type == MaterialPropertyType::Sampler2D || type == MaterialPropertyType::SkyBox;
+			return type == MaterialPropertyType::Sampler2D || type == MaterialPropertyType::SkyBox || type == MaterialPropertyType::Cubemap;
 		}
 	protected:
 		std::string m_name;
@@ -80,6 +81,7 @@ namespace Stulu {
 	template<class T, MaterialPropertyType Type>
 	class InternalPrimitivMaterialProperty : public MaterialProperty {
 	public:
+		using NativeType = T;
 		static constexpr MaterialPropertyType PropertyType = Type;
 
 		InternalPrimitivMaterialProperty(const T& val, const std::string& name, size_t offset)
@@ -109,6 +111,7 @@ namespace Stulu {
 	template<class T, MaterialPropertyType Type>
 	class InternalSamplerMaterialProperty : public MaterialProperty {
 	public:
+		using NativeType = TextureAsset<T>;
 		using TextureType = TextureAsset<T>;
 		static constexpr MaterialPropertyType PropertyType = Type;
 
@@ -164,7 +167,7 @@ namespace Stulu {
 	};
 
 	using MaterialSampler2DProperty = InternalSamplerMaterialProperty<Texture2D, MaterialPropertyType::Sampler2D>;
-	using MaterialSamplerSkyBoxProperty = InternalSamplerMaterialProperty<SkyBox, MaterialPropertyType::SkyBox>;
+	using MaterialSamplerCubeMapProperty = InternalSamplerMaterialProperty<SkyBox, MaterialPropertyType::Cubemap>;
 
 	using SimpleMaterialFloatProperty = InternalPrimitivMaterialProperty<float_t, MaterialPropertyType::Float>;
 	using SimpleMaterialColorProperty = InternalPrimitivMaterialProperty<glm::vec4, MaterialPropertyType::Color>;
@@ -199,8 +202,59 @@ namespace Stulu {
 	private:
 		bool m_hdr;
 	};
-	template<class T, class V>
-	inline bool TestMaterial::SetAndApplyPropertiy(const std::string& name, const V& value) {
+
+
+	class MaterialSkyBoxProperty : public MaterialProperty {
+	public:
+		using NativeType = TextureAsset<SkyBox>;
+		using TextureType = TextureAsset<SkyBox>;
+		static constexpr MaterialPropertyType PropertyType = MaterialPropertyType::SkyBox;
+
+		MaterialSkyBoxProperty(const TextureType& texture, const std::string& name, size_t offset)
+			: MaterialProperty(name, offset), m_value(texture) {}
+
+		virtual uint32_t GetSlot() const { return ST_SKYBOX_TEXTURE_BIND_ENV; }
+		virtual size_t GetSize() const override { return sizeof(float); }
+		virtual MaterialPropertyType GetType() const { return PropertyType; }
+
+		virtual void ApplyValue(TestMaterial* material) const override {
+			float hasValue = 0.0f;
+			if (m_value.IsValid()) {
+				GetValue()->bind(GetSlot());
+				hasValue = 1.0f;
+			}
+			// prevent uploading if already assigned
+			if (m_lastCheck != hasValue) {
+				material->SetData(GetOffset(), GetSize(), &hasValue);
+				m_lastCheck = hasValue;
+			}
+		}
+
+		virtual void Serializ(YAML::Emitter& out) const {
+			out << YAML::Key << m_name << YAML::Value << YAML::BeginMap;
+			if (m_value.IsValid())
+				out << YAML::Key << "UUID" << YAML::Value << m_value.GetUUID();
+			out << YAML::EndMap;
+		};
+		virtual void Deserializer(YAML::Node& node) {
+			if (node[m_name]) {
+				YAML::Node textureNode = node[m_name];
+				if (textureNode["UUID"]) {
+					m_value = AssetsManager::GlobalInstance().GetAsset<TextureType>(textureNode["UUID"].as<UUID>());
+				}
+
+			}
+		};
+
+		const TextureType& GetValue() const { return m_value; }
+		void SetValue(const TextureType& val) { m_value = val; }
+	private:
+		TextureType m_value;
+		mutable float m_lastCheck = -1.0f;
+	};
+
+	template<class T>
+	inline bool TestMaterial::SetAndApplyPropertiy(const std::string& name, const typename T::NativeType& value) {
 		if(!HasProperity(name)) return false;
 		
 		Ref<MaterialProperty> property = GetProperity(name);

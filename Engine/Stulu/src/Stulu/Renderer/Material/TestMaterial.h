@@ -44,8 +44,8 @@ namespace Stulu {
 		inline Ref<T> GetProperityAs(const std::string& name) const {
 			return std::dynamic_pointer_cast<T>(GetProperity(name));
 		}
-		template<class T, class V>
-		inline bool SetAndApplyPropertiy(const std::string& name, const V& value);
+		template<class T>
+		inline bool SetAndApplyPropertiy(const std::string& name, const typename T::NativeType& value);
 
 	private:
 		Ref<UniformBuffer> m_buffer;

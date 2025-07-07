@@ -22,12 +22,6 @@ namespace Stulu {
 		virtual bool Load() override;
 		virtual bool Save() const override;
 
-		inline bool IsFromModelLoaded() const {
-			return GetPath().rfind(MemoryModelAssetPath, 0) == 0;
-		}
-		inline virtual bool IsMemoryLoaded() const override {
-			return SharedAssetData::IsMemoryLoaded() || IsFromModelLoaded();
-		}
 		inline std::string GetModelPath() {
 			return GetPath().substr(3);
 		}

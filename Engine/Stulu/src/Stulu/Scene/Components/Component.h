@@ -27,13 +27,14 @@ namespace Stulu {
 
 		template<class T>
 		static inline void RegisterNative(const std::string& nativeName) {
-			m_componentTable[typeid(T).hash_code()] = nativeName;
+			m_componentTable[typeid(T).hash_code()].first = nativeName;
 			m_componentCopyList[typeid(T).hash_code()] = CopyComponent<T>;
 			m_componentSerializeList[typeid(T).hash_code()] = SerializeComponent<T>;
 			m_componentDeserializeList[typeid(T).hash_code()] = DeserializeComponent<T>;
 		}
 		template<class T>
 		static inline void RegisterManaged(const std::string& managedName) {
+			m_componentTable[typeid(T).hash_code()].second = managedName;
 			Application::get().getAssemblyManager()->RegisterComponent<T>(managedName);
 		}
 		template<class T>
@@ -52,13 +53,17 @@ namespace Stulu {
 
 		template<class T>
 		static inline const std::string& GetNativeComponentName() {
-			return m_componentTable.at(typeid(T).hash_code());
+			return m_componentTable.at(typeid(T).hash_code()).first;
+		}
+		template<class T>
+		static inline const std::string& GetManagedComponentName() {
+			return m_componentTable.at(typeid(T).hash_code()).second;
 		}
 	private:
 		static std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&, Scene*)>> m_componentCopyList;
 		static std::unordered_map<size_t, std::function<void(YAML::Emitter&,GameObject)>> m_componentSerializeList;
 		static std::unordered_map<size_t, std::function<void(YAML::Node&,GameObject)>> m_componentDeserializeList;
-		static std::unordered_map<size_t, std::string> m_componentTable;
+		static std::unordered_map<size_t, std::pair<std::string, std::string>> m_componentTable;
 
 		template<class T>
 		static inline void CopyComponent(entt::registry& dst, entt::registry& src, Scene* scene) {

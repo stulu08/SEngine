@@ -65,7 +65,7 @@ namespace Editor {
 		if (!IsVisible())
 			return;
 
-		App::get().GetLayer().GetPanel<ScenePanel>().DrawMenuBars(m_windowPos, false);
+		App::get().GetLayer().GetPanel<ScenePanel>().DrawMenuBars(m_windowPos, false, (float)m_width);
 	}
 
 
@@ -83,9 +83,8 @@ namespace Editor {
 			m_framebuffer->resize(width, height);
 
 			auto& layer = App::get().GetLayer();
-			if (layer.IsRuntime()) {
+			if(layer.GetActiveScene())
 				layer.GetActiveScene()->onViewportResize(width, height);
-			}
 		}
 	}
 }

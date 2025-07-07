@@ -142,7 +142,10 @@ namespace Stulu {
 			return mono_method_full_name(m_method, signature);
 		}
 		std::string String::ToUtf8() const {
-			return mono_string_to_utf8(m_string);
+			char* str = mono_string_to_utf8(m_string);
+			std::string reStr = str;
+			mono_free(str);
+			return reStr;
 		}
 		String String::New(Domain main, const std::string& text) {
 			return mono_string_new(main, text.c_str());
@@ -267,8 +270,14 @@ namespace Stulu {
 		Array Array::New(Domain domain, Class clas, size_t size) {
 			return mono_array_new(domain, clas, size);
 		}
+		size_t Array::Length() const {
+			return (size_t)mono_array_length(m_array);
+		}
 		void Array::SetRef(size_t index, Object value){
 			mono_array_setref(m_array, index, value);
+		}
+		uint8_t* Array::GetElementAddressWithSize(size_t index, size_t typeSize) {
+			return (uint8_t*)mono_array_addr_with_size(m_array, (int)typeSize, index);
 		}
 		ST_MONO_API void SetDirs(const std::string& assembly_dir, const std::string& config_dir) {
 			return mono_set_dirs(assembly_dir.c_str(), config_dir.c_str());

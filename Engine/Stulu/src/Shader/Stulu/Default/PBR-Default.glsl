@@ -48,7 +48,7 @@ void main (){
 	a_albedo *= mix(vec4(1.0), albedoTex, hasAlbedoMap); // Use white if not bound
 	data.albedo = a_albedo.rgb;
 	data.alpha = FilterAlpha(a_albedo.a);
-
+	
 	// Conditionally sample emission
 	vec3 emissionTex = texture(emissionMap, vertex.texCoords * textureTilling).rgb;
 	data.emission = mix(vec3(0.0), emissionTex, hasEmissionMap) * emission.rgb * emission.a;
@@ -73,7 +73,10 @@ void main (){
 	data.texCoords = vertex.texCoords * textureTilling;
 
 	PBRResult result = ComputePBR(data);
+	ApplyDefaultFog(result.color, vertex.worldPos);
+
 	WriteDefaultOut(result);
+
 
 	if (data.alpha == 0.0) {
 		discard;

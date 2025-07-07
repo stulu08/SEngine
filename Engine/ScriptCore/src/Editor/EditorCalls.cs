@@ -39,13 +39,16 @@ namespace Editor
 		internal extern static void ImGui_PopID();
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static bool ImGui_Button(string name);
-		// uses indedation for the inspector
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static bool ImGui_TreeNodeIndent(string name, uint flags);
+		internal extern static bool ImGui_InspectorTreeNodeIndent(string name, out bool outCloseBtn, string closeText);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static void ImGui_TreePopUnindent();
+		internal extern static void ImGui_InspectorTreePopUnindent();
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static bool ImGui_Texture2D(string name, ref IDType value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool ImGui_Material(string name, ref IDType value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool ImGui_Mesh(string name, ref IDType value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static bool ImGui_GameObject(string name, ref IDType value);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -61,8 +61,10 @@ namespace Stulu {
 		SphereInstanceData* sphereDataBufferPtr = nullptr;
 		uint32_t sphereInstanceCount = 0;
 
-		bool used = false;
+		bool used = false, hovered = false;
 	}s_data;
+
+	void LoadGizmoStyle();
 
 	ImVec4 ST_glmVec4ToImGui(const glm::vec4& vec) {
 		return ImVec4(vec.x, vec.y, vec.z, vec.a);
@@ -79,10 +81,7 @@ namespace Stulu {
 		specs.width = Application::get().getWidth();
 		specs.height = Application::get().getHeight();
 
-		TextureSettings colorBuffer;
-		colorBuffer.format = TextureFormat::RGBA;
-
-		s_data.drawBuffer = FrameBuffer::create(specs, colorBuffer);
+		s_data.drawBuffer = FrameBuffer::create(specs, TextureFormat::RGBA);
 
 		{//cubes
 			Ref<IndexBuffer> indexBuffer;
@@ -151,8 +150,8 @@ namespace Stulu {
 			s_data.cubeVertexArray = VertexArray::create();
 			s_data.cubeVertexBuffer = VertexBuffer::create(s_data.maxVertices * sizeof(CubeVertex));
 			s_data.cubeVertexBuffer->setLayout({
-				{ ShaderDataType::Float3, "a_pos" },
-				{ ShaderDataType::Float4, "a_color" },
+				PositionBufferElement,
+				ColorBufferElement,
 				});
 			s_data.cubeVertexArray->addVertexBuffer(s_data.cubeVertexBuffer);
 			s_data.cubeVertexArray->setIndexBuffer(indexBuffer);
@@ -176,6 +175,8 @@ namespace Stulu {
 			s_data.sphereDataBufferBase = Scope<SphereInstanceData[]>(new SphereInstanceData[s_data.maxSpheres]);
 			s_data.cubeShader = Renderer::getShaderSystem()->GetShader("Gizmo/Sphere");
 		}
+
+		LoadGizmoStyle();
 	}
 	void Gizmo::ShutDown() {
 		s_data = Data();
@@ -186,6 +187,7 @@ namespace Stulu {
 		// we need to call ImGui::End, when close button is pressed Begin will not be called and one close call is to much
 		s_data.windowBeginCalled = windowOpen;
 		s_data.used = false;
+		s_data.hovered = false;
 		s_data.mDrawList = 0;
 		
 		if (windowOpen && ImGui::Begin(s_data.window.c_str(), s_data.windowOpen)) {
@@ -240,13 +242,8 @@ namespace Stulu {
 	}
 	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
 		RenderCommand::setDepthTesting(false);
-		camera->bind();
 		s_data.drawBuffer->getColorAttachment()->bind(0);
-		Resources::FullscreenShader()->bind();
-		float z = -1.0f;
-		Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
-		RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
-		camera->unbind();
+		Renderer::ScreenQuad(camera, Resources::FullscreenShader());
 	}
 	void Gizmo::setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView) {
 		s_data.projMatrix = cameraProjection;
@@ -267,42 +264,139 @@ namespace Stulu {
 		s_data.window = windowName;
 		s_data.windowOpen = windowOpenPtr;
 	}
-	bool Gizmo::IsUsing() {
+	bool Gizmo::WasUsed() {
 		return s_data.used;
 	}
 
-	bool Gizmo::TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType, const glm::vec3& snap) {
-		if (gizmoEditType == GizmoTransformEditMode::None)
-			return false;
-		
-		glm::mat4 transform = tc.GetWorldTransform();
-		
-		const float* snapPtr = glm::value_ptr(snap);
-		if (snap == glm::vec3(0.0f, 0.0f, 0.0f))
-			snapPtr = nullptr;
-		
+	bool Gizmo::WasHovered() {
+		return s_data.hovered;
+	}
+	bool Gizmo::TransformEdit(const GameObject& object, GizmoTransformEditMode gizmoEditType, const glm::vec3& snap) {
+		TransformComponent& transform = object.getComponent<TransformComponent>();
+		glm::mat4 matrix = transform.GetWorldTransform();
 
-		ImGuizmo::MANIPULATED operated = ImGuizmo::Manipulate(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
-			(ImGuizmo::OPERATION)((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL, glm::value_ptr(transform), nullptr, snapPtr);
+		const float* snapPtr = snap == glm::vec3(0.0f) ? nullptr : glm::value_ptr(snap);
 
+		ImGuizmo::MANIPULATED operated = ImGuizmo::Manipulate(
+			glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
+			(ImGuizmo::OPERATION)((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL,
+			glm::value_ptr(matrix), nullptr, snapPtr
+		);
+
+		s_data.hovered = ImGuizmo::IsOver();
 		if (ImGuizmo::IsUsing() && operated) {
 			s_data.used = true;
+
 			glm::vec3 position, scale;
 			glm::quat rotation;
-			Math::decomposeTransform(transform, position, rotation, scale);
-			if(operated & ImGuizmo::TRANSLATED)
-				tc.SetWorldPosition(position);
-			if (operated & ImGuizmo::ROTATED)
-				tc.SetWorldRotation(rotation);
-			if (operated & ImGuizmo::SCALED)
-				tc.SetWorldScale(scale);
+			Math::decomposeTransform(matrix, position, rotation, scale);
 
+			if (operated & ImGuizmo::TRANSLATED)
+				transform.SetWorldPosition(position);
+			if (operated & ImGuizmo::ROTATED)
+				transform.SetWorldRotation(rotation);
+			if (operated & ImGuizmo::SCALED)
+				transform.SetWorldScale(scale);
 			return true;
 		}
 		return false;
 	}
+	bool Gizmo::TransformEdit(const std::vector<entt::entity>& objects, Registry* registry, GizmoTransformEditMode gizmoEditType, const glm::vec3& snap) {
+		if (objects.empty()) return false;
+		if (objects.size() == 1) {
+			return TransformEdit({ objects[0], registry }, gizmoEditType, snap);
+		}
+
+		// Calculate average position and scale
+		glm::vec3 averageScale(0.0f);
+		glm::vec3 averagePosition(0.0f);
+
+		for (entt::entity obj : objects) {
+			const auto& transform = GameObject(obj, registry).getComponent<TransformComponent>();
+			averagePosition += transform.GetWorldPosition();
+			averageScale += transform.GetWorldScale();
+		}
+
+		averagePosition /= static_cast<float>(objects.size());
+		averageScale /= static_cast<float>(objects.size());
+
+		// Build initial gizmo transform matrix
+		glm::mat4 gizmoTransform = glm::translate(glm::mat4(1.0f), averagePosition) *
+			glm::scale(glm::mat4(1.0f), averageScale);
+
+		const glm::mat4 originalTransform = gizmoTransform;
+
+		const float* snapPtr = (snap == glm::vec3(0.0f)) ? nullptr : glm::value_ptr(snap);
+		
+		// Manipulate using ImGuizmo
+		ImGuizmo::MANIPULATED operated = ImGuizmo::Manipulate(
+			glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
+			static_cast<ImGuizmo::OPERATION>((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL,
+			glm::value_ptr(gizmoTransform), nullptr, snapPtr
+		);
+
+		s_data.hovered |= ImGuizmo::IsOver();
+
+		if (ImGuizmo::IsUsing() && operated) {
+			s_data.used = true;
+
+			glm::mat4 delta = glm::inverse(originalTransform) * gizmoTransform;
+
+			for (entt::entity obj : objects) {
+				auto& transform = GameObject(obj, registry).getComponent<TransformComponent>();
+
+				glm::mat4 world = transform.GetWorldTransform();
+				world = delta * world;
+
+				glm::vec3 position, scale;
+				glm::quat rotation;
+				Math::decomposeTransform(world, position, rotation, scale);
+
+				if (operated & ImGuizmo::TRANSLATED)
+					transform.SetWorldPosition(position);
+				if (operated & ImGuizmo::ROTATED)
+					transform.SetWorldRotation(rotation);
+				if (operated & ImGuizmo::SCALED)
+					transform.SetWorldScale(scale);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
 	void Gizmo::drawGrid(const glm::mat4& transform, float size) {
 		ImGuizmo::DrawGrid(glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix), glm::value_ptr(transform), size);
+	}
+
+	bool Gizmo::ViewManipulate(TransformComponent& cameraTransform, const glm::vec3& selectedPosition, ImVec2 pos, ImVec2 size) {
+		ImVec4 bgColor = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+		bgColor.w *= 0.5f;
+
+		glm::mat4 pivotTranslate = glm::translate(glm::mat4(1.0f), -selectedPosition);
+		glm::mat4 invPivotTranslate = glm::translate(glm::mat4(1.0f), selectedPosition);
+		glm::mat4 offsetView = pivotTranslate * s_data.viewMatrix;
+
+		ImGuizmo::ViewManipulate(
+			glm::value_ptr(offsetView), glm::value_ptr(s_data.projMatrix),
+			ImGuizmo::TRANSLATE, ImGuizmo::LOCAL,
+			glm::value_ptr(invPivotTranslate), glm::distance(cameraTransform.position, selectedPosition), pos, size,
+			ImGui::ColorConvertFloat4ToU32(bgColor));
+
+
+		s_data.hovered |= ImGuizmo::IsViewManipulateHovered();
+		if (ImGuizmo::IsUsingViewManipulate()) {
+			s_data.used = true;
+			s_data.viewMatrix = invPivotTranslate * offsetView;
+
+			glm::vec3 position, scale;
+			glm::quat rotation;
+			Math::decomposeTransform(glm::inverse(s_data.viewMatrix), position, rotation, scale);
+			//cameraTransform.SetWorldPosition(position);
+			cameraTransform.SetWorldRotation(rotation);
+			return true;
+		}
+		return false;
 	}
 
 	void Gizmo::drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color) {
@@ -522,8 +616,10 @@ namespace Stulu {
 			ImGui::GetColorU32(ImVec4(color.x, color.y, color.z, color.w))
 		);
 
-		bool pressed = ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(_pos, _max);
+		bool hovered = ImGui::IsMouseHoveringRect(_pos, _max);
+		bool pressed = hovered && ImGui::IsMouseDown(ImGuiMouseButton_Left);
 		s_data.used |= pressed;
+		s_data.hovered |= hovered;
 		return pressed;
 	}
 
@@ -560,5 +656,24 @@ namespace Stulu {
 			RenderCommand::drawIndexed(s_data.sphereVertexArray, 0, s_data.sphereInstanceCount);
 			
 		}
+	}
+
+	inline void LoadGizmoStyle() {
+		auto& style = ImGuizmo::GetStyle();
+
+		style.TranslationLineArrowSize = 9.0f;
+		style.TranslationLineThickness = 4.0f;
+		style.ScaleLineCircleSize = 9.0f;
+		style.ScaleLineThickness = 4.0f;
+		style.RotationLineThickness = 3.0f;
+		style.RotationOuterLineThickness = 4.0f;
+
+		style.Colors[ImGuizmo::DIRECTION_X] = ImVec4(0.847f, 0.369f, 0.443f, 1.000f);
+		style.Colors[ImGuizmo::DIRECTION_Y] = ImVec4(0.145f, 0.667f, 0.145f, 1.000f);
+		style.Colors[ImGuizmo::DIRECTION_Z] = ImVec4(0.173f, 0.325f, 0.800f, 1.000f);
+		style.Colors[ImGuizmo::PLANE_X] = ImVec4(0.847f, 0.408f, 0.478f, 1.000f);
+		style.Colors[ImGuizmo::PLANE_Y] = ImVec4(0.333f, 0.671f, 0.333f, 1.000f);
+		style.Colors[ImGuizmo::PLANE_Z] = ImVec4(0.259f, 0.404f, 0.851f, 1.000f);
+		style.Colors[ImGuizmo::SELECTION] = ImVec4(0.800f, 0.667f, 0.125f, 1.000f);
 	}
 }

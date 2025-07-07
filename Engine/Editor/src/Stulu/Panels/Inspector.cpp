@@ -3,14 +3,42 @@
 #include "Stulu/Panels/Hierarchy.h"
 #include "Stulu/App.h"
 #include "Stulu/Style.h"
-
-#include <Stulu/Scripting/Managed/Bindings/Bindings.h>
-#include <Stulu/Scripting/Managed/Bindings/Components/GameObject.h>
-
+#include "Stulu/Controls.h"
 #include "Stulu/MainLayer.h"
 using namespace Stulu;
 
 namespace Editor {
+	bool TreeNodeInspector(const std::string& name, bool* outBtn, const std::string& btnText) {
+		const float buttonWidth = ImGui::GetFontSize();
+		const float fullWidth = ImGui::GetContentRegionAvail().x;
+
+		bool open = ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap);
+
+		if (outBtn) {
+			ImGui::SameLine(fullWidth - ImGui::CalcTextSize(btnText.c_str()).x - ImGui::GetStyle().FramePadding.x * 2.0f);
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+			*outBtn = ImGui::Button(btnText.c_str());
+			ImGui::PopStyleColor(3);
+		}
+
+		if (open) {
+			::ImGui::Indent(ImGui::GetStyle().FramePadding.x * 3.0f);
+			return true;
+		}
+		return false;
+	}
+
+	void TreePopInspector() {
+		ImGui::Unindent(ImGui::GetStyle().FramePadding.x * 3.0f);
+		ImGui::TreePop();
+	}
+
+	Stulu::Mono::Method InspectorPanel::s_renderMethod = nullptr;
+	Stulu::Mono::Method InspectorPanel::s_renderGizmosMethod = nullptr;
+
 	InspectorPanel::InspectorPanel()
 		: Panel("Inspector") {
 		LoadObjects();
@@ -48,52 +76,43 @@ namespace Editor {
 				ImGui::InputText("##name", &base.name);
 			}
 
-
-
 			uint64_t id = (uint64_t)selected.GetID();
-			void* args[1] = { &id };
-			for (const InspectorRenderer& inspector : m_inspectors) {
-				if (!StuluBindings::GameObject::hasComponent(id, inspector.GetType())) {
+			for (const auto& inspector : m_inspectors) {
+				if (!inspector->HasComponent(id)) {
 					continue;
 				}
-				const float offsetX = ImGui::GetStyle().FramePadding.x * 3.0f;
-
-				const std::string& header = inspector.GetHeader();
+				const std::string& header = inspector->GetHeader();
 				bool isHeaderID = header.rfind("##", 0) == 0;
+
 				if (!isHeaderID) {
-					if (ImGui::TreeNodeEx(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed)) {
-						ImGui::Indent(offsetX);
-						inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
-						ImGui::Unindent(offsetX);
-						ImGui::TreePop();
+					bool removeComp = inspector->GetTypeName() != Component::GetManagedComponentName<TransformComponent>();
+					if (TreeNodeInspector(header.c_str(), removeComp ? &removeComp : NULL, ICON_FK_TRASH)) {
+						inspector->Invoke(id);
+						TreePopInspector();
+					}
+					if (removeComp) {
+						inspector->RemoveComponent(id);
 					}
 				}
 				else {
 					ImGui::PushID(header.c_str());
-					inspector.GetScriptObject()->CallMethod(m_renderMethod, args);
+					inspector->Invoke(id);
 					ImGui::PopID();
 				}
-
 			}
-		}
-		else if (selectedObjects.size() > 1) {
-
 		}
 	}
 
 	void InspectorPanel::DrawImGuizmo() {
 		auto& layer = App::get().GetLayer();
 		const auto& selectedObjects = layer.GetPanel<Editor::HierarchyPanel>().GetSelected();
-
 		for (entt::entity selected : selectedObjects) {
 			uint64_t id = (uint64_t)selected;
-			void* args[1] = { &id };
-
-			for (const InspectorRenderer& inspector : m_inspectors) {
-				if (!StuluBindings::GameObject::hasComponent(id, inspector.GetType())) {
+			for (const auto& inspector : m_inspectors) {
+				if (!inspector->HasComponent(id)) {
 					continue;
 				}
-				inspector.GetScriptObject()->CallMethod(m_renderGizmosMethod, args);
+				inspector->InvokeGizmo(id);
 			}
 		}
 	}
@@ -107,35 +126,29 @@ namespace Editor {
 		ImGui::PopStyleVar();
 	}
 
-	bool InspectorPanel::HasInspector(Stulu::Mono::ReflectionType refType) const {
-		std::string searchedName = refType.GetType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
-
+	bool InspectorPanel::HasInspector(const std::string& typeName) const {
 		for (const auto& inspector : m_inspectors) {
-			std::string inspectorName = inspector.GetType().GetType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
-			if (inspectorName == searchedName)
+			if (inspector->GetTypeName() == typeName)
 				return true;
 		}
 		return false;
 	}
 
-	void InspectorPanel::LoadObjects() {
-		m_inspectors.clear();
+	void InspectorPanel::LoadScriptObjects(Ref<ScriptAssembly> assembly) {
 
 		auto& manager = App::get().getAssemblyManager();
-		m_inspectorClass = manager->getScriptCoreAssembly()->CreateClass("Editor", "Inspector");
-		m_inspectorAttribute = manager->getScriptCoreAssembly()->CreateClass("Editor", "InspectorRendererAttribute");
-		m_renderMethod = m_inspectorClass.GetMethodFromName("Impl_Render", 1);
-		m_renderGizmosMethod = m_inspectorClass.GetMethodFromName("Impl_RenderGizmos", 1);
 
-		LoadScriptObjects(manager->getScriptCoreAssembly());
-		LoadScriptObjects(manager->getAppAssembly());
-	}
-	void InspectorPanel::LoadScriptObjects(Ref<ScriptAssembly> assembly) {
-		auto& classes = assembly->LoadAllClasses(m_inspectorClass);
+		Mono::Class inspectorClass = manager->getScriptCoreAssembly()->CreateClass("Editor", "Inspector");
+		Mono::Class inspectorAttribute = manager->getScriptCoreAssembly()->CreateClass("Editor", "InspectorRendererAttribute");
 
-		Mono::ClassField typeField = m_inspectorAttribute.GetFieldFromName("type");
-		Mono::ClassField nameField = m_inspectorAttribute.GetFieldFromName("name");
-		Mono::ClassField priotityField = m_inspectorAttribute.GetFieldFromName("priority");
+		auto& classes = assembly->LoadAllClasses(inspectorClass);
+
+		s_renderMethod = inspectorClass.GetMethodFromName("Impl_Render", 1);
+		s_renderGizmosMethod = inspectorClass.GetMethodFromName("Impl_RenderGizmos", 1);
+
+		Mono::ClassField typeField = inspectorAttribute.GetFieldFromName("type");
+		Mono::ClassField nameField = inspectorAttribute.GetFieldFromName("name");
+		Mono::ClassField priotityField = inspectorAttribute.GetFieldFromName("priority");
 
 		CORE_ASSERT(typeField, "Field 'type' not found!");
 		CORE_ASSERT(nameField, "Field 'name' not found!");
@@ -143,27 +156,60 @@ namespace Editor {
 
 		for (Mono::Class& inspector : classes) {
 			Mono::CustomAttrInfo atrrInfo = Mono::CustomAttrInfo::FromClass(inspector);
-			if (atrrInfo.HasAttribute(m_inspectorAttribute)) {
-				Mono::Object atrributeObject = atrrInfo.GetAttribute(m_inspectorAttribute);
+			if (atrrInfo.HasAttribute(inspectorAttribute)) {
+				Mono::Object atrributeObject = atrrInfo.GetAttribute(inspectorAttribute);
 				if (!atrributeObject)
 					continue;
 
-				Mono::ReflectionType reftype = nullptr;
-				Mono::String header = nullptr;
-				int32_t prio = 0;
+				ManagedInspectorRendererProps props;
+				typeField.GetValue(atrributeObject, &props.refType);
+				nameField.GetValue(atrributeObject, &props.header);
+				priotityField.GetValue(atrributeObject, &props.prio);
+				props.inspectorClass = inspector;
+				props.assembly = assembly;
 
-				typeField.GetValue(atrributeObject, &reftype);
-				nameField.GetValue(atrributeObject, &header);
-				priotityField.GetValue(atrributeObject, &prio);
-				
-				m_inspectors.push_back(std::move(InspectorRenderer(reftype, header.ToUtf8(), inspector, prio, assembly.get())));
+				m_inspectors.push_back(createRef<ManagedInspectorRenderer>(props));
 			}
 
 			atrrInfo.Free();
 		}
+	}
 
-		std::sort(m_inspectors.begin(), m_inspectors.end(), [](const InspectorRenderer& left, const InspectorRenderer& right) {
-			return left.GetPriority() < right.GetPriority();
-		});
+	class SpriteRendererInspector : public NativeInspectorRenderer<SpriteRendererComponent> {
+	public:
+		virtual void DrawGUI(SpriteRendererComponent& comp) const override {
+			Controls::Color("Color", comp.color);
+			Controls::Default("Tiling", comp.tiling);
+			Controls::Default("Texture", comp.texture);
+		}
+		virtual std::string GetHeader() const override {
+			return ICON_FK_PICTURE_O " Sprite Renderer";
+		}
+	};
+	class CircleRendererInspector : public NativeInspectorRenderer<CircleRendererComponent> {
+	public:
+		virtual void DrawGUI(CircleRendererComponent& comp) const override {
+			Controls::Color("Color", comp.color);
+			Controls::Slider::Float("Thickness", comp.thickness);
+			Controls::Slider::Float("Fade", comp.fade, 0.005f, 5.0f);
+		}
+		virtual std::string GetHeader() const override {
+			return ICON_FK_CIRCLE " Circle Renderer";
+		}
+	};
+
+	void InspectorPanel::LoadObjects() {
+		m_inspectors.clear();
+
+		auto& manager = App::get().getAssemblyManager();
+		LoadScriptObjects(manager->getScriptCoreAssembly());
+		LoadScriptObjects(manager->getAppAssembly());
+
+		m_inspectors.push_back(createRef<SpriteRendererInspector>());
+		m_inspectors.push_back(createRef<CircleRendererInspector>());
+
+		std::sort(m_inspectors.begin(), m_inspectors.end(), [](const Ref<InspectorRenderer>& left, const Ref<InspectorRenderer>& right) {
+			return left->GetPriority() < right->GetPriority();
+			});
 	}
 }

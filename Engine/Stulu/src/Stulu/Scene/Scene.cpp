@@ -44,7 +44,22 @@ namespace Stulu {
 		}
 		m_caller->NativeGameObjectDestory(gameObject);
 		m_caller->onDestroy(gameObject);
-		Registry::Destroy(gameObject);
+
+		auto& transform = gameObject.getComponent<TransformComponent>();
+
+		// copy children to avoid mutation during iteration
+		std::vector<entt::entity> childrenCopy = transform.GetChildren();
+		for (entt::entity child : childrenCopy) {
+			Destroy({ child, this });
+		}
+		if (transform.HasParent()) {
+			auto parent = transform.GetParent();
+			if (parent.IsValid()) {
+				parent.getComponent<TransformComponent>().RemoveChild(gameObject);
+			}
+		}
+
+		m_registry.destroy(gameObject.GetID());
 	}
 
 	void Scene::onUpdateEditor(SceneCamera& camera, bool render) {
@@ -100,26 +115,8 @@ namespace Stulu {
 	void Scene::renderSceneForCamera(GameObject go, bool callEvents) {
 		CameraComponent& cameraComp = go.getComponent<CameraComponent>();
 		TransformComponent& transformComp = go.getComponent<TransformComponent>();
-		Renderer::uploadCameraBufferData(cameraComp.GetNativeCamera().getProjectionMatrix(), glm::inverse(transformComp.GetWorldTransform()),
-			transformComp.GetWorldPosition(), transformComp.GetWorldEulerRotation(), cameraComp.GetNear(), cameraComp.GetFar());
 
-		//clear 
-		cameraComp.GetNativeCamera().bindFrameBuffer();
-		m_renderer->Clear(cameraComp);
-		cameraComp.GetNativeCamera().unbindFrameBuffer();
-
-		//draw 3D
-		m_renderer->DrawSceneToCamera(transformComp, cameraComp);
-		//draw 2D stuff
-		cameraComp.GetNativeCamera().bindFrameBuffer();
-		Renderer2D::begin();
-		if (callEvents) {
-			m_caller->onRender2D();
-		}
-
-		m_renderer->drawAll2d(transformComp);
-		Renderer2D::flush();
-		cameraComp.GetNativeCamera().unbindFrameBuffer();
+		m_renderer->DrawSceneToCamera(transformComp, cameraComp, callEvents);
 	}
 	void Scene::closeSceneForRendering() {
 		m_renderer->End();
@@ -131,40 +128,20 @@ namespace Stulu {
 		m_renderer->Begin();
 		GameObject mc = getMainCamera();
 
-		Renderer::uploadCameraBufferData(camera.getCamera().getProjectionMatrix(), glm::inverse(camera.getTransform().GetWorldTransform()),
-			camera.getTransform().GetWorldPosition(), camera.getTransform().GetWorldEulerRotation(), camera.getNear(), camera.getFar());
-		//clear 
-		camera.getCamera().bindFrameBuffer();
-		if (mc)
-			m_renderer->Clear(mc.getComponent<CameraComponent>());
-		else
-			m_renderer->Clear();
-
 		//only in editor
 		if ((m_data.shaderFlags & ST_ShaderViewFlags_DisplayVertices))
 			RenderCommand::setWireFrame(true);
 
-		camera.getCamera().unbindFrameBuffer();
-
-		//draw 3D
 		if (mc)
 			m_renderer->DrawSceneToCamera(camera, mc.getComponent<CameraComponent>());
 		else
 			m_renderer->DrawSceneToCamera(camera);
-
-		//draw 2D stuff
-		camera.getCamera().bindFrameBuffer();
-		Renderer2D::begin();
-		m_renderer->drawAll2d(camera.getTransform());
-		Renderer2D::flush();
-		camera.getCamera().unbindFrameBuffer();
 
 		//only in editor
 		if ((m_data.shaderFlags & ST_ShaderViewFlags_DisplayVertices))
 			RenderCommand::setWireFrame(false);
 
 		m_renderer->End();
-		m_renderer->ApplyPostProcessing(camera);
 	}
 
 	void Scene::onRuntimeStart() {

@@ -92,7 +92,8 @@ namespace Stulu {
 		if (m_blockEvents) {
 			ImGuiIO& io = ImGui::GetIO();
 			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;
-            
+            // basicly only for the transform edit
+            e.handled |= e.isInCategory(MouseButtonEventCategrory) & Gizmo::WasHovered();
 		}
 	}
 
@@ -126,11 +127,11 @@ void ImGui::Image(const Stulu::Texture2D* texture, const glm::vec2& size, const 
     ImGui::Image(StuluTextureToImGui(texture), { size.x,  size.y }, { uv0.x,  uv0.y }, { uv1.x,  uv1.y }, { tint_col.x, tint_col.y, tint_col.z, tint_col.w }, { border_col.x, border_col.y, border_col.z, border_col.w });
 }
 
-bool ImGui::ImageButton(const std::string& id, const Stulu::Ref<Stulu::Texture>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col) {
+bool ImGui::ImageButton(const std::string& id, const  Stulu::Texture* texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col) {
     return ImGui::ImageButton(id.c_str(), StuluTextureToImGui(texture), size, uv0, uv1, bg_col, tint_col);
 }
 
-bool ImGui::ImageButton(const std::string& id, const Stulu::Ref<Stulu::Texture>& texture, const glm::vec2& size, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec4& bg_col, const glm::vec4& tint_col) {
+bool ImGui::ImageButton(const std::string& id, const  Stulu::Texture* texture, const glm::vec2& size, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec4& bg_col, const glm::vec4& tint_col) {
 	return ImGui::ImageButton(id.c_str(), StuluTextureToImGui(texture), {size.x,  size.y}, {uv0.x,  uv0.y}, {uv1.x,  uv1.y}, {bg_col.x, bg_col.y, bg_col.z, bg_col.w}, {tint_col.x, tint_col.y, tint_col.z, tint_col.w});
 }
 
@@ -319,3 +320,14 @@ void ImGui::HelpMarker(const char* text) {
         ImGui::EndTooltip();
     }
 }
+
+void ImGui::Dummy(const ImVec2& size, const char* str_id) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+    ImGui::ItemSize(size);
+    ImGui::ItemAdd(bb, window->GetID(str_id));
+}
+

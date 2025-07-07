@@ -29,10 +29,10 @@ namespace Stulu {
         else if (gameObject.hasComponent<MeshColliderComponent>())
             gameObject.getComponent<MeshColliderComponent>().Release();
 
-        if (m_physics->IsValid())
+        if (m_physics && m_physics->IsValid())
             m_physics->GetPhysicsScene()->removeActor(*m_actor, false);
 
-        if (m_actor->isReleasable())
+        if (m_actor && m_actor->isReleasable())
             m_actor->release();
         m_actor = nullptr;
     }

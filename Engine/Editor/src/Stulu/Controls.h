@@ -44,5 +44,14 @@ namespace Editor {
 		inline bool Default(const std::string& label, glm::vec4& value) {
 			return Controls::Vector4(label, value);
 		}
+		template<>
+		inline bool Default(const std::string& label, Stulu::Texture2DAsset& value) {
+			Stulu::UUID uuid = value.GetUUID();
+			if (Controls::Texture2D(label, uuid)) {
+				value = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::Texture2DAsset>(uuid);
+				return true;
+			}
+			return false;
+		}
 	}
 }

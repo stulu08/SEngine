@@ -1,7 +1,7 @@
 #pragma once
 #include "Stulu/Controls.h"
 #include <Stulu/Scripting/Managed/Bindings/Bindings.h>
-
+#include <Stulu/Panels/Inspector.h>
 namespace StuluBindings {
 	class ImGui {
 	public:
@@ -31,18 +31,11 @@ namespace StuluBindings {
 		static inline bool TreeBegin(Stulu::Mono::String monoName, uint32_t flags) {
 			return ::ImGui::TreeNodeEx(monoName.ToUtf8().c_str(), (ImGuiTreeNodeFlags)flags);
 		}
-		static inline bool TreeBeginIndent(Stulu::Mono::String monoName, uint32_t flags) {
-			const float offsetX = ::ImGui::GetStyle().FramePadding.x * 3.0f;
-			if (::ImGui::TreeNodeEx(monoName.ToUtf8().c_str(), (ImGuiTreeNodeFlags)flags)) {
-				::ImGui::Indent(offsetX);
-				return true;
-			}
-			return false;
+		static inline bool InspectorTreeBeginIndent(Stulu::Mono::String monoName, bool* outClose, Stulu::Mono::String closeText) {
+			return ::Editor::TreeNodeInspector(monoName.ToUtf8(), outClose, closeText.ToUtf8());
 		}
-		static inline void TreePopunindent(Stulu::Mono::String monoName, uint32_t flags) {
-			const float offsetX = ::ImGui::GetStyle().FramePadding.x * 3.0f;
-			::ImGui::Unindent(offsetX);
-			::ImGui::TreePop();
+		static inline void InspectorTreePopunindent(Stulu::Mono::String monoName, uint32_t flags) {
+			::Editor::TreePopInspector();
 		}
 		static inline bool Combo(Stulu::Mono::String monoName, int32_t& value, Stulu::Mono::String monoNames) {
 			return ::Editor::Controls::Combo(monoName.ToUtf8(), value, monoNames.ToUtf8());
@@ -56,6 +49,22 @@ namespace StuluBindings {
 		static inline bool Texture2D(Stulu::Mono::String name, uint64_t* assetID) {
 			Stulu::UUID uuid = *assetID;
 			if (::Editor::Controls::Texture2D(name.ToUtf8(), uuid)) {
+				*assetID = uuid;
+				return true;
+			}
+			return false;
+		}
+		static inline bool Material(Stulu::Mono::String name, uint64_t* assetID) {
+			Stulu::UUID uuid = *assetID;
+			if (::Editor::Controls::Material(name.ToUtf8(), uuid)) {
+				*assetID = uuid;
+				return true;
+			}
+			return false;
+		}
+		static inline bool Mesh(Stulu::Mono::String name, uint64_t* assetID) {
+			Stulu::UUID uuid = *assetID;
+			if (::Editor::Controls::Mesh(name.ToUtf8(), uuid)) {
 				*assetID = uuid;
 				return true;
 			}

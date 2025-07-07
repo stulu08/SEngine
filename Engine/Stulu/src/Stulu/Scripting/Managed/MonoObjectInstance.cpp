@@ -135,7 +135,7 @@ namespace Stulu {
 	std::unordered_map<std::string, void*> MonoObjectInstance::CreateFieldBackup() {
 		std::unordered_map<std::string, void*> map;
 		for (auto field : m_fields) {
-			std::string id = field->getName() + "@" + std::to_string((uint32_t)field->getType());
+			std::string id = field->getName() + "@" + field->getTypeName();
 			map.insert({ id, field->CopyValueToBuffer() });
 		}
 		return map;
@@ -143,7 +143,7 @@ namespace Stulu {
 
 	void MonoObjectInstance::LoadFieldsBackupFrom(std::unordered_map<std::string, void*>& map) {
 		for (auto field : m_fields) {
-			std::string id = field->getName() + "@" + std::to_string((uint32_t)field->getType());
+			std::string id = field->getName() + "@" + field->getTypeName();
 			if (map.find(id) != map.end()) {
 				field->SetValueFromBuffer(map[id]);
 			}

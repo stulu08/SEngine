@@ -9,12 +9,26 @@ namespace Stulu {
 
 		m_compiler = ShaderCompiler::Create();
 		m_compiler->AddHeaderFront("#version 450");
-
+		
 		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
 		AddInternalIncludeFile("Stulu/Internals.glsl",
-
 			std::string("#ifndef _STULU_INTERNALS_GLSL_\n") +
 			std::string("#define _STULU_INTERNALS_GLSL_\n") +
+			std::string("#define ENTITY_ID_NULL 0xffffffff\n") +
+			std::string("#define ST_BUFFER_MODEL_BIND  ") + std::to_string((uint32_t)BufferBinding::Model) + "\n" +
+			std::string("#define ST_BUFFER_CAMERA_BIND  ") + std::to_string((uint32_t)BufferBinding::Camera) + "\n" +
+			std::string("#define ST_BUFFER_POSTPROCESS_BIND  ") + std::to_string((uint32_t)BufferBinding::PostProcessing) + "\n" +
+			std::string("#define ST_BUFFER_LIGHT_BIND  ") + std::to_string((uint32_t)BufferBinding::Light) + "\n" +
+			std::string("#define ST_BUFFER_SCENE_BIND  ") + std::to_string((uint32_t)BufferBinding::Scene) + "\n" +
+			std::string("#define ST_BUFFER_MATERIAL_BIND  ") + std::to_string((uint32_t)BufferBinding::Material) + "\n" +
+			std::string("#define ST_BUFFER_USER_MATERIAL_BIND  ") + std::to_string((uint32_t)BufferBinding::UserMaterial) + "\n" +
+			std::string("#define ST_SKYBOX_TEXTURE_BIND_ENV  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_ENV) + "\n" +
+			std::string("#define ST_SKYBOX_TEXTURE_BIND_IRR  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_IRR) + "\n" +
+			std::string("#define ST_SKYBOX_TEXTURE_BIND_PRE  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_PRE) + "\n" +
+			std::string("#define ST_SKYBOX_TEXTURE_BIND_BRD  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_BRD) + "\n" +
+			std::string("#define ST_SHADOW_TEXTURE_BIND_MAP  ") + std::to_string(ST_SHADOW_TEXTURE_BIND_MAP) + "\n" +
+			std::string("#define ST_MAX_INSTANCES ") + std::to_string(ST_MAX_INSTANCES) + "\n" +
+			std::string("#define ST_MAX_BONES  ") + std::to_string(ST_MAX_BONES) + "\n" +
 			std::string("#define ST_USER_TEXTURE_0  ") + std::to_string(ST_USER_TEXTURE_START + 0) + "\n" +
 			std::string("#define ST_USER_TEXTURE_1  ") + std::to_string(ST_USER_TEXTURE_START + 1) + "\n" +
 			std::string("#define ST_USER_TEXTURE_2  ") + std::to_string(ST_USER_TEXTURE_START + 2) + "\n" +
@@ -32,7 +46,6 @@ namespace Stulu {
 			std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
 			std::string("#define MAX_REFLECTION_LOD ") + std::to_string(ST_MAX_REFLECTION_LOD) + "\n" +
 			std::string("#define ST_USER_MATERIAL_BINDING ") + std::to_string((int)BufferBinding::UserMaterial) + "\n" +
-			std::string("#define ST_MAX_INSTANCES ") + std::to_string(ST_MAX_INSTANCES) + "\n" +
 			std::string("#endif\n")
 		);
 	}
@@ -113,7 +126,11 @@ namespace Stulu {
 		auto props = ProcessProperties(source);
 
 		ShaderCompileResult compileResult;
-		m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult);
+		if (!m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult)) {
+			CORE_ERROR("Compilation for shader '{0}' failed!", name);
+			CORE_ASSERT(false, "");
+			return;
+		}
 
 		m_shaders[name]->m_props = props;
 		m_shaders[name]->m_shader->reload(compileResult);
@@ -126,7 +143,7 @@ namespace Stulu {
 		if (Renderer::getRendererAPI() == Renderer::API::OpenGL) {
 			auto api = Application::get().getWindow().getContext()->getApiInfos();
 			// intel integrated gpu's have a problem with loading sprv, despite having support for the extension
-			 return !(api.vendor.rfind("Intel", 0) == 0);
+			return !(api.vendor.rfind("Intel", 0) == 0);
 		}
 		return false;
 	}
@@ -199,7 +216,11 @@ namespace Stulu {
 
 	Ref<Shader> ShaderSystem::CreateShader(const std::string& name, const ShaderSource& sources, const std::vector<Ref<MaterialProperty>>& properties, const std::string& path) {
 		ShaderCompileResult compileResult;
-		m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult);
+		if (!m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult)) {
+			CORE_ERROR("Compilation for shader '{0}' failed!", name);
+			CORE_ASSERT(false, "");
+			return nullptr;
+		}
 
 		auto shader = Shader::create(name, compileResult);
 		

@@ -70,7 +70,9 @@ namespace Stulu {
 		RegisterProperty<Vector2Property>("Stulu.Vector2");
 		RegisterProperty<Vector3Property>("Stulu.Vector3");
 		RegisterProperty<Vector4Property>("Stulu.Vector4");
-		RegisterProperty<Texture2DProperty>("Stulu.Texture2D");
+		RegisterProperty<AssetProperty>("Stulu.Texture2D");
+		RegisterProperty<AssetProperty>("Stulu.Material");
+		RegisterProperty<AssetProperty>("Stulu.Mesh");
 		RegisterProperty<GameObjectProperty>("Stulu.GameObject");
 
 		m_gameObjectAttachedClass = m_scriptCoreAssembly->CreateClass("Stulu", "GameObjectAttached");
@@ -126,7 +128,7 @@ namespace Stulu {
 		auto& scripts = gameObject.saveAddComponent<Stulu::ScriptingComponent>().runtimeScripts;
 		for (uint32_t i = 0; i < scripts.size(); i++) {
 			if (scripts[i]->getClass() == componentChildClass) {
-				scripts.erase(scripts.begin() + 1);
+				scripts.erase(scripts.begin() + i);
 				return true;
 			}
 		}

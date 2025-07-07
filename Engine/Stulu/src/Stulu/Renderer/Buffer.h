@@ -21,8 +21,18 @@ namespace Stulu{
 		Mat3, Mat4,
 		Bool, Sampler
 	};
+	enum class BufferElementIDType {
+		Position, 
+		Normal,
+		Tangent,
+		Color,
+		TextureCoords,
+		BoneWeights,
+		BoneIndices,
+		Other
+	};
 
-	static uint32_t shaderDataTypeSize(ShaderDataType type) {
+	inline constexpr uint32_t shaderDataTypeSize(ShaderDataType type) {
 		switch (type) {
 			case ShaderDataType::Float:		return 4;
 			case ShaderDataType::Float2:	return 8;
@@ -46,16 +56,14 @@ namespace Stulu{
 	}
 
 	struct BufferElement {
-		std::string name;
+		BufferElementIDType idType;
 		ShaderDataType type;
 		uint32_t offset;
 		uint32_t size;
 		bool normalized;
 
-		BufferElement(){}
-
-		BufferElement(ShaderDataType _type, const std::string& _name, bool _normalized = false)
-			: name(_name), type(_type), size(shaderDataTypeSize(_type)), offset(0), normalized(_normalized) {}
+		inline constexpr BufferElement(ShaderDataType _type, BufferElementIDType _idType, bool _normalized = false)
+			: idType(_idType), type(_type), size(shaderDataTypeSize(_type)), offset(0), normalized(_normalized) {}
 
 		uint32_t getComponentCount() const{
 
@@ -82,11 +90,19 @@ namespace Stulu{
 		}
 	};
 
+	inline BufferElement EmptyBufferElement { ShaderDataType::Float, BufferElementIDType::Other };
+	constexpr inline BufferElement PositionBufferElement { ShaderDataType::Float3, BufferElementIDType::Position };
+	constexpr inline BufferElement NormalBufferElement { ShaderDataType::Float3, BufferElementIDType::Normal, true };
+	constexpr inline BufferElement TextureCoordsBufferElement{ ShaderDataType::Float2, BufferElementIDType::TextureCoords };
+	constexpr inline BufferElement ColorBufferElement{ ShaderDataType::Float4, BufferElementIDType::Color };
+	constexpr inline BufferElement BoneWeightsBufferElement { ShaderDataType::Float4, BufferElementIDType::BoneWeights };
+	constexpr inline BufferElement BoneIndicesBufferElement { ShaderDataType::Int4, BufferElementIDType::BoneIndices };
+
 	class STULU_API BufferLayout {
 	public:
 		BufferLayout(){}
 		BufferLayout(const std::initializer_list<BufferElement>& elements)
-			: m_elements(elements){
+			: m_elements(elements) {
 			CalculateOffsetsAndStride();
 		}
 		inline void addElement(const BufferElement& ele) { 

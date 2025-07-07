@@ -5,6 +5,25 @@
 
 namespace Editor {
 	namespace Controls {
+        // This handles hovering of Drag Drop sources, ImGui::ButtonBeahviour ignores this edge case
+        inline bool DragDropHoverBtnPressed() {
+            if (ImGui::IsDragDropActive()) {
+                if (ImGui::IsItemHovered(
+                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+                    ImGuiHoveredFlags_AllowWhenOverlapped |
+                    ImGuiHoveredFlags_Stationary)) {
+
+                    float& time = ImGui::GetCurrentContext()->HoverItemDelayTimer;
+                    const float DRAGDROP_HOLD_TO_OPEN_TIMER = 0.70f;
+                    if (time >= DRAGDROP_HOLD_TO_OPEN_TIMER) {
+                        time = 0.f;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         inline void DragDropGameObject(entt::entity gameObjectID) {
             if (ImGui::BeginDragDropSource()) {
                 ImGui::SetDragDropPayload("GAMEOBJECT", &gameObjectID, sizeof(entt::entity));
@@ -15,11 +34,15 @@ namespace Editor {
             entt::entity gameObjectID = entt::null;
 
             if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT")) {
-                    if (payload->DataSize == sizeof(entt::entity)) {
+                // also accept GAMEOBJECT_LIST with only one gameobject
+                const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+                std::string type = std::string(payload->DataType);
+                if (type.rfind("GAMEOBJECT", 0) == 0 && payload->DataSize == sizeof(entt::entity)) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type.c_str())) {
                         gameObjectID = *static_cast<entt::entity*>(payload->Data);
                     }
                 }
+
                 ImGui::EndDragDropTarget();
             }
             return gameObjectID;

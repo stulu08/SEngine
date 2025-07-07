@@ -44,8 +44,11 @@ namespace Stulu {
 			case Stulu::MaterialPropertyType::Sampler2D:
 				property = createRef<MaterialSampler2DProperty>((*std::dynamic_pointer_cast<MaterialSampler2DProperty>(prop)));
 				break;
+			case Stulu::MaterialPropertyType::Cubemap:
+				property = createRef<MaterialSamplerCubeMapProperty>((*std::dynamic_pointer_cast<MaterialSamplerCubeMapProperty>(prop)));
+				break;
 			case Stulu::MaterialPropertyType::SkyBox:
-				property = createRef<MaterialSamplerSkyBoxProperty>((*std::dynamic_pointer_cast<MaterialSamplerSkyBoxProperty>(prop)));
+				property = createRef<MaterialSkyBoxProperty>((*std::dynamic_pointer_cast<MaterialSkyBoxProperty>(prop)));
 				break;
 			case Stulu::MaterialPropertyType::Color:
 				property = createRef<MaterialColorProperty>((*std::dynamic_pointer_cast<MaterialColorProperty>(prop)));

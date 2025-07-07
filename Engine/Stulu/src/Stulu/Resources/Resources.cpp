@@ -16,12 +16,15 @@ namespace Stulu {
 		SkyBoxAsset DefaultSkybox;
 		MeshAsset CubeMesh;
 		MeshAsset PlaneMesh;
+		MeshAsset SphereMesh;
 		Ref<VertexArray> QuadVertexArray;
 		ShaderAsset FullScreenShader;
 		ShaderAsset SkyboxShader;
 		ShaderAsset PBRShader;
 		MaterialAsset DefaultMaterial;
 		MaterialAsset ReflectiveMaterial;
+		MaterialAsset SkyBoxMaterial;
+		MaterialAsset TempSkyBoxMaterial;
 
 	} s_storage;
 
@@ -43,9 +46,11 @@ namespace Stulu {
 
 		DefaultMaterial();
 		ReflectiveMaterial();
+		DefaultSkyBoxMaterialAsset();
 
 		CubeMesh();
 		PlaneMesh();
+		SphereMesh();
 	}
 
 	void Resources::ReleaseAll() {
@@ -117,6 +122,33 @@ namespace Stulu {
 		return s_storage.DefaultSkybox;
 	}
 
+	MaterialAsset Resources::TempSkyBoxMaterialAsset(SkyBoxAsset skybox) {
+		if (!s_storage.TempSkyBoxMaterial.IsLoaded()) {
+			Ref<TestMaterial> material = CreateSkyBoxMaterial("Temp SkyBox", skybox);
+
+			SharedMaterialAssetData* asset = new SharedMaterialAssetData(UUIDTempSkyboxMaterial, material);
+			if (!AssetsManager::GlobalInstance().Contains(UUIDTempSkyboxMaterial)) {
+				AssetsManager::GlobalInstance().AddAsset(asset, UUIDTempSkyboxMaterial, true);
+			}
+			s_storage.TempSkyBoxMaterial = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(UUIDTempSkyboxMaterial);
+		}
+		s_storage.TempSkyBoxMaterial->SetAndApplyPropertiy<MaterialSkyBoxProperty>("Texture", skybox);
+		return s_storage.TempSkyBoxMaterial;
+	}
+
+	MaterialAsset Resources::DefaultSkyBoxMaterialAsset() {
+		if (!s_storage.SkyBoxMaterial.IsLoaded()) {
+			Ref<TestMaterial> material = CreateSkyBoxMaterial("Default SkyBox", DefaultSkyBoxAsset());
+
+			SharedMaterialAssetData* asset = new SharedMaterialAssetData(UUIDDefaultSkyBoxMaterial, material);
+			if (!AssetsManager::GlobalInstance().Contains(UUIDDefaultSkyBoxMaterial)) {
+				AssetsManager::GlobalInstance().AddAsset(asset, UUIDDefaultSkyBoxMaterial, true);
+			}
+			s_storage.SkyBoxMaterial = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(UUIDDefaultSkyBoxMaterial);
+		}
+		return s_storage.SkyBoxMaterial;
+	}
+
 	MeshAsset Resources::CubeMesh() {
 		if (!s_storage.CubeMesh.IsLoaded()) {
 			static std::vector<Vertex> vertices{
@@ -173,7 +205,7 @@ namespace Stulu {
 			};
 
 			Ref<Mesh> mesh = createRef<Mesh>("Cube");
-			mesh->SetData(vertices, indices);
+			mesh->ConstructMesh(vertices, indices);
 			SharedMeshAssetData* asset = new SharedMeshAssetData(UUIDCubeMesh, mesh);
 
 			if (!AssetsManager::GlobalInstance().Contains(UUIDCubeMesh)) {
@@ -197,7 +229,7 @@ namespace Stulu {
 			};
 
 			Ref<Mesh> mesh = createRef<Mesh>("Plane");
-			mesh->SetData(vertices, indices);
+			mesh->ConstructMesh(vertices, indices);
 			SharedMeshAssetData* asset = new SharedMeshAssetData(UUIDPlaneMesh, mesh);
 
 			if (!AssetsManager::GlobalInstance().Contains(UUIDPlaneMesh)) {
@@ -206,6 +238,18 @@ namespace Stulu {
 			s_storage.PlaneMesh = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(UUIDPlaneMesh);
 		}
 		return s_storage.PlaneMesh;
+	}
+	MeshAsset Resources::SphereMesh() {
+		if (!s_storage.SphereMesh.IsLoaded()) {
+			const std::string path = EngineDataDir + "/Stulu/Meshes/Sphere.smesh";
+			SharedMeshAssetData* asset = new SharedMeshAssetData(UUIDSphereMesh, path);
+
+			if (!AssetsManager::GlobalInstance().Contains(UUIDSphereMesh)) {
+				AssetsManager::GlobalInstance().AddAsset(asset, UUIDSphereMesh, true);
+			}
+			s_storage.SphereMesh = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(UUIDSphereMesh);
+		}
+		return s_storage.SphereMesh;
 	}
 
 	Ref<VertexArray> Resources::getFullscreenVA() {
@@ -221,8 +265,8 @@ namespace Stulu {
 			};
 			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(20 * sizeof(float)), vertices);
 			vertexBuffer->setLayout({
-		{ Stulu::ShaderDataType::Float3, "a_pos" },
-		{ Stulu::ShaderDataType::Float2, "a_texCoord" },
+		{ ShaderDataType::Float3, BufferElementIDType::Position },
+		{ ShaderDataType::Float2, BufferElementIDType::TextureCoords },
 				});
 			s_storage.QuadVertexArray->addVertexBuffer(vertexBuffer);
 			uint32_t indices[6]{
@@ -264,6 +308,15 @@ namespace Stulu {
 			s_storage.PBRShader = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDPBRShader);
 		}
 		return *s_storage.PBRShader;
+	}
+
+	Ref<TestMaterial> Resources::CreateSkyBoxMaterial(const std::string& name, SkyBoxAsset skyBoxTexture) {
+		Ref<TestMaterial> material = createRef<TestMaterial>(Renderer::getShaderSystem()->GetEntry(SkyBoxShader()->getName()));
+		material->SetTransparencyMode(MaterialTransparencyMode::Opaque);
+		material->SetAlphaCutOut(0.0f);
+		material->SetInstanced(false);
+		material->SetAndApplyPropertiy<MaterialSkyBoxProperty>("Texture", skyBoxTexture);
+		return material;
 	}
 
 	Ref<TestMaterial> Resources::CreateMaterial(

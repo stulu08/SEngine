@@ -13,4 +13,7 @@ namespace Stulu {
 	UUID::UUID()
 		: m_uuid(s_uniformDistribution(s_randomeEngine)) {
 	}
+	UUID::UUID(const std::string& deterministicValue) {
+		m_uuid = std::hash<std::string>{}(deterministicValue);
+	}
 }

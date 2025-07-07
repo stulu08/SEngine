@@ -68,6 +68,9 @@ namespace Editor {
 				if (receivedUUID != Stulu::UUID::null) {
 					MoveAsset(m_path.parent_path(), receivedUUID);
 				}
+				else if (Controls::DragDropHoverBtnPressed()) {
+					m_path = m_path.parent_path();
+				}
 			}
 
 			if (disabled)
@@ -118,6 +121,9 @@ namespace Editor {
 		for (auto& directory : std::filesystem::directory_iterator(m_path)) {
 			const auto& path = directory.path();
 			if (path.extension() == ".meta")
+				continue;
+			// when files get deleted inside this loop, they are still persisten inside the iterator
+			if (!std::filesystem::exists(path))
 				continue;
 
 			FileInteractAction action = DrawFileFrame(path, IsSelected(path));
@@ -173,6 +179,9 @@ namespace Editor {
 			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset("", true);
 			if (receivedUUID != Stulu::UUID::null) {
 				MoveAsset(entry.path(), receivedUUID);
+			}
+			else if (Controls::DragDropHoverBtnPressed()) {
+				SetPath(entryPath);
 			}
 
 			if (open) {
@@ -271,6 +280,9 @@ namespace Editor {
 			Stulu::UUID receivedUUID = Controls::ReceiveDragDopAsset("", true);
 			if (receivedUUID != Stulu::UUID::null) {
 				MoveAsset(path, receivedUUID);
+			}
+			else if (Controls::DragDropHoverBtnPressed()) {
+				action = FileInteractAction::Open;
 			}
 			// directory icon is colored
 			tintColor = ImVec4(1, 1, 1, 1);

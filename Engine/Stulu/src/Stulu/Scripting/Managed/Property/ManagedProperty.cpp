@@ -31,7 +31,7 @@ namespace Stulu {
 		return m_fieldPtr.GetName();
 	}
 	std::string ManagedProperty::getTypeName() const {
-		return getDataType().GetNameFull(Mono::TypeNameFormat::REFLECTION);
+		return getDataType().GetNameFull(Mono::TypeNameFormat::FULL_NAME);
 	}
 	Mono::Type ManagedProperty::getDataType() const {
 		return m_fieldPtr.GetType();
@@ -44,7 +44,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<int32_t>());
 	}
 	void Int32Property::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Int32Property>(other);
 		otherProp->SetValue(this->GetValue());
@@ -78,7 +78,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<uint32_t>());
 	}
 	void UInt32Property::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<UInt32Property>(other);
 		otherProp->SetValue(this->GetValue());
@@ -112,7 +112,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<uint64_t>());
 	}
 	void UInt64Property::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<UInt64Property>(other);
 		otherProp->SetValue(this->GetValue());
@@ -146,7 +146,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<float>());
 	}
 	void FloatProperty::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<FloatProperty>(other);
 		otherProp->SetValue(this->GetValue());
@@ -180,7 +180,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<bool>());
 	}
 	void BoolProperty::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<BoolProperty>(other);
 		otherProp->SetValue(this->GetValue());
@@ -215,7 +215,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<glm::vec2>());
 	}
 	void Vector2Property::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Vector2Property>(other);
 		otherProp->SetValue(this->GetValue());
@@ -250,7 +250,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<glm::vec3>());
 	}
 	void Vector3Property::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Vector3Property>(other);
 		otherProp->SetValue(this->GetValue());
@@ -285,7 +285,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<glm::vec4>());
 	}
 	void Vector4Property::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<Vector4Property>(other);
 		otherProp->SetValue(this->GetValue());
@@ -323,14 +323,14 @@ namespace Stulu {
 		if (assetClass) {
 			m_idField = assetClass.GetFieldFromName("assetID");
 			m_gcField = assetClass.GetFieldFromName("gcHandle");
-			m_initMethod = assetClass.GetMethodFromNameInHierarchy("Initilize", 1);
+			m_assetCreateMethod = assetClass.GetMethodFromName("Create", 1);
 		}
 		else {
 			CORE_ERROR("AssetProperty: Missing 'assetClass' field.");
 		}
 		CORE_ASSERT(m_idField, "AssetProperty: Missing 'assetID' field.");
 		CORE_ASSERT(m_gcField, "AssetProperty: Missing 'gcHandle' field.");
-		CORE_ASSERT(m_initMethod, "AssetProperty: Missing 'Initialize' method.");
+		CORE_ASSERT(m_assetCreateMethod, "{0}: Missing static '.Create(Stulu::UUID)' method.", assetClass ? assetClass.GetName() : "{AssetType}");
 	}
 	void AssetProperty::Serialize(YAML::Emitter& out) const {
 		out << YAML::Key << "Value" << GetValue();
@@ -339,7 +339,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<UUID>());
 	}
 	void AssetProperty::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<AssetProperty>(other);
 		otherProp->SetValue(this->GetValue());
@@ -373,20 +373,25 @@ namespace Stulu {
 		const auto& domain = Application::get().getAssemblyManager()->getCoreDomain();
 		const auto& assembly = Application::get().getAssemblyManager()->getScriptCoreAssembly();
 
-		Mono::Class assetClass = m_fieldPtr.GetType().GetClass();
+		Mono::Class assetClass = getDataType().GetClass();
 		if (!assetClass) {
 			CORE_ERROR("AssetProperty::SetValue: Cannot resolve class.");
 			return;
 		}
-		Mono::Object newAssetHandle = Mono::Object::New(domain, assetClass);
 
-		// reset garbage collector handle
-		m_gcField.SetValue(newAssetHandle, (void*)&GC_NULL);
-
+		// Call to AssetClass::Create(Stulu::UUID)
 		uint64_t assetID = value;
 		void* arguments[1] = { &assetID };
-		assembly->InvokeMethod(m_initMethod, newAssetHandle, arguments);
+		Mono::Object newAssetHandle = assembly->InvokeMethod(m_assetCreateMethod, NULL, arguments);
+
+		if (!newAssetHandle) {
+			CORE_ERROR("{0}::Create(Stulu::UUID) failed and returned NULL!", assetClass.GetName());
+			return;
+		}
+		// reset garbage collector handle
+		m_gcField.SetValue(newAssetHandle, (void*)&GC_NULL);
 		m_fieldPtr.SetValue(m_parentObjectPtr, newAssetHandle);
+		
 	}
 #pragma endregion
 	GameObjectProperty::GameObjectProperty(Mono::Object object, Mono::ClassField field)
@@ -412,7 +417,7 @@ namespace Stulu {
 		SetValue(node["Value"].as<entt::entity>());
 	}
 	void GameObjectProperty::CopyValueTo(Ref<ManagedProperty> other) const {
-		if (other->getType() != this->getType())
+		if (other->getTypeName() != this->getTypeName())
 			return;
 		auto otherProp = std::dynamic_pointer_cast<GameObjectProperty>(other);
 		otherProp->SetValue(this->GetValue());

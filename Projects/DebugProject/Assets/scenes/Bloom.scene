@@ -26,7 +26,7 @@ GameObjects:
       m_renderTarget: 0
     SkyBoxComponent:
       rotation: [0, 0, 0]
-      texture: 15111769435266358273
+      texture: 12331243244121
     PostProcessingComponent:
       Gamma Correction:
         enabled: true

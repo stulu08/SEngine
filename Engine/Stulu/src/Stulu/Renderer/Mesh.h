@@ -12,14 +12,8 @@ namespace Stulu {
 		glm::vec3 normal = glm::vec3(0.0f);
 		glm::vec2 texCoords = glm::vec3(0.0f);
 		glm::vec4 color = glm::vec4(1.0f);
-	};
-	struct SkinnedVertex {
-		glm::vec3 pos = glm::vec3(0.0f);
-		glm::vec3 normal = glm::vec3(0.0f);
-		glm::vec2 texCoords = glm::vec3(0.0f);
-		glm::vec4 color = glm::vec4(1.0f);
-		glm::ivec4 boneIds = glm::ivec4(0);
 		glm::vec4 weights = glm::vec4(0.0f);
+		glm::ivec4 boneIds = glm::ivec4(0);
 	};
 
 	struct MeshSubmesh {
@@ -39,20 +33,32 @@ namespace Stulu {
 		Mesh(const std::string& name = "");
 		~Mesh();
 
-		// vertices count if how my vertices are inside the array, the size of this array should be verticesCount * layoutStride
-		void SetData(const ByteType* vertices, size_t verticesCount, const uint32_t* indices, uint32_t indicesCount, const BufferLayout& layout);
-		void SetData(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
-		void SetData(const std::vector<SkinnedVertex>& vertices, const std::vector<uint32_t>& indices);
+		// Does everything, SetVertices(), SetIndices(), CalculateBounds(), CalculateNormals(), UploadVertexBuffer(), UploadIndexBuffer()
+		void ConstructMesh(const ByteType* vertices, size_t verticesCount, const BufferLayout& layout, const uint32_t* indices, uint32_t indicesCount, bool calcNormals = false);
+		void ConstructMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, bool calcNormals = false);
+
+		// Size of vertices = verticesCount * layoutStride
+		void SetVertices(const ByteType* vertices, size_t verticesCount, const BufferLayout& layout);
+		void SetVertices(const std::vector<Vertex>& vertices);
+		void SetVertices(const Vertex* vertices, size_t count);
+
+		void SetIndices(const uint32_t* indices, uint32_t indicesCount);
+		void SetIndices(const std::vector<uint32_t>& indices);
+
+		void UploadVertexBuffer(const BufferLayout& layout);
+		void UploadIndexBuffer();
 
 		void AddSubmesh(uint32_t indexOffset, uint32_t indexCount, uint32_t vertexOffset, const std::string& name = "");
 		void AddSubmesh(const MeshSubmesh& sm);
 
 		void RenderCommandDraw(int32_t subMesh = 0, uint32_t instanceCount = 0) const;
 
-		void RecalculateBounds();
-		void CalculateNormals();
+		void CalculateBounds();
+		template<class T = Vertex>
+		void CalculateNormals(bool upload = true);
 
 		const Ref<VertexArray>& GetVertexArray() const { return m_vertexArray; }
+		std::vector<MeshSubmesh>& GetSubmeshes() { return m_submeshes; }
 		const std::vector<MeshSubmesh>& GetSubmeshes() const { return m_submeshes; }
 
 		const ByteType* GetVertices() const { return m_vertices; }
@@ -60,17 +66,14 @@ namespace Stulu {
 		const std::vector<uint32_t>& GetIndices() const { return m_indices; }
 
 		const std::string& GetName(int32_t index = -1) const;
+		const void SetName(const std::string& name, int32_t index = -1);
 
 		const BoundingBox& GetBoundingBox() const { return m_bounds; }
 
-		bool IsDefaultLayout() const { return m_defaultVertexLayout; }
-		bool IsDefaultSkinnedLayout() const { return m_defaultSkinnedVertexLayout; }
-
-		std::pair<size_t, BufferElement> GetPositionLayoutElement() const;
+		BufferElement GetPositionLayoutElement() const;
 		size_t GetStride() const;
 
 		static const BufferLayout DefaultVertexLayout();
-		static const BufferLayout DefaultSkinnedVertexLayout();
 	private:
 		Ref<VertexArray> m_vertexArray;
 		BoundingBox m_bounds;
@@ -83,10 +86,6 @@ namespace Stulu {
 
 		std::vector<MeshSubmesh> m_submeshes;
 
-		bool m_defaultVertexLayout : 1;
-		bool m_defaultSkinnedVertexLayout : 1;
-
-		void ConstructMesh(const BufferLayout& layout);
 
 		template<typename TVertex>
 		inline void CalculateNormalsInternal(TVertex* vertices) {
@@ -112,26 +111,28 @@ namespace Stulu {
 		friend class SharedMeshAssetData;
 	};
 
-	inline std::pair<size_t, BufferElement> Mesh::GetPositionLayoutElement() const {
-		if (!m_vertexArray) return { 0, BufferElement(ShaderDataType::none, "") };
-		if (m_vertexArray->getVertexBuffers().size() < 1) return { 0, BufferElement(ShaderDataType::none, "") };
+	template<class T>
+	inline void Mesh::CalculateNormals(bool upload) {
+		if (!m_vertices || m_verticesCount == 0)
+			return;
+
+		CalculateNormalsInternal((T*)m_vertices);
+		if (upload)
+			UploadVertexBuffer(DefaultVertexLayout());
+	}
+
+	inline BufferElement Mesh::GetPositionLayoutElement() const {
+		if (!m_vertexArray) return EmptyBufferElement;
+		if (m_vertexArray->getVertexBuffers().size() < 1) return EmptyBufferElement;
 
 
-		if (m_defaultVertexLayout || m_defaultSkinnedVertexLayout) {
-			return { 0, *m_vertexArray->getVertexBuffers().front()->getLayout().begin() };
-		}
-
-		size_t offset = 0;
 		for (const auto& buffer : m_vertexArray->getVertexBuffers()) {
 			for (const auto& element : buffer->getLayout()) {
-				if (element.name.find("pos") != element.name.npos) {
-					return { offset + element.offset, element };
-				}
+				if (element.idType == BufferElementIDType::Position)
+					return element;
 			}
-			offset += buffer->getStride();
 		}
-
-		return { 0, BufferElement(ShaderDataType::none, "") };
+		return EmptyBufferElement;
 	}
 
 	inline size_t Mesh::GetStride() const {
@@ -147,21 +148,29 @@ namespace Stulu {
 
 	inline const BufferLayout Mesh::DefaultVertexLayout() {
 		return {
-			{ Stulu::ShaderDataType::Float3, "a_pos" },
-			{ Stulu::ShaderDataType::Float3, "a_normal", true },
-			{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-			{ Stulu::ShaderDataType::Float4, "a_color" },
+			PositionBufferElement,
+			NormalBufferElement,
+			TextureCoordsBufferElement,
+			ColorBufferElement,
+			BoneWeightsBufferElement,
+			BoneIndicesBufferElement
 		};
 	}
-	inline const BufferLayout Mesh::DefaultSkinnedVertexLayout() {
-		return {
-			{ Stulu::ShaderDataType::Float3, "a_pos" },
-			{ Stulu::ShaderDataType::Float3, "a_normal", true },
-			{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-			{ Stulu::ShaderDataType::Float4, "a_color" },
-			{ Stulu::ShaderDataType::Int4, "a_boneIds" },
-			{ Stulu::ShaderDataType::Float4, "a_weights" },
-		};
+
+	inline void Mesh::SetVertices(const std::vector<Vertex>& vertices) {
+		const ByteType* data = (ByteType*)vertices.data();
+		SetVertices(data, vertices.size(), DefaultVertexLayout());
+	}
+	inline void Mesh::SetVertices(const Vertex* vertices, size_t count) {
+		SetVertices((ByteType*)vertices, count, DefaultVertexLayout());
+	}
+
+
+	inline void Mesh::SetIndices(const uint32_t* indices, uint32_t indicesCount) {
+		m_indices = std::vector<uint32_t>(indices, indices + indicesCount);
+	}
+	inline void Mesh::SetIndices(const std::vector<uint32_t>& indices) {
+		SetIndices(indices.data(), (uint32_t)indices.size());
 	}
 }
 

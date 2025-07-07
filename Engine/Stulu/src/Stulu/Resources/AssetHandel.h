@@ -61,6 +61,22 @@ namespace Stulu {
 		static std::type_index TypeID() { return typeid(T); }
 		// dynamic type check
 		static inline bool TypeCheck(SharedAssetData* data) { return dynamic_cast<T*>(data) != nullptr; }
+
+		// used by bindings, only for internal usage
+		void IncRefCount() {
+			// First strong reference: load the asset
+			if (this->m_data->UseCount() < 1) {
+				CORE_TRACE("Loading: {0}", this->m_data->GetPath());
+				this->m_data->Load();
+			}
+			this->m_data->IncRef();
+		}
+		// used by bindings, only for internal usage
+		void DecRefCount() {
+			if (this->m_data && this->m_data->DecRef() < 1) {
+				this->m_data->Unload();
+			}
+		}
 	protected:
 		SharedAssetData* m_data = nullptr;
 	};
@@ -108,7 +124,7 @@ namespace Stulu {
 
 		// Releases the refrence and unloads the asset if needed
 		void Release() {
-			DecRefCount();
+			this->DecRefCount();
 			this->m_data = nullptr;
 		}
 
@@ -127,22 +143,7 @@ namespace Stulu {
 				this->m_data = nullptr;
 				return;
 			}
-			IncRefCount();
-		}
-
-		// used by bindings
-		void IncRefCount() {
-			// First strong reference: load the asset
-			if (this->m_data->UseCount() < 1) {
-				CORE_TRACE("Loading: {0}", this->m_data->GetPath());
-				this->m_data->Load();
-			}
-			this->m_data->IncRef();
-		}
-		void DecRefCount() {
-			if (this->m_data && this->m_data->DecRef() < 1) {
-				this->m_data->Unload();
-			}
+			this->IncRefCount();
 		}
 
 		friend class StuluBindings::AssetHandle;

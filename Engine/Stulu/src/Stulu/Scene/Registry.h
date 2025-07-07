@@ -26,7 +26,7 @@ namespace Stulu {
 		}
 		
 		inline bool IsValid(entt::entity go) const {
-			return m_registry.valid(go);
+			return go != entt::null && m_registry.valid(go);
 		}
 
 		inline entt::registry& GetRegistry() { return m_registry; }

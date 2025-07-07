@@ -5,10 +5,10 @@ namespace Stulu {
 	struct FrameBufferSpecs {
 		uint32_t width;
 		uint32_t height;
-		uint32_t samples;
+		MSAASamples samples;
 		bool swapChainTarget;
 
-		FrameBufferSpecs(uint32_t width = 1, uint32_t height = 1, uint32_t samples = 1, bool swapChainTarget = false)
+		FrameBufferSpecs(uint32_t width = 1, uint32_t height = 1, MSAASamples samples = MSAASamples::Disabled, bool swapChainTarget = false)
 			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget)
 		{}
 	};
@@ -19,13 +19,22 @@ namespace Stulu {
 		virtual void unbind() const = 0;
 		virtual void invalidate() = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;
+		virtual void resize(uint32_t width, uint32_t height, MSAASamples samples) = 0;
 
-		virtual void attachDepthTexture(const Ref<Texture2D>& depthText, uint32_t level = 0) = 0;
-		virtual void attachColorTexture(const Ref<Texture2D>& colorText, uint32_t level = 0) = 0;
-		virtual void attachColorTextureAt(uint32_t attachment, const Ref<Texture2D>& colorText, uint32_t level = 0) = 0;
+		virtual void attachDepthTexture(const TextureSettings& depthText) = 0;
+		virtual void attachColorTexture(const TextureSettings& colorText) = 0;
+		virtual void attachColorTextureAt(uint32_t attachment, const TextureSettings& colorText) = 0;
 
 		virtual void detachDepthTexture() = 0;
 		virtual void detachColorTexture(uint32_t attachment = 0) = 0;
+
+		// List of attachment indices, eg: { 0, 2, 3 }
+		virtual void SetDrawBuffers(const std::vector<uint32_t>& buffers) = 0;
+		// Every framebuffer defaults to using the first color buffer as a draw buffer
+		virtual void SetDrawBuffer(uint32_t singleBuffer = 0) = 0;
+		virtual void SetReadBuffer(uint32_t singleBuffer = 0) = 0;
+
+		virtual void BlitToOther(const Ref<FrameBuffer>& other, bool BlibColor = true, bool BlibDepth = true, bool BlibStencil = true) = 0;
 
 		virtual const FrameBufferSpecs& getSpecs() const = 0;
 		virtual const Ref<Texture2D>& getColorAttachment(uint32_t index = 0) const = 0;

@@ -12,6 +12,7 @@
 #include "Stulu/Scripting/Managed/AssemblyManager.h"
 
 #include "Stulu/Resources/AssetHandel.h"
+#include "Stulu/Scripting/Managed/Bindings/Core/Asset.h"
 
 namespace Stulu {
 #ifdef OPENGL
@@ -89,6 +90,9 @@ namespace Stulu {
 		m_layerStack.deleteAll();
 		m_layerStack.clear();
 		m_moduleStack.clear();
+
+		if(m_assembly)
+			StuluBindings::AssetHandle::CleanUpAssets(true);
 
 		m_assetsManager.reset();
 

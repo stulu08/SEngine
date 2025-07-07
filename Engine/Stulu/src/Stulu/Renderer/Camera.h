@@ -9,9 +9,14 @@ namespace Stulu {
 
 	class Camera {
 	public:
-		Camera(CameraMode mode, const FrameBufferSpecs specs = FrameBufferSpecs()) 
-			: m_mode(mode), m_frameBuffer(nullptr), m_projcetionMatrix(1.0f){
+		Camera(CameraMode mode, const FrameBufferSpecs specs = FrameBufferSpecs(), bool hasResultBuffer = true) 
+			: m_mode(mode), m_frameBuffer(nullptr), m_resultFrameBuffer(), m_projcetionMatrix(1.0f) {
 			m_frameBuffer = FrameBuffer::create(specs);
+			if (hasResultBuffer) {
+				FrameBufferSpecs resultSpecs = specs;
+				resultSpecs.samples = MSAASamples::Disabled;
+				m_resultFrameBuffer = FrameBuffer::create(resultSpecs);
+			}
 		}
 		~Camera() = default;
 		
@@ -31,20 +36,28 @@ namespace Stulu {
 		}
 		inline void ResizeFrameBuffer(uint32_t width, uint32_t height) {
 			m_frameBuffer->resize(width, height);
+			if (HasResultFrameBuffer())
+				m_resultFrameBuffer->resize(width, height);
 		}
-
-		inline Ref<FrameBuffer> getFrameBuffer() const {
+		inline void ResizeFrameBuffer(uint32_t width, uint32_t height, MSAASamples samples) {
+			m_frameBuffer->resize(width, height, samples);
+			if (HasResultFrameBuffer())
+				m_resultFrameBuffer->resize(width, height);
+		}
+		
+		inline Ref<FrameBuffer> getRenderFrameBuffer() const {
 			return m_frameBuffer;
 		}
-		inline void bindFrameBuffer() const {
-			m_frameBuffer->bind();
+		inline bool HasResultFrameBuffer() const {
+			return m_resultFrameBuffer != nullptr;
 		}
-		inline void unbindFrameBuffer() const {
-			m_frameBuffer->unbind();
+		inline Ref<FrameBuffer> getResultFrameBuffer() const {
+			return HasResultFrameBuffer() ? m_resultFrameBuffer : m_frameBuffer;
 		}
 	private:
 		glm::mat4 m_projcetionMatrix;
 		Ref<FrameBuffer> m_frameBuffer;
+		Ref<FrameBuffer> m_resultFrameBuffer;
 		CameraMode m_mode;
 	};
 }

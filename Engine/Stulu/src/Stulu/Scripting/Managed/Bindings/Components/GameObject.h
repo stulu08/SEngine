@@ -58,6 +58,16 @@ namespace StuluBindings {
 			}
 			return false;
 		}
+		// only works for internal components registered inside the componentRegister
+		static inline bool hasComponentInternal(uint64_t go, const std::string& typeName) {
+			const auto& manager = getManager();
+			auto& componentRegister = manager->GetComponentRegister_Has();
+			Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			if (componentRegister.find(typeName) != componentRegister.end()) {
+				return componentRegister[typeName](gameObject);
+			}
+			return false;
+		}
 		static inline bool removeComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
 			Stulu::Mono::Type type = reftype.GetType();
 			if (type) {

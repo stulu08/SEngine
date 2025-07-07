@@ -4,7 +4,9 @@
 
 namespace Stulu {
 	Mesh::Mesh(const std::string& name)
-		: m_defaultVertexLayout(false), m_defaultSkinnedVertexLayout(false), m_vertices(nullptr), m_verticesCount(0), m_name(name) {}
+		: m_vertices(nullptr), m_verticesCount(0), m_name(name) {
+		m_vertexArray = VertexArray::create();
+	}
 
 	Mesh::~Mesh() {
 		if (m_vertices) {
@@ -13,50 +15,59 @@ namespace Stulu {
 		}
 	}
 
-	void Mesh::SetData(const ByteType* vertices, size_t verticesCount, const uint32_t* indices, uint32_t indicesCount, const BufferLayout& layout)  {
+	void Mesh::ConstructMesh(const ByteType* vertices, size_t verticesCount, const BufferLayout& layout, const uint32_t* indices, uint32_t indicesCount, bool calcNormals) {
+		SetVertices(vertices, verticesCount, layout);
+		SetIndices(indices, indicesCount);
+
+		if(calcNormals)
+			CalculateNormals(false);
+
+		UploadIndexBuffer();
+		UploadVertexBuffer(layout);
+
+		CalculateBounds();
+	}
+
+	void Mesh::ConstructMesh(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, bool calcNormals) {
+		SetVertices(vertices);
+		SetIndices(indices);
+
+		if (calcNormals)
+			CalculateNormals(false);
+
+		UploadIndexBuffer();
+		UploadVertexBuffer(DefaultVertexLayout());
+
+		CalculateBounds();
+	}
+
+
+	void Mesh::SetVertices(const ByteType* vertices, size_t verticesCount, const BufferLayout& layout) {
 		if (m_vertices) {
 			delete[] m_vertices;
 			m_verticesCount = 0;
 		}
-
-		m_defaultVertexLayout = false;
-		m_defaultSkinnedVertexLayout = false;
 
 		const size_t verticesSize = verticesCount * layout.getStride();
 
 		m_vertices = new ByteType[verticesSize];
 		m_verticesCount = verticesCount;
 		memcpy_s(m_vertices, verticesSize, vertices, verticesSize);
-
-		m_indices = std::vector<uint32_t>(indices, indices + indicesCount);
-		ConstructMesh(layout);
 	}
 
-	void Mesh::SetData(const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
-		const ByteType* data = (ByteType*)vertices.data();
-		SetData(data, vertices.size(), indices.data(), (uint32_t)indices.size(), DefaultVertexLayout());
-		m_defaultVertexLayout = true;
-	}
-	void Mesh::SetData(const std::vector<SkinnedVertex>& vertices, const std::vector<uint32_t>& indices) {
-		const ByteType* data = (ByteType*)vertices.data();
-		SetData(data, vertices.size(), indices.data(),(uint32_t)indices.size(), DefaultSkinnedVertexLayout());
-		m_defaultSkinnedVertexLayout = true;
-	}
-
-	void Mesh::ConstructMesh(const BufferLayout& layout) {
+	void Mesh::UploadVertexBuffer(const BufferLayout& layout) {
+		m_vertexArray->clearVertexBuffers();
 		const size_t verticesSize = m_verticesCount * layout.getStride();
-
 		auto vb = VertexBuffer::create((uint32_t)verticesSize, m_vertices);
 		vb->setLayout(layout);
-
-		auto ib = IndexBuffer::create((uint32_t)m_indices.size(), m_indices.data());
-
-		m_vertexArray = VertexArray::create();
-		m_vertexArray->setIndexBuffer(ib);
 		m_vertexArray->addVertexBuffer(vb);
-
-		RecalculateBounds();
 	}
+
+	void Mesh::UploadIndexBuffer() {
+		auto ib = IndexBuffer::create((uint32_t)m_indices.size(), m_indices.data());
+		m_vertexArray->setIndexBuffer(ib);
+	}
+
 	void Mesh::AddSubmesh(uint32_t indexOffset, uint32_t indexCount, uint32_t vertexOffset, const std::string& name) {
 		MeshSubmesh mesh;
 		mesh.indexOffset = indexOffset;
@@ -86,11 +97,20 @@ namespace Stulu {
 
 		return m_submeshes[index].name;
 	}
-	void Mesh::RecalculateBounds() {
+	const void Mesh::SetName(const std::string& name, int32_t index) {
+		if (index < 0 || index >= m_submeshes.size()) {
+			m_name = name;
+			return;
+		}
+
+		m_submeshes[index].name = name;
+	}
+	void Mesh::CalculateBounds() {
 		glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
 		glm::vec3 max = glm::vec3(std::numeric_limits<float>::lowest());
 
-		const auto [positionOffset, positionElement] = GetPositionLayoutElement();
+		const BufferElement positionElement = GetPositionLayoutElement();
+		const size_t positionOffset = positionElement.offset;
 		const size_t stride = GetStride();
 
 		for (size_t i = 0; i < m_verticesCount; i++) {
@@ -115,19 +135,5 @@ namespace Stulu {
 			
 		}
 		m_bounds = AABB{ min, max };
-	}
-
-	void Mesh::CalculateNormals() {
-		if (!m_vertices || m_verticesCount == 0)
-			return;
-
-		if (m_defaultVertexLayout) {
-			CalculateNormalsInternal((Vertex*)m_vertices);
-			ConstructMesh(DefaultVertexLayout());
-		}
-		else if (m_defaultSkinnedVertexLayout) {
-			CalculateNormalsInternal((SkinnedVertex*)m_vertices);
-			ConstructMesh(DefaultVertexLayout());
-		}
 	}
 }

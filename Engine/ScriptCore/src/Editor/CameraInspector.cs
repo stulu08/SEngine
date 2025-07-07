@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,18 @@ namespace Stulu.src.Editor
 				new Vector4( -0.5f,  0.5f, 0.0f, 1.0f ),
 		};
 
+		// 1,2,4,8,16 to 0-4
+		public MSAASamples ConvertToImGuiFormat(MSAASamples sampels)
+		{
+			return (MSAASamples)Math.Log((int)sampels, 2);
+		}
+		// from 0-4 to 1,2,4,8,16
+		public MSAASamples ConvertFromImGuiFormat(MSAASamples sampels)
+		{
+			int power = (int)sampels;
+			uint value = (uint)(1 << power);
+			return (MSAASamples)value; 
+		}
 
 		public override void Render(GameObject gameObject)
 		{
@@ -26,29 +39,32 @@ namespace Stulu.src.Editor
 			float far = camera.Far;
 			float near = camera.Near;
 			float fov = camera.Fov;
-			int clearType = (int)camera.ClearType;
+			ClearType clearType = camera.ClearType;
 
-			if(ImGui.Float("Far", ref far))
+			if (ImGui.Float("Far", ref far))
 			{
 				camera.Far = far;
 				camera.Update();
 			}
-
 			if (ImGui.Float("Near", ref near))
 			{
 				camera.Near = near;
 				camera.Update();
 			}
-
 			if (ImGui.Float("Fov", ref fov))
 			{
 				camera.Fov = fov;
 				camera.Update();
 			}
-
-			if (ImGui.Combo("Clear Type", ref clearType, Enum.GetNames(typeof(ClearType))))
+			if (ImGui.Combo("Clear Type", ref clearType))
 			{
-				camera.ClearType = (ClearType)clearType;
+				camera.ClearType = clearType;
+			}
+
+			MSAASamples samples = ConvertToImGuiFormat(camera.Samples);
+			if (ImGui.Combo("Samples", ref samples))
+			{
+				camera.Samples = ConvertFromImGuiFormat(samples);
 			}
 		}
 		public override void RenderGizmos(GameObject gameObject)

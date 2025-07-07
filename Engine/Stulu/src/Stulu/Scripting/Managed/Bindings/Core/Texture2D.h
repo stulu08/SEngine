@@ -36,5 +36,33 @@ namespace StuluBindings {
 		static inline uint64_t getBlack() {
 			return Stulu::Resources::UUIDBlackTexture;
 		}
+
+		static inline void GetTextureSettings(uint64_t id, Stulu::TextureSettings* outSettings) {
+			using namespace Stulu;
+			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
+			if (asset.IsLoaded()) {
+				*outSettings = asset->getSettings();
+			} 
+
+		}			   
+		static inline void SetTextureSettings(uint64_t id, Stulu::TextureSettings* newSettings){
+			using namespace Stulu;
+			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
+			if (asset.IsLoaded()) {
+				bool needReload = asset->getSettings().format != newSettings->format;
+
+				// save new settings
+				asset->getSettings() = *newSettings;
+				asset.GetAsset()->Save();
+
+				if (!asset.IsMemoryLoaded() && needReload) {
+					asset.GetAsset()->Unload();
+					asset.GetAsset()->Load();
+				}
+				else {
+					asset->updateParameters();
+				}
+			}
+		}
 	};
 }

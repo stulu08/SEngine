@@ -28,9 +28,13 @@ namespace Editor
 				inspectorCache[script.GetType()] = hasInspector;
 				if (hasInspector) return;
 
-				if(EditorCalls.ImGui_TreeNodeIndent(script.GetType().Name, (uint)(ImGui.TreeNodeFlags.DefaultOpen | ImGui.TreeNodeFlags.Framed))) {
+				if(EditorCalls.ImGui_InspectorTreeNodeIndent(Icons.Code + " " + script.GetType().Name, out bool removeComp, Icons.Trash)) {
 					RenderScript(script);
-					EditorCalls.ImGui_TreePopUnindent();
+					EditorCalls.ImGui_InspectorTreePopUnindent();
+				}
+				if (removeComp)
+				{
+					gameObject.removeComponent(script.GetType());
 				}
 			}
 		}

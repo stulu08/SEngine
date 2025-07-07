@@ -228,20 +228,6 @@ namespace Stulu {
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void gizmo_drawSphere(ref Vector3 position, ref Quaternion rotation, ref Vector3 scale, ref Vector4 color);
 		#endregion
-		#region Texture2D
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static float texture2d_getWidth(IDType textureID);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static float texture2d_getHeight(IDType textureID);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static string texture2d_getPath(IDType textureID);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static IDType texture2d_findbypath(string path);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static IDType texture2d_getWhiteTexture();
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		internal extern static IDType texture2d_getBlackTexture();
-		#endregion
 		#region Folders
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static string folders_assetPath();
@@ -277,6 +263,10 @@ namespace Stulu {
 		internal extern static int cameraComp_clearType(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void cameraComp_clearType(ulong entityId, int value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static int cameraComp_samples(ulong entityId);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void cameraComp_samples(ulong entityId, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static float cameraComp_near(ulong entityId);
 		[MethodImpl(MethodImplOptions.InternalCall)]

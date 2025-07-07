@@ -26,6 +26,7 @@ namespace Stulu {
 		ScaleEu = Scale_XU | Scale_YU | Scale_ZU, // universal
 		Universal = Translate | Rotate | ScaleEu
 	};
+
 	class STULU_API Gizmo {
 	public:
 		static void init();
@@ -38,10 +39,15 @@ namespace Stulu {
 		static void setRect(const float x, const float y, const float width, const float height);
 		static void ApplyToFrameBuffer(const Ref<FrameBuffer>& camera);
 
-		static bool IsUsing();
+		static bool WasUsed();
+		static bool WasHovered();
 
-		static bool TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
+		static bool TransformEdit(const GameObject& object, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
+		static bool TransformEdit(const std::vector<entt::entity>& objects, Registry* registry, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
 		static void drawGrid(const glm::mat4& transform, float size);
+
+		// cameraTransform is write only, view and projection matrix is used from setCamData(...)
+		static bool ViewManipulate(TransformComponent& cameraTransform, const glm::vec3& selectedPosition, ImVec2 pos, ImVec2 size);
 
 		static void drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color = glm::vec4(1.0f,1.0f,1.0f,1.0f));
 

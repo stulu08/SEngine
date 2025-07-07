@@ -17,6 +17,7 @@ namespace Editor {
 		std::unordered_map<std::string, Ref<Texture2D>> CodeTextureCache;
 
 		Ref<Shader> OutlineShader;
+		Ref<Shader> IDBlibShader;
 		Ref<Shader> TransparentShader;
 		Ref<Shader> HighliteShader;
 	} s_storage;
@@ -24,10 +25,12 @@ namespace Editor {
 	void Resources::ReleaseAll() {
 		s_storage = EdtitorResourceStorage();
 	}
-
+	std::string Resources::GetLogoPath() {
+		return App::GetEditorDataPath() + "/Icons/Logo.png";
+	}
 	Texture2D* Resources::GetLogo() {
 		if (!s_storage.LogoTexture) {
-			s_storage.LogoTexture = Texture2D::create(App::GetEditorDataPath() + "/Icons/Logo.png");
+			s_storage.LogoTexture = Texture2D::create(GetLogoPath());
 		}
 		return s_storage.LogoTexture.get();
 	}
@@ -105,9 +108,16 @@ namespace Editor {
 	}
 	Stulu::Ref<Stulu::Shader>& Resources::GetTransparentShader() {
 		if (!s_storage.TransparentShader) {
-			s_storage.TransparentShader = Renderer::getShaderSystem()->GetShader("Editor/Transparent");
+			s_storage.TransparentShader = Renderer::getShaderSystem()->GetShader("Editor/IDBlib");
 		}
 		return s_storage.TransparentShader;
+	}
+
+	Stulu::Ref<Stulu::Shader>& Resources::GetIDBlibShader() {
+		if (!s_storage.IDBlibShader) {
+			s_storage.IDBlibShader = Renderer::getShaderSystem()->GetShader("Editor/Transparent");
+		}
+		return s_storage.IDBlibShader;
 	}
 
 	Texture2D* Resources::GetDirectionalLightTexture() {

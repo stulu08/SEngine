@@ -22,9 +22,14 @@ namespace Stulu {
 		static SkyBoxAsset DefaultSkyBoxAsset();
 		static inline SkyBox* DefaultSkyBox() { return *DefaultSkyBoxAsset(); }
 
+		static MaterialAsset TempSkyBoxMaterialAsset(SkyBoxAsset skybox);
+
+		static MaterialAsset DefaultSkyBoxMaterialAsset();
+		static inline TestMaterial* DefaultSkyBoxMaterial() { return *DefaultSkyBoxMaterialAsset(); }
+
 		static MeshAsset CubeMesh();
 		static MeshAsset PlaneMesh();
-		//static MeshAsset SphereMesh();
+		static MeshAsset SphereMesh();
 		//static MeshAsset HighResSphereMesh();
 		//static MeshAsset IcoSphereMesh();
 		//static MeshAsset CapsuleMesh();
@@ -39,6 +44,8 @@ namespace Stulu {
 		static inline TestMaterial* DefaultMaterial() { return *DefaultMaterialAsset(); }
 		static inline TestMaterial* ReflectiveMaterial() { return *ReflectiveMaterialAsset(); }
 
+
+		static Ref<TestMaterial> CreateSkyBoxMaterial(const std::string& name, SkyBoxAsset skyBoxTexture);
 
 		//Creates a material based of the default shader
 		static Ref<TestMaterial> CreateMaterial(
@@ -69,12 +76,13 @@ namespace Stulu {
 		static inline const UUID UUIDSkyBoxShader = 7;
 		static inline const UUID UUIDQuadShader = 8;
 		static inline const UUID UUIDPBRShader = 9;
-		static inline const UUID UUIDTerrainShader = 10;
 		
-		static inline const UUID UUIDDefaultSkyBox = 11;
+		static inline const UUID UUIDDefaultSkyBox = 10;
+		static inline const UUID UUIDDefaultSkyBoxMaterial = 11;
 		static inline const UUID UUIDDefaultMaterial = 12;
 		static inline const UUID UUIDReflectiveMaterial = 13;
 		static inline const UUID UUIDTerrainMaterial = 14;
+		static inline const UUID UUIDTempSkyboxMaterial = 14;
 		
 		static inline const UUID UUIDBlackTexture = 301;
 		static inline const UUID UUIDWhiteTexture = 302;
@@ -88,9 +96,6 @@ namespace Stulu {
 		static inline const UUID UUIDIIcoSphereMesh = 406;
 		static inline const UUID UUIDIHighResSphereMesh = 407;
 
-		static inline MeshAsset SphereMesh() {
-			return CubeMesh();
-		}
 		static inline MeshAsset CapsuleMesh() {
 			return CubeMesh();
 		}

@@ -46,7 +46,7 @@ namespace Stulu {
 		//destroy all childs
 		TransformComponent& transform = gameObject.getComponent<TransformComponent>();
 		for (entt::entity child : transform.GetChildren()) {
-			Destroy({ child, this });
+			this->Destroy({ child, this });
 		}
 
 		m_registry.destroy(gameObject.GetID());

@@ -21,8 +21,31 @@ namespace Editor {
 			m_scene = scene.get();
 			m_selected.clear();
 		}
+
+		inline void SelectedLogicAdd(entt::entity gameObject) {
+			Stulu::GameObject go = { gameObject, m_scene };
+
+			if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+				AddSelected(gameObject);
+			}
+			else if (IsSelected(gameObject) && ImGui::IsKeyDown(ImGuiKey_LeftShift) && go.getComponent<Stulu::TransformComponent>().HasParent()) {
+				AddSelected(go.getComponent<Stulu::TransformComponent>().GetParent().GetID());
+				RemoveSelected(gameObject);
+			}
+			else {
+				SetSelected(gameObject);
+			}
+		}
 		inline void AddSelected(entt::entity gameObject) {
-			m_selected.push_back(gameObject);
+			if (IsSelected(gameObject)) {
+				RemoveSelected(gameObject);
+			}
+			else {
+				m_selected.push_back(gameObject);
+			}
+		}
+		inline void RemoveSelected(entt::entity gameObject) {
+			m_selected.erase(std::remove(m_selected.begin(), m_selected.end(), gameObject), m_selected.end());
 		}
 		inline void SetSelected(entt::entity gameObject) {
 			m_selected.clear();

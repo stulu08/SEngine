@@ -56,6 +56,7 @@ namespace Stulu {
 
 		// getter
 		const glm::mat4& GetWorldTransform() const;
+
 		inline glm::mat4 GetLocalTransform() const {
 			return glm::translate(glm::mat4(1.0f), position) *
 				glm::mat4_cast(rotation) *

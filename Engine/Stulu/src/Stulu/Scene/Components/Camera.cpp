@@ -11,7 +11,7 @@ namespace Stulu {
 
 	}
 	CameraComponent::CameraComponent(CameraMode mode, uint32_t width, uint32_t height)
-		: m_cam(m_mode, FrameBufferSpecs(width, height)) {
+		: m_cam(m_mode, FrameBufferSpecs(width, height), true) {
 		UpdateCamera();
 	}
 
@@ -35,13 +35,13 @@ namespace Stulu {
 	}
 
 
-	void CameraComponent::ResizeTexture(uint32_t width, uint32_t height) {
+	void CameraComponent::ResizeTexture(uint32_t width, uint32_t height, MSAASamples samples) {
+		m_cam.ResizeFrameBuffer(width, height, samples);
+
 		if (IsRenderTarget()) {
 			RenderTextureAsset asset = AssetsManager::GlobalInstance().GetAsset<RenderTextureAsset>(m_renderTarget);
-			asset.GetAsset()->SetSource(GetTexture());
+			asset.GetAsset()->SetSource(GetResultTexture());
 		}
-		m_cam.ResizeFrameBuffer(width, height);
-
 	}
 
 	void CameraComponent::UpdateCamera() {

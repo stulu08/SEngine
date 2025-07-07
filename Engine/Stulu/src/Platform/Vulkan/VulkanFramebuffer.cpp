@@ -74,19 +74,24 @@ namespace Stulu {
 			createRenderPass();
 		createFrameBuffer();
 	}
-	void VulkanFramebuffer::resize(uint32_t width, uint32_t height) {
+	void VulkanFramebuffer::resize(uint32_t width, uint32_t height, MSAASamples samples) {
 		m_specs.width = width;
 		m_specs.height = height;
+		m_specs.samples = samples;
 		invalidate();
 	}
-	void VulkanFramebuffer::attachDepthTexture(const Ref<Texture2D>& depthText, uint32_t level)
+
+
+	void VulkanFramebuffer::attachDepthTexture(const TextureSettings& depthText)
 	{
 	}
-	void VulkanFramebuffer::attachColorTexture(const Ref<Texture2D>& colorText, uint32_t level) {
-		attachColorTextureAt((uint32_t)m_colorAttachments.size(), colorText, level);
+	void VulkanFramebuffer::attachColorTexture(const TextureSettings& colorText) {
+		attachColorTextureAt((uint32_t)m_colorAttachments.size(), colorText);
 	}
-	void VulkanFramebuffer::attachColorTextureAt(uint32_t attachment, const Ref<Texture2D>& colorText, uint32_t level) {
+	void VulkanFramebuffer::attachColorTextureAt(uint32_t attachment, const TextureSettings& TextureSettings) {
 		cleanUp();
+
+		auto colorText = createRef<VulkanImage2D>(m_specs.width, m_specs.height, TextureSettings);
 
 		if (attachment == m_colorAttachments.size())
 			m_colorAttachments.push_back(colorText);
@@ -103,6 +108,9 @@ namespace Stulu {
 	}
 	void VulkanFramebuffer::detachColorTexture(uint32_t attachment)
 	{
+	}
+	void VulkanFramebuffer::SetDrawBuffers(const std::vector<uint32_t>& buffers) {
+
 	}
 	void VulkanFramebuffer::cleanUp() {
 		if (m_framebuffer != nullptr) {

@@ -46,7 +46,7 @@ namespace Stulu {
 			}
 		};
 		virtual void onComponentRemove(Registry* scene) override {
-			if (m_physics->IsValid())
+			if (m_physics && m_physics->IsValid())
 				Release();
 		};
 		

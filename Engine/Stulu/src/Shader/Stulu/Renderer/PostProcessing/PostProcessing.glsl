@@ -1,15 +1,7 @@
 #ifndef _STULU_POSTPROCESSING_GLSL_
 #define _STULU_POSTPROCESSING_GLSL_
 
-layout(std140, binding = 3) uniform postProcessing
-{
-	float time;
-	float delta;
-	float enableGammaCorrection;
-	float toneMappingExposure;
-	float gamma;
-	float bloomStrength;
-};
+#include "Stulu/Buffer/PostProcessBuffer.glsl"
 
 vec4 gammaCorrect(vec4 color, const float _gamma, const float exposure) {
 	color = vec4(vec3(1.0) - exp(-color.rgb * exposure),color.a);//HDR tonemapping

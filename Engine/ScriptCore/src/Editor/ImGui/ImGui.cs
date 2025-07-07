@@ -108,8 +108,21 @@ namespace Editor {
 			if (namesString[namesString.Length - 1] == '@')
 				namesString.Remove(namesString.Length - 1);
 
-
 			return EditorCalls.ImGui_Combo(name, ref currentValue, namesString);
+		}
+		/// <summary>
+		/// Draws a Drop Down Combo Control
+		/// </summary>
+		public static bool Combo<E>(string name, ref E currentValue) where E : Enum
+		{
+			int val = Convert.ToInt32(currentValue);
+			if(Combo(name, ref val, Enum.GetNames(typeof(E))))
+			{
+				currentValue = (E)Enum.ToObject(typeof(E), val);
+				return true;
+			}
+			return false;
+
 		}
 		/// <summary>
 		/// Pushes an id to the id stack, use this if you have controls with same name in a context
@@ -136,6 +149,42 @@ namespace Editor {
 			if (EditorCalls.ImGui_Texture2D(name, ref assetID))
 			{
 				value = Stulu.Texture2D.Create(assetID);
+				return true;
+			}
+			return false;
+		}
+		/// <summary>
+		/// Draws a texture control, can change the material to null
+		/// </summary>
+		public static bool Material(string name, ref Material value)
+		{
+			ulong assetID = 0;
+			if (value != null)
+			{
+				assetID = value.assetID;
+			}
+
+			if (EditorCalls.ImGui_Material(name, ref assetID))
+			{
+				value = Stulu.Material.Create(assetID);
+				return true;
+			}
+			return false;
+		}
+		/// <summary>
+		/// Draws a texture control, can change the material to null
+		/// </summary>
+		public static bool Mesh(string name, ref Mesh value)
+		{
+			ulong assetID = 0;
+			if (value != null)
+			{
+				assetID = value.assetID;
+			}
+
+			if (EditorCalls.ImGui_Mesh(name, ref assetID))
+			{
+				value = Stulu.Mesh.Create(assetID);
 				return true;
 			}
 			return false;

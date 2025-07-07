@@ -28,6 +28,14 @@ namespace StuluBindings {
 			Stulu::GameObject go = { (entt::entity)entityId, GetCurrentRegistry() };
 			go.getComponent<Stulu::CameraComponent>().SetClearType((Stulu::ClearType)value);
 		}
+		static int cameraComp_GetSamples(uint64_t entityId) {
+			Stulu::GameObject go = { (entt::entity)entityId, GetCurrentRegistry() };
+			return (int)go.getComponent<Stulu::CameraComponent>().GetSamples();
+		}
+		static void cameraComp_SetSamples(uint64_t entityId, int value) {
+			Stulu::GameObject go = { (entt::entity)entityId, GetCurrentRegistry() };
+			go.getComponent<Stulu::CameraComponent>().SetSamples((Stulu::MSAASamples)value);
+		}
 		static float cameraComp_GetNear(uint64_t entityId) {
 			Stulu::GameObject go = { (entt::entity)entityId, GetCurrentRegistry() };
 			return go.getComponent<Stulu::CameraComponent>().GetNear();

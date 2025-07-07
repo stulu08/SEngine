@@ -36,6 +36,10 @@ namespace Stulu {
 		} bloom;
 	};
 
+	class Effect {
+
+	};
+
 	class PostProcessingComponent : public Component {
 	public:
 		PostProcessingComponent() {

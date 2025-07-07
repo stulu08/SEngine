@@ -13,18 +13,9 @@ namespace Stulu {
 	class STULU_API SceneRenderer {
 	public:
 		struct RenderObject {
-			TestMaterial* material;
-			Ref<VertexArray> vertexArray;
-			glm::mat4 transform;
-			glm::mat4 normalMatrix;
-			CullMode cullmode = CullMode::Back;
-			BoundingBox* boundingBox = nullptr;
-			inline RenderObject& operator=(RenderObject& b) {
-				material = b.material;//material
-				vertexArray = b.vertexArray;//mesh
-				transform = b.transform;//transform
-				return *this;
-			}
+			MeshRendererComponent* meshRenderer;
+			MeshFilterComponent* meshFilter;
+			TransformComponent* transform;
 		};
 
 		SceneRenderer(Scene* scene);
@@ -39,31 +30,29 @@ namespace Stulu {
 
 		void DrawSceneToCamera(SceneCamera& sceneCam, CameraComponent& mainCam);
 		void DrawSceneToCamera(SceneCamera& sceneCam);
-		void DrawSceneToCamera(TransformComponent& transform, CameraComponent& cam);
+		void DrawSceneToCamera(TransformComponent& transform, CameraComponent& cam, bool callEvents = false);
 
 		void Clear();
 		void Clear(CameraComponent& cam);
 
 		void RegisterObject(MeshRendererComponent& mesh, MeshFilterComponent& filter, TransformComponent& transform);
-		void RegisterObject(const Ref<VertexArray>& vertexArray, TestMaterial* material, const glm::mat4& transform, BoundingBox* transformedBoundingBox = nullptr);
 		void RegisterObject(RenderObject&& object);
 
-		//combines all the textures of the cameras, sorting by layer index
+		// combines all the textures of the cameras, sorting by layer index
 		void GenSceneTexture(const Ref<FrameBuffer>& sceneFbo);
-
 		void ApplyPostProcessing(SceneCamera& camera);
 		void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data = PostProcessingData());
 		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& data = PostProcessingData());
 
 		void drawSceneShadow();
 		void drawScene();
-		void drawSkyBox(const CubeMap* skybox);
+		void drawSkyBox(TestMaterial* skybox);
 
 		void resizeShadowMap();
 
 		void Register3dObjects();
 
-		void drawAll2d(const TransformComponent& camera);
+		void drawAll2d(const TransformComponent& camera, bool callEvents = false);
 
 		const RenderStats& GetStats() const {
 			return m_stats;

@@ -8,10 +8,10 @@ namespace Stulu {
 	public:
 		OpenGLShaderCompiler();
 
-		virtual void Compile(const ShaderSource& sources, ShaderCompileResult& result) const override;
-		virtual void CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const override;
+		virtual bool Compile(const ShaderSource& sources, ShaderCompileResult& result) const override;
+		virtual bool CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const override;
 
-		virtual void LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const override;
+		virtual bool LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const override;
 
 		virtual bool isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const override;
 

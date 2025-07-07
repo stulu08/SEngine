@@ -9,6 +9,7 @@
 #include "Stulu/Controls.h"
 #include "Stulu/Style.h"
 #include "Stulu/MainLayer.h"
+#include "Hierarchy.h"
 
 
 using namespace Stulu;
@@ -33,8 +34,17 @@ constexpr uint32_t ScaleFlag_Z = (uint32_t)GizmoTransformEditMode::Scale_Z;
 
 namespace Editor {
 	ScenePanel::ScenePanel()
-	: m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, 1), Panel("Scene") {
+	: m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, MSAASamples::Four), Panel("Scene") {
 		auto& layer = App::get().GetLayer();
+
+		TextureSettings gameObejctBufferSpecs = TextureFormat::R32UI;
+		gameObejctBufferSpecs.filtering = TextureFiltering::Nearest;
+
+		m_sceneCamera.getCamera().getRenderFrameBuffer()->attachColorTexture(gameObejctBufferSpecs);
+		if (m_sceneCamera.getCamera().HasResultFrameBuffer()) {
+			m_sceneCamera.getCamera().getResultFrameBuffer()->attachColorTexture(gameObejctBufferSpecs);
+		}
+	
 
 		// toogle translate (alt + g)
 		layer.AddShortCut(Shortcut("Gizmos - Toogle Translate", ([&]() {
@@ -180,46 +190,84 @@ namespace Editor {
 	}
 	void ScenePanel::DrawImGui() {
 		ST_PROFILING_SCOPE("ImGui - Scene Panel");
-
+		auto& layer = App::get().GetLayer();
 
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		m_width = (uint32_t)glm::max(viewportSize.x, 1.0f);
 		m_height = (uint32_t)glm::max(viewportSize.y, 1.0f);
 
-		FrameBufferSpecs FBspec = m_sceneCamera.getCamera().getFrameBuffer()->getSpecs();
-		if (FBspec.width != m_width || FBspec.height != m_height)
-			m_sceneCamera.onResize((float)m_width, (float)m_height);
-
-		Gizmo::ApplyToFrameBuffer(m_sceneCamera.getCamera().getFrameBuffer());
+		auto& frameBuffer = m_sceneCamera.getCamera().getResultFrameBuffer();
+		Gizmo::ApplyToFrameBuffer(frameBuffer);
 
 		m_windowPos = ImGui::GetCursorScreenPos();
 
-		auto& texture = m_sceneCamera.getCamera().getFrameBuffer()->getColorAttachment();
-		ImGui::Image(texture.get(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+		ImGui::Image(frameBuffer->getColorAttachment(0).get(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+
+		if (ImGui::IsItemHovered()) {
+			const uint32_t clickX = (uint32_t)(ImGui::GetMousePos().x - m_windowPos.x);
+			const uint32_t clickY = m_height - (uint32_t)(ImGui::GetMousePos().y - m_windowPos.y);
+			entt::entity id = (entt::entity)frameBuffer->getColorAttachment(1)->getPixel(clickX, clickY);
+			if (layer.GetActiveScene()->IsValid(id)) {
+				m_hoveredObject = id;
+			}
+		}
+
+
+		FrameBufferSpecs FBspec = frameBuffer->getSpecs();
+		if (FBspec.width != m_width || FBspec.height != m_height)
+			m_sceneCamera.onResize((float)m_width, (float)m_height);
 
 		glm::vec2 windowPos = glm::vec2(ImGui::GetCurrentWindow()->WorkRect.Min.x, ImGui::GetCurrentWindow()->WorkRect.Min.y);
 		Gizmo::setRect(windowPos.x, windowPos.y, (float)m_width, (float)m_height);
 		Gizmo::setCamData(m_sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().GetWorldTransform()));
-
 		Gizmo::setWindow(GetID(), &OpenPtr());
 
 		Stulu::UUID sceneUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<SceneAsset>());
 		if (sceneUUID != Stulu::UUID::null) {
 			SceneAsset asset = AssetsManager::GlobalInstance().GetAsset<SceneAsset>(sceneUUID);
-			App::get().GetLayer().OpenScene(asset.Path());
+			layer.OpenScene(asset.Path());
+		}
+
+		Stulu::UUID materialUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<MaterialAsset>());
+		if (materialUUID != Stulu::UUID::null && m_hoveredObject != entt::null) {
+			MaterialAsset asset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(materialUUID);
+			GameObject go = { m_hoveredObject, layer.GetActiveScene().get()};
+			if (go.hasComponent<MeshRendererComponent>()) {
+				go.getComponent<MeshRendererComponent>().material = asset;
+			}
 		}
 	}
 	void ScenePanel::DrawImGuizmo() {
-		if (m_drawGrid) {
-			const auto& tc = m_sceneCamera.getTransform();
-			const glm::vec3 pos = { glm::floor(tc.GetWorldPosition().x), 0.0f, glm::floor(tc.GetWorldPosition().y)};
-
-			Gizmo::drawGrid(glm::translate(glm::mat4(1.0f), pos), 50.0f);
-		}
-
 		auto& layer = App::get().GetLayer();
 		auto& scene = layer.GetActiveScene();
 		auto& sceneCamera = GetCamera();
+
+		if (m_drawGrid) {
+			Gizmo::drawGrid(glm::mat4(1.0f), 100.0f);
+		}
+
+		const std::vector<entt::entity> selectedObjs = layer.GetPanel<HierarchyPanel>().GetSelected();
+
+		if(selectedObjs.size() > 0 && m_gizmoMode != NoneFlag) {
+			const float baseSize = glm::min(128.0f, m_height / 4.0f);
+			const ImVec2 size = ImVec2(baseSize, baseSize);
+			const ImVec2 pos = m_windowPos + ImVec2(m_width - m_windowPadding.x - baseSize, m_windowPadding.y);
+
+			// averages
+			glm::vec3 avgPos(0.0f);
+			{
+				for (const entt::entity& entID : selectedObjs) {
+					auto& tc = GameObject(entID, scene.get()).getComponent<TransformComponent>();
+					avgPos += tc.GetWorldPosition();
+				}
+				avgPos /= (float)selectedObjs.size();
+			}
+
+			if (Gizmo::ViewManipulate(sceneCamera.getTransform(), avgPos, pos, size)) {}
+		}
+		
+
+		
 		const glm::vec3& cameraPos = sceneCamera.getTransform().GetWorldPosition();
 		const float gizmoViewDistance = 50.0f;
 		//draw all cameras
@@ -266,7 +314,7 @@ namespace Editor {
 	void ScenePanel::Update() {
 		auto& layer = App::get().GetLayer();
 
-		if (!Gizmo::IsUsing()) {
+		if (!Gizmo::WasUsed()) {
 			Input::setEnabled(IsFocused());
 			m_sceneCamera.updateMove(Time::frameTime);
 			m_sceneCamera.onUpdate(Time::frameTime);
@@ -278,13 +326,52 @@ namespace Editor {
 			Input::setCursorMode(Input::CursorMode::Normal);
 		}
 
-		layer.GetActiveScene()->onUpdateEditor(GetCamera(), IsVisible()); 
+
+		if (IsVisible()) {
+			auto& cam = m_sceneCamera.getCamera();
+
+			// set draw buffers, for entity texture buffer, if no result buffer present will fallback to renderbuffer
+			cam.getRenderFrameBuffer()->SetDrawBuffers({ 0,1 });
+			layer.GetActiveScene()->onUpdateEditor(GetCamera(), true);
+			cam.getRenderFrameBuffer()->SetDrawBuffer();
+
+			layer.GetActiveScene()->getRenderer()->ApplyPostProcessing(GetCamera());
+			
+			if (cam.HasResultFrameBuffer()) {
+				// blit gameobject id map 
+				cam.getRenderFrameBuffer()->SetReadBuffer(1);
+				cam.getResultFrameBuffer()->SetDrawBuffer(1);
+				
+				Renderer::BlibRenderBuffferToResultBuffer(cam.getRenderFrameBuffer(), cam.getResultFrameBuffer(), true, false, false);
+
+				cam.getRenderFrameBuffer()->SetReadBuffer();
+				cam.getResultFrameBuffer()->SetDrawBuffer();
+			}
+		}
+		else {
+			layer.GetActiveScene()->onUpdateEditor(GetCamera(), false);
+		}
+
+		m_hoveredObject = entt::null;
 	}
 
 
 	void ScenePanel::OnEvent(Stulu::Event& e) {
-		if(IsFocused())
+		if (IsFocused()) {
+			EventDispatcher dispatcher(e);
+			dispatcher.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(ScenePanel::OnMouseDown));
+
 			m_sceneCamera.onEvent(e);
+		}
+	}
+	bool ScenePanel::OnMouseDown(Stulu::MouseButtonDownEvent& e) const {
+		if (e.getButton() == Mouse::ButtonLeft) {
+			if (m_hoveredObject != entt::null) {
+				App::get().GetLayer().GetPanel<HierarchyPanel>().SelectedLogicAdd(m_hoveredObject);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void ScenePanel::PreWindow() {
@@ -302,7 +389,7 @@ namespace Editor {
 	}
 
 	
-	void ScenePanel::DrawMenuBars(ImVec2 startPos, bool showToolbar) {
+	void ScenePanel::DrawMenuBars(ImVec2 startPos, bool showToolbar, float parentWindowWidth) {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVarY(ImGuiStyleVar_WindowPadding, 3.0f);
 		ImGui::PushStyleVarY(ImGuiStyleVar_ItemSpacing, 4.0f);
@@ -388,8 +475,10 @@ namespace Editor {
 		bool isRuntime = layer.IsRuntime();
 		bool isPaused = Time::Scale == 0.0f;
 
+		if (parentWindowWidth < 0.0f) parentWindowWidth = (float)m_width;
+
 		ImGui::SetNextWindowBgAlpha(0.5f);
-		ImVec2 pos = ImVec2(startPos.x + (m_width * 0.5f), startPos.y + m_windowPadding.y);
+		ImVec2 pos = ImVec2(startPos.x + (parentWindowWidth * 0.5f), startPos.y + m_windowPadding.y);
 		ImGui::SetNextWindowPos(pos, 0, ImVec2(0.5f, 0.0f));
 
 		if (ImGui::Begin("ToolBarRuntime", nullptr, flags)) {
@@ -427,4 +516,6 @@ namespace Editor {
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor(2);
 	}
+	
+	
 }

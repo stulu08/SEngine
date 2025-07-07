@@ -11,8 +11,10 @@
 
 namespace Stulu {
 	void Collider::Release() {
-		if (!gameObject)
+		if (!gameObject) {
+			m_shape = nullptr;
 			return;
+		}
 
 		if (HasActorAttached()) {
 			const auto& actorComponent = GetActor();

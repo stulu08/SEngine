@@ -6,6 +6,7 @@ namespace Editor {
 	public:
 		static void ReleaseAll();
 
+		static std::string GetLogoPath();
 		static Stulu::Texture2D* GetLogo();
 		static Stulu::Texture2D* GetDirectoryIcon();
 		static Stulu::Texture2D* GetFileIcon();
@@ -19,6 +20,7 @@ namespace Editor {
 		static Stulu::Ref<Stulu::Shader>& GetOutlineShader();
 		static Stulu::Ref<Stulu::Shader>& GetHighliteShader();
 		static Stulu::Ref<Stulu::Shader>& GetTransparentShader();
+		static Stulu::Ref<Stulu::Shader>& GetIDBlibShader();
 
 		static Stulu::Texture2D* GetLightTexture();
 		static Stulu::Texture2D* GetDirectionalLightTexture();

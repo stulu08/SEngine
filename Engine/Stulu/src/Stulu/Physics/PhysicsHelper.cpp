@@ -27,12 +27,12 @@ namespace Stulu {
         physx::PxTriangleMesh* CreateTriangleMesh(Mesh* mesh) {
             auto& phyicsModule = PhysicsModule::Get();
 
-            const auto& [positionOffset, Element] = mesh->GetPositionLayoutElement();
+            const BufferElement Element = mesh->GetPositionLayoutElement();
 
             physx::PxTriangleMeshDesc meshDesc;
             meshDesc.points.count = (uint32_t)mesh->GetVerticesCount();
             meshDesc.points.stride = (uint32_t)mesh->GetStride();
-            meshDesc.points.data = reinterpret_cast<const uint8_t*>(mesh->GetVertices()) + positionOffset;
+            meshDesc.points.data = reinterpret_cast<const uint8_t*>(mesh->GetVertices()) + Element.offset;
 
             meshDesc.triangles.count = (uint32_t)(mesh->GetIndices().size() / 3);
             meshDesc.triangles.stride = (uint32_t)(3 * mesh->GetVertexArray()->getIndexBuffer()->getStride());
@@ -59,12 +59,12 @@ namespace Stulu {
             const size_t skipCount = (size_t)glm::ceil(mesh->GetVerticesCount() / limit);
             const size_t count = glm::min(mesh->GetVerticesCount(), limit);
 
-            const auto& [positionOffset, Element] = mesh->GetPositionLayoutElement();
+            const BufferElement Element = mesh->GetPositionLayoutElement();
 
             std::vector<glm::vec3> sampledPoints;
             sampledPoints.reserve(255);
             for (size_t i = 0; i < mesh->GetVerticesCount() && sampledPoints.size() < 255; i++) {
-                glm::vec3 pos = *(glm::vec3*)((uint8_t*)mesh->GetVertices() + i * mesh->GetStride() + positionOffset);
+                glm::vec3 pos = *(glm::vec3*)((uint8_t*)mesh->GetVertices() + i * mesh->GetStride() + Element.offset);
                 sampledPoints.push_back(pos);
             }
 

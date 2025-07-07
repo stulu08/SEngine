@@ -8,7 +8,28 @@
 #include "Stulu/Renderer/Buffer.h"
 
 namespace Stulu{
-	struct CameraBufferData {
+	struct alignas (16) FogSettings {
+		glm::vec4 fogColor = glm::vec4(0.44f, 0.44f, 0.44f, 1.0f);
+		float fogMode = 0.0f; /* 0 = disbaled, 1 = linear, 2 = exp, 3 = exp2  */
+		float linearFogStart = 50.0f;
+		float linearFogEnd = 250.0f;
+		float fogDensity = 0.005f;
+		float FogHorizonStrength = 0.0f;
+		float FogHorizonFalloff = 15.0f;
+		float EnableFogHorizon = 1.0f;
+		float FogGroundStrength = 1.0f;
+		float EnableGroundFog = 0.0f;
+		float FogHorizonOffset = -1000.0f; 
+		float FogHorizonHeightFalloff = 2000.0f; 
+		float EnableHorizonHeightFog = 1.0f;
+		enum class Mode {
+			Disabled = 0,
+			Linear = 1,
+			Exp = 2,
+			Exp2 = 3
+		};
+	};
+	struct alignas (16) CameraBufferData {
 		glm::mat4 viewProjectionMatrix;
 		glm::mat4 viewMatrix;
 		glm::mat4 projMatrix;
@@ -16,7 +37,7 @@ namespace Stulu{
 		glm::vec4 cameraRotation;
 		glm::vec4 cameraNearFar;
 	};
-	struct LightBufferData {
+	struct alignas (16) LightBufferData {
 		struct Light {
 			glm::vec4 colorAndStrength = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 			glm::vec4 positionAndType = glm::vec4(1.0f, 5.0f, 10.0f, 0.0f);
@@ -25,7 +46,7 @@ namespace Stulu{
 		} lights[ST_MAXLIGHTS];
 		uint32_t lightCount = 0;
 	};
-	struct PostProcessingBufferData {
+	struct alignas (16) PostProcessingBufferData {
 		float time = 0.0f;
 		float delta = 0.0f;
 		float enableGammaCorrection = 1.0f;
@@ -33,21 +54,59 @@ namespace Stulu{
 		float gamma = 2.2f;
 		float bloomStrength = 1.0f;
 	};
-	struct SceneBufferData {
+	struct alignas (16) SceneBufferData {
 		glm::mat4 skyBoxRotation = glm::mat4(1.0f);
 		glm::vec4 clearColor = glm::vec4(.0f);
+
 		uint32_t useSkybox = 0;
 		uint32_t emptyData = 0;
 		uint32_t shaderFlags = 0;
 		float env_lod = 4.0f;
+
 		glm::mat4 lightSpaceMatrix = glm::mat4(1.0f);
+
 		glm::vec3 shadowCasterPos = glm::vec3(0.0);
 		int32_t shadowCaster = -1;
+
+		FogSettings fogSettings;
 	};
-	struct GlobalMaterialBufferData {
+	struct alignas (16) GlobalMaterialBufferData {
 		uint32_t alphaMode;
 		float alphaCutOff;
 	};
+
+	struct alignas (16) StaticModelDataBuffer {
+		// will reinterpreted as uint32_t, for performance gain float is used here, due to some weird x86 cpu instructions (test: +- 15fps), also std140 layout rules
+		glm::vec4 entityID;
+		glm::mat4 normal;
+		glm::mat4 transform;
+	};
+	struct alignas (16) InstancedModelDataBuffer {
+		glm::vec4 entityID;
+		glm::mat4 instanceMatrices[ST_MAX_INSTANCES];
+
+		inline void SetNormalMatrix(size_t index, const glm::mat4& norm) {
+			instanceMatrices[index * 2] = norm;
+		}
+		inline void SetTranslationMatrix(size_t index, const glm::mat4& trans) {
+			instanceMatrices[index * 2 + 1] = trans;
+		}
+		inline void SetNormalFromTranslation(size_t index, const glm::mat4& trans) {
+			instanceMatrices[index * 2] = glm::transpose(glm::inverse(trans));
+		}
+	};
+	struct alignas (16) SkinnedModelDataBuffer {
+		glm::vec4 entityID;
+		glm::mat4 boneMatrices[ST_MAX_BONES];
+	};
+	struct alignas (16) SharedModelDataBuffer {
+		union {
+			StaticModelDataBuffer staticData;
+			InstancedModelDataBuffer instancedData;
+			SkinnedModelDataBuffer skinnedData;
+		};
+	};
+
 	class STULU_API Renderer {
 	public:
 		enum class API {
@@ -61,10 +120,22 @@ namespace Stulu{
 		static void Shutdown();
 		static void onWindowResize(WindowResizeEvent& e);
 
-		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader = nullptr);
+		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Shader* shader = nullptr);
+		static inline void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader = nullptr) {
+			ScreenQuad(destination, shader.get());
+		}
 
-		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count = 0);
-		static void submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t count = 0);
+		static void UploadModelData(const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t id = UINT32_MAX);
+		static void UploadModelData(const SharedModelDataBuffer& buffer, size_t size);
+		static inline void UploadModelData(const glm::mat4& transform) {
+			UploadModelData(transform, glm::transpose(glm::inverse(transform)), UINT32_MAX);
+		}
+
+		static void RenderSkyBoxCube();
+
+		static void BlibRenderBuffferToResultBuffer(
+			const Ref<FrameBuffer>& renderBuffer, const Ref<FrameBuffer>& resultBuffer, 
+			bool BlitColor = true, bool BlitDepth = true, bool BlitStencil = true);
 
 		static void uploadCameraBufferData(const CameraBufferData& data);
 		static void uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation, float z_near = 0, float z_far = 1000);
@@ -91,5 +162,4 @@ namespace Stulu{
 
 		friend class Application;
 	};
-
 }

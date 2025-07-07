@@ -1,0 +1,8 @@
+Shader: Renderer/SkyBox
+Instanced: false
+TransparencyMode: 0
+Cutout: 0.0
+Properties:
+  Texture:
+    UUID: 1253514222315557586
+  

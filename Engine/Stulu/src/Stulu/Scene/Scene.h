@@ -4,6 +4,7 @@
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Renderer/Shader.h"
+#include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Scene/Model.h"
 #include "Stulu/Types/Timestep.h"
 #include "Registry.h"
@@ -14,6 +15,9 @@ namespace Stulu {
 		float shadowDistance = 50.0f;
 		float shadowFar = 500.0f;
 		uint32_t shadowMapSize = 2048;
+		// this wont render the skybox, but will still bind it
+		bool transparentBG = false;
+		FogSettings fog;
 	};
 	struct SceneData {
 		SceneGraphicsData graphicsData;

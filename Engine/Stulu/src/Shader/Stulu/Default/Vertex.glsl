@@ -1,13 +1,8 @@
 #type vertex
-
 #include "Stulu/MeshLayout.glsl"
-#include "Stulu/Scene.glsl"
+#include "Stulu/Buffer/CameraBuffer.glsl"
+#include "Stulu/Buffer/DefaultModelBuffer.glsl"
 
-layout(std140, binding = 1) uniform modelData
-{
-	mat4 normalMatrix;
-	mat4 transform;
-};
 struct VertexData
 {
 	vec3 worldPos;
@@ -16,15 +11,21 @@ struct VertexData
 	vec4 color;
 };
 layout (location = 0) out VertexData vertex;
+layout (location = 5) out flat uint ST_EntityID;
 
 void main()
 {
-	vec4 world = transform * vec4(a_pos, 1.0);
+	vec4 position = vec4(0.0);
+	vec3 normal = vec3(0.0);
+	CalculateVertexPositionAndNormal(position, normal);
 
-    vertex.worldPos = world.xyz;
-    vertex.normal = (normalMatrix * vec4(a_normal, 0.0)).xyz;
-    vertex.texCoords = a_texCoords;
-	vertex.color = a_color;
+	vertex.worldPos  = position.xyz;
+	vertex.normal    = normal;
+	vertex.texCoords = a_texCoords;
+	vertex.color     = a_color;
 
-    gl_Position = viewProjection * world;
+	gl_Position = viewProjection * position;
+
+	ST_EntityID = GetEntityID();
+
 }

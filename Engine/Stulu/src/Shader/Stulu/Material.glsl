@@ -1,10 +1,7 @@
 #ifndef _STULU_MATERIAL_GLSL_
 #define _STULU_MATERIAL_GLSL_
 
-layout(std140, binding = 5) uniform InternalMaterialData {
-	uint ST_AlphaMode;
-	float ST_AlphaCutOff;
-};
+#include "Stulu/Buffer/DefaultMaterialBuffer.glsl"
 
 float FilterAlpha(float alpha, uint mode, float cutOut) {
     if(mode == 1) {

@@ -8,11 +8,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 namespace Stulu {
-	bool SharedMeshAssetData::Load() {
-		if (IsMemoryLoaded())
-			return false;
-
-		const std::string& path = GetPath();
+	bool SharedMeshAssetData::LoadFromPath(const std::string& path) {
 		std::ifstream stream(path, std::ios::binary);
 		if (!stream.is_open())
 			return false;
@@ -35,30 +31,23 @@ namespace Stulu {
 
 		const uint32_t vertexCount = yaml["VertexCount"].as<uint32_t>();
 		const uint32_t indexCount = yaml["IndexCount"].as<uint32_t>();
+		std::string name = yaml["Name"].as<std::string>("");
 
 		// Determine layout
-		bool defaultVertex = false, defaultSkinned = false;
-		BufferLayout layout;
-		if (yaml["IsDefaultLayout"]) {
-			layout = Mesh::DefaultVertexLayout();
-			defaultVertex = true;
-		}
-		else if (yaml["IsDefaultSkinnedLayout"]) {
-			layout = Mesh::DefaultSkinnedVertexLayout();
-			defaultSkinned = true;
-		}
-		else if (yaml["VertexLayout"]) {
-			layout = BufferLayout();
-			YAML::Node layoutNode = yaml["VertexLayout"];
-			for (auto it : layoutNode) {
-				std::string name = it.first.as<std::string>();
-				auto data = it.second;
+		BufferLayout layout = Mesh::DefaultVertexLayout();
 
-				ShaderDataType type = magic_enum::enum_cast<ShaderDataType>(data["Type"].as<std::string>()).value_or(ShaderDataType::none);
-				bool normalized = data["Normalized"] ? data["Normalized"].as<bool>() : false;
-				layout.addElement({ type, name, normalized });
-			}
-		}
+		//if (yaml["VertexLayout"]) {
+		//	layout = BufferLayout();
+		//	YAML::Node layoutNode = yaml["VertexLayout"];
+		//	for (auto it : layoutNode) {
+		//		auto& data = it.second;
+		//
+		//		BufferElementIDType name = magic_enum::enum_cast<BufferElementIDType>(it.first.as<std::string>()).value_or(BufferElementIDType::Other);
+		//		ShaderDataType type = magic_enum::enum_cast<ShaderDataType>(data["Type"].as<std::string>()).value_or(ShaderDataType::none);
+		//		bool normalized = data["Normalized"] ? data["Normalized"].as<bool>() : false;
+		//		layout.addElement({ type, name, normalized });
+		//	}
+		//}
 
 		uint32_t stride = layout.getStride();
 		std::vector<Mesh::ByteType> vertexData(vertexCount * stride);
@@ -69,37 +58,36 @@ namespace Stulu {
 
 		// Create mesh
 		Ref<Mesh> mesh = createRef<Mesh>();
-		mesh->SetData(vertexData.data(), (size_t)vertexCount, (const uint32_t*)indexData.data(), (size_t)indexCount, layout);
-		mesh->m_defaultVertexLayout = defaultVertex;
-		mesh->m_defaultSkinnedVertexLayout = defaultSkinned;
+		mesh->ConstructMesh(vertexData.data(), (size_t)vertexCount, layout, (const uint32_t*)indexData.data(), (size_t)indexCount);
 
 		// Submeshes
 		if (yaml["SubMeshes"]) {
 			YAML::Node subMeshNode = yaml["SubMeshes"];
 			for (auto it : subMeshNode) {
-				std::string name = it.first.as<std::string>();
+				std::string subMeshName = it.first.as<std::string>();
 				auto data = it.second;
 
 				MeshSubmesh sm;
-				sm.name = name;
+				sm.name = subMeshName;
 				sm.indexCount = data["IndexCount"].as<uint32_t>();
 				sm.indexOffset = data["IndexOffset"].as<uint32_t>();
 				sm.vertexOffset = data["VertexOffset"].as<uint32_t>();
 				mesh->AddSubmesh(sm);
+				if (name.empty()) {
+					name = subMeshName;
+				}
 			}
 		}
 
 		m_mesh = mesh;
+		m_mesh->SetName(name);
+
 		return true;
 	}
-	bool SharedMeshAssetData::Save() const {
-		if (!m_mesh || IsMemoryLoaded())
-			return false;
-
+	bool SharedMeshAssetData::SaveToFile(const std::string& path) const {
 		if (!m_mesh->GetVertexArray() || m_mesh->GetVertexArray()->getVertexBuffers().size() < 1)
 			return false;
 
-		const std::string& path = GetPath();
 		std::ofstream stream(path, std::ios::binary);
 		if (!stream.is_open()) {
 			return false;
@@ -110,24 +98,23 @@ namespace Stulu {
 
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << "Name" << YAML::Value << m_mesh->GetName();
 		out << YAML::Key << "VertexCount" << YAML::Value << m_mesh->GetVerticesCount();
 		out << YAML::Key << "IndexCount" << YAML::Value << m_mesh->GetIndices().size();
-		if (m_mesh->IsDefaultLayout())
-			out << YAML::Key << "IsDefaultLayout" << YAML::Value << true;
-		else if (m_mesh->IsDefaultSkinnedLayout())
-			out << YAML::Key << "IsDefaultSkinnedLayout" << YAML::Value << true;
-		else {
-			out << YAML::Key << "VertexLayout" << YAML::Value << YAML::BeginMap;
-			for (const auto& ele : m_mesh->GetVertexArray()->getVertexBuffers().front()->getLayout()) {
-				out << YAML::Key << ele.name << YAML::BeginMap;
-				out << YAML::Key << "Type" << YAML::Value << std::string(magic_enum::enum_name(ele.type));
-				if (ele.normalized)
-					out << YAML::Key << "Normalized" << YAML::Value << true;
-				out << YAML::EndMap;
-			}
 
-			out << YAML::EndMap;
-		}
+		// saved meshes only support default layout
+		//out << YAML::Key << "VertexLayout" << YAML::Value << YAML::BeginMap;
+		//
+		//for (const auto& ele : m_mesh->GetVertexArray()->getVertexBuffers().front()->getLayout()) {
+		//	out << YAML::Key << std::string(magic_enum::enum_name(ele.idType)) << YAML::BeginMap;
+		//	out << YAML::Key << "Type" << YAML::Value << std::string(magic_enum::enum_name(ele.type));
+		//	if (ele.normalized)
+		//		out << YAML::Key << "Normalized" << YAML::Value << true;
+		//	out << YAML::EndMap;
+		//}
+
+		out << YAML::EndMap;
+	
 		const auto& subMeshes = m_mesh->GetSubmeshes();
 		if (subMeshes.size() > 0) {
 			out << YAML::Key << "SubMeshes" << YAML::BeginMap;

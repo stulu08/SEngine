@@ -29,7 +29,7 @@ namespace Stulu {
 			for (auto& field : instance->getFields()) {
 				out << YAML::BeginMap;
 				out << YAML::Key << "Name" << field->getName();
-				out << YAML::Key << "Type" << (uint32_t)field->getType();
+				out << YAML::Key << "TypeName" << field->getTypeName();
 				field->Serialize(out);
 				out << YAML::EndMap;
 			}
@@ -45,14 +45,16 @@ namespace Stulu {
 			if (exists) {
 				Ref<MonoObjectInstance> object = createRef<MonoObjectInstance>(exists, manager->getAppAssembly().get());
 				for (YAML::detail::iterator_value field : inst["Fields"]) {
-					std::string name = field["Name"].as<std::string>();
-					ManagedPropertyType type = (ManagedPropertyType)field["Type"].as<uint32_t>();
+					if (!field["Name"] || !field["TypeName"])
+						continue;
 
-					for (auto fieldItem : object->getFields()) {
-						if (fieldItem->getName() != name || fieldItem->getType() != type)
+					std::string name = field["Name"].as<std::string>();
+					std::string typeName = field["TypeName"].as<std::string>();
+
+					for (const auto& fieldItem : object->getFields()) {
+						if (fieldItem->getName() != name || fieldItem->getTypeName() != typeName)
 							continue;
 						fieldItem->Deserialize(field);
-
 					}
 				}
 				runtimeScripts.push_back(object);

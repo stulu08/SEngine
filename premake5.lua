@@ -1,5 +1,6 @@
 include "./Dependencies/premake/premake_customization/solution_items.lua"
 include "./Dependencies/premake/premake_customization/generate_doc.lua"
+
 workspace "Stulu"
 	startproject "Editor"
 	configurations

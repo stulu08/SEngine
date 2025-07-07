@@ -19,8 +19,14 @@ namespace Stulu{
 		inline static void setCullMode(CullMode value) {
 			s_renderAPI->setCullMode(value);
 		}
-		inline static void setStencil(StencilMode value) {
-			s_renderAPI->setStencil(value);
+		inline static void StencilNotEqual(uint8_t value, uint8_t ref = 1) {
+			s_renderAPI->StencilNotEqual(value, 1);
+		}
+		inline static void StencilAlways(uint8_t value, uint8_t ref = 1) {
+			s_renderAPI->StencilAlways(value, ref);
+		}
+		inline static void SetStencilValue(uint8_t value) {
+			s_renderAPI->SetStencilValue(value);
 		}
 		inline static void setDepthTesting(bool value) {
 			s_renderAPI->setDepthTesting(value);

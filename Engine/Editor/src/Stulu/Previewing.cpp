@@ -101,26 +101,36 @@ namespace Editor {
 		m_scene->onUpdateRuntime(Timestep(.05f));
 		m_scene->onRuntimeStop();
 
-		m_scene->getRenderer()->ApplyPostProcessing(m_camera.getComponent<CameraComponent>().GetNativeCamera().getFrameBuffer());
-		return m_camera.getComponent<CameraComponent>().GetNativeCamera().getFrameBuffer()->getColorAttachment();
+		m_scene->getRenderer()->ApplyPostProcessing(m_camera.getComponent<CameraComponent>().GetResultFrameBuffer());
+		return m_camera.getComponent<CameraComponent>().GetResultTexture();
 	}
 
 	void Preview::SetupMaterial(MaterialAsset material) {
-		m_camera.addComponent<SkyBoxComponent>().texture = Resources::DefaultSkyBoxAsset();
-		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
+		// skybox material
 		m_renderObject = m_scene->Create("RenderObject");
 		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(Resources::CubeMesh());
-		m_renderObject.saveAddComponent<MeshRendererComponent>().material = material;
+		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
+
+		if (material->GetShader() == Renderer::getShaderSystem()->GetShader("Renderer/SkyBox")) {
+			m_camera.addComponent<SkyBoxComponent>().material = material;
+			m_renderObject.saveAddComponent<MeshRendererComponent>().material = Stulu::Resources::DefaultMaterialAsset();
+		}
+		else {
+			m_camera.addComponent<SkyBoxComponent>().material = Resources::DefaultSkyBoxMaterialAsset();
+			m_renderObject.saveAddComponent<MeshRendererComponent>().material = material;
+		}
 	}
 	void Preview::SetupSkybox(SkyBoxAsset skybox) {
-		m_camera.addComponent<SkyBoxComponent>().texture = skybox;
+		m_scene->getData().graphicsData.transparentBG = true;
+
+		m_camera.addComponent<SkyBoxComponent>().material = Resources::TempSkyBoxMaterialAsset(skybox);
 		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 		m_renderObject = m_scene->Create("RenderObject");
-		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(Resources::CubeMesh());
+		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(Resources::SphereMesh());
 		m_renderObject.saveAddComponent<MeshRendererComponent>().material = Resources::ReflectiveMaterialAsset();
 	}
 	void Preview::SetupMesh(MeshAsset mesh) {
-		m_camera.addComponent<SkyBoxComponent>().texture = Resources::DefaultSkyBoxAsset();
+		m_camera.addComponent<SkyBoxComponent>().material = Resources::DefaultSkyBoxMaterialAsset();
 		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 
 		if (!mesh.IsLoaded())
@@ -146,6 +156,8 @@ namespace Editor {
 			m_camera.removeComponent<SkyBoxComponent>();
 			m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Color);
 		}
+		m_scene->getData().graphicsData.transparentBG = false;
+
 
 		CamDefault();
 

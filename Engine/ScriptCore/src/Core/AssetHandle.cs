@@ -13,8 +13,15 @@ namespace Stulu {
 		/// <summary>
 		/// Initlize with ID
 		/// </summary>
-		internal AssetHandle(UUID id) {
-			Initilize(id);
+		internal AssetHandle(UUID id, bool weakRef = false) {
+			if (weakRef)
+			{
+				InitilizeWeak(id);
+			}
+			else
+			{
+				Initilize(id);
+			}
 		}
 		/// <summary>
 		/// Maybe gets called, maybe not idk
@@ -23,25 +30,46 @@ namespace Stulu {
 			if (gcHandle != 0)
 				Release();
 		}
-		/// <summary>
-		/// Releases the tracking instance, asset will be deleted if not other refrences exists
-		/// </summary>
-		public void Release() => DropAssetHandle(gcHandle, this.assetID);
 
 		/// <summary>
 		/// Initilizes the asset handle, creates a tracking instance to confirm ownership
 		/// </summary>
 		public void Initilize(ulong uuid) {
-			if(this.gcHandle != 0)
+			InitilizeWeak(uuid);
+			Lock();
+		}
+		/// <summary>
+		/// Initilizes the asset handle, creates no tracking instance to confirm ownership
+		/// </summary>
+		public void InitilizeWeak(ulong uuid)
+		{
+			if (this.gcHandle != 0)
 			{
 				Log.EngineWarn("Asset already asigned, old refrence will be released!");
 				Release();
 			}
-			if (uuid == UUID.Null) {
+			if (uuid == UUID.Null)
+			{
 				Log.EngineWarn("Using invalid handle '0' for asset!");
 			}
 			this.assetID = uuid;
+			this.gcHandle = 0;
+		}
+
+		/// <summary>
+		/// Locks to asset, basicly tells the internals that this object is owned by someone
+		/// </summary>
+		public void Lock()
+		{
 			this.gcHandle = InitAssetHandle(this, this.assetID);
+		}
+		/// <summary>
+		/// Releases the tracking instance, asset will be deleted if not other refrences exists
+		/// </summary>
+		public void Release()
+		{
+			DropAssetHandle(gcHandle, this.assetID);
+			gcHandle = 0;
 		}
 
 		/// <summary>

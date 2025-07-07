@@ -1,5 +1,6 @@
 #include "st_pch.h"
 #include "OpenGLShader.h"
+#include "OpenGLStateCache.h"
 
 #include <fstream>
 #include <glad/glad.h>
@@ -29,9 +30,9 @@ namespace Stulu {
 
 	OpenGLShaderCompiler::OpenGLShaderCompiler() {}
 
-	void OpenGLShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
+	bool OpenGLShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
 		GLuint rendererID = glCreateProgram();
-
+		
 		std::vector<GLenum> shaderIds;
 		shaderIds.resize(sources.Size(), 0);
 
@@ -75,8 +76,7 @@ namespace Stulu {
 				glDeleteShader(id);
 
 			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
-			CORE_ASSERT(false, "Could not link shader program");
-			return;
+			return false;
 		}
 
 		for (auto id : shaderIds) {
@@ -105,31 +105,34 @@ namespace Stulu {
 		result.Add(Stulu::ShaderType::Vertex, { std::move(binary) });
 
 		glDeleteProgram(rendererID);
+
+		return true;
 	}
-	void OpenGLShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
-		Compile(sources, result);
+	bool OpenGLShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
+		if (Compile(sources, result)) {
+			std::filesystem::path path = cacheFile;
+			if (path.has_parent_path() && !std::filesystem::exists(path.parent_path()))
+				std::filesystem::create_directories(path.parent_path());
 
-		std::filesystem::path path = cacheFile;
-		if (path.has_parent_path() && !std::filesystem::exists(path.parent_path()))
-			std::filesystem::create_directories(path.parent_path());
+			if (result.Size() != 1) {
+				CORE_ERROR("Invalid compilation result of OpenGLShaderCompiler");
+				return false;
+			}
 
-		if (result.Size() != 1) {
-			CORE_ASSERT(false, "Invalid compilation result of OpenGLShaderCompiler");
-			return;
+			const auto& [type, res] = result.Get(0);
+			const std::string name = path.string();
+			FILE* file = fopen(name.c_str(), "wb");
+
+			fwrite(&res.data[0], sizeof(res.data[0]), res.data.size(), file);
+			fclose(file);
+
+			return true;
 		}
 
-		const auto& [type, res] = result.Get(0);
-		const std::string name = path.string();
-		FILE* file = fopen(name.c_str(), "wb");
-
-		fwrite(&res.data[0], sizeof(res.data[0]), res.data.size(), file);
-		fclose(file);
-
-		return;
-
+		return false;
 	}
-	void OpenGLShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
-	
+	bool OpenGLShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
+		return false;
 	}
 	bool OpenGLShaderCompiler::isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const {
 		return false;
@@ -233,15 +236,15 @@ namespace Stulu {
 	}
 
 	void OpenGLShader::bind() const {
-		glUseProgram(m_rendererID);
+		OpenGLStateCache::BindProgram(m_rendererID);
 	}
 
 	void OpenGLShader::unbind() const {
-		glUseProgram(0);
+		OpenGLStateCache::BindProgram(0);
 	}
 
 	void OpenGLShader::Dispatch(const glm::uvec3& size, uint32_t usage) {
-		glUseProgram(m_rendererID);
+		OpenGLStateCache::BindProgram(m_rendererID);
 		glDispatchCompute(size.x, size.y, size.z);
 		if (usage != ComputeUsage::None)
 			glMemoryBarrier(usage);
@@ -300,7 +303,7 @@ namespace Stulu {
 		else
 			internalFormat = TextureFormatToGLenum(format).first;
 
-		glUseProgram(m_rendererID);
+		OpenGLStateCache::BindProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1i(loc, binding);
 		glBindImageTexture(binding, textureID, mipLevel, GL_FALSE, 0, (uint32_t)mode, (uint32_t)internalFormat);

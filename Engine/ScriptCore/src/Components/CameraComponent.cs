@@ -15,6 +15,32 @@ namespace Stulu
 		/// Clear using the skybox component of the camera object
 		Skybox = 1 
 	};
+	/// <summary>
+	/// Multisampling
+	/// </summary>
+	public enum MSAASamples
+	{
+		/// <summary>
+		/// One Sample
+		/// </summary>
+		Disabled = 1,
+		/// <summary>
+		/// Two samples
+		/// </summary>
+		Two = 2,
+		/// <summary>
+		/// Four samples
+		/// </summary>
+		Four = 4,
+		/// <summary>
+		/// Eight samples
+		/// </summary>
+		Eight = 8,
+		/// <summary>
+		/// Sixteen samples
+		/// </summary>
+		Sixteen = 16
+	};
 
 	/// <summary>
 	/// Acces to camera settings
@@ -36,6 +62,10 @@ namespace Stulu
 		/// How the camera clears the screen
 		/// </summary>
 		public ClearType ClearType { get => (ClearType)InternalCalls.cameraComp_clearType(id); set => InternalCalls.cameraComp_clearType(id, (int)value); }
+		/// <summary>
+		/// How the camera clears the screen
+		/// </summary>
+		public MSAASamples Samples { get => (MSAASamples)InternalCalls.cameraComp_samples(id); set => InternalCalls.cameraComp_samples(id, (int)value); }
 		/// <summary>
 		/// Aspect ratio of the camera ( width/height )
 		/// </summary>

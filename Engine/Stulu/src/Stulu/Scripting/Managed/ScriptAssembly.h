@@ -26,7 +26,7 @@ namespace Stulu {
 		}
 		static Mono::Method CreateMethod(Mono::Class classPtr, const std::string& methodnName);
 
-		Mono::Object InvokeMethod(Mono::Method method, void* obj, void** args);
+		static Mono::Object InvokeMethod(Mono::Method method, void* obj, void** args);
 
 		void RegisterObject(UUID id, MonoObjectInstance* object) { m_objects.insert({ id, object }); }
 		void DeRegisterObject(UUID id) { m_objects.erase(id); }

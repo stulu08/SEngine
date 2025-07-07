@@ -9,7 +9,7 @@
 namespace Stulu {
 	class STULU_API SceneCamera {
 	public:
-		SceneCamera(float aspectRatio, float fov, float zNear, float zFar, uint32_t samples);
+		SceneCamera(float aspectRatio, float fov, float zNear, float zFar, MSAASamples samples);
 
 		void onUpdate(Timestep timestep);
 		void updateMove(Timestep timestep);
@@ -17,7 +17,6 @@ namespace Stulu {
 		void onResize(float width, float height);
 
 		inline Camera& getCamera() { return m_cam; }
-
 
 		inline float getAspectRatio() const { return m_aspectRatio; }
 		inline float getAspectRatioX() const { return m_aspectRatio; }
@@ -39,7 +38,6 @@ namespace Stulu {
 	private:
 		glm::vec2 m_mouseDelta = glm::vec2(0.0f);
 		float m_aspectRatio, m_fov, m_zNear, m_zFar;
-		float m_pitch = 0, m_yaw = 0;
 		Camera m_cam;
 		TransformComponent m_transform;
 		Frustum m_frustum;
@@ -47,7 +45,7 @@ namespace Stulu {
 		bool m_postProcessingUsingMain = true;
 
 		float m_cameraMoveSpeed = 1.0f;
-		float m_cameraSensitivity = .8f;
+		float m_cameraSensitivity = 8.0f;
 
 
 		void mouseTranslateMove(Timestep timestep);

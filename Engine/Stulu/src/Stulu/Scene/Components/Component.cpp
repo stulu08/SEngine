@@ -5,7 +5,7 @@ namespace Stulu {
 	std::unordered_map<size_t, std::function<void(entt::registry&, entt::registry&, Scene*)>> Component::m_componentCopyList;
 	std::unordered_map<size_t, std::function<void(YAML::Emitter&, GameObject)>> Component::m_componentSerializeList;
 	std::unordered_map<size_t, std::function<void(YAML::Node&, GameObject)>> Component::m_componentDeserializeList;
-	std::unordered_map<size_t, std::string> Component::m_componentTable;
+	std::unordered_map<size_t, std::pair<std::string, std::string>> Component::m_componentTable;
 	
 	void Component::RegisterBaseComponents() {
 		Register<GameObjectBaseComponent>("GameObjectBaseComponent", "Stulu.GameObjectBaseComponent");

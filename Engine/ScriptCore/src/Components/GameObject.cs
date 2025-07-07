@@ -51,31 +51,19 @@ namespace Stulu {
 		public String Tag { get => InternalCalls.gameObject_getTag(ID); set => InternalCalls.gameObject_setTag(ID, value); }
 		public TransformComponent transform { get => this.getComponent<TransformComponent>(); }
 
-
-		public T addComponent<T>() where T : GameObjectAttached, new() {
-			if (hasComponent<T>()) {
+		public T addComponent<T>() where T : GameObjectAttached, new()
+		{
+			if (hasComponent<T>())
+			{
 				Log.EngineWarn("Gameobject already has component: " + typeof(T).ToString());
 			}
-			else {
+			else
+			{
 				Type type = typeof(T);
 				InternalCalls.gameObject_add_component(ID, type);
 			}
 			return getComponent<T>();
 		}
-		//public T getComponent<T>() where T : GameObjectAttached, new() {
-		//	Type type = typeof(T);
-		//	if (!hasComponent<T>()) {
-		//		if (m_componentCache.ContainsKey(type))
-		//			m_componentCache.Remove(type);
-		//		return null;
-		//	}
-		//	if (this.m_componentCache.ContainsKey(type))
-		//		return this.m_componentCache[type] as T;
-		//	T comp = new T();
-		//	comp.initilize(ID);
-		//	m_componentCache.Add(type, (GameObjectAttached)comp);
-		//	return comp;
-		//}
 		public T getComponent<T>() where T : GameObjectAttached, new() {
 			Type type = typeof(T);
 			if (!hasComponent<T>()) {
@@ -106,8 +94,9 @@ namespace Stulu {
 		}
 		public bool hasComponent<T>() where T : GameObjectAttached => InternalCalls.gameObject_has_component(ID, typeof(T));
 		public bool hasComponent(Type type) => InternalCalls.gameObject_has_component(ID, type);
-		public bool removeComponent<T>() where T : GameObjectAttached {
-			Type type = typeof(T);
+		public bool removeComponent<T>() where T : GameObjectAttached => removeComponent(typeof(T));
+		public bool removeComponent(Type type)
+		{
 			bool rmoved = InternalCalls.gameObject_remove_component(ID, type);
 			if (rmoved && m_componentCache.ContainsKey(type))
 				m_componentCache.Remove(type);

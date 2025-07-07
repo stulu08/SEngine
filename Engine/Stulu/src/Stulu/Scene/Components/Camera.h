@@ -12,7 +12,7 @@ namespace Stulu {
 		CameraComponent(CameraMode mode, uint32_t width, uint32_t height);
 		CameraComponent(const CameraComponent&);
 
-		void ResizeTexture(uint32_t width, uint32_t height);
+		void ResizeTexture(uint32_t width, uint32_t height) { ResizeTexture(width, height, GetSamples()); }
 		void UpdateCamera();
 		Frustum CalculateFrustum(TransformComponent& transform) const;
 
@@ -23,11 +23,13 @@ namespace Stulu {
 		inline const glm::mat4& GetProjection() const { return m_cam.getProjectionMatrix(); }
 		inline Camera& GetNativeCamera() { return m_cam; }
 		inline const Camera& GetNativeCamera() const { return m_cam; }
-		inline const Ref<FrameBuffer> GetFrameBuffer() const { return m_cam.getFrameBuffer(); }
-		inline const Ref<Texture2D> GetTexture() const { return m_cam.getFrameBuffer()->getColorAttachment(); }
+		inline const Ref<FrameBuffer> GetResultFrameBuffer() const { return m_cam.getResultFrameBuffer(); }
+		inline const Ref<FrameBuffer> GetRenderFrameBuffer() const { return m_cam.getRenderFrameBuffer(); }
+		inline const Ref<Texture2D> GetResultTexture() const { return m_cam.getResultFrameBuffer()->getColorAttachment(); }
+		inline MSAASamples GetSamples() const { return GetRenderFrameBuffer()->getSpecs().samples; }
 
-		inline uint32_t GetTargetWidth() const { return GetTexture()->getWidth(); }
-		inline uint32_t GetTargetHeight() const { return GetTexture()->getHeight(); }
+		inline uint32_t GetTargetWidth() const { return GetResultTexture()->getWidth(); }
+		inline uint32_t GetTargetHeight() const { return GetResultTexture()->getHeight(); }
 		inline CameraMode GetMode() const { return m_mode; }
 		inline ClearType GetClearType() const { return m_clearType; }
 		inline float GetNear() const { return m_near; }
@@ -38,6 +40,10 @@ namespace Stulu {
 		inline int32_t GetDepth() const { return m_depth; }
 		inline glm::vec4 GetClearColor() const { return m_clearColor; }
 
+
+		inline void SetSamples(MSAASamples samples) {
+			ResizeTexture(GetTargetWidth(), GetTargetHeight(), samples);
+		}
 		inline void SetMode(CameraMode value) {
 			m_mode = value;
 		}
@@ -74,6 +80,7 @@ namespace Stulu {
 			out << YAML::Key << "m_far" << YAML::Value << m_far;
 			out << YAML::Key << "m_clearColor" << YAML::Value << m_clearColor;
 			out << YAML::Key << "m_renderTarget" << YAML::Value << m_renderTarget;
+			out << YAML::Key << "MSAASamples" << YAML::Value << (int)GetSamples();
 		}
 		virtual void Deserialize(YAML::Node& node) override {
 			if (node["m_mode"])
@@ -93,7 +100,12 @@ namespace Stulu {
 			if (node["m_renderTarget"])
 				m_renderTarget = node["m_renderTarget"].as<UUID>();
 
+
 			UpdateCamera();
+
+			if (node["MSAASamples"]) {
+				SetSamples((MSAASamples)node["MSAASamples"].as<int32_t>());
+			}
 		}
 	private:
 		CameraMode m_mode;
@@ -107,5 +119,7 @@ namespace Stulu {
 
 		friend class Scene;
 		friend class SceneRenderer;
+
+		void ResizeTexture(uint32_t width, uint32_t height, MSAASamples samples);
 	};
 }

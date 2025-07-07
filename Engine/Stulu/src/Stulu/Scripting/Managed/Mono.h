@@ -436,6 +436,21 @@ namespace Stulu {
 		private:
 			uint32_t m_handle;
 		};
+
+		/* Definition of MonoArray
+		struct _MonoArray {
+			MonoObject obj;
+
+			// bounds is NULL for szarrays 
+			MonoArrayBounds* bounds;
+
+			// total number of elements of the array 
+			mono_array_size_t max_length;
+
+			// we use mono_64bitaligned_t to ensure proper alignment on platforms that need it 
+			mono_64bitaligned_t vector[MONO_ZERO_LEN_ARRAY];
+		};
+		*/
 		class ST_MONO_API Array {
 		public:
 			Array(MonoArray* ptr)
@@ -444,6 +459,24 @@ namespace Stulu {
 			static Array New(Domain domain, Class clas, size_t size);
 
 			void SetRef(size_t index, Object value);
+
+			template<class T>
+			inline T& Get(size_t index) {
+				T* addr = (T*)GetElementAddressWithSize(index, sizeof(T));
+				return *addr;
+			}
+			template<class T>
+			inline const T& Get(size_t index) const {
+				T* addr = (T*)GetElementAddressWithSize(index, sizeof(T));
+				return *addr;
+			}
+			template<class T>
+			inline T* GetElementAddress(size_t index) {
+				return (T*)GetElementAddressWithSize(index, sizeof(T));
+			}
+
+			size_t Length() const;
+			byte* GetElementAddressWithSize(size_t index, size_t typeSize);
 
 			inline operator bool() const {
 				return m_array != nullptr;

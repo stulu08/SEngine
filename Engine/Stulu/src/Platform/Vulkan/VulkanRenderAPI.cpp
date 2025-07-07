@@ -23,9 +23,15 @@ namespace Stulu {
 	void VulkanRenderAPI::setDepthTesting(bool value) {
 
 	}
-	void VulkanRenderAPI::setStencil(StencilMode v) {
-
+	void VulkanRenderAPI::StencilNotEqual(uint8_t val, uint8_t ref){
+	
 	}
+	void VulkanRenderAPI::StencilAlways(uint8_t val, uint8_t ref){
+	
+	}
+	void VulkanRenderAPI::SetStencilValue(uint8_t value){
+	
+}
 	void VulkanRenderAPI::setCullMode(CullMode v) {
 
 	}

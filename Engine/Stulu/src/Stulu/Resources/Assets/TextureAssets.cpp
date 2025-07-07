@@ -7,7 +7,7 @@ namespace Stulu {
 		const auto& manager = AssetsManager::GlobalInstance();
 		MetaInfo info;
 		if (manager.ReadFileMeta(&info, GetPath())) {
-			TextureSettings settings;
+			TextureSettings settings = TextureFormat::Auto;
 			settings.border = manager.GetMetaValue(info, "Border", settings.border);
 			settings.tiling = manager.GetMetaValue(info, "Tiling", settings.tiling);
 			settings.levels = manager.GetMetaValue(info, "Levels", settings.levels);
@@ -16,7 +16,7 @@ namespace Stulu {
 			settings.filtering = manager.GetMetaValue(info, "Filtering", settings.filtering);
 			return settings;
 		}
-		return TextureSettings();
+		return TextureFormat::Auto;
 	}
 
 	bool Stulu::SharedTexture2DAssetData::SaveSetting(TextureSettings settings) const {

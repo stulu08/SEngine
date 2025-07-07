@@ -34,7 +34,7 @@ namespace Stulu {
 	}
 	constexpr bool combined_shader_modules = true;
 
-	void SpirVShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
+	bool SpirVShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
 		EShMessages messages = EShMsgDebugInfo;
 		glslang::TProgram program;
 		std::vector<std::pair<ShaderType, Scope<glslang::TShader>>> shaders;
@@ -68,8 +68,8 @@ namespace Stulu {
 			shader->setSourceEntryPoint("main");
 
 			if (!shader->parse(GetDefaultResources(), 450, true, messages)) {
-				CORE_ASSERT(false, shader->getInfoLog());
-				return;
+				CORE_ERROR("SpirV Compilation ERROR(s) for {0}-Shader:\n{1}", std::to_string(stage), shader->getInfoLog());
+				return false;
 			}
 			log = shader->getInfoDebugLog();
 			if (!log.empty())
@@ -81,8 +81,8 @@ namespace Stulu {
 
 		if constexpr (combined_shader_modules) {
 			if (!program.link(messages)) {
-				CORE_ASSERT(false, program.getInfoLog());
-				return;
+				CORE_ERROR("SpirV Linking ERROR(s):\n{0}", program.getInfoLog());
+				return false;
 			}
 			log = program.getInfoDebugLog();
 			if (!log.empty())
@@ -107,36 +107,36 @@ namespace Stulu {
 		}
 
 
-		return;
+		return true;
 	}
 
-	void SpirVShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
-		Compile(sources, result);
+	bool SpirVShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
+		if (Compile(sources, result)) {
+			std::filesystem::path path = cacheFile;
 
-		std::filesystem::path path = cacheFile;
-
-		if (path.has_parent_path() && !std::filesystem::exists(path.parent_path()))
-			std::filesystem::create_directories(path.parent_path());
+			if (path.has_parent_path() && !std::filesystem::exists(path.parent_path()))
+				std::filesystem::create_directories(path.parent_path());
 
 
-		for (int i = 0; i < result.Size(); i++) {
-			const auto& [type, res] = result.Get(i);
+			for (int i = 0; i < result.Size(); i++) {
+				const auto& [type, res] = result.Get(i);
 
-			const std::string name = path.string() + "." + std::to_string(type);
+				const std::string name = path.string() + "." + std::to_string(type);
 
-			FILE* file = fopen(name.c_str(), "wb");
+				FILE* file = fopen(name.c_str(), "wb");
 
-			//fwrite(&type, sizeof(type), 1, file);
-			fwrite(&res.data[0], sizeof(res.data[0]), res.data.size(), file);
+				//fwrite(&type, sizeof(type), 1, file);
+				fwrite(&res.data[0], sizeof(res.data[0]), res.data.size(), file);
 
-			fclose(file);
+				fclose(file);
+			}
+			return true;
 		}
-
-		return;
+		return false;
 	}
 
-	void SpirVShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
-		return;
+	bool SpirVShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
+		return false;
 	}
 
 	bool SpirVShaderCompiler::isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const {

@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Panel.h"
+#include "Stulu/Notification.h"
 
 namespace Editor {
 	struct LogEntry {
@@ -27,6 +28,19 @@ namespace Editor {
 		static inline void AddEntry(LogEntry&& entry) {
 			if ((uint32_t)entry.level >= (uint32_t)Stulu::Log::Level::error)
 				s_alert = true;
+
+
+			switch (entry.level)
+			{
+			case Stulu::Log::Level::error:
+				ImGui::InsertNotification({ ImGuiToastType::Error, 3000, entry.msg.c_str() });
+				break;
+			case Stulu::Log::Level::critical:
+				ImGui::InsertNotification({ ImGuiToastType::Error, 3000, entry.msg.c_str() });
+				break;
+			default:
+				break;
+			}
 
 			s_entries.push_back(std::move(entry));
 		}

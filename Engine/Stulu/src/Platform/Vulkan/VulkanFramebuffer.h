@@ -15,11 +15,14 @@ namespace Stulu {
 		virtual void unbind() const override;
 
 		virtual void invalidate() override;
-		virtual void resize(uint32_t width, uint32_t height) override;
+		virtual void resize(uint32_t width, uint32_t height, MSAASamples samples) override;
+		virtual void resize(uint32_t width, uint32_t height) override {
+			resize(width, height, m_specs.samples);
+		}
 
-		virtual void attachDepthTexture(const Ref<Texture2D>& depthText, uint32_t level) override;
-		virtual void attachColorTexture(const Ref<Texture2D>& colorText, uint32_t level) override;
-		virtual void attachColorTextureAt(uint32_t attachment, const Ref<Texture2D>& colorText, uint32_t level) override;
+		virtual void attachDepthTexture(const TextureSettings& depthText) override;
+		virtual void attachColorTexture(const TextureSettings& colorText) override;
+		virtual void attachColorTextureAt(uint32_t attachment, const TextureSettings& colorText) override;
 
 		virtual void detachDepthTexture() override;
 		virtual void detachColorTexture(uint32_t attachment) override;
@@ -28,6 +31,17 @@ namespace Stulu {
 		virtual const Ref<Texture2D>& getColorAttachment(uint32_t index) const override { return m_colorAttachments[0]; }
 		virtual const Ref<Texture2D>& getDepthAttachment() const override { return m_depthAttachment; }
 		virtual const std::vector<Ref<Texture2D>> getColorAttachments() const override { return m_colorAttachments; }
+
+		virtual void BlitToOther(const Ref<FrameBuffer>& other, bool BlibColor = true, bool BlibDepth = true, bool BlibStencil = true) {
+		};
+
+		virtual void SetDrawBuffers(const std::vector<uint32_t>& buffers) override;
+		virtual void SetDrawBuffer(uint32_t singleBuffer = 0) override {
+			SetDrawBuffers({ singleBuffer });
+		}
+		virtual void SetReadBuffer(uint32_t singleBuffer = 0) override {
+
+		}
 
 		inline bool isSwapChainTarget() const { return m_specs.swapChainTarget; }
 	private:

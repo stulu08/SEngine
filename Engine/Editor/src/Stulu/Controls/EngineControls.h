@@ -5,208 +5,269 @@
 #include <Stulu.h>
 
 namespace Editor {
-    namespace Controls {
-        inline bool MaterialEdit(Stulu::UUID& assetID) {
+	namespace Controls {
+		inline bool MaterialEdit(Stulu::UUID& assetID) {
 
-        }
+		}
 
-        inline bool GameObjectFrame(const std::string& label, entt::entity& gameobjectID, const std::string& hint, const Stulu::Registry* registry) {
-            const Stulu::Texture2D* icon = Resources::GetSceneIcon();
-            const ImVec2 fontSize = ImVec2(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
-            const float frameWidth = ImGui::GetContentRegionAvail().x - 1.0f;
-            const ImVec2 origPos = ImGui::GetCursorPos();
-            const ImVec2 origScreenPos = ImGui::GetCursorScreenPos();
-            const ImVec2 spacing = ImGui::GetStyle().ItemInnerSpacing;
-            const ImVec2 padding = ImGui::GetStyle().FramePadding;
-            const bool hasValue = registry->IsValid(gameobjectID);
-            bool changed = false;
+		inline bool GameObjectFrame(const std::string& label, entt::entity& gameobjectID, const std::string& hint, const Stulu::Registry* registry) {
+			const Stulu::Texture2D* icon = Resources::GetSceneIcon();
+			const ImGuiStyle& style = ImGui::GetStyle();
+			const ImVec2 fontSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
+			const float frameWidth = ImGui::CalcItemWidth() - 1.0f;
 
-            ImGui::SetCursorPosY(origPos.y - padding.y);
-            // main frame
-            const ImVec2 minFrame = ImGui::GetCursorScreenPos() - ImVec2(0, padding.y);
-            const ImVec2 maxFrame = minFrame + ImVec2(frameWidth, fontSize.x + (2.0f * padding.y));
-            if (ImGui::ItemHoverable({ minFrame, maxFrame }, 0, 0))
-                ImGui::RenderFrame(minFrame, maxFrame, ImGui::GetColorU32(ImGuiCol_FrameBgHovered), true, ImGui::GetStyle().FrameRounding);
-            else
-                ImGui::RenderFrame(minFrame, maxFrame, ImGui::GetColorU32(ImGuiCol_FrameBg), true, ImGui::GetStyle().FrameRounding);
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+			ImGuiID itemID = window->GetID(label.c_str());
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 
-            // draw icon
-            const ImVec2 ImagePos = ImVec2(origPos.x + padding.x, origPos.y - padding.y);
-            float imageOffset = padding.x;
-            if (icon) {
-                if (hasValue && icon) {
-                    const float aspect = (float)icon->getHeight() / (float)icon->getWidth();
-                    const ImVec2 size = ImVec2(fontSize.x * aspect, fontSize.y);
-                    ImGui::SetCursorPos(ImagePos);
-                    ImGui::Image(icon, { size.x, size.y }, { 0,1 }, { 1,0 });
-                    imageOffset += size.x;
-                }
-                // draw empty icon border
-                else {
-                    // empty frame
-                    const ImVec2 min = origScreenPos + ImVec2(padding.x, -padding.y);
-                    ImGui::GetWindowDrawList()->AddRect(min, min + fontSize, ImGui::GetColorU32(ImGuiCol_Border));
-                    ImGui::Dummy(fontSize);
-                    imageOffset += fontSize.x;
-                }
-                imageOffset += spacing.x;
-            }
-            
-            // draw dummy around frame for drag drop
-            const ImVec2 size = ImVec2(frameWidth - (2.0f * padding.x), fontSize.y);
-            ImGui::SetCursorPos(ImagePos);
-            ImGui::Dummy(size);
-            {
-                entt::entity id = ReceiveDragDopGameObject();
-                if (id != entt::null) {
-                    gameobjectID = id;
-                    changed = true;
-                }
-            }
-           
+			const bool hasValue = registry->IsValid(gameobjectID);
+			bool changed = false;
 
-            const float paddingYOff = ((padding.y / 2.0f) + 1.0f);
-            // draw text
-            const ImVec2 textMin = minFrame + ImVec2(imageOffset, 0.0f);
-            const ImVec2 textMax = maxFrame - (hasValue ? ImVec2(fontSize.x + padding.x + spacing.x, 0.0f) : ImVec2(0.0f, 0.0f));
+			ImRect frameBB(cursorPos, cursorPos + ImVec2(frameWidth, fontSize.y + style.FramePadding.y * 2.0f));
+			ImGui::ItemSize(frameBB, style.FramePadding.y);
+			if (!ImGui::ItemAdd(frameBB, itemID))
+				return false;
 
-            if (!hint.empty()) {
-                ImGui::BeginDisabled();
-                ImGui::RenderTextClipped(textMin, textMax, hint.c_str(), 0, 0, ImVec2(0.5f, 0.5f));
-                ImGui::EndDisabled();
-            }
+			ImVec2 closeButtonSize(fontSize.x + style.FramePadding.x, 0.0f);
+			ImRect buttonBB(frameBB.Min, frameBB.Max - closeButtonSize);
 
-            if (hasValue) {
-                const ImVec2 min = ImVec2(textMax.x + spacing.x, minFrame.y);
-                const ImVec2 max = maxFrame - ImVec2(padding.x, 0.0f);
-                const ImVec2 available = max - min;
-                const ImVec2 pos = min + ImVec2((available.x - fontSize.x) * 0.5f, (available.y - fontSize.y) * 0.5f);
+			bool hovered, held;
+			bool pressed = ImGui::ButtonBehavior(buttonBB, itemID, &hovered, &held);
 
-                if (ImGui::CloseButton(ImGui::GetID("##REMOVE"), pos)) {
-                    gameobjectID = entt::null;
-                    changed = true;
-                }
-            }
-            return changed;
-        }
-        
-        template<class T /* = AssetHandle<SharedAssetData> */>
-        inline bool RenderAssetFrame(const std::string& label, Stulu::UUID& assetID, const std::string& hint, Stulu::Texture2D* icon, bool useIcon = true) {
-            const ImVec2 fontSize = ImVec2(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
-            const float frameWidth = ImGui::GetContentRegionAvail().x - 1.0f;
-            const ImVec2 origPos = ImGui::GetCursorPos();
-            const ImVec2 origScreenPos = ImGui::GetCursorScreenPos();
-            const ImVec2 spacing = ImGui::GetStyle().ItemInnerSpacing;
-            const ImVec2 padding = ImGui::GetStyle().FramePadding;
-            const bool hasValue = Stulu::AssetsManager::GlobalInstance().TypeCheck<T>(assetID);
-            const std::string typeStr = Stulu::AssetsManager::GlobalInstance().GetTypeNameT<T>();
-            bool changed = false;
+			if (hasValue)
+				DragDropGameObject(gameobjectID);
 
-            ImGui::SetCursorPosY(origPos.y - padding.y);
-            // main frame
-            const ImVec2 minFrame = ImGui::GetCursorScreenPos() - ImVec2(0, padding.y);
-            const ImVec2 maxFrame = minFrame + ImVec2(frameWidth, fontSize.x + (2.0f * padding.y));
-            if (ImGui::ItemHoverable({ minFrame, maxFrame }, 0, 0))
-                ImGui::RenderFrame(minFrame, maxFrame, ImGui::GetColorU32(ImGuiCol_FrameBgHovered), true, ImGui::GetStyle().FrameRounding);
-            else
-                ImGui::RenderFrame(minFrame, maxFrame, ImGui::GetColorU32(ImGuiCol_FrameBg), true, ImGui::GetStyle().FrameRounding);
-        
-            // draw icon
-            const ImVec2 ImagePos = ImVec2(origPos.x + padding.x, origPos.y - padding.y);
-            float imageOffset = padding.x;
-            if (useIcon) {
-                if (hasValue && icon) {
-                    const float aspect = (float)icon->getHeight() / (float)icon->getWidth();
-                    const ImVec2 size = ImVec2(fontSize.x * aspect, fontSize.y);
-                    ImGui::SetCursorPos(ImagePos);
-                    ImGui::Image(icon, { size.x, size.y }, { 0,1 }, { 1,0 });
-                    imageOffset += size.x;
-                }
-                // draw empty icon border
-                else {
-                    // empty frame
-                    const ImVec2 min = origScreenPos + ImVec2(padding.x, -padding.y);
-                    ImGui::GetWindowDrawList()->AddRect(min, min + fontSize, ImGui::GetColorU32(ImGuiCol_Border));
-                    ImGui::Dummy(fontSize);
-                    imageOffset += fontSize.x;
-                }
-                imageOffset += spacing.x;
-            }
+			entt::entity dragDropEntityID = ReceiveDragDopGameObject();
+			if (dragDropEntityID != entt::null) {
+				gameobjectID = dragDropEntityID;
+				changed = true;
+			}
 
-            // draw dummy around frame for drag drop
-            const ImVec2 size = ImVec2(frameWidth - (2.0f * padding.x), fontSize.y);
-            ImGui::SetCursorPos(ImagePos);
-            ImGui::Dummy(size);
-            if (Stulu::UUID uuid = ReceiveDragDopAsset(typeStr)) {
-                assetID = uuid;
-                changed = true;
-            }
+			ImU32 frameColor = ImGui::GetColorU32(
+				ImGui::GetCurrentContext()->ActiveId == itemID ? ImGuiCol_FrameBgActive :
+				hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
 
-            const float paddingYOff = ((padding.y / 2.0f) + 1.0f);
-            // draw text
-            const ImVec2 textMin = minFrame + ImVec2(imageOffset, 0.0f);
-            const ImVec2 textMax = maxFrame - (hasValue ? ImVec2(fontSize.x + padding.x + spacing.x, 0.0f) : ImVec2(0.0f, 0.0f));
+			ImGui::RenderNavCursor(frameBB, itemID);
+			ImGui::RenderFrame(frameBB.Min, frameBB.Max, frameColor, true, style.FrameRounding);
 
-            if (!hint.empty()) {
-                ImGui::BeginDisabled();
-                ImGui::RenderTextClipped(textMin, textMax, hint.c_str(), 0, 0, ImVec2(0.5f, 0.5f));
-                ImGui::EndDisabled();
-            }
 
-            if (hasValue) {
-                const ImVec2 min = ImVec2(textMax.x + spacing.x, minFrame.y);
-                const ImVec2 max = maxFrame - ImVec2(padding.x, 0.0f);
-                const ImVec2 available = max - min;
-                const ImVec2 pos = min + ImVec2((available.x - fontSize.x) * 0.5f, (available.y - fontSize.y) * 0.5f);
+			float imageOffset = style.FramePadding.x + style.ItemInnerSpacing.x;
+			ImVec2 iconPos = frameBB.Min + style.FramePadding;
+			if (icon) {
+				float aspect = (float)icon->getHeight() / (float)icon->getWidth();
+				ImVec2 iconSize(fontSize.x * aspect, fontSize.y);
+				ImGui::GetWindowDrawList()->AddImage(ImGui::StuluTextureToImGui(icon), iconPos, iconPos + iconSize, ImVec2(0, 1), ImVec2(1, 0));
+				imageOffset += iconSize.x;
+			}
+			else {
+				ImGui::GetWindowDrawList()->AddRect(iconPos, iconPos + fontSize, ImGui::GetColorU32(ImGuiCol_Border));
+				imageOffset += fontSize.x;
+			}
 
-                if (ImGui::CloseButton(ImGui::GetID("##REMOVE"), pos)) {
-                    assetID = Stulu::UUID::null;
-                    changed = true;
-                }
-            }
-            return changed;
-        }
 
-        inline bool Texture2D(const std::string& label, Stulu::UUID& textureID) {
-            return LabeledBaseControl(label, [&]() {
-                ImGui::PushItemWidth(-1);
-                
-                Stulu::Texture2D* texture = nullptr;
-                std::string hint = "";
-                if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::Texture2DAsset>(textureID)) {
-                    Stulu::Texture2DAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::Texture2DAsset>(textureID);
-                    texture = *asset;
-                    hint = std::filesystem::path(asset.Path()).stem().string();
-                }
-                else {
-                    hint = "Texture2D";
-                }
-                bool changed = RenderAssetFrame<Stulu::Texture2DAsset>(label, textureID, hint, texture, true);
+			ImVec2 textMin = frameBB.Min + ImVec2(imageOffset, 0.0f);
+			ImVec2 textMax = frameBB.Max;
+			if (hasValue)
+				textMax.x -= (fontSize.x + style.FramePadding.x + style.ItemInnerSpacing.x);
 
-                ImGui::PopItemWidth();
-                return changed;
-            });
-        }
+			if (!hint.empty()) {
+				ImGui::BeginDisabled();
+				ImGui::RenderTextClipped(textMin, textMax, hint.c_str(), nullptr, nullptr, ImVec2(0.5f, 0.5f));
+				ImGui::EndDisabled();
+			}
 
-        inline bool Material(const std::string& label, Stulu::UUID& materialID) {
-            return LabeledBaseControl(label, [&]() {
-                ImGui::PushItemWidth(-1);
+			if (hasValue) {
+				ImVec2 closeMin = ImVec2(textMax.x + style.ItemInnerSpacing.x, frameBB.Min.y);
+				ImVec2 closeMax = frameBB.Max - ImVec2(style.FramePadding.x, 0.0f);
+				ImVec2 available = closeMax - closeMin;
+				ImVec2 closePos = closeMin + ImVec2((available.x - fontSize.x) * 0.5f, (available.y - fontSize.y) * 0.5f);
 
-                std::string hint = "";
-                if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::MaterialAsset>(materialID)) {
-                    Stulu::MaterialAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(materialID);
-                    hint = asset.Path();
-                }
-                else {
-                    hint = "No Material";
-                }
+				if (ImGui::CloseButton(ImGui::GetID("##REMOVE"), closePos)) {
+					gameobjectID = entt::null;
+					changed = true;
+				}
+			}
 
-                bool changed = RenderAssetFrame<Stulu::MaterialAsset>(label, materialID, hint, nullptr, false);
+			if (changed)
+				ImGui::MarkItemEdited(itemID);
 
-                ImGui::PopItemWidth();
-                return changed;
-                });
-        }
-        
-    }
+			return changed;
+		}
+		
+		template<class T /* = AssetHandle<SharedAssetData> */>
+		inline bool RenderAssetFrame(const std::string& label, Stulu::UUID& assetID, const std::string& hint, Stulu::Texture2D* icon, bool useIcon = true) {
+			const ImGuiStyle& style = ImGui::GetStyle();
+			const ImVec2 fontSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
+			const float frameWidth = ImGui::CalcItemWidth() - 1.0f;
+
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+			ImGuiID itemID = window->GetID(label.c_str());
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+
+			const bool hasValue = Stulu::AssetsManager::GlobalInstance().TypeCheck<T>(assetID);
+			const std::string typeStr = Stulu::AssetsManager::GlobalInstance().GetTypeNameT<T>();
+			bool changed = false;
+
+			ImRect frameBB(cursorPos, cursorPos + ImVec2(frameWidth, fontSize.y + style.FramePadding.y * 2.0f));
+			ImGui::ItemSize(frameBB, style.FramePadding.y);
+			if (!ImGui::ItemAdd(frameBB, itemID))
+				return false;
+
+			ImVec2 closeButtonSize(fontSize.x + style.FramePadding.x, 0.0f);
+			ImRect buttonBB(frameBB.Min, frameBB.Max - closeButtonSize);
+
+			bool hovered, held;
+			bool pressed = ImGui::ButtonBehavior(buttonBB, itemID, &hovered, &held);
+
+			if (hasValue)
+				DragDropAsset(assetID, typeStr);
+
+			if (Stulu::UUID uuid = ReceiveDragDopAsset(typeStr)) {
+				assetID = uuid;
+				changed = true;
+			}
+
+			ImU32 frameColor = ImGui::GetColorU32(
+				ImGui::GetCurrentContext()->ActiveId == itemID ? ImGuiCol_FrameBgActive :
+				hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+
+			ImGui::RenderNavCursor(frameBB, itemID);
+			ImGui::RenderFrame(frameBB.Min, frameBB.Max, frameColor, true, style.FrameRounding);
+
+			float imageOffset = style.FramePadding.x;
+			if (useIcon) {
+				ImVec2 iconPos = frameBB.Min + style.FramePadding;
+
+				if (hasValue && icon) {
+					float aspect = (float)icon->getHeight() / (float)icon->getWidth();
+					ImVec2 iconSize(fontSize.x * aspect, fontSize.y);
+					ImGui::GetWindowDrawList()->AddImage(ImGui::StuluTextureToImGui(icon), iconPos, iconPos + iconSize, ImVec2(0, 1), ImVec2(1, 0));
+					imageOffset += iconSize.x;
+				}
+				else {
+					ImGui::GetWindowDrawList()->AddRect(iconPos, iconPos + fontSize, ImGui::GetColorU32(ImGuiCol_Border));
+					imageOffset += fontSize.x;
+				}
+				imageOffset += style.ItemInnerSpacing.x;
+			}
+
+			ImVec2 textMin = frameBB.Min + ImVec2(imageOffset, 0.0f);
+			ImVec2 textMax = frameBB.Max;
+			if (hasValue)
+				textMax.x -= (fontSize.x + style.FramePadding.x + style.ItemInnerSpacing.x);
+
+			if (!hint.empty()) {
+				ImGui::BeginDisabled();
+				ImGui::RenderTextClipped(textMin, textMax, hint.c_str(), nullptr, nullptr, ImVec2(0.5f, 0.5f));
+				ImGui::EndDisabled();
+			}
+
+			if (hasValue) {
+				ImVec2 closeMin = ImVec2(textMax.x + style.ItemInnerSpacing.x, frameBB.Min.y);
+				ImVec2 closeMax = frameBB.Max - ImVec2(style.FramePadding.x, 0.0f);
+				ImVec2 available = closeMax - closeMin;
+				ImVec2 closePos = closeMin + ImVec2((available.x - fontSize.x) * 0.5f, (available.y - fontSize.y) * 0.5f);
+
+				if (ImGui::CloseButton(ImGui::GetID("##REMOVE"), closePos)) {
+					assetID = Stulu::UUID::null;
+					changed = true;
+				}
+			}
+
+			if (changed)
+				ImGui::MarkItemEdited(itemID);
+
+			return changed;
+		}
+
+		inline bool GameObject(const std::string& label, entt::entity& goID, Stulu::Registry* registry) {
+			return LabeledBaseControl(label, [&]() {
+				ImGui::PushItemWidth(-1);
+
+				std::string hint = "";
+				if (registry->IsValid(goID)) {
+					Stulu::GameObject gameObject(goID, registry);
+					hint = gameObject.getComponent<Stulu::GameObjectBaseComponent>().name;
+				}
+				else {
+					hint = "GameObject";
+				}
+
+				bool changed = GameObjectFrame(label, goID, hint, registry);
+
+				ImGui::PopItemWidth();
+				return changed;
+				});
+		}
+
+		inline bool GameObject(const std::string& label, Stulu::GameObject& gameObject) {
+			entt::entity goID = gameObject.GetID();
+			bool changed = GameObject(label, goID, gameObject.GetRegistry());
+			if (changed) {
+				gameObject = Stulu::GameObject(goID, gameObject.GetRegistry());
+			}
+			return changed;
+		}
+
+		inline bool Texture2D(const std::string& label, Stulu::UUID& textureID) {
+			return LabeledBaseControl(label, [&]() {
+				ImGui::PushItemWidth(-1);
+				
+				Stulu::Texture2D* texture = nullptr;
+				std::string hint = "";
+				if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::Texture2DAsset>(textureID)) {
+					Stulu::Texture2DAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::Texture2DAsset>(textureID);
+					texture = *asset;
+					hint = std::filesystem::path(asset.Path()).stem().string();
+				}
+				else {
+					hint = "Texture2D";
+				}
+				bool changed = RenderAssetFrame<Stulu::Texture2DAsset>(label, textureID, hint, texture, true);
+
+				ImGui::PopItemWidth();
+				return changed;
+			});
+		}
+
+		inline bool Material(const std::string& label, Stulu::UUID& materialID) {
+			return LabeledBaseControl(label, [&]() {
+				ImGui::PushItemWidth(-1);
+
+				std::string hint = "";
+				if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::MaterialAsset>(materialID)) {
+					Stulu::MaterialAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(materialID);
+					hint = asset.Path();
+				}
+				else {
+					hint = "No Material";
+				}
+
+				bool changed = RenderAssetFrame<Stulu::MaterialAsset>(label, materialID, hint, nullptr, false);
+
+				ImGui::PopItemWidth();
+				return changed;
+				});
+		}
+		inline bool Mesh(const std::string& label, Stulu::UUID& meshID) {
+			return LabeledBaseControl(label, [&]() {
+				ImGui::PushItemWidth(-1);
+
+				std::string hint = "";
+				if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::MeshAsset>(meshID)) {
+					Stulu::MeshAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MeshAsset>(meshID);
+					hint = asset->GetName();
+				}
+				else {
+					hint = "No Mesh";
+				}
+
+				bool changed = RenderAssetFrame<Stulu::MeshAsset>(label, meshID, hint, nullptr, false);
+
+				ImGui::PopItemWidth();
+				return changed;
+				});
+		}
+		
+	}
 }

@@ -67,7 +67,7 @@ namespace Editor {
 		s_instance = this;
 		LoadingScreen(0.0f);
 
-		getWindow().setWindowIcon(Editor::Resources::GetLogo()->getPath());
+		getWindow().setWindowIcon(Editor::Resources::GetLogoPath());
 		getWindow().setWindowTitle(std::string(ST_ENGINE_NAME) + " V" + ST_ENGINE_VERSION_STR + " - " + m_project.GetPath());
 
 		Editor::LoadEditorBindings();

@@ -11,7 +11,7 @@ namespace StuluBindings {
 		}
 		inline static bool TypeHasInspector(Stulu::Mono::ReflectionType reftype) {
 			const auto& panel = ::Editor::App::get().GetLayer().GetPanel<::Editor::InspectorPanel>();
-			return panel.HasInspector(reftype);
+			return panel.HasInspector(reftype.GetType().GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME));
 		}
 	};
 }

@@ -94,21 +94,36 @@ namespace Editor {
 		if (ImGui::Begin("Debug")) {
 			ImGui::Checkbox("Style Editor", &ste);
 
-			const auto& selectedGos = GetPanel<HierarchyPanel>().GetSelected();
-			if (selectedGos.size() >= 1) {
-				GameObject selected = { selectedGos[0], GetActiveScene().get() };
-				auto& transform = selected.getComponent<TransformComponent>();
-				ImGui::Text("Parent: %" IM_PRIu64, (uint64_t)transform.GetParent());
-				ImGui::Text("Childs: %" IM_PRIu64, (uint64_t)transform.GetChildren().size());
-				if (ImGui::Button("Make reflective")) {
-					selected.getComponent<MeshRendererComponent>().material = Stulu::Resources::ReflectiveMaterialAsset();
-				}
-			}
+			static glm::vec3 t(1.f);
+			static Stulu::UUID cubeMesh = Stulu::Resources::UUIDCubeMesh;
+			static entt::entity et = (entt::entity)1;
+			Controls::Mesh("Mesh", cubeMesh);
+			Controls::Vector3("Test", t);
+			Controls::GameObject("GameObject", et, GetActiveScene().get());
 
-			static Stulu::UUID texture = Stulu::UUID::null;
-			Controls::Texture2D("Texture Test", texture);
-			static Stulu::UUID material = Stulu::UUID::null;
-			Controls::Material("Material Test", material);
+			if (ImGui::Button("Spawn")) {
+				static MaterialAsset mat = nullptr;
+				if (!mat.IsValid()) {
+					auto material = Stulu::Resources::CreateMaterial("Transparent", glm::vec4(1.0f, 1.0f, 1.0f, 0.3f));
+					auto* asset = new SharedMaterialAssetData(Stulu::UUID(), material);
+					AssetsManager::GlobalInstance().AddAsset(asset, asset->GetUUID(), true);
+					mat = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(asset->GetUUID());
+
+					mat->SetTransparencyMode(MaterialTransparencyMode::Transparent);
+				}
+
+				auto& scene = GetActiveScene();
+
+				Stulu::GameObject inner = scene->Create("Inner Cube");
+				inner.addComponent<MeshRendererComponent>().material = Stulu::Resources::DefaultMaterialAsset();
+				inner.getComponent<MeshRendererComponent>().cullmode = CullMode::Front;
+				inner.addComponent<MeshFilterComponent>().SetMesh(Stulu::Resources::CubeMesh());
+
+				Stulu::GameObject outer = scene->Create("Outer Cube");
+				outer.addComponent<MeshRendererComponent>().material = mat;
+				outer.getComponent<MeshRendererComponent>().cullmode = CullMode::Back;
+				outer.addComponent<MeshFilterComponent>().SetMesh(Stulu::Resources::CubeMesh());
+			}
 
 			App::get().getAssemblyManager()->getScriptCoreAssembly()->InvokeMethod(debugMethod, NULL, NULL);
 		}
@@ -117,13 +132,15 @@ namespace Editor {
 		if(ste)
 			ImGui::ShowStyleEditor();
 
+		RenderImGuiNotifications();
+
 		// compiler will do the optimization ahh code
 		bool blockEvents = true;
 		if (m_gamePanel->IsFocused())
 			blockEvents = false;
 		if (m_scenePanel->IsFocused())
 			blockEvents = false;
-		if (Gizmo::IsUsing())
+		if (Gizmo::WasHovered())
 			blockEvents = true;
 
 		Application::get().getImGuiLayer()->blockEvents(blockEvents);
@@ -151,88 +168,72 @@ namespace Editor {
 	void MainLayer::onRenderGizmo() {
 		ST_PROFILING_SCOPE("Editor - Gizmos");
 
-		CallPanels<&Panel::DrawImGuizmo>();
-
-		GetActiveScene()->getCaller()->onDrawGizmos();
-
 		const auto& selectedObjects = GetPanel<HierarchyPanel>().GetSelected();
 		for (entt::entity id : selectedObjects) {
-			GameObject selectedObject = { id, GetActiveScene().get()};
+			GameObject selectedObject = { id, GetActiveScene().get() };
 			if (selectedObject.IsValid()) {
 				DrawGizmoSelected(selectedObject);
+			}
+		}
+
+		GizmoTransformEditMode gizmoEditType = m_scenePanel->GetGizmoEditMode();
+		float snapValue = Input::isKeyDown(Keyboard::LeftControl)
+			? (gizmoEditType == GizmoTransformEditMode::Rotate ? 45.0f : 0.5f)
+			: 0.0f;
+		Gizmo::TransformEdit(selectedObjects, GetActiveScene().get(), gizmoEditType, glm::vec3(snapValue));
+
+
+
+		CallPanels<&Panel::DrawImGuizmo>();
+		GetActiveScene()->getCaller()->onDrawGizmos();
+	}
+
+	void MainLayer::DrawObjectStencilOutline(entt::entity objID) {
+		GameObject object = { objID, GetActiveScene().get() };
+		TransformComponent& transform = object.getComponent<TransformComponent>();
+
+
+		if (object.hasComponent<MeshRendererComponent>() && object.hasComponent<MeshFilterComponent>()) {
+			MeshRendererComponent& mesRenderer = object.getComponent<MeshRendererComponent>();
+			mesRenderer.StencilValue = 0xFF;
+
+			MeshFilterComponent& meshFilter = object.getComponent<MeshFilterComponent>();
+			if (meshFilter.GetMesh().IsValid()) {
+				Resources::GetOutlineShader()->bind();
+				Renderer::UploadModelData(transform.GetWorldTransform() * glm::scale(glm::mat4(1.0f), glm::vec3(1.05f)));
+				RenderCommand::drawIndexed(meshFilter.GetMesh()->GetVertexArray());
+			}
+		}
+		
+		if (transform.HasChildren()) {
+			for (entt::entity childID : transform.GetChildren()) {
+				DrawObjectStencilOutline(childID);
 			}
 		}
 	}
 
 	void MainLayer::DrawObjectOutlines() {
 		auto& sceneCamera = m_scenePanel->GetCamera();
-		sceneCamera.getCamera().getFrameBuffer()->bind();
-		// TODO: Draw Children, first rework transform system
+		sceneCamera.getCamera().getResultFrameBuffer()->bind();
 
+		Renderer::uploadCameraBufferData(sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(sceneCamera.getTransform().GetWorldTransform()), glm::vec3(.0f), glm::vec3(.0f));
 		const auto& selectedObjects = GetPanel<HierarchyPanel>().GetSelected();
+
+		RenderCommand::SetStencilValue(0x00);
+		RenderCommand::StencilNotEqual(0xFF);
+		RenderCommand::setDepthTesting(false);
 		for (entt::entity id : selectedObjects) {
-			GameObject selected = { id, GetActiveScene().get() };
-			if (selected) {
-				auto& tc = selected.getComponent<TransformComponent>();
-
-				Renderer::uploadCameraBufferData(sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(sceneCamera.getTransform().GetWorldTransform()), glm::vec3(.0f), glm::vec3(.0f));
-				RenderCommand::setDepthTesting(false);
-				//draw object to stencil buffer with 0x1
-				{
-					RenderCommand::setStencil(StencilMode::WriteToBuffer);
-					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
-						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
-						if (meshFilter.GetMesh().IsValid()) {
-							Renderer::submit(meshFilter.GetMesh()->GetVertexArray(), Resources::GetTransparentShader(), tc.GetWorldTransform());
-						}
-					}
-					RenderCommand::setStencil(StencilMode::DisableWriting);
-				}
-				//draw only where stencil not buffer equals 
-				RenderCommand::setCullMode(CullMode::BackAndFront);
-				{
-					RenderCommand::setStencil(StencilMode::BeginDrawFromBuffer);
-					static auto getScaleAdd = [=](const TransformComponent& tc) -> glm::vec3 {
-						float scaleAdd = .02f;
-						return tc.GetWorldScale() + (scaleAdd * tc.GetWorldScale());
-						};
-
-					if (selected.hasComponent<MeshRendererComponent>() && selected.hasComponent<MeshFilterComponent>()) {
-						MeshFilterComponent& meshFilter = selected.getComponent<MeshFilterComponent>();
-						if (meshFilter.GetMesh().IsValid()) {
-							Renderer::submit(meshFilter.GetMesh()->GetVertexArray(), Resources::GetOutlineShader(), Math::createMat4(tc.GetWorldPosition(), tc.GetWorldRotation(), getScaleAdd(tc)));
-						}
-					}
-					RenderCommand::setStencil(StencilMode::EndDrawFromBuffer);
-				}
+			if (GetActiveScene()->IsValid(id)) {
+				DrawObjectStencilOutline(id);
 			}
 		}
+		RenderCommand::setDefault();
 
-		sceneCamera.getCamera().getFrameBuffer()->unbind();
+
+		sceneCamera.getCamera().getResultFrameBuffer()->unbind();
 	}
 	void MainLayer::DrawGizmoSelected(GameObject selected) {
 		auto& tc = selected.getComponent<TransformComponent>();
-		{
-			GizmoTransformEditMode gizmoEditType = m_scenePanel->GetGizmoEditMode();
-
-			float snapValue = .0f;
-			if (Input::isKeyDown(Keyboard::LeftControl)) {
-				snapValue = 0.5f;
-				if (gizmoEditType == GizmoTransformEditMode::Rotate)
-					snapValue = 45.0f;
-			}
-			if (Gizmo::TransformEdit(tc, gizmoEditType, glm::vec3(snapValue))) {
-			}
-		}
-
-		// bounding box
-		if (selected.hasComponent<MeshRendererComponent>()) {
-			TransformComponent& transform = selected.getComponent<TransformComponent>();
-
-			const BoundingBox& box = transform.GetBounds();
-			glm::mat4 trans = Math::createMat4(box.getTransformedCenter(), box.getTransformedExtents());
-			Gizmo::drawOutlineCube(trans, COLOR_CYAN);
-		}
 
 		//camera view frustum
 		if (selected.hasComponent<CameraComponent>()) {
@@ -329,12 +330,9 @@ namespace Editor {
 			else {
 				capsuleScale = tc.GetWorldScale() * glm::vec3(halfHeight, radius, radius);
 			}
-
-			Renderer::submit(
-				Stulu::Resources::CubeMesh()->GetVertexArray(),
-				//Stulu::Resources::getCapsuleMeshAsset().mesh->GetVertexArray(),
-				Resources::GetHighliteShader(),
-				Math::createMat4(position, rotation, capsuleScale));
+			Resources::GetHighliteShader()->bind();
+			Renderer::UploadModelData(Math::createMat4(position, rotation, capsuleScale));
+			RenderCommand::drawIndexed(Stulu::Resources::CapsuleMesh()->GetVertexArray());
 		}
 		if (selected.hasComponent<MeshColliderComponent>()) {
 			MeshColliderComponent& meshCollider = selected.getComponent<MeshColliderComponent>();
@@ -342,9 +340,10 @@ namespace Editor {
 			glm::vec3 scale = tc.GetWorldScale();
 
 			if (meshCollider.GetMesh().IsValid()) {
-					Renderer::submit(meshCollider.GetMesh()->GetVertexArray(),
-						Resources::GetHighliteShader(),
-						Math::createMat4(position, tc.GetWorldRotation(), scale));
+				Resources::GetHighliteShader()->bind();
+				Renderer::UploadModelData(Math::createMat4(position, tc.GetWorldRotation(), scale));
+				RenderCommand::drawIndexed(meshCollider.GetMesh()->GetVertexArray());
+
 			}
 		}
 		RenderCommand::setWireFrame(false);
@@ -429,7 +428,10 @@ namespace Editor {
 			SceneSerializer ss(m_editorScene.get());
 			ss.Serialze(path);
 			ST_TRACE("Saved Scene");
-			return;
+			ImGui::InsertNotification({ ImGuiToastType::Info, "Scene Saved", path.c_str() });
+		}
+		else {
+			ImGui::InsertNotification({ ImGuiToastType::Error, "Error Saving Scene" });
 		}
 	}
 	void MainLayer::OpenScene(const std::string& path) {
@@ -442,6 +444,10 @@ namespace Editor {
 		if (ss.Deserialze(path)) {
 			OpenScene(newScene);
 			App::get().GetPrefs().Set("Editor", "Scene", path);
+			ImGui::InsertNotification({ ImGuiToastType::Info, "Loaded Scene: %s", path.c_str()});
+		}
+		else {
+			ImGui::InsertNotification({ ImGuiToastType::Error, "Error loading Scene" });
 		}
 	}
 	void MainLayer::OpenScene() {

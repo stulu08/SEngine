@@ -9,25 +9,57 @@ namespace StuluBindings {
 	STULU_API extern Stulu::Registry* GetCurrentRegistry();
 	STULU_API extern void SetCurrentRegistry(Stulu::Registry* scene);
 
+	template<class T>
+	struct alignas(8) NativeArray {
+		inline NativeArray()
+			: DataPtr(nullptr), Length(0){}
+		inline NativeArray(std::nullptr_t)
+			: DataPtr(nullptr), Length(0) {}
+		inline NativeArray(const T* ptr, const size_t& length)
+			: DataPtr(ptr), Length(length) {}
+
+		T* DataPtr;
+		size_t Length;
+	};
+
+
 	struct Vector2 {
+		inline Vector2(const float& v)
+			: x(v), y(v) {}
+		inline Vector2(const glm::vec2& v)
+			: x(v.x), y(v.y) {}
+
 		float x, y;
 
 		glm::vec2 toNative() { return *((glm::vec2*)this); }
 		glm::vec2 toNative_s() { return glm::vec2(x, y); }
 	};
 	struct Vector3 {
+		inline Vector3(const float& v)
+			: x(v), y(v), z(v) {}
+		inline Vector3(const glm::vec3& v)
+			: x(v.x), y(v.y), z(v.z) {}
+
 		float x, y, z;
 
 		glm::vec3 toNative() { return *((glm::vec3*)this); }
 		glm::vec3 toNative_s() { return glm::vec3(x, y, z); }
 	};
 	struct Vector4 {
+		inline Vector4(const float& v)
+			: x(v), y(v), z(v), w(v) {}
+		inline Vector4(const glm::vec4& v) 
+			: x(v.x), y(v.y), z(v.z), w(v.w){}
+
 		float x, y, z, w;
 
 		glm::vec4 toNative() { return *((glm::vec4*)this); }
 		glm::vec4 toNative_s() { return glm::vec4(x, y, z, w); }
 	};
 	struct Quaternion {
+		inline Quaternion(const glm::quat& v)
+			: x(v.x), y(v.y), z(v.z), w(v.w) {}
+
 		float x, y, z, w;
 
 		glm::quat toNative() { return glm::quat(w, x, y, z); }

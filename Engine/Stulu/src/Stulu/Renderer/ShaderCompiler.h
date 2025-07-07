@@ -96,10 +96,10 @@ namespace Stulu {
 		virtual ~ShaderCompiler() = default;
 
 
-		virtual void Compile(const ShaderSource& sources, ShaderCompileResult& result) const = 0;
-		virtual void CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const = 0;
+		virtual bool Compile(const ShaderSource& sources, ShaderCompileResult& result) const = 0;
+		virtual bool CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const = 0;
 
-		virtual void LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const = 0;
+		virtual bool LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const = 0;
 		
 		virtual bool isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const = 0;
 		

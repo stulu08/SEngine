@@ -50,7 +50,7 @@ namespace Stulu {
 
 	class SkyBoxComponent : public Component {
 	public:
-		SkyBoxAsset texture;
+		MaterialAsset material;
 		glm::vec3 rotation = { 0,0,0 };
 
 		SkyBoxComponent() = default;
@@ -58,14 +58,20 @@ namespace Stulu {
 
 		virtual void Serialize(YAML::Emitter& out) const override {
 			out << YAML::Key << "rotation" << YAML::Value << rotation;
-			if (texture.IsValid())
-				out << YAML::Key << "texture" << YAML::Value << texture.GetUUID();
+			if (material.IsValid())
+				out << YAML::Key << "SkyBox" << YAML::Value << material.GetUUID();
 		}
 		virtual void Deserialize(YAML::Node& node) override {
 			if (node["rotation"])
 				rotation = node["rotation"].as<glm::vec3>();
-			if (node["texture"])
-				texture = AssetsManager::GlobalInstance().GetAsset<SkyBoxAsset>(node["texture"].as<UUID>());
+			if (node["SkyBox"])
+				material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["SkyBox"].as<UUID>());
+			if (node["texture"]) {
+				UUID texNode = node["texture"].as<UUID>();
+				if (AssetsManager::GlobalInstance().TypeCheck<MaterialAsset>(texNode)) {
+					material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(texNode);
+				}
+			}
 		}
 	};
 
@@ -73,6 +79,8 @@ namespace Stulu {
 	public:
 		MaterialAsset material;
 		CullMode cullmode = CullMode::Back;
+		// Value will be written to the stencil buffer in the next frame
+		uint8_t StencilValue = 0x00;
 
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;

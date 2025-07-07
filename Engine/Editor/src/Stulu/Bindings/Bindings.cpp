@@ -27,13 +27,15 @@ namespace Editor {
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_Bool(string,bool&)", StuluBindings::ImGui::Bool);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_TreeNode(string,uint)", StuluBindings::ImGui::TreeBegin);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_TreePop()", ImGui::TreePop);
-		manager->RegisterFunction("Editor.EditorCalls::ImGui_TreeNodeIndent(string,uint)", StuluBindings::ImGui::TreeBeginIndent);
-		manager->RegisterFunction("Editor.EditorCalls::ImGui_TreePopUnindent()", StuluBindings::ImGui::TreePopunindent);
+		manager->RegisterFunction("Editor.EditorCalls::ImGui_InspectorTreeNodeIndent(string,bool&,string)", StuluBindings::ImGui::InspectorTreeBeginIndent);
+		manager->RegisterFunction("Editor.EditorCalls::ImGui_InspectorTreePopUnindent()", StuluBindings::ImGui::InspectorTreePopunindent);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_Combo(string,int&,string)", StuluBindings::ImGui::Combo);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_Button(string)", StuluBindings::ImGui::Button);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_PushID(string)", StuluBindings::ImGui::PushID);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_PopID()", ImGui::PopID);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_Texture2D(string,ulong&)", StuluBindings::ImGui::Texture2D);
+		manager->RegisterFunction("Editor.EditorCalls::ImGui_Material(string,ulong&)", StuluBindings::ImGui::Material);
+		manager->RegisterFunction("Editor.EditorCalls::ImGui_Mesh(string,ulong&)", StuluBindings::ImGui::Mesh);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_GameObject(string,ulong&)", StuluBindings::ImGui::GameObject);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_SameLine(single,single)", ImGui::SameLine);
 

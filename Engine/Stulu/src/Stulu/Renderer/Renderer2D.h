@@ -14,12 +14,12 @@ namespace Stulu {
 		static void begin(const Ref<Camera>& cam);
 		static void flush();
 
-		static void drawQuad(const glm::mat4& transform, const glm::vec4& color);
+		static void drawQuad(const glm::mat4& transform, const glm::vec4& color, uint32_t entityID = UINT32_MAX);
 		static void drawQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& color);
 		static void drawQuad(const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec4& color);
 
-		static void drawTexturedQuad(const glm::mat4& transform, Texture2D* texture, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
+		static void drawTexturedQuad(const glm::mat4& transform, Texture2D* texture, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, uint32_t entityID = UINT32_MAX);
 		static void drawTexturedQuad(Texture2D* texture, const glm::vec2& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(Texture2D* texture, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawTexturedQuad(Texture2D* texture, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
@@ -29,7 +29,7 @@ namespace Stulu {
 		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		static void drawFromSpriteSheet(const Ref<SubTexture2D>& sprite, const glm::vec3& pos, const glm::vec2& size, const float& rotation, const glm::vec2& tiling = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f });
 		
-		static void drawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.005f);
+		static void drawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.005f, uint32_t entityID = UINT32_MAX);
 		static void drawCircle(const glm::vec3& pos, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
 		static void drawCircle(const glm::vec2& pos, const glm::vec2& size = glm::vec2(1.0f), const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, float thickness = 1.0f, float fade = 0.005f);
 
@@ -39,9 +39,9 @@ namespace Stulu {
 
 		static void drawSlider(const glm::vec3& pos, const glm::vec3& size, float progress = 0.5f, const glm::vec4& color = { 1.0f,1.0f,1.0f,1.0f }, const glm::vec4& fillColor = { 1.0f,1.0f,1.0f,1.0f });
 	private:
-		static void flushQuads(bool bindCam = true);
-		static void flushCircles(bool bindCam = true);
-		static void flushLines(bool bindCam = true);
+		static void flushQuads();
+		static void flushCircles();
+		static void flushLines();
 
 		static void resetQuadBatch();
 		static void resetCircleBatch();

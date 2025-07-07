@@ -5,7 +5,7 @@ namespace Stulu {
 	/// Refrence to an Texture in the Engine
 	/// </summary>
 	public abstract class Texture : AssetHandle {
-		internal Texture(UUID id) : base(id){}
+		internal Texture(UUID id, bool asWeakRef = false) : base(id, asWeakRef) {}
 
 		/// <summary>
 		/// Texture Width

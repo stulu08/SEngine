@@ -1,6 +1,8 @@
 #ifndef _STULU_FUNCTIONS_GLSL_
 #define _STULU_FUNCTIONS_GLSL_
 
+// log_2(e)
+#define LOG_2E          1.442695
 #define PI              3.14159265359
 #define TWO_PI          6.28318530718
 #define FOUR_PI         12.56637061436

@@ -12,6 +12,11 @@ namespace Stulu {
 		if (IsMemoryLoaded())
 			return false;
 
+		if (!std::filesystem::exists(GetPath())) {
+			CORE_ERROR("File not found: {}", GetPath());
+			return false;
+		}
+
 		YAML::Node yaml = YAML::LoadFile(GetPath());
 
 		Ref<ShaderEntry> shader;

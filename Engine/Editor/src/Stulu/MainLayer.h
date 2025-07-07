@@ -77,6 +77,10 @@ namespace Editor {
 		std::vector<Shortcut> m_shortcuts;
 
 		void DrawObjectOutlines();
+		void DrawObjectToStencil(entt::entity obj);
+		void DrawObjectStencilOutline(entt::entity obj);
+
+
 		void DrawGizmoSelected(GameObject gameObject);
 
 		void DrawMenuBar();

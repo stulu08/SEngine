@@ -21,7 +21,7 @@ namespace Editor {
 
     void LogPanel::Update() {
         if (s_alert) {
-            ImGui::SetWindowFocus(GetDisplayName().c_str());
+            //ImGui::SetWindowFocus(GetDisplayName().c_str());
             s_alert = false;
         }
     }

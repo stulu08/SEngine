@@ -17,8 +17,15 @@ namespace Stulu {
 	}
 	void RegistrySerializer::DeserializeGameObject(YAML::Node& node, GameObject gameObject) {
 		for (const auto& [type, deSerializerFunc] : Component::m_componentDeserializeList) {
-			deSerializerFunc(node, gameObject);
+			try {
+				deSerializerFunc(node, gameObject);
+			}
+			catch (YAML::Exception ex) {
+				CORE_ERROR("YAML Expception while deserializing {0} on Object {1} :\n{1}", Component::m_componentTable[type].first, gameObject.GetID(), ex.what());
+			}
+
 		}
+
 	}
 
 	void RegistrySerializer::SerializeGameObjects(YAML::Emitter& out) {
@@ -114,6 +121,23 @@ namespace Stulu {
 				out << YAML::Key << "shadowFar" << YAML::Value << scene->getData().graphicsData.shadowFar;
 				out << YAML::Key << "shadowMapSize" << YAML::Value << scene->getData().graphicsData.shadowMapSize;
 				out << YAML::Key << "enablePhsyics3D" << YAML::Value << scene->getData().enablePhsyics3D;
+
+				out << YAML::Key << "Fog" << YAML::Value << YAML::BeginMap;
+				out << YAML::Key << "fogMode" << YAML::Value << scene->getData().graphicsData.fog.fogMode;
+				out << YAML::Key << "fogColor" << YAML::Value << scene->getData().graphicsData.fog.fogColor;
+				out << YAML::Key << "linearFogStart" << YAML::Value << scene->getData().graphicsData.fog.linearFogStart;
+				out << YAML::Key << "linearFogEnd" << YAML::Value << scene->getData().graphicsData.fog.linearFogEnd;
+				out << YAML::Key << "fogDensity" << YAML::Value << scene->getData().graphicsData.fog.fogDensity;
+				out << YAML::Key << "FogHorizonStrength" << YAML::Value << scene->getData().graphicsData.fog.FogHorizonStrength;
+				out << YAML::Key << "FogHorizonFalloff" << YAML::Value << scene->getData().graphicsData.fog.FogHorizonFalloff;
+				out << YAML::Key << "EnableFogHorizon" << YAML::Value << scene->getData().graphicsData.fog.EnableFogHorizon;
+				out << YAML::Key << "FogGroundStrength" << YAML::Value << scene->getData().graphicsData.fog.FogGroundStrength;
+				out << YAML::Key << "EnableGroundFog" << YAML::Value << scene->getData().graphicsData.fog.EnableGroundFog;
+				out << YAML::Key << "FogHorizonOffset" << YAML::Value << scene->getData().graphicsData.fog.FogHorizonOffset;
+				out << YAML::Key << "FogHorizonHeightFalloff" << YAML::Value << scene->getData().graphicsData.fog.FogHorizonHeightFalloff;
+				out << YAML::Key << "EnableHorizonHeightFog" << YAML::Value << scene->getData().graphicsData.fog.EnableHorizonHeightFog;
+				out << YAML::EndMap;
+
 			}
 			out << YAML::EndMap;
 			scene->getCaller()->SerializerScene(out);
@@ -156,6 +180,35 @@ namespace Stulu {
 					sceneData.graphicsData.shadowMapSize = settings["shadowMapSize"].as<uint32_t>();
 				if (settings["enablePhsyics3D"]) 
 					sceneData.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
+				if (settings["Fog"]) {
+					YAML::Node fog = settings["Fog"];
+					if(settings["fogColor"])
+						sceneData.graphicsData.fog.fogColor = fog["fogColor"].as<glm::vec4>();
+					if(settings["fogMode"])
+						sceneData.graphicsData.fog.fogMode = fog["fogMode"].as<float>();
+					if(settings["linearFogStart"])
+						sceneData.graphicsData.fog.linearFogStart = fog["linearFogStart"].as<float>();
+					if(settings["linearFogEnd"])
+						sceneData.graphicsData.fog.linearFogEnd = fog["linearFogEnd"].as<float>();
+					if(settings["fogDensity"])
+						sceneData.graphicsData.fog.fogDensity = fog["fogDensity"].as<float>();
+					if(settings["FogHorizonStrength"])
+						sceneData.graphicsData.fog.FogHorizonStrength = fog["FogHorizonStrength"].as<float>();
+					if(settings["FogHorizonFalloff"])
+						sceneData.graphicsData.fog.FogHorizonFalloff = fog["FogHorizonFalloff"].as<float>();
+					if(settings["EnableFogHorizon"])
+						sceneData.graphicsData.fog.EnableFogHorizon = fog["EnableFogHorizon"].as<float>();
+					if(settings["FogGroundStrength"])
+						sceneData.graphicsData.fog.FogGroundStrength = fog["FogGroundStrength"].as<float>();
+					if(settings["EnableGroundFog"])
+						sceneData.graphicsData.fog.EnableGroundFog = fog["EnableGroundFog"].as<float>();
+					if(settings["FogHorizonOffset"])
+						sceneData.graphicsData.fog.FogHorizonOffset = fog["FogHorizonOffset"].as<float>();
+					if(settings["FogHorizonHeightFalloff"])
+						sceneData.graphicsData.fog.FogHorizonHeightFalloff = fog["FogHorizonHeightFalloff"].as<float>();
+					if (settings["EnableHorizonHeightFog"])
+						sceneData.graphicsData.fog.EnableHorizonHeightFog = fog["EnableHorizonHeightFog"].as<float>();
+				}
 
 			}
 			scene->getCaller()->DeserializerScene(Data);

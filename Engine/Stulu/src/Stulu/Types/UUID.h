@@ -6,6 +6,7 @@ namespace Stulu {
 	class UUID {
 	public:
 		STULU_API UUID();
+		STULU_API UUID(const std::string& deterministicValue);
 		inline UUID(uint64_t uuid)
 			: m_uuid(uuid) {
 		}

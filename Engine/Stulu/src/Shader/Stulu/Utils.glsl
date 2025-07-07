@@ -36,4 +36,25 @@ vec3 srgbToLin(vec3 color){
 vec4 srgbToLin(vec4 color){
 	return vec4(srgbToLin(color.xyz), color.a);
 }
+
+highp float rand(vec2 co)
+{
+    highp float a = 12.9898;
+    highp float b = 78.233;
+    highp float c = 43758.5453;
+    highp float dt= dot(co.xy ,vec2(a,b));
+    highp float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
+vec3 randColor(float seed) {
+
+    float x1 = seed * 1.0934;    
+    float x2 = seed * 1.485;
+
+    float r = rand(vec2(x1, x2));
+    float g = rand(vec2(x2, x1));
+    float b = max((1.5 - (r + g)), 0.0);
+    return vec3(r, g, b);
+}
+
 #endif

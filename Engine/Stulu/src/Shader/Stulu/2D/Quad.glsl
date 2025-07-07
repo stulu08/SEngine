@@ -6,6 +6,7 @@ layout(location = 1) in vec2 a_texCoord;
 layout(location = 2) in vec4 a_color;
 layout(location = 3) in float a_textureIndex;
 layout(location = 4) in vec2 a_textureTiling;
+layout(location = 5) in uint a_entityID;
 
 #include "Stulu/Scene.glsl"
 
@@ -13,27 +14,32 @@ layout (location = 0) out vec2 texCoord;
 layout (location = 1) out vec4 color;
 layout (location = 2) out vec2 textureTiling;
 layout (location = 3) out flat float textureIndex;
+layout (location = 4) out flat uint ST_EntityID;
 
 void main() {
 	texCoord = a_texCoord;
 	color = a_color;
 	textureIndex = a_textureIndex;
 	textureTiling = a_textureTiling;
+	ST_EntityID = a_entityID;
 
 	gl_Position = viewProjection * vec4(a_pos, 1.0);
 }
 #type fragment
-layout(location = 0) out vec4 a_color;
 
 layout (location = 0) in vec2 texCoord;
 layout (location = 1) in vec4 color;
 layout (location = 2) in vec2 textureTiling;
 layout (location = 3) in flat float textureIndex;
+layout (location = 4) in flat uint ST_EntityID;
 
 layout (binding = 0) uniform sampler2D u_textures[32];
 
+#define ST_USE_ENTITY_ID 1
+#include "Stulu/Out.glsl"
+
 void main() {
-	a_color = vec4(0.0);
+	vec4 a_color = vec4(0.0);
 
 	switch(int(textureIndex))
 	{
@@ -70,6 +76,8 @@ void main() {
 		case 30: a_color = texture(u_textures[30], texCoord * textureTiling) * color; break;
 		case 31: a_color = texture(u_textures[31], texCoord * textureTiling) * color; break;
 	}
+	WriteDefaultOut(a_color);
+
 	if(a_color.a == 0.0)
 		discard;
 }
