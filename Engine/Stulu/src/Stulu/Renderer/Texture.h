@@ -48,11 +48,12 @@ namespace Stulu {
 		uint32_t levels = 1;
 		glm::vec4 border = glm::vec4(1.0f);
 		TextureFiltering filtering = TextureFiltering::Linear;
+		uint32_t arraySize = 1;
 
 		TextureSettings(TextureFormat format, TextureWrap wrap = TextureWrap::ClampToEdge,
 			const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1, glm::vec4 border = glm::vec4(1.0f),
 			TextureFiltering filtering = TextureFiltering::Linear)
-			:format(format), wrap(wrap), tiling(tiling), levels(levels), border(border), filtering(filtering) {}
+			:format(format), wrap(wrap), tiling(tiling), levels(levels), border(border), filtering(filtering), arraySize(1) {}
 	};
 
 	enum class MSAASamples : uint32_t {
@@ -80,7 +81,9 @@ namespace Stulu {
 	};
 	class STULU_API Texture2D : public virtual Texture {
 	public:
+		// create texture from file
 		static Ref<Texture2D> create(const std::string& path, const TextureSettings& settings = TextureFormat::Auto);
+		// Create empty texture
 		static Ref<Texture2D> create(uint32_t width, uint32_t height, const TextureSettings& settings = TextureFormat::RGBA, MSAASamples samples = MSAASamples::Disabled);
 
 		virtual void setData(const void* data, uint32_t size, uint32_t mipLevel = 0) = 0;
@@ -95,6 +98,7 @@ namespace Stulu {
 
 		virtual MSAASamples GetSamples() const = 0;
 		virtual void SetSamples(MSAASamples sampels) = 0;
+		virtual uint32_t GetArraySize() const = 0;
 	};
 
 

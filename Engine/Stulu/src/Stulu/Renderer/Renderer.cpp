@@ -23,7 +23,7 @@ namespace Stulu {
 				s_data.lightDataUniformBuffer = UniformBuffer::create(sizeof(LightBufferData), (uint32_t)BufferBinding::Light);
 
 			if (s_data.postProcessingDataUniformBuffer == nullptr)
-				s_data.postProcessingDataUniformBuffer = UniformBuffer::create(sizeof(PostProcessingBufferData), (uint32_t)BufferBinding::PostProcessing);
+				s_data.postProcessingDataUniformBuffer = UniformBuffer::create(2048 /* should be enough */, (uint32_t)BufferBinding::PostProcessing);
 
 			if (s_data.sceneDataUniformBuffer == nullptr)
 				s_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(SceneBufferData), (uint32_t)BufferBinding::Scene);
@@ -45,7 +45,7 @@ namespace Stulu {
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
 
-	void Renderer::ScreenQuad(const Ref<FrameBuffer>& destination, const Shader* shader)  {
+	void Renderer::ScreenQuad(const Ref<FrameBuffer>& destination, const Shader* shader, const glm::vec4& userData)  {
 		if (!destination) {
 			CORE_ASSERT(false, "Renderer::ScreenQuad no destination provided");
 			return;
@@ -59,12 +59,14 @@ namespace Stulu {
 		shader->bind();
 
 		struct Data{
+			glm::vec4 userData = glm::vec4(0.0);
 			float z = -1.0f;
 			uint32_t pixelWidth = 1;
 			uint32_t pixelHeight = 1;
 		}data;
 		data.pixelWidth = destination->getSpecs().width;
 		data.pixelHeight = destination->getSpecs().height;
+		data.userData = userData;
 
 		Renderer::getBuffer(BufferBinding::Model)->setData(&data, sizeof(Data));
 		RenderCommand::setCullMode(CullMode::Back);

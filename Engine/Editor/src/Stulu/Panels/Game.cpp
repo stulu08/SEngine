@@ -21,6 +21,8 @@ namespace Editor {
 	void GamePanel::DrawImGui() {
 		ST_PROFILING_SCOPE("ImGui - Game Panel");
 
+		m_hovered = ImGui::IsWindowHovered();
+
 		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		m_width = (uint32_t)glm::max(viewportSize.x, 1.0f);
 		m_height = (uint32_t)glm::max(viewportSize.y, 1.0f);
@@ -40,7 +42,9 @@ namespace Editor {
 			Input::setCursorMode(Input::CursorMode::Normal);
 		}
 
-		StuluBindings::Input::SetEnabled(IsFocused() && layer.IsRuntime());
+		// enable input during runtime, if the window is focused and hovered, unless mouse is disabled, then skip hover check
+		StuluBindings::Input::SetEnabled(
+			IsFocused() && m_hovered && layer.IsRuntime());
 
 		if (layer.IsRuntime()) {
 			layer.GetActiveScene()->onUpdateRuntime(IsVisible());
@@ -48,6 +52,8 @@ namespace Editor {
 				layer.GetActiveScene()->getRenderer()->GenSceneTexture(GetFrameBuffer());
 			}
 		}
+
+		m_hovered = false;
 	}
 
 	void GamePanel::OnEvent(Stulu::Event& e) {

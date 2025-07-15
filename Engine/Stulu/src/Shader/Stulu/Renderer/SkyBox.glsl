@@ -18,7 +18,7 @@ void main() {
 
 #type fragment
 
-#include "Stulu/Utils.glsl"
+#include "Stulu/Texture.glsl"
 #include "Stulu/Renderer/Lighting.glsl"
 #include "Stulu/Out.glsl"
 
@@ -29,14 +29,12 @@ layout(std140, binding = ST_USER_MATERIAL_BINDING) uniform Material {
 };
 
 void main() {
-	const vec3 view = getSkyBoxCoords(v_texCoords, skyBoxRotation);
-	
-	vec3 texColor = textureLod(environmentMap, view, env_lod).rgb;
-	vec3 outColor = mix(clearColor.rgb, texColor, hasSkybox);
+	const vec3 view = GetSkyBoxCoords(v_texCoords, skyBoxRotation);
+	//vec3 outColor = SampleSkyboxLod(environmentMap, view, hasSkybox, clearColor.rgb, env_lod);
+	vec3 outColor = SampleSkyboxLod(environmentMap, view, hasSkybox, clearColor.rgb, env_lod);
 
-	vec3 worldPos = cameraPosition.xyz + normalize(v_texCoords) * 5000.0;
+	const vec3 worldPos = cameraPosition.xyz + normalize(v_texCoords) * 5000.0;
 	ApplyHorizonFog(outColor, worldPos);
 	
 	WriteDefaultOut(outColor);
-	
 }

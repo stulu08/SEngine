@@ -7,7 +7,7 @@
 
 namespace Stulu {
 	enum class ShaderType : uint32_t {
-		None, Vertex, Fragment, Compute
+		None, Vertex, Fragment, Geometry, Compute
 	};
 
 	inline ShaderType ShaderTypeFromString(std::string type) {
@@ -17,6 +17,8 @@ namespace Stulu {
 			return ShaderType::Vertex;
 		else if (type == "FRAGMENT" || type == "FRAG")
 			return ShaderType::Fragment;
+		else if (type == "GEOMETRY" || type == "GEOM")
+			return ShaderType::Geometry;
 		else if (type == "COMPUTE" || type == "COMP")
 			return ShaderType::Compute;
 
@@ -30,6 +32,8 @@ namespace Stulu {
 			return "vert";
 		case Stulu::ShaderType::Fragment:
 			return "frag";
+		case Stulu::ShaderType::Geometry:
+			return "geom";
 		case Stulu::ShaderType::Compute:
 			return "comp";
 		}

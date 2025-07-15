@@ -30,11 +30,12 @@ namespace Stulu {
 		GLenum textureType = std::dynamic_pointer_cast<OpenGLTexture2D>(texture)->GetInternalTextureType();
 		GLenum texId = NativeRenderObjectCast<GLenum>(texture->getNativeRendererObject());
 
+
 		if (slot == GL_DEPTH_ATTACHMENT) {
-			glFramebufferTexture2D(
+			glFramebufferTexture(
 				GL_FRAMEBUFFER,
 				getDepthAttachmentTypeByFormat(texture->getSettings().format),
-				textureType, texId, 0);
+				texId, 0);
 		}
 		else {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, slot, textureType, texId, 0);

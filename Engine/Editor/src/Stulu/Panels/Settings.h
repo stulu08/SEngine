@@ -12,6 +12,11 @@ namespace Editor {
 
 		void DrawPhysics();
 		void DrawGraphics();
+
+		void DrawShadowSettings(Stulu::ShadowSettings& settings);
+		void DrawFogSettings(Stulu::FogSettings& settings);
+
+		Stulu::Scene* m_scene = nullptr;
 	};
 }
 

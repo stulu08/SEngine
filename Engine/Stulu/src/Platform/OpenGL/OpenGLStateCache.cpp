@@ -9,14 +9,13 @@ namespace Stulu {
 
 	void OpenGLStateCache::Reset() {
 		s_cache = {};
-		glUseProgram(0);
-		glBindVertexArray(0);
+		BindProgram(0);
+		BindVertexArray(0);
 		for (uint32_t i = 0; i < 32; ++i) {
-			glBindTextureUnit(i, 0);
-			//glBindBufferBase(GL_UNIFORM_BUFFER, i, 0);
-			//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, 0);
+			BindTextureUnit(i, 0);
 		}
-		glEnable(GL_CULL_FACE);
+		SetCullFace(GL_BACK);
+		StencilMask(0x00);
 	}
 
 	void OpenGLStateCache::BindProgram(uint32_t id) {

@@ -471,8 +471,7 @@ namespace Stulu {
 
 		TextureSettings settings = TextureFormat::RG;
 		settings.wrap = TextureWrap::ClampToEdge;
-
-		return createRef<OpenGLTexture2D>(texture, resolution, resolution, settings, MSAASamples::Disabled);
+		return createRef<OpenGLTexture2D>(resolution, resolution, settings, MSAASamples::Disabled, 1, texture);
 	}
 
 	uint32_t OpenGLSkyBox::s_quadVAO = 0;

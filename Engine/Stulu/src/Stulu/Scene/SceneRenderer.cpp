@@ -8,12 +8,7 @@
 namespace Stulu {
 	SceneRenderer::SceneRenderer(Scene* scene)
 		: m_scene(scene) {
-		m_postProcShader = Renderer::getShaderSystem()->GetShader("Renderer/PostProcessing/Shader");
 		m_shadowShader = Renderer::getShaderSystem()->GetShader("Renderer/ShadowCaster");
-
-		m_filterShader = Renderer::getShaderSystem()->GetShader("Renderer/PostProcessing/Bloom/Filter");
-		m_downSampleShader = Renderer::getShaderSystem()->GetShader("Renderer/PostProcessing/Bloom/Down");
-		m_upSampleShader = Renderer::getShaderSystem()->GetShader("Renderer/PostProcessing/Bloom/Up");
 
 		resizeShadowMap();
 
@@ -47,7 +42,7 @@ namespace Stulu {
 	}
 	void SceneRenderer::AddLight(const TransformComponent& transform, const LightComponent& light) {
 		if (m_lightBufferData.lightCount < ST_MAXLIGHTS) {
-			
+
 			m_lightBufferData.lights[m_lightBufferData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
 			m_lightBufferData.lights[m_lightBufferData.lightCount].positionAndType = glm::vec4(transform.GetWorldPosition(), light.lightType);
 			m_lightBufferData.lights[m_lightBufferData.lightCount].rotation = glm::vec4(transform.GetForward(), 1.0f);
@@ -79,10 +74,7 @@ namespace Stulu {
 		ST_PROFILING_SCOPE("Renderer - Main Pass");
 		RenderCommand::setDefault();
 
-		const Camera& cam = cameraComp.GetNativeCamera();
-		const glm::mat4& view = glm::inverse(transform.GetWorldTransform());
-		const glm::mat4& proj = cameraComp.GetProjection();
-
+		// find skybox
 		TestMaterial* camSkyboxMaterial = nullptr;
 		glm::mat4 skyboxRotation = glm::mat4(1.0f);
 		if (cameraComp.gameObject.IsValid()) {
@@ -94,74 +86,99 @@ namespace Stulu {
 				skyboxRotation = Math::createMat4(glm::vec3(.0f), glm::quat(glm::radians(s.rotation)), glm::vec3(1.0f));
 			}
 		}
-		
-		//upload shader scene data
+
+		//transparent sorting
+		std::sort(m_transparentDrawList.begin(), m_transparentDrawList.end(),
+			[&](const RenderObject& a, const RenderObject& b) {
+				return
+					glm::distance(transform.GetWorldPosition(), glm::vec3(a.transform->GetWorldPosition()))
+						>
+					glm::distance(transform.GetWorldPosition(), glm::vec3(b.transform->GetWorldPosition()));
+			});
+
+		// set shader scene data
 		m_sceneBufferData.env_lod = m_scene->getData().graphicsData.env_lod;
 		m_sceneBufferData.useSkybox = camSkyboxMaterial != nullptr;
 		m_sceneBufferData.shaderFlags = m_scene->getData().shaderFlags;
 		m_sceneBufferData.skyBoxRotation = skyboxRotation;
-		m_sceneBufferData.lightSpaceMatrix = glm::mat4(1.0f);
-		m_sceneBufferData.shadowCasterPos = glm::vec3(0.0f);
-		m_sceneBufferData.shadowCaster = -1;
 		m_sceneBufferData.fogSettings = m_scene->getData().graphicsData.fog;
-		Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
 
-		//transparent sorting
-		std::sort(m_transparentDrawList.begin(), m_transparentDrawList.end(), 
-			[&](const RenderObject& a, const RenderObject& b) {
-			return 
-				glm::distance(transform.GetWorldPosition(), glm::vec3(a.transform->GetWorldPosition())) 
-				> 
-				glm::distance(transform.GetWorldPosition(), glm::vec3(b.transform->GetWorldPosition()));
-			});
-		
-		//shadow pass
+		// shadow pass
 		GameObject lightObject = m_scene->getMainLight();
-		if(lightObject && m_shadowCaster > -1) {
+		if (lightObject && m_shadowCaster > -1) {
 			TransformComponent& lTC = lightObject.getComponent<TransformComponent>();
-			LightComponent& light = lightObject.getComponent<LightComponent>();
+			auto& settings = m_scene->getData().graphicsData.shadows;
+			const size_t cascadeCount = glm::min(settings.CascadeSplits.size(), (size_t)ST_MAX_SHADOW_CASCADES);
 
-			float halfDistance = m_scene->getData().graphicsData.shadowDistance / 2.0f;
-			float halfFarDist = m_scene->getData().graphicsData.shadowFar/2.0f;
-			float farDist = halfFarDist * 2.0f;
-			glm::vec3 lightPos = transform.position + (halfFarDist * (-lTC.GetForward()));
-			glm::mat4 lightView = glm::inverse(Math::createMat4(lightPos, lTC.GetWorldRotation(), glm::vec3(1.0f)));
-			glm::mat4 lightProj = glm::ortho(-halfDistance, halfDistance, halfDistance, -halfDistance, 0.01f, farDist);
+			if (settings.CascadeSplits.size() != cascadeCount) {
+				CORE_WARN("Invalid CascadeSplits provided!");
+				settings.CascadeSplits = Math::CalculateCascadeSplits(cascadeCount, settings.FarPlane);
+			}
 
+			m_sceneBufferData.cascadeCount = (uint32_t)cascadeCount;
+			m_sceneBufferData.cascadeBlendDistance = glm::vec4(settings.BlendingDistance);
 			m_sceneBufferData.shadowCaster = m_shadowCaster;
-			m_sceneBufferData.lightSpaceMatrix = lightProj * lightView;
-			m_sceneBufferData.shadowCasterPos = lightPos;
+			m_sceneBufferData.shadowCasterPos = lTC.GetWorldPosition() - lTC.GetForward() * settings.FarPlane;
+			for (size_t i = 0; i < cascadeCount + 1; i++) {
+				float nearPlane = 0.0f, FarPlane = 0.0f;
+				if (i == 0) {
+					nearPlane = settings.NearPlane;
+					FarPlane = settings.CascadeSplits[i];
+				}
+				else if (i < cascadeCount) {
+					nearPlane = settings.CascadeSplits[i - 1];
+					FarPlane = settings.CascadeSplits[i];
+				}
+				else {
+					nearPlane = settings.CascadeSplits[i - 1];
+					FarPlane = settings.FarPlane;
+				}
+				m_sceneBufferData.cascadePlaneDistances[i] = glm::vec4(FarPlane);
+				m_sceneBufferData.lightSpaceMatrices[i] = GetLightSpaceMatrix(nearPlane, FarPlane, transform, cameraComp, lTC);
+			}
+
+			
 			Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
 
-			VFC::setCamera(VFC::createFrustum_ortho(-halfDistance, halfDistance, -halfDistance, halfDistance, 0.01f, farDist, lightPos, lTC.GetWorldRotation()));
-			Renderer::uploadCameraBufferData(lightProj, lightView, lTC.GetWorldPosition(), lTC.GetWorldEulerRotation(), 0.01f, farDist);
-			
+			VFC::setEnabled(false);
+
 			m_shadowMap->bind();
 			RenderCommand::clear();
 			drawSceneShadow();
 			m_shadowMap->unbind();
 
-			
 			m_shadowMap->getDepthAttachment()->bind(4);
+		}
+		else {
+			// upload scene data
+			m_sceneBufferData.shadowCasterPos = glm::vec3(0.0f);
+			m_sceneBufferData.shadowCaster = -1;
+			m_sceneBufferData.cascadeCount = 0;
+			Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
 		}
 
 		//default render pass
+		VFC::setEnabled(true);
 		VFC::setCamera(cameraComp.CalculateFrustum(transform));
-		Renderer::uploadCameraBufferData(proj, view, transform.GetWorldPosition(), transform.GetWorldEulerRotation(), cameraComp.GetNear(), cameraComp.GetFar());
+		Renderer::uploadCameraBufferData(
+			cameraComp.GetProjection(), glm::inverse(transform.GetWorldTransform()), 
+			transform.GetWorldPosition(), transform.GetWorldEulerRotation(), 
+			cameraComp.GetNear(), cameraComp.GetFar());
+		
 
-		cam.getRenderFrameBuffer()->bind();
+		const Camera& nativeCam = cameraComp.GetNativeCamera();
+		nativeCam.getRenderFrameBuffer()->bind();
 
 		Clear(cameraComp);
 		drawSkyBox(camSkyboxMaterial);
 
 		drawScene();
-		
 		drawAll2d(transform, callEvents);
 
-		cam.getRenderFrameBuffer()->unbind();
+		nativeCam.getRenderFrameBuffer()->unbind();
 
-		if(cam.HasResultFrameBuffer())
-			Renderer::BlibRenderBuffferToResultBuffer(cam.getRenderFrameBuffer(), cam.getResultFrameBuffer(), true, true, true);
+		if (nativeCam.HasResultFrameBuffer())
+			Renderer::BlibRenderBuffferToResultBuffer(nativeCam.getRenderFrameBuffer(), nativeCam.getResultFrameBuffer(), true, true, true);
 	}
 
 	void SceneRenderer::Clear() {
@@ -184,7 +201,7 @@ namespace Stulu {
 		RenderCommand::clear();
 	}
 
-	
+
 
 
 	void SceneRenderer::drawSceneShadow() {
@@ -212,7 +229,7 @@ namespace Stulu {
 		if (object.meshRenderer->material.IsValid()) {
 			material = *object.meshRenderer->material;
 		}
-		
+
 		material->GetShader()->bind();
 		material->RenderReady();
 
@@ -222,7 +239,7 @@ namespace Stulu {
 			RenderCommand::SetStencilValue(object.meshRenderer->StencilValue);
 			object.meshRenderer->StencilValue = 0;
 		}
-		
+
 		RenderCommand::setCullMode(object.meshRenderer->cullmode);
 		const glm::mat4& transform = object.transform->GetWorldTransform();
 		glm::mat4 normalMatrix = glm::transpose(glm::inverse(
@@ -244,7 +261,7 @@ namespace Stulu {
 
 		//opaque
 		for (const RenderObject& object : m_drawList) {
-			if(DrawObject(object))
+			if (DrawObject(object))
 				m_stats.drawCalls++;
 		}
 
@@ -270,26 +287,72 @@ namespace Stulu {
 			if (m_sceneBufferData.shaderFlags & ST_ShaderViewFlags_DisplayVertices)
 				RenderCommand::setWireFrame(true);
 		}
-		
+
 	}
 
 	void SceneRenderer::resizeShadowMap() {
+		const auto& settings = m_scene->getData().graphicsData.shadows;
+
 		FrameBufferSpecs specs;
-		specs.width = (uint32_t)m_scene->getData().graphicsData.shadowMapSize;
-		specs.height = (uint32_t)m_scene->getData().graphicsData.shadowMapSize;
+		specs.width = settings.MapSize;
+		specs.height = settings.MapSize;
 		specs.samples = MSAASamples::Disabled;
 
 		TextureSettings colorBuffer = TextureFormat::None;
-		colorBuffer.wrap = TextureWrap::ClampToBorder;
-		colorBuffer.border = COLOR_WHITE;
 
 		TextureSettings depthBuffer = TextureFormat::Depth32F;
-		depthBuffer.filtering = TextureFiltering::Bilinear;
+		depthBuffer.filtering = TextureFiltering::Linear;
 		depthBuffer.wrap = TextureWrap::ClampToBorder;
+		depthBuffer.arraySize = (uint32_t)glm::clamp((int32_t)settings.CascadeSplits.size(), 2, ST_MAX_SHADOW_CASCADES);
 		depthBuffer.border = COLOR_WHITE;
 
 		m_shadowMap.reset();
 		m_shadowMap = FrameBuffer::create(specs, colorBuffer, depthBuffer);
+	}
+	glm::mat4 SceneRenderer::GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const {
+		const auto& settings = m_scene->getData().graphicsData.shadows;
+
+		glm::mat4 cameraProj = glm::perspective(glm::radians(cameraComp.GetFov()), cameraComp.GetAspect(), nearPlane, farPlane);
+		glm::mat4 cameraView = glm::inverse(cameraTransform.GetWorldTransform());
+
+		const auto corners = Math::GetFrustumCornersWorldSpace(cameraProj, cameraView);
+
+		glm::vec3 center = glm::vec3(0, 0, 0);
+		for (const auto& v : corners) {
+			center += glm::vec3(v);
+		}
+		center /= corners.size();
+
+		const auto lightView = glm::lookAt(center - lightTransform.GetForward(), center, TRANSFORM_UP_DIRECTION);
+
+		float minX = std::numeric_limits<float>::max();
+		float maxX = std::numeric_limits<float>::lowest();
+		float minY = std::numeric_limits<float>::max();
+		float maxY = std::numeric_limits<float>::lowest();
+		float minZ = std::numeric_limits<float>::max();
+		float maxZ = std::numeric_limits<float>::lowest();
+		for (const auto& v : corners)
+		{
+			const auto trf = lightView * v;
+			minX = glm::min(minX, trf.x);
+			maxX = glm::max(maxX, trf.x);
+			minY = glm::min(minY, trf.y);
+			maxY = glm::max(maxY, trf.y);
+			minZ = glm::min(minZ, trf.z);
+			maxZ = glm::max(maxZ, trf.z);
+		}
+
+		if (minZ < 0)
+			minZ *= settings.ZMult;
+		else
+			minZ /= settings.ZMult;
+		if (maxZ < 0)
+			maxZ /= settings.ZMult;
+		else
+			maxZ *= settings.ZMult;
+
+		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+		return lightProjection * lightView;
 	}
 
 	void SceneRenderer::Register3dObjects() {
@@ -316,19 +379,19 @@ namespace Stulu {
 
 		std::vector<Entry> drawList;
 		drawList.reserve(quadview.size_hint() + circleView.size_hint());
-		
+
 		for (auto gameObject : quadview) {
 			drawList.push_back({ gameObject, Entry::Quad });
 		}
 		for (auto gameObject : circleView) {
 			drawList.push_back({ gameObject, Entry::Circle });
 		}
-		
+
 		std::sort(drawList.begin(), drawList.end(), [=](const Entry& left, const Entry& right)->bool {
 			GameObject le = { left.id, m_scene };
 			GameObject re = { right.id, m_scene };
 			return glm::distance(camPos, le.getComponent<TransformComponent>().GetWorldPosition()) > glm::distance(camPos, re.getComponent<TransformComponent>().GetWorldPosition());
-		});
+			});
 
 		Renderer2D::begin();
 
@@ -395,20 +458,15 @@ namespace Stulu {
 		for (auto& goID : cams) {
 			CameraComponent& cam = cams.get<CameraComponent>(goID);
 			GameObject gameObject = cam.gameObject;
-			PostProcessingData* postProcessing = nullptr;
 
-			if (!postProcessing && gameObject.hasComponent<PostProcessingComponent>()) {
-				postProcessing = &gameObject.getComponent<PostProcessingComponent>().data;
+			// post process
+			if (gameObject.hasComponent<PostProcessingComponent>()) {
+				ApplyPostProcessing(cam.GetResultFrameBuffer(), &gameObject.getComponent<PostProcessingComponent>());
 			}
 
-			if (!cam.IsRenderTarget()) {
-				if (postProcessing) {
-					ApplyPostProcessing(sceneFbo, cam.GetResultTexture().get(), *postProcessing);
-				}
-				else {
-					ApplyPostProcessing(sceneFbo, cam.GetResultTexture().get());
-				}
-			}
+			// blib
+			cam.GetResultTexture()->bind(0);
+			Renderer::ScreenQuad(sceneFbo, Resources::FullscreenShader());
 		}
 	}
 
@@ -416,125 +474,30 @@ namespace Stulu {
 		if (sceneCam.getPostProcessingUsingMain() && m_scene) {
 			GameObject mainCam = m_scene->getMainCamera();
 			if (mainCam && mainCam.hasComponent<PostProcessingComponent>()) {
-				PostProcessingComponent comp = mainCam.getComponent<PostProcessingComponent>();
-
-				comp.data.bloom = sceneCam.getPostProcessingData().bloom;
-				ApplyPostProcessing(sceneCam.getCamera().getResultFrameBuffer(), comp.data);
-				sceneCam.getPostProcessingData().bloom = comp.data.bloom;
-
+				PostProcessingComponent* comp = &mainCam.getComponent<PostProcessingComponent>();
+				ApplyPostProcessing(sceneCam.getCamera().getResultFrameBuffer(), comp);
 				return;
 			}
 		}
 
-		ApplyPostProcessing(sceneCam.getCamera().getResultFrameBuffer(), sceneCam.getPostProcessingData());
+		ApplyPostProcessing(sceneCam.getCamera().getResultFrameBuffer(), &sceneCam.getPostProcessingData());
 	}
-	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data) {
+	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingComponent* data) {
 		ApplyPostProcessing(frameBuffer, frameBuffer->getColorAttachment().get(), data);
 	}
-	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& data) {
+	void SceneRenderer::ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingComponent* data) {
 		ST_PROFILING_SCOPE("Renderer - PostProcessing");
-		const auto& settings = data.settings;
-
-		m_postProcessingBufferData.time = Time::applicationRuntime;
-		m_postProcessingBufferData.delta = Time::deltaTime;
-		m_postProcessingBufferData.enableGammaCorrection = settings.gammaCorrection.enabled ? 1.0f : 0.0f;
-		m_postProcessingBufferData.toneMappingExposure = settings.gammaCorrection.exposure;
-		m_postProcessingBufferData.gamma = settings.gammaCorrection.gamma;
-		m_postProcessingBufferData.bloomStrength = settings.bloom.enabled ? settings.bloom.intensity : 0.0f;
-		Renderer::getBuffer(BufferBinding::PostProcessing)->setData(&m_postProcessingBufferData, sizeof(PostProcessingBufferData));
-
-		//bloom
-		Texture* bloomResult = Resources::BlackTexture();
-		if (settings.bloom.enabled) {
-			bloomResult = DoBloom(destination, source, data);
-		}
-
-		//gamma correction, tonemapping, apply bloom
-		{
-			source->bind(0);
-			bloomResult->bind(1);
-
-			Renderer::ScreenQuad(destination, m_postProcShader);
+		
+		if (!data) {
+			GammaCorrectionEffect effect;
+			effect.Apply(destination, source);
 			return;
 		}
+
+		for (const auto& effect : data->m_effects) {
+			if (effect && effect->IsEnabled()) {
+				effect->Apply(destination, source);
+			}
+		}
 	}
-	Texture* SceneRenderer::DoBloom(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& postProcData) {
-		ST_PROFILING_SCOPE("Renderer - Bloom");
-		auto& data = postProcData.bloom;
-		const auto& settings = postProcData.settings.bloom;
-
-		uint32_t width = (uint32_t)((float)source->getWidth() * settings.resolutionScale);
-		uint32_t height = (uint32_t)((float)source->getHeight() * settings.resolutionScale);
-
-		if (width <= 1 || height <= 1 || !settings.enabled)
-			return Resources::BlackTexture();
-
-		if (data.downSample == nullptr || data.downSample->getWidth() != width || data.downSample->getHeight() != height) {
-			float logs = glm::log2((float)glm::max(width, height)) + glm::min((float)settings.diffusion, (float)BLOOM_MAX_SAMPLES) - BLOOM_MAX_SAMPLES;
-			int32_t logs_i = (int)glm::floor(logs);
-
-			data.downSample.reset();
-			data.upSample.reset();
-			data.samples = glm::clamp(logs_i, 1, BLOOM_MAX_SAMPLES);
-			data.sampleScale = 0.5f + logs - logs_i;
-
-			TextureSettings settings = TextureFormat::RGBA32F;
-			settings.filtering = TextureFiltering::Trilinear;
-			settings.wrap = TextureWrap::ClampToEdge;
-			settings.levels = data.samples;
-
-			data.downSample = Texture2D::create(width, height, settings);
-			data.upSample = Texture2D::create(width, height, settings);
-
-		}
-		struct Data {
-			glm::vec4 filter;
-			glm::vec2 desRes;
-			float sampleScale;
-			float clamp;
-			uint32_t iteration;
-		}updata;
-
-		static Ref<ShaderStorageBuffer> storageBuffer = ShaderStorageBuffer::create(sizeof(Data), 6);
-
-		
-		float soft = settings.threshold * settings.knee;
-		updata.filter.x = settings.threshold;
-		updata.filter.y = settings.threshold - soft;
-		updata.filter.z = 2.0f * soft;
-		updata.filter.w = 0.25f / (soft + 0.00001f);
-		updata.sampleScale = data.sampleScale;
-		updata.clamp = settings.clamp;
-		updata.iteration = 0;
-
-		for (int i = 0; i < (int)data.samples; i++) {
-			Ref<Shader> shader = (i == 0) ? m_filterShader : m_downSampleShader;
-			const Texture2D* sourceTex = (i == 0) ? source : data.downSample.get();
-
-			updata.desRes = glm::vec2(data.downSample->getMipWidth(i), data.downSample->getMipHeight(i)) - glm::vec2(1, 1);
-			storageBuffer->setData(&updata, sizeof(Data));
-
-			sourceTex->bind(0);
-			shader->setTexture("destination", 2, data.downSample, i, AccesMode::WriteOnly);
-			shader->Dispatch({ data.downSample->getMipWidth(i), data.downSample->getMipHeight(i), 1 }, ComputeUsage::ShaderImageAcces | ComputeUsage::TextureFetch);
-			updata.iteration = i;
-		}
-
-		for (int i = (int)data.samples - 2; i >= 0; i--) {
-			const Texture2D* sourceTex = (i == (int)data.samples - 2) ? data.downSample.get() : data.upSample.get();
-
-			updata.desRes = glm::vec2(data.upSample->getMipWidth(i), data.upSample->getMipHeight(i)) - glm::vec2(1, 1);
-			storageBuffer->setData(&updata, sizeof(Data));
-
-			sourceTex->bind(0);
-			data.downSample->bind(1);
-			m_upSampleShader->setTexture("destination", 2, data.upSample, i, AccesMode::WriteOnly);
-			m_upSampleShader->Dispatch({ data.upSample->getMipWidth(i), data.upSample->getMipHeight(i), 1 }, ComputeUsage::ShaderImageAcces | ComputeUsage::TextureFetch);
-
-			updata.iteration = i;
-		}
-
-		return data.upSample.get();
-	}
-
 }

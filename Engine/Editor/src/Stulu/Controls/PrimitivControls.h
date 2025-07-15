@@ -30,6 +30,17 @@ namespace Editor {
 				return re;
 			});
 		} 
+		template<class UIntType, class MinType = UIntType, class MaxType = UIntType>
+		inline bool GenericInt(const std::string& label, UIntType& value, MinType min = 0, MaxType max = INT32_MAX, float speed = 1.0f, const char* format = "%d") {
+			return LabeledBaseControl(label, [&]() {
+				ImGui::PushItemWidth(-1);
+				int32_t tempValue = static_cast<int32_t>(value);
+				bool re = ImGui::DragInt("##value_uint", &tempValue, speed, static_cast<int32_t>(min), static_cast<int32_t>(max), format);
+				value = static_cast<UIntType>(tempValue);
+				ImGui::PopItemWidth();
+				return re;
+			});
+		} 
 		inline bool Bool(const std::string& label, bool& value) {
 			return LabeledBaseControl(label, [&]() {
 				ImGui::PushItemWidth(-1);
@@ -70,6 +81,17 @@ namespace Editor {
 					int32_t tempValue = static_cast<int32_t>(value);
 					bool re = ImGui::SliderInt("##value_slider_uint", &tempValue, min, max, format);
 					value = static_cast<uint32_t>(tempValue);
+					ImGui::PopItemWidth();
+					return re;
+					});
+			}
+			template<class UIntType, class MinTYpe = UIntType, class MaxType = UIntType>
+			inline bool GenericInt(const std::string& label, UIntType& value, MinTYpe min = 0, MaxType max = 100, const char* format = "%d") {
+				return LabeledBaseControl(label, [&]() {
+					ImGui::PushItemWidth(-1);
+					int32_t tempValue = static_cast<int32_t>(value);
+					bool re = ImGui::SliderInt("##value_slider_uint", &tempValue, static_cast<int32_t>(min), static_cast<int32_t>(max), format);
+					value = static_cast<UIntType>(tempValue);
 					ImGui::PopItemWidth();
 					return re;
 					});

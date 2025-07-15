@@ -9,7 +9,12 @@
 namespace Stulu {
 
 	inline uint32_t OpenGLTexture2D::GetInternalTextureType() const {
-		return HasMSAA() ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+		if (IsArray()) {
+			return HasMSAA() ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_ARRAY;
+		}
+		else {
+			return HasMSAA() ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+		}
 	}
 
 	void OpenGLTexture2D::CreateTextureResource() {
@@ -20,10 +25,18 @@ namespace Stulu {
 		glBindTexture(textureType, m_rendererID);
 
 
-		if(HasMSAA())
-			glTextureStorage2DMultisample(m_rendererID, (GLsizei)m_sampels, internalFormat, m_width, m_height, GL_TRUE);
-		else
-			glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
+		if (IsArray()) {
+			if (HasMSAA())
+				glTextureStorage3DMultisample(m_rendererID, (GLsizei)m_sampels, internalFormat, m_width, m_height, GetArraySize(), GL_TRUE);
+			else
+				glTextureStorage3D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height, GetArraySize());
+		}
+		else {
+			if (HasMSAA())
+				glTextureStorage2DMultisample(m_rendererID, (GLsizei)m_sampels, internalFormat, m_width, m_height, GL_TRUE);
+			else
+				glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
+		}
 
 
 		updateParameters();
@@ -52,17 +65,19 @@ namespace Stulu {
 			}
 		}
 
-		
+
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(uint32_t internalID, uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples)
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples, uint32_t arrayCount, uint32_t internalID)
 		: m_settings(settings), m_width(width), m_height(height), m_rendererID(internalID), m_sampels(samples) {}
+
+
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples)
 		: m_settings(settings), m_width(width), m_height(height), m_rendererID(0), m_sampels(samples) {
-	
 		CreateTextureResource();
 		GenerateMips();
 	}
+
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, const TextureSettings& settings)
 		:m_settings(settings), m_sampels(MSAASamples::Disabled) {
 

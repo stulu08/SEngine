@@ -20,6 +20,9 @@ namespace Stulu {
 		case ShaderType::Fragment:
 			return GL_FRAGMENT_SHADER;
 			break;
+		case ShaderType::Geometry:
+			return GL_GEOMETRY_SHADER;
+			break;
 		case ShaderType::Compute:
 			return GL_COMPUTE_SHADER;
 			break;

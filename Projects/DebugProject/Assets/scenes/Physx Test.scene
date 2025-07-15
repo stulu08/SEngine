@@ -2,24 +2,31 @@ Scene: Untitled
 Settings:
   shaderFlags: 0
   env_lod: 0
-  shadowDistance: 50
-  shadowFar: 500
-  shadowMapSize: 2048
   enablePhsyics3D: true
+  Shadows:
+    MapSize: 2048
+    CascadeCount:
+      - 8.5
+      - 50.9000015
+      - 188.199997
+      - 500
+    NearPlane: 0.00999999978
+    FarPlane: 500
+    ZMult: 10
   Fog:
-    fogMode: 3
+    fogMode: 0
     fogColor: [0.439999998, 0.439999998, 0.439999998, 1]
     linearFogStart: 50
     linearFogEnd: 250
-    fogDensity: 0.00209000008
+    fogDensity: 0.00499999989
     FogHorizonStrength: 0
-    FogHorizonFalloff: 7
-    EnableFogHorizon: 0
-    FogGroundStrength: 0.379000008
+    FogHorizonFalloff: 15
+    EnableFogHorizon: 1
+    FogGroundStrength: 1
     EnableGroundFog: 0
-    FogHorizonOffset: -1391
-    FogHorizonHeightFalloff: 4507
-    EnableHorizonHeightFog: 0
+    FogHorizonOffset: -1000
+    FogHorizonHeightFalloff: 2000
+    EnableHorizonHeightFog: 1
 Physics3D:
   m_gravity: [0, -1.98000002, 0]
 GameObjects:
@@ -30093,6 +30100,8 @@ GameObjects:
         enabled: true
         gamma: 2.20000005
         exposure: 1
+        maxWhite: 4
+        mappingMode: 1
       Bloom:
         enabled: true
         intensity: 0.5

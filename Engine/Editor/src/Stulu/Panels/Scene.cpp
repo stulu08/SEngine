@@ -322,7 +322,7 @@ namespace Editor {
 			Input::setEnabled(true);
 		}
 
-		if (IsFocused()) {
+		if (IsFocused() && IsVisible()) {
 			Input::setCursorMode(Input::CursorMode::Normal);
 		}
 

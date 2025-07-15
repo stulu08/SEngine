@@ -241,7 +241,6 @@ namespace Stulu {
 		}
 	}
 	void Gizmo::ApplyToFrameBuffer(const Ref<FrameBuffer>& camera) {
-		RenderCommand::setDepthTesting(false);
 		s_data.drawBuffer->getColorAttachment()->bind(0);
 		Renderer::ScreenQuad(camera, Resources::FullscreenShader());
 	}

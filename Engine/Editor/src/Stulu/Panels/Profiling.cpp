@@ -20,6 +20,12 @@ namespace Editor {
 		m_fps.reserve(50);
 		m_virtual.reserve(50);
 		m_physical.reserve(50);
+
+		FrameBufferSpecs specs;
+		specs.width = 256;
+		specs.height = 256;
+
+		m_cacheBuffer = FrameBuffer::create(specs, TextureFormat::RGBA);
 	}
 
 	void ProfilingPanel::DrawImGui() {
@@ -181,7 +187,15 @@ namespace Editor {
 		auto& sceneData = scene->getData();
 
 		if (ImGui::TreeNodeEx("Shadows")) {
-			ImGui::Image(renderer->GetShadowMap()->getDepthAttachment().get(), glm::vec2(256.0f), {0,1}, {1, 0});
+			static uint32_t layer = 0;
+			auto shader = Renderer::getShaderSystem()->GetShader("Editor/ArrayBlib");
+			auto depthMap = renderer->GetShadowMap()->getDepthAttachment().get();
+
+			depthMap->bind(1);
+			Renderer::ScreenQuad(m_cacheBuffer, shader, glm::vec4((float)layer));
+
+			Controls::Slider::GenericInt("Cascade", layer, 0, sceneData.graphicsData.shadows.CascadeSplits.size() - 1);
+			ImGui::Image(m_cacheBuffer->getColorAttachment().get(), glm::vec2(256.0f), { 0,1 }, { 1, 0 });
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNodeEx("Display")) {

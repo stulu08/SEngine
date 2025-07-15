@@ -62,6 +62,8 @@
 #include "Stulu/Resources/Assets/ModelAsset.h"
 #include "Stulu/Resources/Assets/ShaderAsset.h"
 #include "Stulu/Resources/Assets/TextureAssets.h"
+#include "Stulu/Renderer/PostProcessing/Effect.h"
+#include "Stulu/Renderer/PostProcessing/Bloom.h"
 #include "Stulu/Runtime/RuntimeLayer.h"
 #include "Stulu/Scene/GameObject.h"
 #include "Stulu/Scene/Model.h"

@@ -41,8 +41,8 @@ namespace Stulu {
 		// combines all the textures of the cameras, sorting by layer index
 		void GenSceneTexture(const Ref<FrameBuffer>& sceneFbo);
 		void ApplyPostProcessing(SceneCamera& camera);
-		void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingData& data = PostProcessingData());
-		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& data = PostProcessingData());
+		void ApplyPostProcessing(const Ref<FrameBuffer>& frameBuffer, PostProcessingComponent* data);
+		void ApplyPostProcessing(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingComponent* data);
 
 		void drawSceneShadow();
 		void drawScene();
@@ -61,11 +61,10 @@ namespace Stulu {
 		Ref<FrameBuffer> GetShadowMap() const {
 			return m_shadowMap;
 		}
+
+		glm::mat4 GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const;
+
 	private:
-		Texture* DoBloom(const Ref<FrameBuffer>& destination, const Texture2D* source, PostProcessingData& data);
-
-		Ref<Shader> m_postProcShader;
-
 		std::vector<RenderObject> m_drawList;
 		std::vector<RenderObject> m_transparentDrawList;
 
@@ -74,17 +73,8 @@ namespace Stulu {
 		Ref<FrameBuffer> m_shadowMap;
 		int32_t m_shadowCaster = -1;
 
-		//bloom
-		const uint32_t m_minWidth = 7;
-		const uint32_t m_minHeight = 5;
-		const uint32_t m_maxSamples = BLOOM_MAX_SAMPLES;
-		Ref<Shader> m_upSampleShader;
-		Ref<Shader> m_downSampleShader;
-		Ref<Shader> m_filterShader;
-
 		LightBufferData m_lightBufferData = LightBufferData();
 		SceneBufferData m_sceneBufferData = SceneBufferData();
-		PostProcessingBufferData m_postProcessingBufferData = PostProcessingBufferData();
 
 		Scene* m_scene;
 		

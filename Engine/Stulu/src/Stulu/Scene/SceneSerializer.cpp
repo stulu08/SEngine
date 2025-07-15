@@ -117,10 +117,16 @@ namespace Stulu {
 			{
 				out << YAML::Key << "shaderFlags" << YAML::Value << scene->getData().shaderFlags;
 				out << YAML::Key << "env_lod" << YAML::Value << scene->getData().graphicsData.env_lod;
-				out << YAML::Key << "shadowDistance" << YAML::Value << scene->getData().graphicsData.shadowDistance;
-				out << YAML::Key << "shadowFar" << YAML::Value << scene->getData().graphicsData.shadowFar;
-				out << YAML::Key << "shadowMapSize" << YAML::Value << scene->getData().graphicsData.shadowMapSize;
 				out << YAML::Key << "enablePhsyics3D" << YAML::Value << scene->getData().enablePhsyics3D;
+
+				out << YAML::Key << "Shadows" << YAML::Value << YAML::BeginMap;
+				out << YAML::Key << "MapSize" << YAML::Value << scene->getData().graphicsData.shadows.MapSize;
+				out << YAML::Key << "CascadeCount" << YAML::Value << scene->getData().graphicsData.shadows.CascadeSplits;
+				out << YAML::Key << "NearPlane" << YAML::Value << scene->getData().graphicsData.shadows.NearPlane;
+				out << YAML::Key << "FarPlane" << YAML::Value << scene->getData().graphicsData.shadows.FarPlane;
+				out << YAML::Key << "BlendingDistance" << YAML::Value << scene->getData().graphicsData.shadows.BlendingDistance;
+				out << YAML::Key << "ZMult" << YAML::Value << scene->getData().graphicsData.shadows.ZMult;
+				out << YAML::EndMap;
 
 				out << YAML::Key << "Fog" << YAML::Value << YAML::BeginMap;
 				out << YAML::Key << "fogMode" << YAML::Value << scene->getData().graphicsData.fog.fogMode;
@@ -172,41 +178,54 @@ namespace Stulu {
 					sceneData.shaderFlags = settings["shaderFlags"].as<uint32_t>();
 				if (settings["env_lod"]) 
 					sceneData.graphicsData.env_lod = settings["env_lod"].as<float>();
-				if (settings["shadowDistance"]) 
-					sceneData.graphicsData.shadowDistance = settings["shadowDistance"].as<float>();
-				if (settings["shadowFar"]) 
-					sceneData.graphicsData.shadowFar = settings["shadowFar"].as<float>();
-				if (settings["shadowMapSize"]) 
-					sceneData.graphicsData.shadowMapSize = settings["shadowMapSize"].as<uint32_t>();
 				if (settings["enablePhsyics3D"]) 
 					sceneData.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
+
+				if (settings["Shadows"]) {
+					YAML::Node shadows = settings["Shadows"];
+					if (shadows["MapSize"])
+						sceneData.graphicsData.shadows.MapSize = shadows["MapSize"].as<uint32_t>();
+					if (shadows["CascadeCount"])
+						sceneData.graphicsData.shadows.CascadeSplits = shadows["CascadeCount"].as<std::vector<float>>();
+					if (shadows["NearPlane"])
+						sceneData.graphicsData.shadows.NearPlane = shadows["NearPlane"].as<float>();
+					if (shadows["FarPlane"])
+						sceneData.graphicsData.shadows.FarPlane = shadows["FarPlane"].as<float>();
+					if (shadows["BlendingDistance"])
+						sceneData.graphicsData.shadows.BlendingDistance = shadows["BlendingDistance"].as<float>();
+					if (shadows["ZMult"])
+						sceneData.graphicsData.shadows.ZMult = shadows["ZMult"].as<float>();
+
+					scene->getRenderer()->resizeShadowMap();
+				}
+
 				if (settings["Fog"]) {
 					YAML::Node fog = settings["Fog"];
-					if(settings["fogColor"])
+					if(fog["fogColor"])
 						sceneData.graphicsData.fog.fogColor = fog["fogColor"].as<glm::vec4>();
-					if(settings["fogMode"])
+					if(fog["fogMode"])
 						sceneData.graphicsData.fog.fogMode = fog["fogMode"].as<float>();
-					if(settings["linearFogStart"])
+					if(fog["linearFogStart"])
 						sceneData.graphicsData.fog.linearFogStart = fog["linearFogStart"].as<float>();
-					if(settings["linearFogEnd"])
+					if(fog["linearFogEnd"])
 						sceneData.graphicsData.fog.linearFogEnd = fog["linearFogEnd"].as<float>();
-					if(settings["fogDensity"])
+					if(fog["fogDensity"])
 						sceneData.graphicsData.fog.fogDensity = fog["fogDensity"].as<float>();
-					if(settings["FogHorizonStrength"])
+					if(fog["FogHorizonStrength"])
 						sceneData.graphicsData.fog.FogHorizonStrength = fog["FogHorizonStrength"].as<float>();
-					if(settings["FogHorizonFalloff"])
+					if(fog["FogHorizonFalloff"])
 						sceneData.graphicsData.fog.FogHorizonFalloff = fog["FogHorizonFalloff"].as<float>();
-					if(settings["EnableFogHorizon"])
+					if(fog["EnableFogHorizon"])
 						sceneData.graphicsData.fog.EnableFogHorizon = fog["EnableFogHorizon"].as<float>();
-					if(settings["FogGroundStrength"])
+					if(fog["FogGroundStrength"])
 						sceneData.graphicsData.fog.FogGroundStrength = fog["FogGroundStrength"].as<float>();
-					if(settings["EnableGroundFog"])
+					if(fog["EnableGroundFog"])
 						sceneData.graphicsData.fog.EnableGroundFog = fog["EnableGroundFog"].as<float>();
-					if(settings["FogHorizonOffset"])
+					if(fog["FogHorizonOffset"])
 						sceneData.graphicsData.fog.FogHorizonOffset = fog["FogHorizonOffset"].as<float>();
-					if(settings["FogHorizonHeightFalloff"])
+					if(fog["FogHorizonHeightFalloff"])
 						sceneData.graphicsData.fog.FogHorizonHeightFalloff = fog["FogHorizonHeightFalloff"].as<float>();
-					if (settings["EnableHorizonHeightFog"])
+					if (fog["EnableHorizonHeightFog"])
 						sceneData.graphicsData.fog.EnableHorizonHeightFog = fog["EnableHorizonHeightFog"].as<float>();
 				}
 

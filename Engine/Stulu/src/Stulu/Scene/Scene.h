@@ -9,15 +9,21 @@
 #include "Stulu/Types/Timestep.h"
 #include "Registry.h"
 
-namespace Stulu {	
+namespace Stulu {
+	struct ShadowSettings {
+		uint32_t MapSize = 2048u;
+		std::vector<float> CascadeSplits = Math::CalculateCascadeSplits(3, 500.0f);
+		float NearPlane = 0.01f;
+		float FarPlane = 500.0f;
+		float ZMult = 10.0f;
+		float BlendingDistance = 10.0f;
+	};
 	struct SceneGraphicsData {
 		float env_lod = 1.0f;
-		float shadowDistance = 50.0f;
-		float shadowFar = 500.0f;
-		uint32_t shadowMapSize = 2048;
 		// this wont render the skybox, but will still bind it
 		bool transparentBG = false;
 		FogSettings fog;
+		ShadowSettings shadows;
 	};
 	struct SceneData {
 		SceneGraphicsData graphicsData;

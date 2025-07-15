@@ -15,10 +15,12 @@ namespace Stulu {
 
 	class STULU_API OpenGLTexture2D : public virtual Texture2D {
 	public:
-		OpenGLTexture2D(uint32_t internalID, uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples);
-
-		OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples);
+		// Create from file
 		OpenGLTexture2D(const std::string& path, const TextureSettings& settings);
+		// Create empty
+		OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples);
+		// Create Internal
+		OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples, uint32_t arrayCount, uint32_t internalID);
 
 		virtual ~OpenGLTexture2D();
 
@@ -32,6 +34,7 @@ namespace Stulu {
 		virtual uint32_t getMipHeight(uint32_t level) const override { return uint32_t((float)m_height / (glm::pow(2, level))); }
 		virtual MSAASamples GetSamples() const override { return m_sampels; }
 		virtual void SetSamples(MSAASamples sampels) override { m_sampels = sampels; }
+		virtual uint32_t GetArraySize() const override { return m_settings.arraySize; }
 
 		virtual TextureSettings& getSettings() override { return m_settings; }
 
@@ -51,6 +54,7 @@ namespace Stulu {
 
 		uint32_t GetInternalTextureType() const;
 	private:
+		inline bool IsArray() const { return GetArraySize() > 1; }
 		inline bool HasMips() const { return m_settings.levels > 1 || m_settings.filtering == TextureFiltering::Trilinear; }
 		inline bool HasMSAA() const { return ((uint32_t)m_sampels) > 1; }
 

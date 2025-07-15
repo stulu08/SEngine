@@ -15,6 +15,8 @@ namespace Stulu {
 			return EShLanguage::EShLangVertex;
 		case ShaderType::Fragment:
 			return EShLanguage::EShLangFragment;
+		case ShaderType::Geometry:
+			return EShLanguage::EShLangGeometry;
 		case ShaderType::Compute:
 			return EShLanguage::EShLangCompute;
 		}
@@ -31,6 +33,7 @@ namespace Stulu {
 
 		AddHeader("#extension GL_ARB_separate_shader_objects : enable");
 		AddHeader("#extension GL_ARB_shading_language_420pack : enable");
+		AddHeader("#extension GL_GOOGLE_cpp_style_line_directive : enable");
 	}
 	constexpr bool combined_shader_modules = true;
 

@@ -52,6 +52,7 @@ namespace Editor{
 
 
 	private:
+		Stulu::Ref<Stulu::FrameBuffer> m_cacheBuffer;
 		TimingGroupList m_timings;
 		float m_lastFrameTime = 0.0f;
 		float m_updateTimer = 0.0f;

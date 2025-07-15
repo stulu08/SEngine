@@ -101,7 +101,7 @@ namespace Editor {
 		m_scene->onUpdateRuntime(Timestep(.05f));
 		m_scene->onRuntimeStop();
 
-		m_scene->getRenderer()->ApplyPostProcessing(m_camera.getComponent<CameraComponent>().GetResultFrameBuffer());
+		m_scene->getRenderer()->ApplyPostProcessing(m_camera.getComponent<CameraComponent>().GetResultFrameBuffer(), 0);
 		return m_camera.getComponent<CameraComponent>().GetResultTexture();
 	}
 

@@ -29,6 +29,32 @@ namespace Stulu{
 			Exp2 = 3
 		};
 	};
+	struct alignas (16) SceneBufferData {
+		glm::mat4 skyBoxRotation = glm::mat4(1.0f);
+		glm::vec4 clearColor = glm::vec4(.0f);
+
+		// 4 scalars
+		uint32_t useSkybox = 0;
+		uint32_t shaderFlags = 0;
+		int32_t shadowCaster = -1;
+		uint32_t cascadeCount = 0;
+
+		glm::mat4 lightSpaceMatrices[ST_MAX_SHADOW_CASCADES + 1] = {};
+		glm::vec4 cascadePlaneDistances[ST_MAX_SHADOW_CASCADES + 1] = {};
+		glm::vec4 cascadeBlendDistance = glm::vec4(1.0f);
+		union {
+			glm::vec4 shadowCasterPosPacked;
+			struct {
+				glm::vec3 shadowCasterPos;
+				float env_lod;
+			};
+		};
+		
+
+		FogSettings fogSettings;
+	};
+
+
 	struct alignas (16) CameraBufferData {
 		glm::mat4 viewProjectionMatrix;
 		glm::mat4 viewMatrix;
@@ -45,30 +71,6 @@ namespace Stulu{
 			glm::vec4 spotLightData = glm::vec4(1.0f);
 		} lights[ST_MAXLIGHTS];
 		uint32_t lightCount = 0;
-	};
-	struct alignas (16) PostProcessingBufferData {
-		float time = 0.0f;
-		float delta = 0.0f;
-		float enableGammaCorrection = 1.0f;
-		float toneMappingExposure = 1.0f;
-		float gamma = 2.2f;
-		float bloomStrength = 1.0f;
-	};
-	struct alignas (16) SceneBufferData {
-		glm::mat4 skyBoxRotation = glm::mat4(1.0f);
-		glm::vec4 clearColor = glm::vec4(.0f);
-
-		uint32_t useSkybox = 0;
-		uint32_t emptyData = 0;
-		uint32_t shaderFlags = 0;
-		float env_lod = 4.0f;
-
-		glm::mat4 lightSpaceMatrix = glm::mat4(1.0f);
-
-		glm::vec3 shadowCasterPos = glm::vec3(0.0);
-		int32_t shadowCaster = -1;
-
-		FogSettings fogSettings;
 	};
 	struct alignas (16) GlobalMaterialBufferData {
 		uint32_t alphaMode;
@@ -120,9 +122,9 @@ namespace Stulu{
 		static void Shutdown();
 		static void onWindowResize(WindowResizeEvent& e);
 
-		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Shader* shader = nullptr);
-		static inline void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader = nullptr) {
-			ScreenQuad(destination, shader.get());
+		static void ScreenQuad(const Ref<FrameBuffer>& destination, const Shader* shader = nullptr, const glm::vec4& userData = glm::vec4(1.0f));
+		static inline void ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader = nullptr, const glm::vec4& userData = glm::vec4(1.0f)) {
+			ScreenQuad(destination, shader.get(), userData);
 		}
 
 		static void UploadModelData(const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t id = UINT32_MAX);

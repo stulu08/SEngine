@@ -8,12 +8,11 @@
 
 
 struct PBRData {
-	vec3  albedo;
+	vec4  albedo;
 	vec3  emission;
 	float metallic;
 	float roughness;
 	float ao;
-	float alpha;
 
 	vec3 worldPos;
 	vec3 normal;
@@ -35,14 +34,14 @@ PBRResult ComputePBR(const PBRData data) {
 	vec3 V = normalize(cameraPosition.xyz - data.worldPos);
 	vec3 R = reflect(-V, N);
 	vec3 F0 = vec3(0.04); 
-	F0 = mix(F0, data.albedo, data.metallic);
+	F0 = mix(F0, data.albedo.rgb, data.metallic);
 
 	//lighting
 	LightComputeData lightData;
 	lightData.worldPos = data.worldPos;
 	lightData.view = V;
 	lightData.normal = N;
-	lightData.albedo = data.albedo;
+	lightData.albedo = data.albedo.rgb;
 	lightData.roughness = data.roughness;
 	lightData.metallic = data.metallic;
 	lightData.F0 = F0;
@@ -50,12 +49,12 @@ PBRResult ComputePBR(const PBRData data) {
 	vec3 Lo = data.emission;
 	for(int i = 0; i < lightCount; i++){
 		
-		vec3 L = vec3(0);
-		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData, L);
+		vec3 LightDirOut = vec3(0);
+		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData, LightDirOut);
 
 		float shadow = 1.0;
 		if(shadowCaster == i) {
-			shadow = ComputeShadow(lightSpaceMatrix * vec4(data.worldPos, 1.0), shadowMap, N, L);
+			shadow = ComputeCSMShadow(vec4(data.worldPos, 1.0), N, LightDirOut);
 		}
 
 		Lo += lightOut * shadow;
@@ -71,9 +70,9 @@ PBRResult ComputePBR(const PBRData data) {
 	vec2 brdf = vec2(0.0);
 
 	if(useSkybox) {
-		vec3 SB_N = getSkyBoxCoords(N, skyBoxRotation);
-		vec3 SB_R = getSkyBoxCoords(R, skyBoxRotation);
-		vec3 SB_V = getSkyBoxCoords(V, skyBoxRotation);
+		vec3 SB_N = GetSkyBoxCoords(N, skyBoxRotation);
+		vec3 SB_R = GetSkyBoxCoords(R, skyBoxRotation);
+		vec3 SB_V = GetSkyBoxCoords(V, skyBoxRotation);
 		
 		irradiance = texture(irradianceMap, SB_N).rgb;
 		//irradiance = texture(irradianceMap, N).rgb;
@@ -87,12 +86,12 @@ PBRResult ComputePBR(const PBRData data) {
 
 	PBRResult res;
 	res.lightOut = Lo;
-	res.diffuse  = irradiance * data.albedo;
+	res.diffuse  = irradiance * data.albedo.rgb;
 	res.specular = prefilteredColor * (F * brdf.x + brdf.y);
-	res.ambient = ((kD * res.diffuse * data.alpha) + res.specular)*data.ao;
+	res.ambient = ((kD * res.diffuse * data.albedo.a) + res.specular)*data.ao;
 	res.normal = data.normal;
 	res.color = (res.ambient + res.lightOut);	
-	res.alpha = data.alpha;
+	res.alpha = data.albedo.a;
 
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
 		res.color = vec3(res.lightOut);
@@ -115,7 +114,7 @@ PBRResult ComputePBR(const PBRData data) {
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
 		res.color = vec3(data.texCoords, 0);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
-		res.color = vec3(data.albedo);
+		res.color = vec3(data.albedo.rgb);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayEmission))
 		res.color = vec3(data.emission);
 

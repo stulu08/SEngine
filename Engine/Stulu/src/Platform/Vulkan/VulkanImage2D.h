@@ -32,6 +32,9 @@ namespace Stulu {
 		virtual void getData(void* data, uint32_t size, uint32_t mipLevel = 0) const override;
 		virtual uint32_t getPixel(uint32_t posX, uint32_t posY, uint32_t mipLevel = 0) const override;
 
+		virtual uint32_t GetArraySize() const override { return 1; }
+
+
 		virtual void updateParameters() override;
 
 		virtual bool operator == (const Texture& other) const override;

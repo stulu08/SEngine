@@ -35,7 +35,8 @@ namespace Stulu {
 		Ref<Shader> AddShader(const std::string& path);
 		void LoadAllShaders(const std::string& path);
 		
-		void ProcessShader(std::string& source) const;
+		// loads a file from the internal shader system or relative to the include directories
+		std::string LoadShaderSource(const std::string& shaderStr) const;
 
 		Ref<Shader> CreateShader(const std::string& name, const ShaderSource& source, const std::vector<Ref<MaterialProperty>>& properties = {}, const std::string& path = "");
 
@@ -81,16 +82,26 @@ namespace Stulu {
 			return m_cacheFolder + "/" + name + ".cached-shader";
 		}
 	private:
-		std::string GetShaderName(const std::string& source) const;
-		std::vector<Ref<MaterialProperty>> ProcessProperties(std::string& source) const;
-		ShaderSource ProcessRegions(std::string& source) const;
-
 		Ref<ShaderCompiler> m_compiler;
 		std::string m_cacheFolder;
 		std::map<std::string, Ref<ShaderEntry>> m_shaders;
 		std::vector<std::string> m_includeDirs;
 		std::unordered_map<std::string, std::string> m_internalFiles;
 		bool m_spirvSupported;
+
+		struct ShaderIncludeNode {
+			std::string filename;
+			std::vector<std::string> lines;
+			std::vector<std::pair<size_t, ShaderIncludeNode>> includes;
+		};
+
+		std::string ProcessShader(const std::string& fileName) const;
+		ShaderIncludeNode ParseShaderIncludeTree(const std::string& filepath) const;
+		void FlattenShaderInclude(const ShaderIncludeNode& node, std::ostream& out, const std::string& indent = "") const;
+
+		std::string GetShaderName(const std::string& source) const;
+		std::vector<Ref<MaterialProperty>> ProcessProperties(std::string& source) const;
+		ShaderSource ProcessRegions(std::string& source) const;
 	};
 
 #define ST_ShaderViewFlags_DisplayLighting ((uint32_t)ShaderViewFlags::DisplayLighting)
@@ -106,6 +117,7 @@ namespace Stulu {
 #define ST_ShaderViewFlags_DisplayOcclusion ((uint32_t)ShaderViewFlags::DisplayAmbientOcclusion)
 #define ST_ShaderViewFlags_DisplayDepth ((uint32_t)ShaderViewFlags::DisplayDepth)
 	static inline constexpr int32_t ST_MAXLIGHTS = 50;
+	static inline constexpr int32_t ST_MAX_SHADOW_CASCADES = 6;
 
 	enum class ShaderViewFlags {
 		DisplayLighting = 1 << 0,

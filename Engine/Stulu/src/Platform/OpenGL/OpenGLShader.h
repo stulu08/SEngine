@@ -63,7 +63,6 @@ namespace Stulu {
 		uint32_t m_rendererID;
 		std::string m_name;
 
-		void compile(const ShaderSource& sources);
 		void link(const ShaderCompileResult& sources);
 	};
 }

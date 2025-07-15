@@ -9,6 +9,12 @@
 
 namespace Stulu {
 	static bool s_enabled = true;
+	static std::unordered_map<int32_t, bool> wininput_keysWentDown;
+	static std::unordered_map<int32_t, bool> wininput_keysWentUp;
+	static std::unordered_map<int32_t, bool> wininput_mouseButtonsWentDown;
+	static std::unordered_map<int32_t, bool> wininput_mouseButtonsWentUp;
+	static glm::vec2 m_mouseDelta = glm::vec2(0.0f);
+	static float m_lastMouseXPos = 0, m_lastMouseYPos = 0;
 
 	void Input::setEnabled(bool value) {
 		s_enabled = value;
@@ -78,17 +84,13 @@ namespace Stulu {
 		};
 		return Stulu::Input::CursorMode::Disabled;
 	}
-	static glm::vec2 m_mouseDelta = glm::vec2(0.0f);
-	static float m_lastMouseXPos = 0, m_lastMouseYPos = 0;
+
 	glm::vec2 Input::getMouseDelta() {
 		if (!s_enabled)
 			return glm::vec2(.0f);
 		return m_mouseDelta;
 	}
-	static std::unordered_map<int32_t, bool> wininput_keysWentDown;
-	static std::unordered_map<int32_t, bool> wininput_keysWentUp;
-	static std::unordered_map<int32_t, bool> wininput_mouseButtonsWentDown;
-	static std::unordered_map<int32_t, bool> wininput_mouseButtonsWentUp;
+
 	bool onKeyDown(Stulu::KeyDownEvent& e) {
 		if(e.getRepeatCount() == 0)
 			wininput_keysWentDown[e.getKeyCode()] = true;
@@ -140,14 +142,17 @@ namespace Stulu {
 	}
 
 	void Input::update() {
-		m_mouseDelta = glm::vec2(Input::getMouseX() - m_lastMouseXPos, Input::getMouseY() - m_lastMouseYPos);
-		m_lastMouseXPos = Input::getMouseX();
-		m_lastMouseYPos = Input::getMouseY();
+		float mX = Input::getMouseX();
+		float mY = Input::getMouseY();
+		m_mouseDelta = glm::vec2(mX - m_lastMouseXPos, mY - m_lastMouseYPos);
+		m_lastMouseXPos = mX;
+		m_lastMouseYPos = mY;
 
 		wininput_keysWentDown.clear();
 		wininput_keysWentUp.clear();
 		wininput_mouseButtonsWentDown.clear();
 		wininput_mouseButtonsWentUp.clear();
+
 	}
 }
 #endif // ST_PLATFORM_WINDOWS

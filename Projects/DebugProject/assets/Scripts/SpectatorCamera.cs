@@ -39,18 +39,9 @@ public class SpectatorCamera : Component {
 		Log.Warn("Test");
 		Log.Error("Test");
 		Log.Critical("Test");
+
 	}
 	public override void onUpdate() {
-		if (Input.getKeyDown(KeyCode.Escape))
-		{
-			Input.setCursorMode(CursorMode.Normal);
-		}
-		if (Input.getMouseButton(MouseButton.Left))
-		{
-			Input.setCursorMode(CursorMode.Disabled);
-		}
-
-
 		Vector3 inputDiagonal = Input.getAxis(front, back) * transform.forward;
 		Vector3 inputVertical = Input.getAxis(up, down) * Vector3.Up;
 		Vector3 inputHorizonatl = Input.getAxis(right, left) * transform.right;
@@ -63,13 +54,15 @@ public class SpectatorCamera : Component {
 		transform.setRotation(Quaternion.Euler(mouse));
 
 		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) {
+			Input.setCursorMode(CursorMode.Disabled);
+
 			if (nextTimeToFire < Time.time) {
 				GameObject projectile = GameObject.CreateSphere("Projectile_" + projectileCount, transform.position);
 				RigidbodyComponent rb = projectile.addComponent<RigidbodyComponent>();
 				rb.kinematic = false;
 				rb.addForce(transform.forward * BulletForce, ForceMode.Impulse);
 
-				//projectile.addComponent<TestScript>().camera = this.gameObject;
+				projectile.addComponent<TestScript>().camera = this.gameObject;
 
 				projectileCount++;
 				nextTimeToFire = Time.time + (1.0f / FireRate);

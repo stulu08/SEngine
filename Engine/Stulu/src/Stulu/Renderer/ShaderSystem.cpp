@@ -11,6 +11,7 @@ namespace Stulu {
 		m_compiler->AddHeaderFront("#version 450");
 		
 		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
+		AddIncludePath(std::filesystem::current_path().string());
 		AddInternalIncludeFile("Stulu/Internals.glsl",
 			std::string("#ifndef _STULU_INTERNALS_GLSL_\n") +
 			std::string("#define _STULU_INTERNALS_GLSL_\n") +
@@ -45,6 +46,7 @@ namespace Stulu {
 			std::string("#define ST_USER_TEXTURE_END ") + std::to_string(ST_USER_TEXTURE_END) + "\n" +
 			std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
 			std::string("#define MAX_REFLECTION_LOD ") + std::to_string(ST_MAX_REFLECTION_LOD) + "\n" +
+			std::string("#define ST_MAX_SHADOW_CASCADES ") + std::to_string(ST_MAX_SHADOW_CASCADES) + "\n" +
 			std::string("#define ST_USER_MATERIAL_BINDING ") + std::to_string((int)BufferBinding::UserMaterial) + "\n" +
 			std::string("#endif\n")
 		);
@@ -58,8 +60,7 @@ namespace Stulu {
 			CORE_ERROR("Cant find shader file: {0}", path);
 			return nullptr;
 		}
-		std::string source = ReadFile(path);
-		
+		std::string source = ProcessShader(path);
 		std::string name = GetShaderName(source);
 		if (name.empty())
 			return nullptr; // no #SShader 
@@ -70,7 +71,6 @@ namespace Stulu {
 			return m_shaders[name]->GetShader();
 		}
 
-		ProcessShader(source);
 		auto sources = ProcessRegions(source);
 		auto props = ProcessProperties(source);
 
@@ -85,6 +85,25 @@ namespace Stulu {
 			if (path.extension() == ".glsl" || path.extension() == ".comp")
 				AddShader(path.string());
 		}
+	}
+
+	std::string ShaderSystem::LoadShaderSource(const std::string& fileStr) const {
+		// Check internal
+		if (m_internalFiles.find(fileStr) != m_internalFiles.end()) {
+			return m_internalFiles.at(fileStr);
+		}
+		// Check includes
+		else {
+			for (const std::string& path : m_includeDirs) {
+				std::string fPath = path + "/" + fileStr;
+				if (FileExists(fPath)) {
+					return ReadFile(fPath);
+				}
+			}
+		}
+
+		CORE_ERROR("Shader not found: {0}", fileStr);
+		return "";
 	}
 	
 	void ShaderSystem::ReloadShaders() {
@@ -108,7 +127,7 @@ namespace Stulu {
 			return;
 		}
 
-		std::string source = ReadFile(entry->m_path);
+		std::string source = ProcessShader(entry->m_path);
 		std::string newName = GetShaderName(source);
 
 		if (newName != name) {
@@ -121,7 +140,6 @@ namespace Stulu {
 		if (newName.empty())
 			return; // no #SShader 
 
-		ProcessShader(source);
 		auto sources = ProcessRegions(source);
 		auto props = ProcessProperties(source);
 
@@ -169,56 +187,14 @@ namespace Stulu {
 			return "";
 		}
 	}
-	void ShaderSystem::ProcessShader(std::string& source) const{
-		// includes
-		const char* token = "#include ";
-		for (size_t pos = source.find(token); pos != source.npos; pos = source.find(token, pos + 1)) {
-			if (source[pos - 1] != '\n' && source[pos - 1] != '\r')
-				continue;
 
-			const size_t maxEnd = source.find("\n\r", pos);
-			const size_t begin = source.find('\"', pos);
-			const size_t end = source.find("\"", begin + 1);
-
-			if (begin >= maxEnd || end >= maxEnd) {
-				const size_t maxNum = glm::min((size_t) 15, maxEnd - pos);
-				CORE_ERROR("Error while parsing shader at: {0}", source.substr(pos, maxNum));
-				CORE_ASSERT(false, "Syntax error");
-				return;
-			}
-
-			const std::string fileStr = source.substr(begin + 1, end - begin - 1);
-			std::string content = "/* Include -> \"" + fileStr + "\" */\n";
-
-			if (m_internalFiles.find(fileStr) != m_internalFiles.end()) {
-				content += m_internalFiles.at(fileStr);
-			}
-			else {
-				std::string file = "";
-				for (const std::string& path : m_includeDirs) {
-					const std::string fPath = path + "/" + fileStr;
-					if (FileExists(fPath)) {
-						file = fPath;
-						break;
-					}
-				}
-				if (file.empty()) {
-					CORE_ERROR("File not found: {0}", fileStr);
-					CORE_ASSERT(false, "Include error");
-					continue;
-				}
-				content += ReadFile(file);
-			}
-
-			source.replace(pos, end - pos + 1, content);
-		}
-	}
 
 	Ref<Shader> ShaderSystem::CreateShader(const std::string& name, const ShaderSource& sources, const std::vector<Ref<MaterialProperty>>& properties, const std::string& path) {
 		ShaderCompileResult compileResult;
 		if (!m_compiler->CompileToCache(sources, BuildCacheFile(name), compileResult)) {
 			CORE_ERROR("Compilation for shader '{0}' failed!", name);
 			CORE_ASSERT(false, "");
+			// Delete and retype following to copy shader files after build: B====D
 			return nullptr;
 		}
 
@@ -333,4 +309,72 @@ namespace Stulu {
 		return false;
 	}
 
+	std::string ShaderSystem::ProcessShader(const std::string& filename) const {
+		ShaderSystem::ShaderIncludeNode node = ParseShaderIncludeTree(filename);
+		
+		std::stringstream stream;
+		FlattenShaderInclude(node, stream);
+		return stream.str();
+	}
+
+	ShaderSystem::ShaderIncludeNode ShaderSystem::ParseShaderIncludeTree(const std::string& filepath) const {
+		ShaderIncludeNode node;
+		node.filename = filepath;
+		
+		std::string source = LoadShaderSource(filepath);
+		if (source.empty()) {
+			node.filename = ":<file not found>";
+			return node;
+		}
+
+		std::istringstream ss(source);
+		std::string line;
+		size_t lineIndex = 0;
+
+		while (std::getline(ss, line)) {
+			if (line.find("#include ") != std::string::npos) {
+				size_t begin = line.find('\"');
+				size_t end = line.find('\"', begin + 1);
+				if (begin == std::string::npos || end == std::string::npos) {
+					CORE_ERROR("Malformed #include in {0} at line {1}", filepath, lineIndex + 1);
+					continue;
+				}
+
+				std::string includePath = line.substr(begin + 1, end - begin - 1);
+				ShaderIncludeNode childNode = ParseShaderIncludeTree(includePath);
+
+				// Mark this line as a placeholder for include
+				node.includes.emplace_back(lineIndex, std::move(childNode));
+				node.lines.push_back(""); // placeholder
+			}
+			else {
+				node.lines.push_back(line);
+			}
+			++lineIndex;
+		}
+		return node;
+	}
+	void ShaderSystem::FlattenShaderInclude(const ShaderIncludeNode& node, std::ostream& out, const std::string& indent) const {
+		size_t lineCount = 0;
+		size_t includeIdx = 0;
+
+		for (size_t i = 0; i < node.lines.size(); ++i) {
+			// Is this line an include marker?
+			if (includeIdx < node.includes.size() && node.includes[includeIdx].first == i) {
+				const ShaderIncludeNode& child = node.includes[includeIdx].second;
+
+				out << indent << "/* Begin Include \"" << child.filename << "\" */\n";
+				out << indent << "#line 1 \"" << child.filename << "\"\n";
+				FlattenShaderInclude(child, out, indent);
+				out << indent << "#line " << (lineCount + 3) << " \"" << node.filename << "\"\n";
+				out << indent << "/* End Include \"" << child.filename << "\" */\n";
+
+				includeIdx++;
+				continue;
+			}
+
+			out << indent << node.lines[i] << "\n";
+			++lineCount;
+		}
+	}
 }

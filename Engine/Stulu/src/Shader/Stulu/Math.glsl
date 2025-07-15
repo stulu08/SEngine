@@ -52,4 +52,24 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
+
+highp float rand(vec2 co)
+{
+    highp float a = 12.9898;
+    highp float b = 78.233;
+    highp float c = 43758.5453;
+    highp float dt= dot(co.xy ,vec2(a,b));
+    highp float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
+vec3 randColor(float seed) {
+
+    float x1 = seed * 1.0934;    
+    float x2 = seed * 1.485;
+
+    float r = rand(vec2(x1, x2));
+    float g = rand(vec2(x2, x1));
+    float b = max((1.5 - (r + g)), 0.0);
+    return vec3(r, g, b);
+}
 #endif

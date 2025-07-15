@@ -26,6 +26,7 @@ namespace Editor {
 	private:
 		uint32_t m_width = 1, m_height = 1;
 		ImVec2 m_windowPos;
+		bool m_hovered = false;
 		Stulu::Ref<Stulu::FrameBuffer> m_framebuffer;
 
 		bool OnKeyPressed(Stulu::KeyDownEvent& e);

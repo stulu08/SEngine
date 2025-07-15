@@ -61,19 +61,22 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setDefault() {
+		OpenGLStateCache::Reset();
+
 		setCullMode(CullMode::BackAndFront);
 		setDepthTesting(true);
 		glDepthFunc(GL_LESS);
+
+		StencilAlways(0xFF, 0);
+		SetStencilValue(0x00);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glLineWidth(1.0f);
 
-		StencilAlways(0xFF, 0);
-		SetStencilValue(0x00);
+		
 
-		OpenGLStateCache::Reset();
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {

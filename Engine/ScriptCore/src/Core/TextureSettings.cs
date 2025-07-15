@@ -1,5 +1,6 @@
 ﻿#pragma warning disable 1591
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace Stulu
@@ -44,7 +45,7 @@ namespace Stulu
 	};
 	*/
 
-	[StructLayout(LayoutKind.Sequential, Size = 40, Pack = 8)]
+	[StructLayout(LayoutKind.Sequential, Size = 44, Pack = 8)]
 	public struct TextureSettings
 	{
 		[MarshalAs(UnmanagedType.U4)]
@@ -65,6 +66,9 @@ namespace Stulu
 		[MarshalAs(UnmanagedType.U4)]
 		public TextureFiltering Filtering;
 
+		[MarshalAs(UnmanagedType.U4)]
+		public uint ArraySize;
+
 		public TextureSettings(TextureFormat format)
 		{
 			Format = format;
@@ -73,6 +77,7 @@ namespace Stulu
 			Levels = 1;
 			Borders = Vector4.Zero;
 			Filtering = TextureFiltering.Linear;
+			ArraySize = 1;
 		}
 	}
 }

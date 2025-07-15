@@ -197,6 +197,72 @@ namespace Editor {
 			return ICON_FK_CIRCLE " Circle Renderer";
 		}
 	};
+	class PostProcessingInspector : public NativeInspectorRenderer<PostProcessingComponent> {
+	public:
+		virtual void DrawGUI(PostProcessingComponent& comp) const override {
+			if (comp.HasEffect<GammaCorrectionEffect>()) {
+				GammaCorrectionEffect& gammaEffect = *comp.GetEffect<GammaCorrectionEffect>();
+				bool enabled = gammaEffect.IsEnabled();
+
+				if (ImGui::TreeNodeEx("Correction", ImGuiTreeNodeFlags_SpanAvailWidth)) {
+					if (Controls::Default("Enabled", enabled)) {
+						gammaEffect.SetEnabled(enabled);
+					}
+
+					Controls::Default("Enable Gamma", gammaEffect.enableGammaCorrection);
+					Controls::Slider::Float("Gamma", gammaEffect.gamma, 1.0f, 5.0f);
+					Controls::Combo("Tone Mapping", gammaEffect.toneMappingMode);
+					Controls::Slider::Float("Exposure", gammaEffect.exposure, 1.0f, 10.0f);
+					if (gammaEffect.toneMappingMode == GammaCorrectionEffect::ReinhardExtended)
+						Controls::Slider::Float("Max White", gammaEffect.maxWhite, 0.0f, 10.0f);
+
+					if (ImGui::Button("Remove")) {
+						comp.RemoveEffect<GammaCorrectionEffect>();
+					}
+
+					ImGui::TreePop();
+				}
+			}
+			if (comp.HasEffect<BloomEffect>()) {
+				BloomEffect& bloom = *comp.GetEffect<BloomEffect>();
+				bool enabled = bloom.IsEnabled();
+
+				if (ImGui::TreeNodeEx("Bloom", ImGuiTreeNodeFlags_SpanAvailWidth)) {
+					if (Controls::Default("Enabled", enabled)) {
+						bloom.SetEnabled(enabled);
+					}
+
+					Controls::Float("Clamp", bloom.clamp, 0.0f, 1000.0f, 0.1f);
+					Controls::Float("Threshold", bloom.threshold, 0.0f, 100.0f, 0.1f);
+					Controls::Float("Intensity", bloom.intensity, 0.0f, 100.0f, 0.01f);
+					Controls::Slider::Float("Resolution Scale", bloom.resolutionScale, 0.0f, 2.0f);
+					Controls::Slider::Float("Knee", bloom.knee, 0.0f, 1.0f);
+					Controls::Slider::Float("Diffusion", bloom.diffusion, 0.0f, (float)BLOOM_MAX_SAMPLES);
+
+					if (ImGui::Button("Remove")) {
+						comp.RemoveEffect<BloomEffect>();
+					}
+
+					ImGui::TreePop();
+				}
+			}
+			if (ImGui::Button("Add Effect")) {
+				ImGui::OpenPopup("ToogleAddPFX");
+			}
+			if (ImGui::BeginPopup("ToogleAddPFX")) {
+				if (ImGui::MenuItem("Correction", "", false, comp.HasEffect<GammaCorrectionEffect>())) {
+					comp.AddEffect<GammaCorrectionEffect>();
+				}
+				if (ImGui::MenuItem("Bloom", "", false, comp.HasEffect<BloomEffect>())) {
+					comp.AddEffect<BloomEffect>();
+				}
+				ImGui::EndPopup();
+			}
+		}
+		virtual std::string GetHeader() const override {
+			return ICON_FK_MAGIC " Post Processing";
+		}
+	};
 
 	void InspectorPanel::LoadObjects() {
 		m_inspectors.clear();
@@ -207,6 +273,7 @@ namespace Editor {
 
 		m_inspectors.push_back(createRef<SpriteRendererInspector>());
 		m_inspectors.push_back(createRef<CircleRendererInspector>());
+		m_inspectors.push_back(createRef<PostProcessingInspector>());
 
 		std::sort(m_inspectors.begin(), m_inspectors.end(), [](const Ref<InspectorRenderer>& left, const Ref<InspectorRenderer>& right) {
 			return left->GetPriority() < right->GetPriority();

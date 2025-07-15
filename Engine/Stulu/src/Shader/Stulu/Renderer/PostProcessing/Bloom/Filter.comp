@@ -8,7 +8,11 @@ layout(local_size_x = 4, local_size_y = 4, local_size_z = 1) in;
 void main() {
 	const ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
 
-	vec3 color = TextureDSSourceLoad(pixelCoord);
-	color += Bloom_TentUp(pixelCoord);
-	DestinationStore(vec4(Prefilter(color), 1.0), pixelCoord);
+	vec3 source = TextureSourceLoad(pixelCoord);
+	vec3 color = Prefilter(source);
+	DestinationStore(vec4(color, 1.0), pixelCoord);
+
+	//vec3 color = TextureDSSourceLoad(pixelCoord);
+	//color += Bloom_TentUp(pixelCoord);
+	//DestinationStore(vec4(Prefilter(color), 1.0), pixelCoord);
 }

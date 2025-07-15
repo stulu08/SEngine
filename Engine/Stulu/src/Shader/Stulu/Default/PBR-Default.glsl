@@ -41,44 +41,25 @@ layout(binding = ST_USER_TEXTURE_5) uniform sampler2D emissionMap;
 
 void main (){
 	PBRData data;
-	vec4 a_albedo = albedo * vertex.color;
-
-	// Conditionally sample albedo
-	vec4 albedoTex = srgbToLin(texture(albedoMap, vertex.texCoords * textureTilling));
-	a_albedo *= mix(vec4(1.0), albedoTex, hasAlbedoMap); // Use white if not bound
-	data.albedo = a_albedo.rgb;
-	data.alpha = FilterAlpha(a_albedo.a);
-	
-	// Conditionally sample emission
-	vec3 emissionTex = texture(emissionMap, vertex.texCoords * textureTilling).rgb;
-	data.emission = mix(vec3(0.0), emissionTex, hasEmissionMap) * emission.rgb * emission.a;
-
-	// Conditionally sample AO
-	float aoTex = texture(aoMap, vertex.texCoords * textureTilling).r;
-	data.ao = mix(ao, max(ao, aoTex), hasAOMap);
-
-	// Conditionally sample metallic
-	float metallicTex = texture(metallicMap, vertex.texCoords * textureTilling).r;
-	data.metallic = mix(metallic, max(metallic, metallicTex), hasMetallicMap);
-
-	// Conditionally sample roughness
-	float roughnessTex = texture(roughnessMap, vertex.texCoords * textureTilling).r;
-	data.roughness = mix(roughness, max(roughness, roughnessTex), hasRoughnessMap);
-
-	// Conditionally apply normal map
-	vec3 normalMapped = getNormalFromMap(vertex.worldPos, vertex.texCoords * textureTilling, vertex.normal, normalMap);
-	data.normal = mix(vertex.normal, normalMapped, hasNormalMap);
-
-	data.worldPos = vertex.worldPos;
 	data.texCoords = vertex.texCoords * textureTilling;
+	data.worldPos = vertex.worldPos;
+
+	data.albedo = SampleColorTexture(albedoMap, data.texCoords, hasAlbedoMap, albedo * vertex.color);
+	data.albedo.a = FilterAlpha(data.albedo.a);
+
+	data.emission = SampleColorTexture(emissionMap, data.texCoords, hasEmissionMap, emission.rgb) * emission.a;
+	data.metallic = SampleTexture(metallicMap, data.texCoords, hasMetallicMap, metallic);
+	data.ao = SampleTexture(aoMap, data.texCoords, hasAOMap, ao);
+	data.roughness = SampleTexture(roughnessMap, data.texCoords, hasRoughnessMap, roughness);
+	data.normal = SampleNormalMap(vertex.worldPos, data.texCoords, vertex.normal, normalMap, hasNormalMap);
 
 	PBRResult result = ComputePBR(data);
+
 	ApplyDefaultFog(result.color, vertex.worldPos);
 
 	WriteDefaultOut(result);
 
-
-	if (data.alpha == 0.0) {
+	if (data.albedo.a == 0.0) {
 		discard;
 	}
 

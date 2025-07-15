@@ -5,6 +5,7 @@
 
 layout(std140, binding = ST_BUFFER_MODEL_BIND) uniform FullScreenQuadBuffer
 {
+	vec4 UserData;
 	float QuadZPos;
 	uint pixelWidth;
 	uint pixelHeight;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Stulu/Math/Random.h"
+#include <array>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -108,6 +109,9 @@ namespace Stulu {
 		static glm::vec3 screenToWorld(const glm::vec2& pos, const glm::mat4& viewProjectionMatrix, const glm::vec2& windowSize);
 		static glm::vec2 WorldToScreen(const glm::vec3& pos, const glm::mat4& viewProjectionMatrix, const glm::vec2& windowSize, const glm::vec2& windowOffset = { 0.0f, 0.0f });
 		static bool decomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale);
+
+		static std::vector<float> Math::CalculateCascadeSplits(size_t cascadeCount, float shadowDistance);
+		static std::vector<glm::vec4> Math::GetFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
 
 		inline static glm::mat4 createMat4(const glm::vec3& pos, const glm::quat& rotation, const glm::vec3& scale) {
 			return glm::translate(glm::mat4(1.0f), pos)
@@ -289,4 +293,32 @@ namespace Stulu {
 		rotation = glm::quat(rot);
 		return true;
 	}
+
+	inline std::vector<float> Math::CalculateCascadeSplits(size_t cascadeCount, float shadowDistance) {
+		std::vector<float> levels;
+		for (uint32_t i = 0; i < cascadeCount - 1; i++) {
+			float div = 50.0f * (float)glm::pow(0.43f, (float)i);
+			levels.push_back(shadowDistance / div);
+		}
+		levels.push_back(shadowDistance);
+		return levels;
+	}
+
+	inline std::vector<glm::vec4> Math::GetFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view) {
+		const glm::mat4 projView = proj * view;
+		const auto inv = glm::inverse(projView);
+
+		std::vector<glm::vec4> frustumCorners;
+		for (uint32_t x = 0; x < 2; ++x) {
+			for (uint32_t y = 0; y < 2; ++y) {
+				for (uint32_t z = 0; z < 2; ++z) {
+					const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+					frustumCorners.push_back(pt / pt.w);
+				}
+			}
+		}
+
+		return frustumCorners;
+	}
+	
 }
