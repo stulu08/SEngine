@@ -54,7 +54,7 @@ PBRResult ComputePBR(const PBRData data) {
 
 		float shadow = 1.0;
 		if(shadowCaster == i) {
-			shadow = ComputeCSMShadow(vec4(data.worldPos, 1.0), N, LightDirOut);
+			shadow = 1.0 - ComputeCSMShadow(vec4(data.worldPos, 1.0), N, LightDirOut);
 		}
 
 		Lo += lightOut * shadow;

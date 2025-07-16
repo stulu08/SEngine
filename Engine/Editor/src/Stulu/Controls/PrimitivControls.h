@@ -98,7 +98,8 @@ namespace Editor {
 			}
 		}
 
-		inline bool Combo(const std::string& label, int& currentValue, const std::string& optionsString) {
+		template<class EnumTye>
+		inline bool Combo(const std::string& label, EnumTye& currentValue, const std::string& optionsString) {
 			std::vector<std::string> items = Stulu::SplitString(optionsString);
 			std::vector<const char*> itemPointers;
 			for (const auto& item : items) {
@@ -107,7 +108,13 @@ namespace Editor {
 
 			return LabeledBaseControl(label, [&]() {
 				ImGui::PushItemWidth(-1);
-				bool re = ImGui::Combo(("##" + label).c_str(), &currentValue, itemPointers.data(), (int)items.size());
+
+				int currentIndex = static_cast<int>(currentValue);
+				bool re = ImGui::Combo(("##" + label).c_str(), &currentIndex, itemPointers.data(), (int)items.size());
+				if (re) {
+					currentValue = static_cast<EnumTye>(currentIndex);
+				}
+
 				ImGui::PopItemWidth();
 				return re;
 			});

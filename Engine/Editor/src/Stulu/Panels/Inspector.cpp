@@ -186,6 +186,27 @@ namespace Editor {
 			return ICON_FK_PICTURE_O " Sprite Renderer";
 		}
 	};
+	class LightInspector : public NativeInspectorRenderer<LightComponent> {
+	public:
+		virtual void DrawGUI(LightComponent& comp) const override {
+			Controls::Combo("Type", comp.lightType);
+			Controls::Color("Color", comp.color);
+			Controls::Default("Strength", comp.strength);
+			if (comp.lightType == LightComponent::Directional) {
+				Controls::Default("Size", comp.areaRadius);
+			}
+			if (comp.lightType == LightComponent::Area) {
+				Controls::Default("Radius", comp.areaRadius);
+			}
+			if (comp.lightType == LightComponent::Spot) {
+				Controls::Default("Inner Radius", comp.spotLight_cutOff);
+				Controls::Default("Outer Radius", comp.spotLight_outerCutOff);
+			}
+		}
+		virtual std::string GetHeader() const override {
+			return ICON_FK_LIGHTBULB_O " Light Component";
+		}
+	};
 	class CircleRendererInspector : public NativeInspectorRenderer<CircleRendererComponent> {
 	public:
 		virtual void DrawGUI(CircleRendererComponent& comp) const override {
@@ -274,6 +295,7 @@ namespace Editor {
 		m_inspectors.push_back(createRef<SpriteRendererInspector>());
 		m_inspectors.push_back(createRef<CircleRendererInspector>());
 		m_inspectors.push_back(createRef<PostProcessingInspector>());
+		m_inspectors.push_back(createRef<LightInspector>());
 
 		std::sort(m_inspectors.begin(), m_inspectors.end(), [](const Ref<InspectorRenderer>& left, const Ref<InspectorRenderer>& right) {
 			return left->GetPriority() < right->GetPriority();

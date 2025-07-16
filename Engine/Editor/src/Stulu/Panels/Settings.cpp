@@ -43,64 +43,75 @@ namespace Editor {
 		bool shadowUpdate = false;
 		shadowUpdate |= Controls::Default("Map Size", settings.MapSize);
 		Controls::Default("Max Distance", settings.FarPlane);
-		Controls::Default("View Distance Multiplier", settings.ZMult);
-		Controls::Default("Cascade Blending Distance", settings.BlendingDistance);
-		
-		size_t cascadeCount = settings.CascadeSplits.size();
-		if (Controls::Slider::GenericInt("Cascade Count", cascadeCount, 1, ST_MAX_SHADOW_CASCADES)) {
-			settings.CascadeSplits.resize(cascadeCount);
-			shadowUpdate = true;
+
+		if (ImGui::TreeNodeEx("Quality")) {
+			Controls::Default("View Distance Multiplier", settings.ZMult);
+			Controls::Default("Blending Distance", settings.BlendingDistance);
+			Controls::Combo("Sample Quality", settings.SampleQuality, "8@16@32@64");
+			ImGui::TreePop();
 		}
 
-		ImGui::Indent();
-		for (size_t i = 0; i < cascadeCount; i++) {
-			// last split should be shadow distance
-			if (i == cascadeCount - 1) {
-				settings.CascadeSplits[i] = settings.FarPlane;
-				break;
+		if (ImGui::TreeNodeEx("Cascades")) {
+			size_t cascadeCount = settings.CascadeSplits.size();
+			if (Controls::Slider::GenericInt("Cascade Count", cascadeCount, 1, ST_MAX_SHADOW_CASCADES)) {
+				settings.CascadeSplits.resize(cascadeCount);
+				shadowUpdate = true;
 			}
 
-			float prev = i <= 0 ? settings.NearPlane : settings.CascadeSplits[i - 1];
-			float next = settings.CascadeSplits[i + 1];
-			settings.CascadeSplits[i] = glm::clamp(settings.CascadeSplits[i], prev, next);
-
-			Controls::Slider::Float("Split " + std::to_string(i + 1), settings.CascadeSplits[i], prev, next, "%.1f");
-		}
-		ImGui::Unindent();
-		std::sort(settings.CascadeSplits.begin(), settings.CascadeSplits.end());;
-
-		// draw display
-		ImGui::Text("Cascades"); 
-		ImGui::SameLine();
-		if (Controls::AlignedButton(ICON_FK_REFRESH, 1.0f)) {
-			settings.CascadeSplits = Math::CalculateCascadeSplits(cascadeCount, settings.FarPlane);
-		}
-		{
-			static ImU32 colors[] = {
-				IM_COL32(200, 80, 80, 255),
-				IM_COL32(80, 200, 80, 255),
-				IM_COL32(80, 80, 200, 255),
-				IM_COL32(200, 200, 80, 255),
-				IM_COL32(80, 200, 200, 255),
-				IM_COL32(200, 80, 200, 255)
-			};
-
-			ImDrawList* drawList = ImGui::GetWindowDrawList();
-
-			const ImVec2 start = ImGui::GetCursorScreenPos();
-			const float barHeight = ImGui::GetTextLineHeight() + ImGui::GetFrameHeight();
-			const float barWidth = ImGui::GetContentRegionAvail().x;
-			const float meterPerPixel = settings.FarPlane / barWidth;
-
+			ImGui::Indent();
 			for (size_t i = 0; i < cascadeCount; i++) {
-				const float prev = (i <= 0 ? 0.0f : settings.CascadeSplits[i - 1]) / meterPerPixel;
-				const float current = settings.CascadeSplits[i] / meterPerPixel;
-				drawList->AddRectFilled(ImVec2(start.x + prev, start.y), ImVec2(start.x + current, start.y + barHeight), colors[i]);
+				// last split should be shadow distance
+				if (i == cascadeCount - 1) {
+					settings.CascadeSplits[i] = settings.FarPlane;
+					break;
+				}
 
+				float prev = i <= 0 ? settings.NearPlane : settings.CascadeSplits[i - 1];
+				float next = settings.CascadeSplits[i + 1];
+				settings.CascadeSplits[i] = glm::clamp(settings.CascadeSplits[i], prev, next);
+
+				Controls::Slider::Float("Split " + std::to_string(i + 1), settings.CascadeSplits[i], prev, next, "%.1f");
 			}
+			ImGui::Unindent();
+			std::sort(settings.CascadeSplits.begin(), settings.CascadeSplits.end());;
 
-			ImGui::Dummy(ImVec2(barWidth, barHeight));
+			// draw display
+			ImGui::Text("Cascades");
+			ImGui::SameLine();
+			if (Controls::AlignedButton(ICON_FK_REFRESH, 1.0f)) {
+				settings.CascadeSplits = Math::CalculateCascadeSplits(cascadeCount, settings.FarPlane);
+			}
+			{
+				static ImU32 colors[] = {
+					IM_COL32(200, 80, 80, 255),
+					IM_COL32(80, 200, 80, 255),
+					IM_COL32(80, 80, 200, 255),
+					IM_COL32(200, 200, 80, 255),
+					IM_COL32(80, 200, 200, 255),
+					IM_COL32(200, 80, 200, 255)
+				};
+
+				ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+				const ImVec2 start = ImGui::GetCursorScreenPos();
+				const float barHeight = ImGui::GetTextLineHeight() + ImGui::GetFrameHeight();
+				const float barWidth = ImGui::GetContentRegionAvail().x;
+				const float meterPerPixel = settings.FarPlane / barWidth;
+
+				for (size_t i = 0; i < cascadeCount; i++) {
+					const float prev = (i <= 0 ? 0.0f : settings.CascadeSplits[i - 1]) / meterPerPixel;
+					const float current = settings.CascadeSplits[i] / meterPerPixel;
+					drawList->AddRectFilled(ImVec2(start.x + prev, start.y), ImVec2(start.x + current, start.y + barHeight), colors[i]);
+
+				}
+
+				ImGui::Dummy(ImVec2(barWidth, barHeight));
+			}
+			ImGui::TreePop();
 		}
+
+
+		
 
 
 		if (shadowUpdate) {

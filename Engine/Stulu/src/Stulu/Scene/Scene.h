@@ -17,6 +17,8 @@ namespace Stulu {
 		float FarPlane = 500.0f;
 		float ZMult = 10.0f;
 		float BlendingDistance = 10.0f;
+		// Poisson sample count: 0->8, 1->16, 2->32, 3->64
+		uint8_t SampleQuality = 1;
 	};
 	struct SceneGraphicsData {
 		float env_lod = 1.0f;

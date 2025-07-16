@@ -20,7 +20,7 @@ namespace Editor {
 			ImGuiID itemID = window->GetID(label.c_str());
 			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 
-			const bool hasValue = registry->IsValid(gameobjectID);
+			const bool hasValue = registry && registry->IsValid(gameobjectID);
 			bool changed = false;
 
 			ImRect frameBB(cursorPos, cursorPos + ImVec2(frameWidth, fontSize.y + style.FramePadding.y * 2.0f));
@@ -185,7 +185,7 @@ namespace Editor {
 				ImGui::PushItemWidth(-1);
 
 				std::string hint = "";
-				if (registry->IsValid(goID)) {
+				if (registry && registry->IsValid(goID)) {
 					Stulu::GameObject gameObject(goID, registry);
 					hint = gameObject.getComponent<Stulu::GameObjectBaseComponent>().name;
 				}

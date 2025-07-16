@@ -20,8 +20,8 @@ layout(std140, binding = ST_BUFFER_SCENE_BIND) uniform ShaderSceneBufferData
 	uint cascadeCount;
 
 	mat4 lightSpaceMatrices[ST_MAX_SHADOW_CASCADES + 1];
-	vec4 cascadePlaneDistances[ST_MAX_SHADOW_CASCADES + 1];
-	vec4 CascadeBlendDistance;
+	vec4 cascadePlaneDistances[ST_MAX_SHADOW_CASCADES + 1]; // distance (far plane), near plane, lightWidth
+	vec4 shadowSettingsPack; // blendDistance, Poisson Quality
 	vec4 shadowCasterPosPacked; // shadowCasterPos (xyz) + env_lod (w)
 
 	vec4 fogColor;
@@ -42,5 +42,9 @@ layout(std140, binding = ST_BUFFER_SCENE_BIND) uniform ShaderSceneBufferData
 
 vec3 shadowCasterPos = shadowCasterPosPacked.xyz;
 float env_lod = shadowCasterPosPacked.w;
+
+float CascadeBlendDistance = shadowSettingsPack.x;
+int ShadowQuality = int(shadowSettingsPack.y);
+
 
 #endif

@@ -62,7 +62,7 @@ namespace Stulu {
 			return m_shadowMap;
 		}
 
-		glm::mat4 GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const;
+		std::pair<glm::mat4, float> GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const;
 
 	private:
 		std::vector<RenderObject> m_drawList;

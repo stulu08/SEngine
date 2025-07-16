@@ -147,6 +147,23 @@ namespace Editor {
 						go.addComponent<CameraComponent>(CameraMode::Orthographic, m_scene->getViewportWidth(), m_scene->getViewportHeight());
 						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
 					}
+					ImGui::Separator();
+					if(ImGui::MenuItem("Directional Light")) {
+						GameObject go = m_scene->Create("New Directional Light");
+						go.addComponent<LightComponent>(LightComponent::Directional);
+						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
+					}
+					if (ImGui::MenuItem("Spot Light")) {
+						GameObject go = m_scene->Create("New Spot Light");
+						go.addComponent<LightComponent>(LightComponent::Spot);
+						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
+					}
+					if (ImGui::MenuItem("Area Light")) {
+						GameObject go = m_scene->Create("New Area Light");
+						go.addComponent<LightComponent>(LightComponent::Area);
+						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
+					}
+
 					ImGui::EndMenu();
 				}
 

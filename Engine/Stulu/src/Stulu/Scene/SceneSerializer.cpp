@@ -125,6 +125,7 @@ namespace Stulu {
 				out << YAML::Key << "NearPlane" << YAML::Value << scene->getData().graphicsData.shadows.NearPlane;
 				out << YAML::Key << "FarPlane" << YAML::Value << scene->getData().graphicsData.shadows.FarPlane;
 				out << YAML::Key << "BlendingDistance" << YAML::Value << scene->getData().graphicsData.shadows.BlendingDistance;
+				out << YAML::Key << "SampleQuality" << YAML::Value << (uint32_t)scene->getData().graphicsData.shadows.SampleQuality;
 				out << YAML::Key << "ZMult" << YAML::Value << scene->getData().graphicsData.shadows.ZMult;
 				out << YAML::EndMap;
 
@@ -193,6 +194,8 @@ namespace Stulu {
 						sceneData.graphicsData.shadows.FarPlane = shadows["FarPlane"].as<float>();
 					if (shadows["BlendingDistance"])
 						sceneData.graphicsData.shadows.BlendingDistance = shadows["BlendingDistance"].as<float>();
+					if (shadows["SampleQuality"])
+						sceneData.graphicsData.shadows.SampleQuality = shadows["SampleQuality"].as<uint32_t>();
 					if (shadows["ZMult"])
 						sceneData.graphicsData.shadows.ZMult = shadows["ZMult"].as<float>();
 

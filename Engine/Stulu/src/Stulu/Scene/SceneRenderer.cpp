@@ -115,8 +115,9 @@ namespace Stulu {
 				settings.CascadeSplits = Math::CalculateCascadeSplits(cascadeCount, settings.FarPlane);
 			}
 
+			const float lightSize = lightObject.getComponent<LightComponent>().areaRadius;
 			m_sceneBufferData.cascadeCount = (uint32_t)cascadeCount;
-			m_sceneBufferData.cascadeBlendDistance = glm::vec4(settings.BlendingDistance);
+			m_sceneBufferData.cascadeBlendDistance = glm::vec4(settings.BlendingDistance, (float)settings.SampleQuality, settings.NearPlane, settings.FarPlane);
 			m_sceneBufferData.shadowCaster = m_shadowCaster;
 			m_sceneBufferData.shadowCasterPos = lTC.GetWorldPosition() - lTC.GetForward() * settings.FarPlane;
 			for (size_t i = 0; i < cascadeCount + 1; i++) {
@@ -133,8 +134,10 @@ namespace Stulu {
 					nearPlane = settings.CascadeSplits[i - 1];
 					FarPlane = settings.FarPlane;
 				}
-				m_sceneBufferData.cascadePlaneDistances[i] = glm::vec4(FarPlane);
-				m_sceneBufferData.lightSpaceMatrices[i] = GetLightSpaceMatrix(nearPlane, FarPlane, transform, cameraComp, lTC);
+				auto [lightSpaceMatrix, frustumWidth] = GetLightSpaceMatrix(nearPlane, FarPlane, transform, cameraComp, lTC);;
+
+				m_sceneBufferData.cascadePlaneDistances[i] = glm::vec4(FarPlane, nearPlane, lightSize / frustumWidth, 0.0);
+				m_sceneBufferData.lightSpaceMatrices[i] = lightSpaceMatrix;
 			}
 
 			
@@ -309,7 +312,7 @@ namespace Stulu {
 		m_shadowMap.reset();
 		m_shadowMap = FrameBuffer::create(specs, colorBuffer, depthBuffer);
 	}
-	glm::mat4 SceneRenderer::GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const {
+	std::pair<glm::mat4, float> SceneRenderer::GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const {
 		const auto& settings = m_scene->getData().graphicsData.shadows;
 
 		glm::mat4 cameraProj = glm::perspective(glm::radians(cameraComp.GetFov()), cameraComp.GetAspect(), nearPlane, farPlane);
@@ -325,34 +328,26 @@ namespace Stulu {
 
 		const auto lightView = glm::lookAt(center - lightTransform.GetForward(), center, TRANSFORM_UP_DIRECTION);
 
-		float minX = std::numeric_limits<float>::max();
-		float maxX = std::numeric_limits<float>::lowest();
-		float minY = std::numeric_limits<float>::max();
-		float maxY = std::numeric_limits<float>::lowest();
-		float minZ = std::numeric_limits<float>::max();
-		float maxZ = std::numeric_limits<float>::lowest();
+		glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
+		glm::vec3 max = glm::vec3(std::numeric_limits<float>::min());
 		for (const auto& v : corners)
 		{
-			const auto trf = lightView * v;
-			minX = glm::min(minX, trf.x);
-			maxX = glm::max(maxX, trf.x);
-			minY = glm::min(minY, trf.y);
-			maxY = glm::max(maxY, trf.y);
-			minZ = glm::min(minZ, trf.z);
-			maxZ = glm::max(maxZ, trf.z);
+			const glm::vec3 trf = lightView * v;
+			min = glm::min(min, trf);
+			max = glm::max(max, trf);
 		}
 
-		if (minZ < 0)
-			minZ *= settings.ZMult;
+		if (min.z < 0)
+			min.z *= settings.ZMult;
 		else
-			minZ /= settings.ZMult;
-		if (maxZ < 0)
-			maxZ /= settings.ZMult;
+			min.z /= settings.ZMult;
+		if (max.z < 0)
+			max.z /= settings.ZMult;
 		else
-			maxZ *= settings.ZMult;
-
-		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-		return lightProjection * lightView;
+			max.z *= settings.ZMult;
+		
+		const glm::mat4 lightProjection = glm::ortho(min.x, max.x, min.y, max.y, -max.z, -min.z);
+		return { lightProjection * lightView, max.x - min.x };
 	}
 
 	void SceneRenderer::Register3dObjects() {

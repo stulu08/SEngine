@@ -1,89 +1,10 @@
 #ifndef _STULU_LIGHTING_GLSL_
 #define _STULU_LIGHTING_GLSL_
 
-#include "Stulu/Scene.glsl"
 #include "Stulu/Math.glsl"
 #include "Stulu/Branchless.glsl"
 #include "Stulu/Buffer/LightBuffer.glsl"
-
-int SelectCSMLayer(float depthValue) {
-    int layer = -1;
-    for (int i = 0; i < int(cascadeCount); ++i)
-    {
-        if (depthValue < cascadePlaneDistances[i].x)
-        {
-            layer = i;
-            break;
-        }
-    }
-    if (layer == -1)
-    {
-        layer = int(cascadeCount) - 1;
-    }
-    return layer;
-}
-float SampleHardShadow(const vec4 worldPos, const int layer, const float bias) {
-    vec4 fragPosLightSpace = lightSpaceMatrices[layer] * worldPos;
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-
-    float currentDepth = projCoords.z;
-    if (currentDepth > 1.0)
-        return 1.0;
-
-	// hard shadows
-    float closestDepth = texture(cascadeShadowMap, vec3(projCoords.xy, float(layer))).r;
-    return (currentDepth - bias > closestDepth) ? 0.0 : 1.0;
-}
-float SampleCascadePCF(const vec4 worldPos, const int layer, const float bias){
-	vec4 fragPosLightSpace = lightSpaceMatrices[layer] * worldPos;
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-
-    float currentDepth = projCoords.z;
-	if (currentDepth > 1.0)
-        return 1.0;
-
-    // PCF
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / vec2(textureSize(cascadeShadowMap, 0));
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(cascadeShadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, float(layer))).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 0.0 : 1.0;        
-        }    
-    }
-    return shadow / 9.0;
-}
-
-float CalculateBias(const vec3 pixelNormal, const vec3 lightDir) {
-	return max(0.0005 * (1.0 - dot(pixelNormal, lightDir)), 0.0005);;
-}
-
-float ComputeCSMShadow(vec4 world, const vec3 pixelNormal, const vec3 lightDir) { 
-    float fragDepth = abs((viewMatrix * world).z);
-
-    const int layer = SelectCSMLayer(fragDepth);
-	const float bias = CalculateBias(pixelNormal, lightDir);
-    
-	// no blending for last layer
-	if(layer == int(cascadeCount) - 1) {
-		return SampleCascadePCF(world, layer, bias);
-	}
-
-	// blend with next layer
-	float splitDist = cascadePlaneDistances[layer].x;
-	float blendStart = splitDist - CascadeBlendDistance.x;
-	float blendEnd = splitDist;
-	float blendFactor = smoothstep(blendStart, blendEnd, fragDepth);
-
-	float currShadow = SampleCascadePCF(world, layer, bias);
-	float nextShadow = SampleCascadePCF(world, layer + 1, bias);
-
-	return mix(currShadow, nextShadow, blendFactor);
-}
+#include "Stulu/Renderer/Shadows.glsl"
 
 struct LightComputeData {
 	vec3 worldPos;
