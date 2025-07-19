@@ -51,5 +51,36 @@ namespace Stulu {
 
 		m_registry.destroy(gameObject.GetID());
 	}
+
+	static void AddToRegistry(ModelNode& node, Registry* registry, GameObject parentObject) {
+		GameObject object = registry->Create(node.name);
+		TransformComponent& transform = object.getComponent<TransformComponent>();
+		
+		if (parentObject.IsValid()) {
+			transform.SetParent(parentObject);
+		}
+		transform.SetWorldPosition(node.Position);
+		transform.SetWorldRotation(node.Rotation);
+		transform.SetWorldScale(node.Scale);
+
+		auto& meshNode = node.mesh;
+		if (meshNode.mesh.IsValid()) {
+			object.addComponent<MeshFilterComponent>().SetMesh(meshNode.mesh);
+			MeshRendererComponent& renderer = object.addComponent<MeshRendererComponent>();
+			if (meshNode.materials.size() > 0) {
+				renderer.Materials = meshNode.materials;
+			}
+		}
+
+		for (auto& childNode : node.children) {
+			AddToRegistry(childNode, registry, object);
+		}
+
+	}
+
+	void Registry::SpawnModelAsset(const ModelAsset& model) {
+		ModelNode& rootNode = model->GetRootNode();
+		AddToRegistry(rootNode, this, GameObject::null);
+	}
 }
 

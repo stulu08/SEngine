@@ -95,35 +95,56 @@ namespace Editor {
 			ImGui::Checkbox("Style Editor", &ste);
 
 			static glm::vec3 t(1.f);
-			static Stulu::UUID cubeMesh = Stulu::Resources::UUIDCubeMesh;
-			static entt::entity et = (entt::entity)1;
-			Controls::Mesh("Mesh", cubeMesh);
-			Controls::Vector3("Test", t);
-			Controls::GameObject("GameObject", et, GetActiveScene().get());
+			static Stulu::UUID defaultMaterial = Stulu::Resources::UUIDDefaultMaterial;
+			static Stulu::UUID reflectiveMaterial = Stulu::Resources::UUIDReflectiveMaterial;
+			static Stulu::UUID editMaterial = Stulu::Resources::UUIDDefaultMaterial;
+			Controls::Material("Default Material", defaultMaterial);
+			Controls::Material("Reflective Material", reflectiveMaterial);
+			Controls::Material("Edit Material", editMaterial);
+			if (editMaterial) {
+				auto material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(editMaterial);
 
-			if (ImGui::Button("Spawn")) {
-				static MaterialAsset mat = nullptr;
-				if (!mat.IsValid()) {
-					auto material = Stulu::Resources::CreateMaterial("Transparent", glm::vec4(1.0f, 1.0f, 1.0f, 0.3f));
-					auto* asset = new SharedMaterialAssetData(Stulu::UUID(), material);
-					AssetsManager::GlobalInstance().AddAsset(asset, asset->GetUUID(), true);
-					mat = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(asset->GetUUID());
-
-					mat->SetTransparencyMode(MaterialTransparencyMode::Transparent);
+				auto tMode = material->GetTransparencyMode();
+				if (Controls::Combo("Transparency Mode", tMode)) {
+					material->SetTransparencyMode(tMode);
 				}
-
-				auto& scene = GetActiveScene();
-
-				Stulu::GameObject inner = scene->Create("Inner Cube");
-				inner.addComponent<MeshRendererComponent>().material = Stulu::Resources::DefaultMaterialAsset();
-				inner.getComponent<MeshRendererComponent>().cullmode = CullMode::Front;
-				inner.addComponent<MeshFilterComponent>().SetMesh(Stulu::Resources::CubeMesh());
-
-				Stulu::GameObject outer = scene->Create("Outer Cube");
-				outer.addComponent<MeshRendererComponent>().material = mat;
-				outer.getComponent<MeshRendererComponent>().cullmode = CullMode::Back;
-				outer.addComponent<MeshFilterComponent>().SetMesh(Stulu::Resources::CubeMesh());
+				
+				for (auto& metaProp : material->GetProperities()) {
+					if (metaProp->GetType() == MaterialPropertyType::Sampler2D) {
+						auto prop = material->GetProperityAs<MaterialSampler2DProperty>(metaProp->GetName());
+						auto val = prop->GetValue();
+						if (Controls::Default(prop->GetName(), val))
+							prop->SetValue(val);
+					}
+					if (metaProp->GetType() == MaterialPropertyType::Color) {
+						auto prop = material->GetProperityAs<MaterialColorProperty>(metaProp->GetName());
+						auto val = prop->GetValue();
+						if (Controls::Color(prop->GetName(), val, prop->IsHDR()))
+							prop->SetValue(val);
+					}
+					if (metaProp->GetType() == MaterialPropertyType::Float2) {
+						auto prop = material->GetProperityAs<MaterialFloat2Property>(metaProp->GetName());
+						auto val = prop->GetValue();
+						if (Controls::Default(prop->GetName(), val))
+							prop->SetValue(val);
+					}
+					if (metaProp->GetType() == MaterialPropertyType::Float) {
+						auto prop = material->GetProperityAs<MaterialFloatProperty>(metaProp->GetName());
+						auto val = prop->GetValue();
+						if (prop->HasLimits()) {
+							if (Controls::Slider::Float(prop->GetName(), val, prop->GetMin(), prop->GetMax()))
+								prop->SetValue(val);
+						}
+						else {
+							if (Controls::Default(prop->GetName(), val))
+								prop->SetValue(val);
+						}
+						
+					}
+					metaProp->ApplyValue(*material);
+				}
 			}
+
 
 			App::get().getAssemblyManager()->getScriptCoreAssembly()->InvokeMethod(debugMethod, NULL, NULL);
 		}
@@ -285,13 +306,11 @@ namespace Editor {
 			const glm::vec3& position = tc.GetWorldPosition();
 			glm::vec3 scale = glm::vec3(1.0f);
 
-			if (light.lightType == LightComponent::Area) {
-				scale = glm::vec3(light.areaRadius * 2.0f);
+			if (light.Type == LightType::Point) {
+				scale = glm::vec3(light.Point.Radius * 2.0f);
 				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
 				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(90.0f, .0f, .0f))), scale), COLOR_GREEN, .02f);
 				Renderer2D::drawCircle(Math::createMat4(position, glm::quat(glm::radians(glm::vec3(.0f, 90.0f, .0f))), scale), COLOR_GREEN, .02f);
-			}
-			else if (light.lightType == LightComponent::Spot) {
 			}
 
 		}

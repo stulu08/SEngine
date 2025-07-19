@@ -16,7 +16,7 @@ namespace Stulu {
 
 	class STULU_API TestMaterial {
 	public:
-		TestMaterial(Ref<ShaderEntry> shaderEntry);
+		TestMaterial(Ref<ShaderEntry> shaderEntry, const std::string& name = "Unnamed Material");
 
 		void SetData(size_t offset, size_t size, const void* data);
 
@@ -40,6 +40,9 @@ namespace Stulu {
 		const std::vector<Ref<MaterialProperty>>& GetProperities() const { return m_properties; }
 		Ref<MaterialProperty> GetProperity(const std::string& name) const;
 
+		const std::string& GetName() const { return m_name; }
+		void SetName(const std::string& name) { m_name = name; }
+
 		template<class T>
 		inline Ref<T> GetProperityAs(const std::string& name) const {
 			return std::dynamic_pointer_cast<T>(GetProperity(name));
@@ -52,6 +55,7 @@ namespace Stulu {
 		Ref<Shader> m_shader;
 		std::vector<Ref<MaterialProperty>> m_properties;
 
+		std::string m_name;
 		MaterialTransparencyMode m_transparencyMode = MaterialTransparencyMode::Opaque;
 		float m_cutOut = 0.0f;
 		bool m_instanced = false;

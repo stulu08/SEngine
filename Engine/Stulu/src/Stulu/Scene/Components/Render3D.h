@@ -5,45 +5,79 @@
 #include <Stulu/Resources/Assets/MaterialAsset.h>
 
 namespace Stulu {
-	class LightComponent : public Component {
+	enum class LightType { 
+		Directional = 0, 
+		Point = 1, 
+		Spot = 2 
+	};
+	enum class LightShadowMode {
+		// Updates every frame
+		Realtime = 0,
+		// Shadows will be generated at scene start up
+		Static
+	};
+
+	class STULU_API LightComponent : public Component {
 	public:
-		enum Type { Directional = 0, Area = 1, Spot = 2 };
+		LightType Type = LightType::Directional;
+		glm::vec3 Color = glm::vec3(1.0f);
+		float Strength = 1.0f;
 
-		Type lightType = Type::Directional;
-		glm::vec3 color = glm::vec3(1.0f);
-		float strength = 1.0f;
+		bool CastShadows = false;
+		// Will be ignored for the main light
+		struct ShadowData {
+			LightShadowMode ShadowMode = LightShadowMode::Realtime;
+			uint32_t TextureSize = 256;
+			float Bias = 0.0005f;
+			float Strength = 1.0f;
+			bool Soft = true;
+		}Shadows;
 
-		float areaRadius = 1.0f;
 
-		float spotLight_cutOff = 10.0f;
-		float spotLight_outerCutOff = 15.0f;
+		struct DirectionalData {
+			float Size = 1.0f;
+			// Will be used as the main scene light (Cascaded Sun)
+			bool IsMainLight = true;
+		}Directional;
+
+		struct PointData {
+			float Radius = 5.0f;
+		}Point;
+
+		struct SpotData {
+			float InnerCutoff = 5.0f;
+			float OuterCutoff = 10.0f;
+		}Spot;
 
 		LightComponent() = default;
 		LightComponent(const LightComponent&) = default;
-		LightComponent(const Type& type)
-			: lightType(type) {};
+		LightComponent(const LightType& type)
+			: Type(type) {};
 
-		virtual void Serialize(YAML::Emitter& out) const override {
-			out << YAML::Key << "lightType" << YAML::Value << (int)lightType;
-			out << YAML::Key << "color" << YAML::Value << color;
-			out << YAML::Key << "strength" << YAML::Value << strength;
-			out << YAML::Key << "areaRadius" << YAML::Value << areaRadius;
-			out << YAML::Key << "spotLight_cutOff" << YAML::Value << spotLight_cutOff;
-			out << YAML::Key << "spotLight_outerCutOff" << YAML::Value << spotLight_outerCutOff;
-		}
-		virtual void Deserialize(YAML::Node& node) override {
-			if (node["lightType"])
-				lightType = (Type)node["lightType"].as<int>();
-			if (node["color"])
-				color = node["color"].as<glm::vec3>();
-			if (node["strength"])
-				strength = node["strength"].as<float>();
-			if (node["areaRadius"])
-				areaRadius = node["areaRadius"].as<float>();
-			if (node["spotLight_cutOff"])
-				spotLight_cutOff = node["spotLight_cutOff"].as<float>();
-			if (node["spotLight_outerCutOff"])
-				spotLight_outerCutOff = node["spotLight_outerCutOff"].as<float>();
+		virtual void Serialize(YAML::Emitter& out) const override;
+		virtual void Deserialize(YAML::Node& node) override;
+
+		inline LightBufferData::Light GetRenderData() const {
+			LightBufferData::Light data;
+			const TransformComponent& transform = gameObject.getComponent<TransformComponent>();
+			data.ColorStrength = glm::vec4(Color, Strength);
+			data.PositionType = glm::vec4(transform.GetWorldPosition(), (float)Type);
+			data.Direction = glm::vec4(transform.GetForward(), 1.0f);
+			data.ShadowData = glm::vec4(-1.0f, Shadows.Bias, Shadows.Strength, Shadows.Soft);
+			switch (Type)
+			{
+			case Stulu::LightType::Directional:
+				data.Data = glm::vec4(Directional.Size, (float)Directional.IsMainLight, 1.0f, 1.0f);
+				break;
+			case Stulu::LightType::Point:
+				data.Data = glm::vec4(Point.Radius, 1.0f, 1.0f, 1.0f);
+				break;
+			case Stulu::LightType::Spot:
+				data.Data = glm::vec4(Spot.InnerCutoff, Spot.OuterCutoff, 1.0f, 1.0f);
+				break;
+			}
+
+			return data;
 		}
 	};
 
@@ -52,18 +86,27 @@ namespace Stulu {
 	public:
 		MaterialAsset material;
 		glm::vec3 rotation = { 0,0,0 };
+		float LightStrength = 1.0f;
+		float ReflectionIntensity = 1.0f;
 
 		SkyBoxComponent() = default;
 		SkyBoxComponent(const SkyBoxComponent&) = default;
 
 		virtual void Serialize(YAML::Emitter& out) const override {
 			out << YAML::Key << "rotation" << YAML::Value << rotation;
+			out << YAML::Key << "LightStrength" << YAML::Value << LightStrength;
+			out << YAML::Key << "ReflectionIntensity" << YAML::Value << ReflectionIntensity;
 			if (material.IsValid())
 				out << YAML::Key << "SkyBox" << YAML::Value << material.GetUUID();
 		}
 		virtual void Deserialize(YAML::Node& node) override {
 			if (node["rotation"])
 				rotation = node["rotation"].as<glm::vec3>();
+			if (node["LightStrength"])
+				LightStrength = node["LightStrength"].as<float>();
+			if (node["ReflectionIntensity"])
+				ReflectionIntensity = node["ReflectionIntensity"].as<float>();
+
 			if (node["SkyBox"])
 				material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["SkyBox"].as<UUID>());
 			if (node["texture"]) {
@@ -77,7 +120,7 @@ namespace Stulu {
 
 	class MeshRendererComponent : public Component {
 	public:
-		MaterialAsset material;
+		std::vector<MaterialAsset> Materials;
 		CullMode cullmode = CullMode::Back;
 		// Value will be written to the stencil buffer in the next frame
 		uint8_t StencilValue = 0x00;
@@ -85,16 +128,51 @@ namespace Stulu {
 		MeshRendererComponent() = default;
 		MeshRendererComponent(const MeshRendererComponent&) = default;
 
+
+		inline size_t GetMaterialCount() const { return Materials.size(); }
+		inline void AddMaterial(const MaterialAsset& asset) {
+			Materials.push_back(asset);
+		}
+		inline void SetMaterial(const MaterialAsset& asset, uint32_t index = 0) {
+			if (index < Materials.size()) {
+				Materials[index] = asset;
+			}
+			else {
+				Materials.insert(Materials.begin() + index, asset);
+			}
+		}
+		inline MaterialAsset GetMaterial(size_t index = 0) {
+			if (index < Materials.size())
+				return Materials.at(glm::min(index, GetMaterialCount() - 1));
+			else
+				return AssetsManager::InvalidAsset<MaterialAsset>();
+		}
+		inline const MaterialAsset GetMaterial(size_t index = 0) const {
+			return GetMaterial();
+		}
+
 		virtual void Serialize(YAML::Emitter& out) const override {
 			out << YAML::Key << "cullmode" << YAML::Value << (int)cullmode;
-			if (material.IsValid())
-				out << YAML::Key << "material" << YAML::Value << material.GetUUID();
+
+			std::vector<UUID> materialIDs;
+			for (const auto& material : Materials) {
+				materialIDs.push_back(material.GetUUID());
+			}
+			out << YAML::Key << "Materials" << YAML::Value << materialIDs;
 		}
 		virtual void Deserialize(YAML::Node& node) override {
 			if (node["cullmode"])
 				cullmode = (CullMode)node["cullmode"].as<int>();
-			if (node["material"])
-				material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["material"].as<UUID>());
+			if (node["material"]) {
+				MaterialAsset mat = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["material"].as<UUID>());
+				SetMaterial(mat);
+			}
+			if (node["Materials"]) {
+				std::vector<UUID> materialIDs = node["Materials"].as<std::vector<UUID>>();
+				for (const auto& id : materialIDs) {
+					AddMaterial(AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(id));
+				}
+			}
 		}
 	};
 	class MeshFilterComponent : public Component {
@@ -113,7 +191,10 @@ namespace Stulu {
 				transform.SetBounds(mesh->GetBoundingBox());
 			}
 		}
-		MeshAsset GetMesh() const {
+		const MeshAsset& GetMesh() const {
+			return mesh;
+		}
+		MeshAsset& GetMesh() {
 			return mesh;
 		}
 

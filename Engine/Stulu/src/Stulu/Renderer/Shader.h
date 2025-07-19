@@ -6,9 +6,12 @@ namespace Stulu {
 	constexpr auto ST_MAX_INSTANCES = 250;
 	constexpr auto ST_MAX_BONES = ST_MAX_INSTANCES;
 
-	constexpr auto ST_SHADOW_TEXTURE_BIND = 4;
-	constexpr auto ST_USER_TEXTURE_START = 5;
-	constexpr auto ST_USER_TEXTURE_END = 15;
+	constexpr auto ST_DEFAULT_SHADOW_TEXTURE_BIND_MAP = 4;
+	constexpr auto ST_POINT_SHADOW_TEXTURE_BIND_MAP = 5;
+	constexpr auto ST_CASCADE_SHADOW_TEXTURE_BIND_MAP = 6;
+
+	constexpr auto ST_USER_TEXTURE_START = 7;
+	constexpr auto ST_USER_TEXTURE_END = 16;
 	constexpr auto ST_USER_TEXTURE_COUNT = (ST_USER_TEXTURE_END - ST_USER_TEXTURE_START);
 
 	enum class AccesMode {

@@ -53,5 +53,14 @@ namespace Editor {
 			}
 			return false;
 		}
+		template<>
+		inline bool Default(const std::string& label, Stulu::MaterialAsset& value) {
+			Stulu::UUID uuid = value.GetUUID();
+			if (Controls::Material(label, uuid)) {
+				value = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(uuid);
+				return true;
+			}
+			return false;
+		}
 	}
 }

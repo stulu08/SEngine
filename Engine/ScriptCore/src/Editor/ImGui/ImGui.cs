@@ -219,5 +219,15 @@ namespace Editor {
 		/// </para>
 		/// </summary>
 		public static void SameLine(float offset_from_start_x = 0.0f, float spacing_w = -1.0f) => EditorCalls.ImGui_SameLine(offset_from_start_x, spacing_w);
+		
+		/// <summary>
+		/// Move content position toward the right, by indent_w, or style.IndentSpacing if indent_w &lt;= 0
+		/// </summary>
+		public static void Indent(float indent_w = 0.0f) => EditorCalls.Indent(indent_w);
+		/// <summary>
+		/// Move content position back to the left, by indent_w, or style.IndentSpacing if indent_w &lt;= 0
+		/// </summary>
+		public static void Unindent(float indent_w = 0.0f) => EditorCalls.Unindent(indent_w);
+
 	}
 }

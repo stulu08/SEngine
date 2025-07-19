@@ -36,21 +36,14 @@ namespace Stulu{
 		// 4 scalars
 		uint32_t useSkybox = 0;
 		uint32_t shaderFlags = 0;
-		int32_t shadowCaster = -1;
-		uint32_t cascadeCount = 0;
+		float EnvironmentStrength = 1.0f;
+		float EnvironmentReflections = 1.0f;
 
 		glm::mat4 lightSpaceMatrices[ST_MAX_SHADOW_CASCADES + 1] = {};
 		glm::vec4 cascadePlaneDistances[ST_MAX_SHADOW_CASCADES + 1] = {};
-		glm::vec4 cascadeBlendDistance = glm::vec4(1.0f);
-		union {
-			glm::vec4 shadowCasterPosPacked;
-			struct {
-				glm::vec3 shadowCasterPos;
-				float env_lod;
-			};
-		};
+		glm::vec4 ShadowSettingsPack = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);  // blendDistance, Poisson Quality, CascadeCount
+		glm::vec4 ShadowSettingsPack2 = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		
-
 		FogSettings fogSettings;
 	};
 
@@ -65,11 +58,13 @@ namespace Stulu{
 	};
 	struct alignas (16) LightBufferData {
 		struct Light {
-			glm::vec4 colorAndStrength = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-			glm::vec4 positionAndType = glm::vec4(1.0f, 5.0f, 10.0f, 0.0f);
-			glm::vec4 rotation = glm::vec4(90.0f, .0f, .0f, 1.0f);
-			glm::vec4 spotLightData = glm::vec4(1.0f);
+			glm::vec4 ColorStrength = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			glm::vec4 PositionType = glm::vec4(1.0f, 5.0f, 10.0f, 0.0f);
+			glm::vec4 Direction = glm::vec4(90.0f, .0f, .0f, 1.0f);
+			glm::vec4 Data = glm::vec4(1.0f);
+			glm::vec4 ShadowData = glm::vec4(0.0f);
 		} lights[ST_MAXLIGHTS];
+
 		uint32_t lightCount = 0;
 	};
 	struct alignas (16) GlobalMaterialBufferData {

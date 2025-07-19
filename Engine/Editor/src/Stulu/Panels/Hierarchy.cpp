@@ -150,20 +150,19 @@ namespace Editor {
 					ImGui::Separator();
 					if(ImGui::MenuItem("Directional Light")) {
 						GameObject go = m_scene->Create("New Directional Light");
-						go.addComponent<LightComponent>(LightComponent::Directional);
+						go.addComponent<LightComponent>(LightType::Directional);
 						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
 					}
 					if (ImGui::MenuItem("Spot Light")) {
 						GameObject go = m_scene->Create("New Spot Light");
-						go.addComponent<LightComponent>(LightComponent::Spot);
+						go.addComponent<LightComponent>(LightType::Spot);
 						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
 					}
-					if (ImGui::MenuItem("Area Light")) {
-						GameObject go = m_scene->Create("New Area Light");
-						go.addComponent<LightComponent>(LightComponent::Area);
+					if (ImGui::MenuItem("Point Light")) {
+						GameObject go = m_scene->Create("New Point Light");
+						go.addComponent<LightComponent>(LightType::Point);
 						if (parent) go.getComponent<TransformComponent>().SetParent(parent);
 					}
-
 					ImGui::EndMenu();
 				}
 
@@ -254,6 +253,8 @@ namespace Editor {
 
 		ImGui::SetNextItemAllowOverlap();
 
+		ImGui::PushID((void*)gameObject.GetID());
+
 		// position of the arrow 
 		const float touchExtraPadding = ImGui::GetStyle().TouchExtraPadding.x;
 		float treeArrowX1 = ImGui::GetCursorScreenPos().x - touchExtraPadding;
@@ -319,6 +320,8 @@ namespace Editor {
 
 			ImGui::TreePop();
 		}
+
+		ImGui::PopID();
 	}
 
 	void HierarchyPanel::DummyDragDropTarget(const Stulu::GameObject& parent) {

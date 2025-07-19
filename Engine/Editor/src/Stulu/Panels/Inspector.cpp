@@ -56,6 +56,8 @@ namespace Editor {
 			if (!selected.IsValid())
 				return;
 			
+			ImGui::PushID((void*)selected.GetID());
+
 			auto& base = selected.getComponent<GameObjectBaseComponent>();
 
 			ImGui::SameLine(m_windowIndent);
@@ -100,6 +102,8 @@ namespace Editor {
 					ImGui::PopID();
 				}
 			}
+
+			ImGui::PopID();
 		}
 	}
 
@@ -189,19 +193,58 @@ namespace Editor {
 	class LightInspector : public NativeInspectorRenderer<LightComponent> {
 	public:
 		virtual void DrawGUI(LightComponent& comp) const override {
-			Controls::Combo("Type", comp.lightType);
-			Controls::Color("Color", comp.color);
-			Controls::Default("Strength", comp.strength);
-			if (comp.lightType == LightComponent::Directional) {
-				Controls::Default("Size", comp.areaRadius);
+			Controls::Combo("Type", comp.Type);
+			Controls::Color("Color", comp.Color);
+			Controls::Default("Strength", comp.Strength);
+
+			bool IsMainLight = false;
+
+			if (comp.Type == LightType::Directional) {
+				Controls::Float("Size", comp.Directional.Size, 0.0f, 50.0f, 0.05f);
+				Controls::Default("Main Light", comp.Directional.IsMainLight);
+
+				IsMainLight = comp.Directional.IsMainLight;
 			}
-			if (comp.lightType == LightComponent::Area) {
-				Controls::Default("Radius", comp.areaRadius);
+			if (comp.Type == LightType::Point) {
+				Controls::Default("Radius", comp.Point.Radius);
 			}
-			if (comp.lightType == LightComponent::Spot) {
-				Controls::Default("Inner Radius", comp.spotLight_cutOff);
-				Controls::Default("Outer Radius", comp.spotLight_outerCutOff);
+			if (comp.Type == LightType::Spot) {
+				Controls::Default("Inner Radius", comp.Spot.InnerCutoff);
+				Controls::Default("Outer Radius", comp.Spot.OuterCutoff);
 			}
+			
+
+
+			if (IsMainLight) {
+				ImGui::BeginDisabled();
+				Controls::SetControlHelpMark("Some shadow settings are ignored for the main light");
+			}
+			ImGui::Text("Shadows");
+			if (IsMainLight) {
+				Controls::PopControlHelpMark();
+				comp.CastShadows = true;
+			}
+			
+			Controls::Default("Cast Shadows", comp.CastShadows);
+
+			if (comp.CastShadows) {
+				Controls::Float("Strength", comp.Shadows.Strength, 0, 100.0f, 0.1f);
+				
+				if (IsMainLight) {
+					ImGui::EndDisabled();
+				}
+				Controls::Slider::Float("Bias Mods", comp.Shadows.Bias, 0.00001f, 0.01f, "%.5f");
+				Controls::Default("Soft Shadows", comp.Shadows.Soft);
+				if (IsMainLight) {
+					ImGui::BeginDisabled();
+				}
+			}
+
+
+			if (IsMainLight) {
+				ImGui::EndDisabled();
+			}
+			
 		}
 		virtual std::string GetHeader() const override {
 			return ICON_FK_LIGHTBULB_O " Light Component";
@@ -216,6 +259,19 @@ namespace Editor {
 		}
 		virtual std::string GetHeader() const override {
 			return ICON_FK_CIRCLE " Circle Renderer";
+		}
+	};
+	class SkyBoxInspector : public NativeInspectorRenderer<SkyBoxComponent> {
+	public:
+		virtual void DrawGUI(SkyBoxComponent& comp) const override {
+			Controls::Default("Environment", comp.material);
+			Controls::Default("Rotation", comp.rotation);
+			Controls::Float("Light Strength", comp.LightStrength, 0.0f, 100.0f, 0.25f);
+			Controls::Float("Reflection Intensity", comp.ReflectionIntensity, 0.0f, 100.0f, 0.1f);
+
+		}
+		virtual std::string GetHeader() const override {
+			return ICON_FK_SUN " Environment";
 		}
 	};
 	class PostProcessingInspector : public NativeInspectorRenderer<PostProcessingComponent> {
@@ -296,6 +352,7 @@ namespace Editor {
 		m_inspectors.push_back(createRef<CircleRendererInspector>());
 		m_inspectors.push_back(createRef<PostProcessingInspector>());
 		m_inspectors.push_back(createRef<LightInspector>());
+		m_inspectors.push_back(createRef<SkyBoxInspector>());
 
 		std::sort(m_inspectors.begin(), m_inspectors.end(), [](const Ref<InspectorRenderer>& left, const Ref<InspectorRenderer>& right) {
 			return left->GetPriority() < right->GetPriority();

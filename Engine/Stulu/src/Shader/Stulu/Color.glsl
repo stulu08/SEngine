@@ -1,9 +1,8 @@
 #ifndef _STULU_COLOR_GLSL_
 #define _STULU_COLOR_GLSL_
 
-float linearizeDepth(float depth, float near, float far) {
-	float z = depth * 2.0 - 1.0; // back to NDC 
-    return ((2.0 * near * far) / (far + near - z * (far - near)));
+float linearizeDepth(float depth,float zNear,float zFar) {
+    return zFar * zNear / (zFar - depth * (zFar - zNear));
 }
 
 vec3 srgbToLinear(vec3 color) {

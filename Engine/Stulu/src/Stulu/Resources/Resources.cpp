@@ -332,7 +332,7 @@ namespace Stulu {
 		if (!pbrShader.IsValid())
 			return nullptr;
 
-		Ref<TestMaterial> material = createRef<TestMaterial>(Renderer::getShaderSystem()->GetEntry(pbrShader->getName()));
+		Ref<TestMaterial> material = createRef<TestMaterial>(Renderer::getShaderSystem()->GetEntry(pbrShader->getName()), name);
 		material->SetTransparencyMode(transparencyMode);
 		material->SetAlphaCutOut(alphaCutOff);
 		material->SetInstanced(instancing);

@@ -31,11 +31,19 @@ namespace Stulu
 		/// <summary>
 		/// Base Material, GetMaterial(0)
 		/// </summary>
+		public int MaterialCount { get => GetMaterialCount(id); set => SetMaterialCount(id, value); }
+		/// <summary>
+		/// Base Material, GetMaterial(0)
+		/// </summary>
 		public Material Material { get => GetMaterial(0); set => SetMaterial(value, 0); }
 		/// <summary>
 		/// Set the material, index will be used for equivialant sub meshes
 		/// </summary>
-		public void SetMaterial(Material material, int index = 0) => SetMaterialInternal(id, material.ID, index);
+		public void SetMaterial(Material material, int index = 0) => SetMaterialInternal(id, AssetHandle.GetIDSafe(material), index);
+		/// <summary>
+		/// Add the material
+		/// </summary>
+		public void AddMaterial(Material material) => SetMaterialInternal(id, AssetHandle.GetIDSafe(material), -1);
 		/// <summary>
 		/// Get the material, index will be used for equivialant sub meshes
 		/// </summary>
@@ -50,6 +58,10 @@ namespace Stulu
 		internal extern static void SetMaterialInternal(ulong ID, ulong MaterialID, int index);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static ulong GetMaterialInternal(ulong ID, int index);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static int GetMaterialCount(ulong ID);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static void SetMaterialCount(ulong ID, int count);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static void SetCullModeInternal(ulong ID, uint cullMode);
 		[MethodImpl(MethodImplOptions.InternalCall)]

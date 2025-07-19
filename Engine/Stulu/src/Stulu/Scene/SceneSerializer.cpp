@@ -116,7 +116,6 @@ namespace Stulu {
 			out << YAML::Key << "Settings" << YAML::Value << YAML::BeginMap;
 			{
 				out << YAML::Key << "shaderFlags" << YAML::Value << scene->getData().shaderFlags;
-				out << YAML::Key << "env_lod" << YAML::Value << scene->getData().graphicsData.env_lod;
 				out << YAML::Key << "enablePhsyics3D" << YAML::Value << scene->getData().enablePhsyics3D;
 
 				out << YAML::Key << "Shadows" << YAML::Value << YAML::BeginMap;
@@ -126,6 +125,7 @@ namespace Stulu {
 				out << YAML::Key << "FarPlane" << YAML::Value << scene->getData().graphicsData.shadows.FarPlane;
 				out << YAML::Key << "BlendingDistance" << YAML::Value << scene->getData().graphicsData.shadows.BlendingDistance;
 				out << YAML::Key << "SampleQuality" << YAML::Value << (uint32_t)scene->getData().graphicsData.shadows.SampleQuality;
+				out << YAML::Key << "PCSSQuality" << YAML::Value << (uint32_t)scene->getData().graphicsData.shadows.PCSSQuality;
 				out << YAML::Key << "ZMult" << YAML::Value << scene->getData().graphicsData.shadows.ZMult;
 				out << YAML::EndMap;
 
@@ -177,8 +177,6 @@ namespace Stulu {
 
 				if (settings["shaderFlags"]) 
 					sceneData.shaderFlags = settings["shaderFlags"].as<uint32_t>();
-				if (settings["env_lod"]) 
-					sceneData.graphicsData.env_lod = settings["env_lod"].as<float>();
 				if (settings["enablePhsyics3D"]) 
 					sceneData.enablePhsyics3D = settings["enablePhsyics3D"].as<bool>();
 
@@ -196,6 +194,8 @@ namespace Stulu {
 						sceneData.graphicsData.shadows.BlendingDistance = shadows["BlendingDistance"].as<float>();
 					if (shadows["SampleQuality"])
 						sceneData.graphicsData.shadows.SampleQuality = shadows["SampleQuality"].as<uint32_t>();
+					if (shadows["PCSSQuality"])
+						sceneData.graphicsData.shadows.PCSSQuality = shadows["PCSSQuality"].as<uint32_t>();
 					if (shadows["ZMult"])
 						sceneData.graphicsData.shadows.ZMult = shadows["ZMult"].as<float>();
 

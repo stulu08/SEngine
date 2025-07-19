@@ -237,7 +237,7 @@ namespace Editor {
 				std::string hint = "";
 				if (Stulu::AssetsManager::GlobalInstance().TypeCheck<Stulu::MaterialAsset>(materialID)) {
 					Stulu::MaterialAsset asset = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(materialID);
-					hint = asset.Path();
+					hint = asset->GetName();
 				}
 				else {
 					hint = "No Material";
@@ -268,6 +268,36 @@ namespace Editor {
 				return changed;
 				});
 		}
-		
+		template<class IntType, uint32_t kMinRes = 128, uint32_t kMaxRes = 8192>
+		inline bool ResolutionCombo(const std::string& label, IntType& currentRes) {
+			static constexpr int kNumEntries = static_cast<int>(Stulu::Math::log2(kMaxRes / kMinRes));
+
+			static std::array<const char*, kNumEntries> items = []() {
+				std::array<const char*, kNumEntries> temp{};
+				static std::array<std::string, kNumEntries> labels{};
+				for (int i = 0; i < kNumEntries; ++i) {
+					uint32_t res = kMinRes << i;
+					labels[i] = std::to_string(res);
+					temp[i] = labels[i].c_str();
+				}
+				return temp;
+				}();
+
+			int currentIndex = std::clamp<int>((int)std::log2(static_cast<uint32_t>(currentRes) / kMinRes), 0, kNumEntries - 1);
+
+			bool changed = LabeledBaseControl(label, [&]() {
+				ImGui::PushItemWidth(-1);
+				bool re = ImGui::Combo("##resolution_combo", &currentIndex, items.data(), kNumEntries);
+				if (re) {
+					uint32_t newRes = kMinRes << currentIndex;
+					currentRes = static_cast<IntType>(newRes);
+				}
+				ImGui::PopItemWidth();
+				return re;
+				});
+
+			return changed;
+		}
+
 	}
 }

@@ -47,6 +47,10 @@ namespace Editor
 
 							ImGui.TreePop();
 						}
+						if (ImGui.Button("Update"))
+						{
+							texture.UpdateTextureSettings();
+						}
 					}
 					ImGui.TreePop();
 				}

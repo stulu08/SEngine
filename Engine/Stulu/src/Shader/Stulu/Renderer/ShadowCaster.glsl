@@ -16,7 +16,7 @@ layout(triangles, invocations = ST_MAX_SHADOW_CASCADES) in;
 layout(triangle_strip, max_vertices = VERTEX_COUNT) out;
 
 void main() {
-    if (gl_InvocationID >= cascadeCount)
+    if (gl_InvocationID >= CascadeCount)
         return;
 
 	for (int i = 0; i < VERTEX_COUNT; ++i)

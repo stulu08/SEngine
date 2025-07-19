@@ -19,6 +19,22 @@ namespace Editor
 				meshFilter.Mesh = mesh;
 			}
 
+			if (mesh != null)
+			{
+				int count = mesh.SubMeshCount;
+				if (count > 0 && ImGui.TreeNode($"{count} Sub-Meshes", ImGui.TreeNodeFlags.None))
+				{
+					ImGui.Indent();
+					for (int i = 0; i < count; i++)
+					{
+						SubMeshDescription desc = mesh.GetSubMesh(i);
+						ImGui.Text($"{desc.name} ({desc.indexCount} Indices)");
+					}
+					ImGui.Unindent();
+
+					ImGui.TreePop();
+				}
+			}
 		}
 	}
 }

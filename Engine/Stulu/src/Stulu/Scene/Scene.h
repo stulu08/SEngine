@@ -19,9 +19,9 @@ namespace Stulu {
 		float BlendingDistance = 10.0f;
 		// Poisson sample count: 0->8, 1->16, 2->32, 3->64
 		uint8_t SampleQuality = 1;
+		uint8_t PCSSQuality = 1;
 	};
 	struct SceneGraphicsData {
-		float env_lod = 1.0f;
 		// this wont render the skybox, but will still bind it
 		bool transparentBG = false;
 		FogSettings fog;

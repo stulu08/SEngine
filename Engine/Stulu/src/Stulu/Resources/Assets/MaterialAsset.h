@@ -22,8 +22,8 @@ namespace Stulu {
 		virtual bool Load() override;
 		virtual bool Save() const override;
 
-		inline std::string GetModelPath() {
-			return GetPath().substr(3);
+		virtual void SetMaterial(Ref<TestMaterial> material) {
+			m_material = material;
 		}
 
 		using NativeType = TestMaterial;

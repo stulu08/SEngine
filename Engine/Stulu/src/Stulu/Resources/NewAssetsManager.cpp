@@ -10,7 +10,7 @@
 
 namespace Stulu {
 	static AssetsManager* Instance = nullptr;
-	
+
 	AssetsManager::AssetsManager() {
 		RegisterType<SharedMiscFileAssetData>();
 		RegisterType<SharedTexture2DAssetData>();
@@ -46,9 +46,13 @@ namespace Stulu {
 	AssetsManager::IDType AssetsManager::LoadFile(const std::string& filePath) {
 		const std::filesystem::path path = filePath;
 		const std::string extension = path.extension().string();
-		
+
 		if (std::filesystem::is_directory(path)) {
 			CORE_WARN("Directory assets are not supported!");
+			return IDType::null;
+		}
+		if (!std::filesystem::exists(path)) {
+			CORE_ERROR("File not found: {0}", path);
 			return IDType::null;
 		}
 		if (extension == ".meta") {
@@ -64,7 +68,15 @@ namespace Stulu {
 			return IDType::null;
 		}
 
-		if (AddAsset(metaInfo.type, filePath, metaInfo.uuid)) {
+		// check if already loaded
+		const auto it = Find(metaInfo.uuid);
+		if (it != m_assets.end()) {
+			if (it->second->GetTypeID() == metaInfo.type)
+				return metaInfo.uuid;
+
+			CORE_ERROR("Asset with UUID {0} already loaded, but found type mismatch: {1}", metaInfo.uuid, path);
+		}
+		else if (AddAsset(metaInfo.type, filePath, metaInfo.uuid)) {
 			return metaInfo.uuid;
 		}
 		return IDType::null;
@@ -78,7 +90,9 @@ namespace Stulu {
 				if (it != m_assets.end()) {
 					SharedAssetData* data = it->second.get();
 					if (data) return (data);
-					else CORE_WARN("Corrupted Asset Registry for Asset: {0}", metaInfo.uuid);
+
+					CORE_WARN("Corrupted Asset Registry for Asset: {0}", metaInfo.uuid);
+					return nullptr;
 				}
 			}
 		}

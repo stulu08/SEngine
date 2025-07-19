@@ -46,18 +46,17 @@ PBRResult ComputePBR(const PBRData data) {
 	lightData.metallic = data.metallic;
 	lightData.F0 = F0;
 
-	vec3 Lo = data.emission;
-	for(int i = 0; i < lightCount; i++){
-		
-		vec3 LightDirOut = vec3(0);
-		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData, LightDirOut);
+	vec3 lightingOut = data.emission;
+	for(int i = 0; i < GetNumLights(); i++){
 
-		float shadow = 1.0;
-		if(shadowCaster == i) {
-			shadow = 1.0 - ComputeCSMShadow(vec4(data.worldPos, 1.0), N, LightDirOut);
+		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData);
+
+		float lightShadow = 0.0;
+		if(IsLightMainCaster(i)) {
+			lightShadow += ComputeCSMShadow(vec4(data.worldPos, 1.0), N, lights[i]);
 		}
 
-		Lo += lightOut * shadow;
+		lightingOut += lightOut * saturate(1.0 - lightShadow);
 	}
 
 	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, data.roughness);
@@ -74,49 +73,44 @@ PBRResult ComputePBR(const PBRData data) {
 		vec3 SB_R = GetSkyBoxCoords(R, skyBoxRotation);
 		vec3 SB_V = GetSkyBoxCoords(V, skyBoxRotation);
 		
-		irradiance = texture(irradianceMap, SB_N).rgb;
-		//irradiance = texture(irradianceMap, N).rgb;
-
-		prefilteredColor = textureLod(prefilterMap, SB_R, data.roughness * MAX_REFLECTION_LOD).rgb;
-		//prefilteredColor = textureLod(prefilterMap, R, data.roughness * MAX_REFLECTION_LOD).rgb;
-
+		irradiance = texture(irradianceMap, SB_N).rgb * environmentStrength;
+		prefilteredColor = textureLod(prefilterMap, SB_R, data.roughness * MAX_REFLECTION_LOD).rgb * environmentReflections;
 		brdf  = texture(BRDFLUTMap, vec2(max(dot(SB_N, SB_V), 0.0), data.roughness)).rg;
-		//brdf  = texture(BRDFLUTMap, vec2(max(dot(N, V), 0.0), data.roughness)).rg;
 	}
 
 	PBRResult res;
-	res.lightOut = Lo;
+	res.lightOut = lightingOut;
 	res.diffuse  = irradiance * data.albedo.rgb;
 	res.specular = prefilteredColor * (F * brdf.x + brdf.y);
 	res.ambient = ((kD * res.diffuse * data.albedo.a) + res.specular)*data.ao;
 	res.normal = data.normal;
-	res.color = (res.ambient + res.lightOut);	
+	res.color = (res.ambient + res.lightOut) * when_eq(viewFlags, 0);	
 	res.alpha = data.albedo.a;
 
-	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
-		res.color = vec3(res.lightOut);
-	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
-		res.color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y)/cameraNearFar.y);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
-		res.color = vec3(res.diffuse);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
-		res.color = vec3(res.specular);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
-		res.color = vec3(res.ambient);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbientOcclusion))
-		res.color = vec3(data.ao);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayNormal))
-		res.color = vec3(data.normal) * 0.5 + 0.5;
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayRoughness))
-		res.color = vec3(data.roughness);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayMetallic))
-		res.color = vec3(data.metallic);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
-		res.color = vec3(data.texCoords, 0);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
-		res.color = vec3(data.albedo.rgb);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayEmission))
-		res.color = vec3(data.emission);
+	//if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
+	//	res.color = vec3(res.lightOut);
+	//if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
+	//	res.color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y));
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
+	//	res.color = vec3(res.diffuse);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
+	//	res.color = vec3(res.specular);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
+	//	res.color = vec3(res.ambient);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbientOcclusion))
+	//	res.color = vec3(data.ao);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayNormal))
+	//	res.color = vec3(data.normal) * 0.5 + 0.5;
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayRoughness))
+	//	res.color = vec3(data.roughness);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayMetallic))
+	//	res.color = vec3(data.metallic);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
+	//	res.color = vec3(data.texCoords, 0);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
+	//	res.color = vec3(data.albedo.rgb);
+	//else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayEmission))
+	//	res.color = vec3(data.emission);
 
 	return res;
 }

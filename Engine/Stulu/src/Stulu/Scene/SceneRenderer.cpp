@@ -29,30 +29,26 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::LoadLights() {
-		for (auto& goID : m_scene->GetAllWith<LightComponent, TransformComponent>()) {
-			GameObject go(goID, m_scene);
-			if (go == m_scene->getMainLight()) {
-				m_shadowCaster = m_lightBufferData.lightCount;
-			}
-			AddLight(go.getComponent<TransformComponent>(), go.getComponent<LightComponent>());
-		}
-		UploadLightBuffer();
 		m_lightBufferData = LightBufferData();
-		m_shadowCaster = 0;
-	}
-	void SceneRenderer::AddLight(const TransformComponent& transform, const LightComponent& light) {
-		if (m_lightBufferData.lightCount < ST_MAXLIGHTS) {
+		GameObject MainLight = m_scene->getMainLight();
 
-			m_lightBufferData.lights[m_lightBufferData.lightCount].colorAndStrength = glm::vec4(light.color, light.strength);
-			m_lightBufferData.lights[m_lightBufferData.lightCount].positionAndType = glm::vec4(transform.GetWorldPosition(), light.lightType);
-			m_lightBufferData.lights[m_lightBufferData.lightCount].rotation = glm::vec4(transform.GetForward(), 1.0f);
-			m_lightBufferData.lights[m_lightBufferData.lightCount].spotLightData = glm::vec4(glm::cos(glm::radians(light.spotLight_cutOff)), glm::cos(glm::radians(light.spotLight_outerCutOff)), 1.0f, light.areaRadius);
+		for (auto& goID : m_scene->GetAllWith<LightComponent>()) {
+			GameObject go(goID, m_scene);
+			AddLight(go.getComponent<LightComponent>());
+		}
+
+		UploadLightBuffer();
+	}
+	void SceneRenderer::AddLight(const LightComponent& light) {
+		if (m_lightBufferData.lightCount < ST_MAXLIGHTS) {
+			m_lightBufferData.lights[m_lightBufferData.lightCount] = light.GetRenderData();
 			m_lightBufferData.lightCount++;
 		}
 	}
 	void SceneRenderer::UploadLightBuffer() {
 		Renderer::getBuffer(BufferBinding::Light)->setData(&m_lightBufferData, sizeof(LightBufferData));
 	}
+
 	void SceneRenderer::DrawSceneToCamera(SceneCamera& sceneCam, CameraComponent& mainCam) {
 		CameraComponent camComp = mainCam.gameObject.getComponent<CameraComponent>();
 		camComp.gameObject = mainCam.gameObject;
@@ -76,14 +72,16 @@ namespace Stulu {
 
 		// find skybox
 		TestMaterial* camSkyboxMaterial = nullptr;
-		glm::mat4 skyboxRotation = glm::mat4(1.0f);
 		if (cameraComp.gameObject.IsValid()) {
 			if (cameraComp.GetClearType() == ClearType::Skybox && cameraComp.gameObject.hasComponent<SkyBoxComponent>()) {
-				SkyBoxComponent& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
+				const SkyBoxComponent& s = cameraComp.gameObject.getComponent<SkyBoxComponent>();
 				if (s.material.IsValid()) {
 					camSkyboxMaterial = *s.material;
 				}
-				skyboxRotation = Math::createMat4(glm::vec3(.0f), glm::quat(glm::radians(s.rotation)), glm::vec3(1.0f));
+
+				m_sceneBufferData.skyBoxRotation = Math::createMat4(glm::vec3(.0f), glm::quat(glm::radians(s.rotation)), glm::vec3(1.0f));
+				m_sceneBufferData.EnvironmentStrength = s.LightStrength;
+				m_sceneBufferData.EnvironmentReflections = s.ReflectionIntensity;
 			}
 		}
 
@@ -96,69 +94,15 @@ namespace Stulu {
 					glm::distance(transform.GetWorldPosition(), glm::vec3(b.transform->GetWorldPosition()));
 			});
 
-		// set shader scene data
-		m_sceneBufferData.env_lod = m_scene->getData().graphicsData.env_lod;
+		// upload scene data
 		m_sceneBufferData.useSkybox = camSkyboxMaterial != nullptr;
 		m_sceneBufferData.shaderFlags = m_scene->getData().shaderFlags;
-		m_sceneBufferData.skyBoxRotation = skyboxRotation;
 		m_sceneBufferData.fogSettings = m_scene->getData().graphicsData.fog;
+		m_sceneBufferData.ShadowSettingsPack = glm::vec4(0.0f);
+		Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
 
 		// shadow pass
-		GameObject lightObject = m_scene->getMainLight();
-		if (lightObject && m_shadowCaster > -1) {
-			TransformComponent& lTC = lightObject.getComponent<TransformComponent>();
-			auto& settings = m_scene->getData().graphicsData.shadows;
-			const size_t cascadeCount = glm::min(settings.CascadeSplits.size(), (size_t)ST_MAX_SHADOW_CASCADES);
-
-			if (settings.CascadeSplits.size() != cascadeCount) {
-				CORE_WARN("Invalid CascadeSplits provided!");
-				settings.CascadeSplits = Math::CalculateCascadeSplits(cascadeCount, settings.FarPlane);
-			}
-
-			const float lightSize = lightObject.getComponent<LightComponent>().areaRadius;
-			m_sceneBufferData.cascadeCount = (uint32_t)cascadeCount;
-			m_sceneBufferData.cascadeBlendDistance = glm::vec4(settings.BlendingDistance, (float)settings.SampleQuality, settings.NearPlane, settings.FarPlane);
-			m_sceneBufferData.shadowCaster = m_shadowCaster;
-			m_sceneBufferData.shadowCasterPos = lTC.GetWorldPosition() - lTC.GetForward() * settings.FarPlane;
-			for (size_t i = 0; i < cascadeCount + 1; i++) {
-				float nearPlane = 0.0f, FarPlane = 0.0f;
-				if (i == 0) {
-					nearPlane = settings.NearPlane;
-					FarPlane = settings.CascadeSplits[i];
-				}
-				else if (i < cascadeCount) {
-					nearPlane = settings.CascadeSplits[i - 1];
-					FarPlane = settings.CascadeSplits[i];
-				}
-				else {
-					nearPlane = settings.CascadeSplits[i - 1];
-					FarPlane = settings.FarPlane;
-				}
-				auto [lightSpaceMatrix, frustumWidth] = GetLightSpaceMatrix(nearPlane, FarPlane, transform, cameraComp, lTC);;
-
-				m_sceneBufferData.cascadePlaneDistances[i] = glm::vec4(FarPlane, nearPlane, lightSize / frustumWidth, 0.0);
-				m_sceneBufferData.lightSpaceMatrices[i] = lightSpaceMatrix;
-			}
-
-			
-			Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
-
-			VFC::setEnabled(false);
-
-			m_shadowMap->bind();
-			RenderCommand::clear();
-			drawSceneShadow();
-			m_shadowMap->unbind();
-
-			m_shadowMap->getDepthAttachment()->bind(4);
-		}
-		else {
-			// upload scene data
-			m_sceneBufferData.shadowCasterPos = glm::vec3(0.0f);
-			m_sceneBufferData.shadowCaster = -1;
-			m_sceneBufferData.cascadeCount = 0;
-			Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
-		}
+		CascadeShadowPass(transform, cameraComp);
 
 		//default render pass
 		VFC::setEnabled(true);
@@ -206,7 +150,6 @@ namespace Stulu {
 
 
 
-
 	void SceneRenderer::drawSceneShadow() {
 		ST_PROFILING_SCOPE("Renderer - Schadow Pass");
 		//opaque only
@@ -223,33 +166,43 @@ namespace Stulu {
 			m_stats.shadowDrawCalls++;
 		}
 	}
-	inline bool DrawObject(const SceneRenderer::RenderObject& object) {
+	inline bool SceneRenderer::DrawObject(const RenderObject& object) {
 		if (!VFC::isInView(&object.transform->GetBounds())) {
 			return false;
 		}
-
-		TestMaterial* material = Resources::DefaultMaterial();
-		if (object.meshRenderer->material.IsValid()) {
-			material = *object.meshRenderer->material;
-		}
-
-		material->GetShader()->bind();
-		material->RenderReady();
-
+		// cull
+		RenderCommand::setCullMode(object.meshRenderer->cullmode);
+		
+		// stencil
 		uint8_t stencil = object.meshRenderer->StencilValue;
 		if (stencil) {
 			RenderCommand::StencilAlways(stencil, 1);
 			RenderCommand::SetStencilValue(object.meshRenderer->StencilValue);
 			object.meshRenderer->StencilValue = 0;
 		}
-
-		RenderCommand::setCullMode(object.meshRenderer->cullmode);
+		
+		// model matrix
 		const glm::mat4& transform = object.transform->GetWorldTransform();
 		glm::mat4 normalMatrix = glm::transpose(glm::inverse(
 			Math::createMat4(object.transform->GetWorldPosition(), object.transform->GetWorldRotation(), { 1,1,1 })));
-
 		Renderer::UploadModelData(transform, normalMatrix, (uint32_t)object.transform->gameObject.GetID());
-		RenderCommand::drawIndexed(object.meshFilter->GetMesh()->GetVertexArray());
+
+		// render mesh(es)
+		const auto& mesh = object.meshFilter->GetMesh();
+		const size_t subMeshesCount = mesh->GetSubmeshes().size();
+
+		// RenderCommandDraw will falback to full mesh if index out of range
+		for (size_t index = 0; index < glm::max(subMeshesCount, 1ull); index++) {
+			MaterialAsset material = object.meshRenderer->GetMaterial(index);
+			if (!material.IsValid()) {
+				material = Resources::DefaultMaterialAsset();
+			}
+			material->GetShader()->bind();
+			material->RenderReady();
+
+			m_stats.drawCalls++;
+			mesh->RenderCommandDraw((int32_t)index, 0);
+		}
 
 		if (stencil) {
 			RenderCommand::StencilAlways(stencil, 0);
@@ -264,14 +217,12 @@ namespace Stulu {
 
 		//opaque
 		for (const RenderObject& object : m_drawList) {
-			if (DrawObject(object))
-				m_stats.drawCalls++;
+			DrawObject(object);
 		}
 
 		//transparent
 		for (const auto& object : m_transparentDrawList) {
-			if (DrawObject(object))
-				m_stats.drawCalls++;
+			DrawObject(object);
 		}
 	}
 	void SceneRenderer::drawSkyBox(TestMaterial* skybox) {
@@ -312,42 +263,127 @@ namespace Stulu {
 		m_shadowMap.reset();
 		m_shadowMap = FrameBuffer::create(specs, colorBuffer, depthBuffer);
 	}
-	std::pair<glm::mat4, float> SceneRenderer::GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const {
+	std::tuple<glm::mat4, glm::mat4, glm::vec2> SceneRenderer::GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const {
 		const auto& settings = m_scene->getData().graphicsData.shadows;
 
-		glm::mat4 cameraProj = glm::perspective(glm::radians(cameraComp.GetFov()), cameraComp.GetAspect(), nearPlane, farPlane);
-		glm::mat4 cameraView = glm::inverse(cameraTransform.GetWorldTransform());
-
-		const auto corners = Math::GetFrustumCornersWorldSpace(cameraProj, cameraView);
-
+		const glm::mat4 cameraProj = glm::perspective(glm::radians(cameraComp.GetFov()), cameraComp.GetAspect(), nearPlane, farPlane);
+		const glm::mat4 cameraView = glm::inverse(cameraTransform.GetWorldTransform());
+		
+		const auto cameraCorners = Math::GetFrustumCornersWorldSpace(cameraProj, cameraView);
 		glm::vec3 center = glm::vec3(0, 0, 0);
-		for (const auto& v : corners) {
+		for (const glm::vec4& v : cameraCorners) {
 			center += glm::vec3(v);
 		}
-		center /= corners.size();
+		center /= cameraCorners.size();
 
-		const auto lightView = glm::lookAt(center - lightTransform.GetForward(), center, TRANSFORM_UP_DIRECTION);
+		const glm::vec3 lightDir = glm::normalize(lightTransform.GetForward());
+		const glm::mat4 lightView = glm::lookAt(center - lightDir, center, TRANSFORM_UP_DIRECTION);
 
 		glm::vec3 min = glm::vec3(std::numeric_limits<float>::max());
 		glm::vec3 max = glm::vec3(std::numeric_limits<float>::min());
-		for (const auto& v : corners)
-		{
-			const glm::vec3 trf = lightView * v;
-			min = glm::min(min, trf);
-			max = glm::max(max, trf);
+		for (const glm::vec4& v : cameraCorners) {
+			const glm::vec4 lv = lightView * v;
+			min = glm::min(min, glm::vec3(lv));
+			max = glm::max(max, glm::vec3(lv));
 		}
 
-		if (min.z < 0)
-			min.z *= settings.ZMult;
-		else
-			min.z /= settings.ZMult;
-		if (max.z < 0)
-			max.z /= settings.ZMult;
-		else
-			max.z *= settings.ZMult;
-		
-		const glm::mat4 lightProjection = glm::ortho(min.x, max.x, min.y, max.y, -max.z, -min.z);
-		return { lightProjection * lightView, max.x - min.x };
+		// add depth padding
+		float zPadding = (max.z - min.z) * (settings.ZMult - 1.0f);
+		min.z -= zPadding * 0.5f;
+		max.z += zPadding * 0.5f;
+
+		// texel snapping
+		const glm::vec2 orthoSize = glm::vec2(max.x - min.x, max.y - min.y);
+		const float shadowMapResolution = (float)settings.MapSize;
+		const glm::vec2 texelSize = orthoSize / shadowMapResolution;
+
+		glm::vec3 shadowCenter = (min + max) * 0.5f;
+		shadowCenter.x = std::floor(shadowCenter.x / texelSize.x) * texelSize.x;
+		shadowCenter.y = std::floor(shadowCenter.y / texelSize.y) * texelSize.y;
+
+		const float halfWidth = orthoSize.x * 0.5f;
+		const float halfHeight = orthoSize.y * 0.5f;
+
+		min.x = shadowCenter.x - halfWidth;
+		max.x = shadowCenter.x + halfWidth;
+		min.y = shadowCenter.y - halfHeight;
+		max.y = shadowCenter.y + halfHeight;
+
+		const glm::mat4 lightProjection = glm::ortho(min.x, max.x, min.y, max.y, min.z, max.z);
+		return { lightProjection, lightView, glm::vec2(glm::abs(max.x - min.x), glm::abs(max.y - min.y)) };
+	}
+
+	void SceneRenderer::CascadeShadowPass(const TransformComponent& transform, const CameraComponent& cameraComp) {
+		ST_PROFILING_SCOPE("Renderer - Cascade Shadow");
+
+		GameObject lightObject = m_scene->getMainLight();
+		if (lightObject) {
+			const LightComponent& light = lightObject.getComponent<LightComponent>();
+			const TransformComponent& lTC = lightObject.getComponent<TransformComponent>();
+			auto& settings = m_scene->getData().graphicsData.shadows;
+			const size_t cascadeCount = glm::min(settings.CascadeSplits.size(), (size_t)ST_MAX_SHADOW_CASCADES);
+
+			if (settings.CascadeSplits.size() != cascadeCount) {
+				CORE_WARN("Invalid CascadeSplits provided!");
+				settings.CascadeSplits = Math::CalculateCascadeSplits(cascadeCount, settings.FarPlane);
+			}
+
+			const float lightSize = light.Directional.Size;
+			
+			m_sceneBufferData.ShadowSettingsPack = glm::vec4(
+				settings.BlendingDistance, (float)settings.SampleQuality, 
+				(float)cascadeCount, lightSize / (float)settings.MapSize);
+
+			m_sceneBufferData.ShadowSettingsPack2 = glm::vec4(
+				light.Shadows.Soft ? 1.0f : 0.0f, (float)settings.PCSSQuality, light.Shadows.Bias, 1.0f);
+
+			for (size_t i = 0; i < cascadeCount + 1; i++) {
+				float nearPlane = 0.0f, FarPlane = 0.0f;
+				if (i == 0) {
+					nearPlane = settings.NearPlane;
+					FarPlane = settings.CascadeSplits[i];
+				}
+				else if (i < cascadeCount) {
+					nearPlane = settings.CascadeSplits[i - 1];
+					FarPlane = settings.CascadeSplits[i];
+				}
+				// last cascade
+				else {
+					nearPlane = settings.CascadeSplits[i - 1];
+					FarPlane = settings.FarPlane;
+				}
+				auto [lightProj, lightView, frustumSize] = GetLightSpaceMatrix(nearPlane, FarPlane, transform, cameraComp, lTC);
+
+				m_sceneBufferData.cascadePlaneDistances[i] = glm::vec4(FarPlane, nearPlane, 0.0f, 0.0);
+				m_sceneBufferData.lightSpaceMatrices[i] = lightProj * lightView;
+
+				if (i == cascadeCount) {
+					glm::vec2 size = frustumSize;
+					// i dont now how to impl vfc for csm, but it isnt really needed due to the range
+					// this here basicly only does a far check which is enough
+					auto f = VFC::createFrustum_ortho(
+						-size.x, size.x,
+						-size.y, size.y,
+						settings.NearPlane, settings.FarPlane * 2.0f,
+						transform.GetWorldPosition() + - lTC.GetForward() * settings.FarPlane * 0.5f, lTC.GetWorldRotation()
+					);
+					VFC::setCamera(f);
+					VFC::setEnabled(true);
+				}
+			}
+
+			Renderer::getBuffer(BufferBinding::Scene)->setData(&m_sceneBufferData, sizeof(SceneBufferData));
+
+			m_shadowMap->bind();
+			RenderCommand::clear();
+			drawSceneShadow();
+			m_shadowMap->unbind();
+
+			m_shadowMap->getDepthAttachment()->bind(ST_CASCADE_SHADOW_TEXTURE_BIND_MAP);
+		}
+		else {
+			Resources::WhiteTexture()->bind(ST_CASCADE_SHADOW_TEXTURE_BIND_MAP);
+		}
 	}
 
 	void SceneRenderer::Register3dObjects() {
@@ -414,7 +450,7 @@ namespace Stulu {
 	void SceneRenderer::RegisterObject(MeshRendererComponent& meshRenderer, MeshFilterComponent& meshFilter, TransformComponent& transform) {
 		if (!meshFilter.GetMesh().IsLoaded())
 			return;
-		if (meshRenderer.material.IsValid() && meshRenderer.material->IsTransparent()) {
+		if (meshRenderer.GetMaterial().IsValid() && meshRenderer.GetMaterial()->IsTransparent()) {
 			m_transparentDrawList.push_back(RenderObject{
 				&meshRenderer,
 				&meshFilter,

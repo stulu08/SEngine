@@ -61,6 +61,25 @@ namespace Stulu {
 			: normal(glm::normalize(norm)),
 			distance(glm::dot(normal, p1))
 		{}
+		Plane(const glm::vec3& norm, float dist)
+			: normal(norm), distance(dist)
+		{}
+
+		inline static Plane FromMatRow(const glm::mat4& m, float sign, int row)
+		{
+			// Each plane: row 3 + sign * rowN
+			glm::vec4 rowN = glm::vec4(m[0][row], m[1][row], m[2][row], m[3][row]);
+			glm::vec4 row3 = glm::vec4(m[0][3], m[1][3], m[2][3], m[3][3]);
+
+			glm::vec4 planeVec = row3 + sign * rowN;
+
+			glm::vec3 normal = glm::vec3(planeVec);
+			float length = glm::length(normal);
+			return Plane{
+				normal / length,
+				planeVec.w / length
+			};
+		}
 
 		float getSignedDistanceToPlan(const glm::vec3& point) const
 		{
@@ -161,6 +180,10 @@ namespace Stulu {
 		template<class T>
 		inline static T logBase(T a, T b) {
 			return glm::log2(a) / glm::log2(b);
+		}
+		static constexpr size_t log2(size_t n)
+		{
+			return ((n < 2) ? 1 : 1 + log2(n / 2));
 		}
 	};
 

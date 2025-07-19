@@ -140,7 +140,7 @@ namespace StuluBindings {
 		manager->RegisterFunction("Stulu.Material::GetPropertyValueColor(ulong,string)",Material::GetPropertyValue<Stulu::MaterialColorProperty>);
 		manager->RegisterFunction("Stulu.Material::SetPropertyValueColor(ulong,string,Stulu.MaterialColor&)",Material::SetPropertyValue<Stulu::MaterialColorProperty>);
 		manager->RegisterFunction("Stulu.Material::GetPropertyValueSampler2D(ulong,string)",Material::GetPropertyValueSampler<Stulu::MaterialSampler2DProperty>);
-		manager->RegisterFunction("Stulu.Material::SetPropertyValueSampler2D(ulong,string,ulong&)",Material::SetPropertyValueSampler<Stulu::MaterialSampler2DProperty>);
+		manager->RegisterFunction("Stulu.Material::SetPropertyValueSampler2D(ulong,string,ulong&)", Material::SetPropertyValueSampler<Stulu::MaterialSampler2DProperty>);
 
 	}
 	void LoadComponentsBindings() {
@@ -198,6 +198,8 @@ namespace StuluBindings {
 
 		manager->RegisterFunction("Stulu.MeshRendererComponent::SetMaterialInternal(ulong,ulong,int)", MeshRendererComponent::SetMaterialInternal);
 		manager->RegisterFunction("Stulu.MeshRendererComponent::GetMaterialInternal(ulong,int)", MeshRendererComponent::GetMaterialInternal);
+		manager->RegisterFunction("Stulu.MeshRendererComponent::GetMaterialCount(ulong)", MeshRendererComponent::GetMaterialCount);
+		manager->RegisterFunction("Stulu.MeshRendererComponent::SetMaterialCount(ulong,int)", MeshRendererComponent::SetMaterialCount);
 		manager->RegisterFunction("Stulu.MeshRendererComponent::SetCullModeInternal(ulong,uint)", MeshRendererComponent::SetCullModeInternal);
 		manager->RegisterFunction("Stulu.MeshRendererComponent::GetCullModeInternal(ulong)", MeshRendererComponent::GetCullModeInternal);
 

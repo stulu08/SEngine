@@ -26,7 +26,7 @@ namespace Stulu {
 	VulkanFramebuffer::~VulkanFramebuffer() {
 		cleanUp();
 	}
-	void VulkanFramebuffer::bind() const {
+	void VulkanFramebuffer::bind(const Viewport& viewport) const {
 		if (VulkanRenderAPI::getDevice().lastRenderPass != nullptr) {
 			CORE_TRACE("Another or same renderpass still active, automaticly ending it");
 			vkCmdEndRenderPass(VulkanRenderAPI::getDevice().getCommandBuffer());
@@ -36,8 +36,8 @@ namespace Stulu {
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = getRenderPass(); // your created render pass
 		renderPassInfo.framebuffer = m_framebuffer;
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = { m_specs.width, m_specs.height };
+		renderPassInfo.renderArea.offset = { (int32_t)viewport.x,(int32_t)viewport.y };
+		renderPassInfo.renderArea.extent = { viewport.width, viewport.height };
 
 		std::array<VkClearValue, 1> clearValues{};
 		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 0.0f} };

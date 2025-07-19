@@ -53,5 +53,9 @@ namespace Editor
 		internal extern static bool ImGui_GameObject(string name, ref IDType value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		internal extern static bool ImGui_SameLine(float offset, float spacing);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool Indent(float indent_w);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		internal extern static bool Unindent(float indent_w);
 	}
 }

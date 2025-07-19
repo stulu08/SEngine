@@ -40,7 +40,6 @@ namespace Stulu {
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-
 		setDefault();
 
 
@@ -144,13 +143,12 @@ namespace Stulu {
 
 	void OpenGLRenderAPI::drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset, const uint32_t instanceCount) {
 		vertexArray->bind();
-		const uint32_t count = indicesCount ? indicesCount : vertexArray->getIndexBuffer()->getCount();
 
 		if (instanceCount > 1) {
-			glDrawElementsInstancedBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)), instanceCount, vertexOffset);
+			glDrawElementsInstanced(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)), instanceCount);
 		}
 		else {
-			glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)), vertexOffset);
+			glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)));
 		}
 	}
 

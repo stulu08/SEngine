@@ -35,8 +35,8 @@ vec3 SampleColorTexture(sampler2D map, vec2 uv, float useMap, vec3 fallback) {
     return mix(fallback, tex, useMap);
 }
 vec4 SampleColorTexture(sampler2D map, vec2 uv, float useMap, vec4 fallback) {
-    vec4 tex = srgbToLinear(texture(map, uv).rgba);
-    return mix(fallback, tex, useMap);
+    vec4 texVal = texture(map, uv);
+    return mix(fallback, texVal, useMap);
 }
 
 vec3 GetSkyBoxCoords(vec3 view, mat4 _skyBoxRotation) {

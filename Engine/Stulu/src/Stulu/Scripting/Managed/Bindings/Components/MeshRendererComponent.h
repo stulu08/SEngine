@@ -6,7 +6,12 @@ namespace StuluBindings {
 			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
 			if (gameObject.hasComponent<Stulu::MeshRendererComponent>()) {
 				auto& component = gameObject.getComponent<Stulu::MeshRendererComponent>();
-				component.material = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(material);
+				if (index < 0) {
+					component.AddMaterial(Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(material));
+				}
+				else {
+					component.SetMaterial(Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::MaterialAsset>(material), index);
+				}
 			}
 		}
 
@@ -14,9 +19,25 @@ namespace StuluBindings {
 			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
 			if (gameObject.hasComponent<Stulu::MeshRendererComponent>()) {
 				auto& component = gameObject.getComponent<Stulu::MeshRendererComponent>();
-				return component.material.GetUUID();
+				return component.GetMaterial(index).GetUUID();
 			}
 			return Stulu::UUID::null;
+		}
+
+		static inline int32_t GetMaterialCount(uint64_t go) {
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			if (gameObject.hasComponent<Stulu::MeshRendererComponent>()) {
+				auto& component = gameObject.getComponent<Stulu::MeshRendererComponent>();
+				return (int32_t)component.GetMaterialCount();
+			}
+			return -1;
+		}
+		static inline void SetMaterialCount(uint64_t go, int32_t count) {
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			if (gameObject.hasComponent<Stulu::MeshRendererComponent>()) {
+				auto& component = gameObject.getComponent<Stulu::MeshRendererComponent>();
+				component.Materials.resize((size_t)count);
+			}
 		}
 
 		static inline void SetCullModeInternal(uint64_t go, uint32_t mode) {

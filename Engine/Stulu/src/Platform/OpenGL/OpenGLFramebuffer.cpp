@@ -65,7 +65,6 @@ namespace Stulu {
 
 		glCreateFramebuffers(1, &m_rendererID);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
-
 		if (colorBuffer.format != TextureFormat::None) {
 			m_colorAttachments.push_back(CreateTexture(colorBuffer));
 			AttachToFrameBuffer(GL_COLOR_ATTACHMENT0, m_colorAttachments[0]);
@@ -87,9 +86,9 @@ namespace Stulu {
 		glDeleteFramebuffers(1, &m_rendererID);
 	}
 	
-	void OpenGLFramebuffer::bind() const {
+	void OpenGLFramebuffer::bind(const Viewport& viewport) const {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
-		glViewport(0, 0, m_specs.width, m_specs.height);
+		glViewport(viewport.x, viewport.y, viewport.width, viewport.height);
 	}
 	void OpenGLFramebuffer::unbind() const {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

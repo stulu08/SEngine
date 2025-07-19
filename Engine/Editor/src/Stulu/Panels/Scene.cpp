@@ -187,6 +187,36 @@ namespace Editor {
 			}
 			return true;
 			}), Keyboard::Z, false, false, false));
+
+		// move to selected
+		layer.AddShortCut(Shortcut("Scene - Move to object", ([&]() {
+			auto& layer = App::get().GetLayer();
+			const auto& selcted = layer.GetPanel<HierarchyPanel>().GetSelected();
+
+			if (selcted.size() > 0) {
+				glm::vec3 cameraPos = m_sceneCamera.getTransform().GetWorldPosition();
+				glm::vec3 avgPos(0.0f);
+
+				for (const entt::entity& entID : selcted) {
+					auto& tc = GameObject(entID, layer.GetActiveScene().get()).getComponent<TransformComponent>();
+					
+					const auto& bounds = tc.GetBounds();
+					if (bounds.getExtents() != glm::vec3(0.0f)) {
+						glm::vec3 center = bounds.getTransformedCenter();
+						glm::vec3 direction = glm::normalize(cameraPos - center);
+						avgPos += center + direction * bounds.getTransformedExtents() * 2.0f;
+					}
+					else {
+						avgPos += tc.GetWorldPosition();
+					}
+				}
+				avgPos /= (float)selcted.size();
+				this->Moveto(avgPos, .5f);
+			}
+
+
+			return true;
+			}), Keyboard::F, false, false, false));
 	}
 	void ScenePanel::DrawImGui() {
 		ST_PROFILING_SCOPE("ImGui - Scene Panel");
@@ -228,12 +258,18 @@ namespace Editor {
 			layer.OpenScene(asset.Path());
 		}
 
+		Stulu::UUID modelUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<ModelAsset>());
+		if (modelUUID != Stulu::UUID::null) {
+			ModelAsset asset = AssetsManager::GlobalInstance().GetAsset<ModelAsset>(modelUUID);
+			layer.GetActiveScene()->SpawnModelAsset(asset);
+		}
+
 		Stulu::UUID materialUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<MaterialAsset>());
 		if (materialUUID != Stulu::UUID::null && m_hoveredObject != entt::null) {
 			MaterialAsset asset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(materialUUID);
 			GameObject go = { m_hoveredObject, layer.GetActiveScene().get()};
 			if (go.hasComponent<MeshRendererComponent>()) {
-				go.getComponent<MeshRendererComponent>().material = asset;
+				go.getComponent<MeshRendererComponent>().SetMaterial(asset);
 			}
 		}
 	}
@@ -262,11 +298,9 @@ namespace Editor {
 				}
 				avgPos /= (float)selectedObjs.size();
 			}
-
+			
 			if (Gizmo::ViewManipulate(sceneCamera.getTransform(), avgPos, pos, size)) {}
 		}
-		
-
 		
 		const glm::vec3& cameraPos = sceneCamera.getTransform().GetWorldPosition();
 		const float gizmoViewDistance = 50.0f;
@@ -288,20 +322,20 @@ namespace Editor {
 			float camDistance = glm::distance(cameraPos, transf.GetWorldPosition());
 
 			if (camDistance <= gizmoViewDistance) {
-				switch (light.lightType)
+				switch (light.Type)
 				{
-				case LightComponent::Area:
-					Gizmo::drawTextureBillBoard(Resources::GetLightTexture(), transf.GetWorldPosition(), glm::vec3(.75f), glm::vec3(0, 1, 0), glm::vec4(light.color, 1.0f));
+				case LightType::Point:
+					Gizmo::drawTextureBillBoard(Resources::GetLightTexture(), transf.GetWorldPosition(), glm::vec3(.75f), glm::vec3(0, 1, 0), glm::vec4(light.Color, 1.0f));
 					break;
-				case LightComponent::Directional:
+				case LightType::Directional:
 					Renderer2D::drawTexturedQuad(
 						Math::createMat4(transf.GetWorldPosition(), transf.GetWorldRotation(), glm::vec3(1.5f, .75f, 1.5f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))),
-						Resources::GetDirectionalLightTexture(), glm::vec2(1.0f), glm::vec4(light.color, 1.0f));
+						Resources::GetDirectionalLightTexture(), glm::vec2(1.0f), glm::vec4(light.Color, 1.0f));
 					break;
-				case LightComponent::Spot:
+				case LightType::Spot:
 					Renderer2D::drawTexturedQuad(
 						Math::createMat4(transf.GetWorldPosition(), transf.GetWorldRotation(), glm::vec3(.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))),
-						Resources::GetSpotLightTexture(), glm::vec2(1.0f), glm::vec4(light.color, 1.0f));
+						Resources::GetSpotLightTexture(), glm::vec2(1.0f), glm::vec4(light.Color, 1.0f));
 					break;
 				}
 			}
@@ -321,6 +355,7 @@ namespace Editor {
 
 			Input::setEnabled(true);
 		}
+		UpdateMoveTo();
 
 		if (IsFocused() && IsVisible()) {
 			Input::setCursorMode(Input::CursorMode::Normal);
@@ -515,6 +550,50 @@ namespace Editor {
 		ImGui::PopFont();
 		ImGui::PopStyleVar(3);
 		ImGui::PopStyleColor(2);
+	}
+
+	static float MoveDuration;
+	static float MoveElapsed = 0.0f;
+	static bool ShouldMove = false;
+	static glm::vec3 TargetPosition;
+	static glm::vec3 StartPosition;
+	static glm::quat TargetRotation;
+	static glm::quat StartRotation;
+
+	void ScenePanel::Moveto(const glm::vec3& position, float duration) {
+		ShouldMove = true;
+
+		StartPosition = m_sceneCamera.getTransform().GetWorldPosition();
+		StartRotation = m_sceneCamera.getTransform().GetWorldRotation();
+
+		TargetPosition = position;
+		TargetRotation = glm::quatLookAt(glm::normalize(TargetPosition - StartPosition), TRANSFORM_UP_DIRECTION);
+
+		MoveDuration = glm::max(duration, 0.001f); // Avoid division by zero
+		MoveElapsed = 0.0f;
+	}
+
+	void ScenePanel::UpdateMoveTo() {
+		if (!ShouldMove) return;
+
+
+		MoveElapsed += Time::frameTime;
+		float t = glm::clamp(MoveElapsed / MoveDuration, 0.0f, 1.0f);
+
+		glm::vec3 newPos = glm::mix(StartPosition, TargetPosition, t);
+		glm::quat newRot = glm::slerp(StartRotation, TargetRotation, t);
+
+		if (glm::any(glm::isnan(newRot))) {
+			ShouldMove = false;
+			return;
+		}
+
+		m_sceneCamera.getTransform().SetWorldPosition(newPos);
+		m_sceneCamera.getTransform().SetWorldRotation(newRot);
+
+		if (t >= 1.0f) {
+			ShouldMove = false;
+		}
 	}
 	
 	

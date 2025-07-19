@@ -4,25 +4,15 @@
 #include "Stulu/Buffer/DefaultMaterialBuffer.glsl"
 
 float FilterAlpha(float alpha, uint mode, float cutOut) {
-    if(mode == 1) {
-		if(alpha > cutOut){
-			return 1.0;//full opaque
-		}else{
-			return 0.0;//full transparent
-		}
-	}
-	else if(mode == 2) {
-		return alpha;//keep alpha
-	}
-    else{
-		return 1.0;//ignore alpha
-	}
+    float isCutout  = float(when_eq(mode, 1));
+    float isBlend   = float(when_eq(mode, 2));
+    float isOpaque  = 1.0 - isCutout - isBlend;
 
-	float value = -1.0;
-    value += 1.0 * float(when_eq(mode, 1)) * when_gt(alpha, cutOut);
-    value += alpha * float(when_eq(mode, 2));
-    value += 1.0 * float(when_neq(value, -1.0));
-    return value;
+    float alphaCut  = when_gt(alpha, cutOut);
+
+    return isCutout * alphaCut +
+           isBlend  * alpha +
+           isOpaque * 1.0;
 }
 float FilterAlpha(float alpha, uint mode) {
     return FilterAlpha(alpha, mode, ST_AlphaCutOff);

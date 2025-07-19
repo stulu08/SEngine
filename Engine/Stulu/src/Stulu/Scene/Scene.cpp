@@ -182,20 +182,18 @@ namespace Stulu {
 	}
 
 	GameObject Scene::getMainLight() {
-		auto view = m_registry.view<GameObjectBaseComponent, LightComponent>();
+		auto view = m_registry.view<LightComponent>();
 		GameObject otherResult = GameObject::null;
-		for (auto gameObject : view) {
-			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
-				if (view.get<LightComponent>(gameObject).lightType == LightComponent::Directional) {
-					if (base.tag == "MainLight") {
-						return GameObject{ gameObject,this };
-					}
-					else {
-						otherResult = GameObject{ gameObject,this };
-					}
 
+		for (auto gameObject : view) {
+			LightComponent& comp = view.get<LightComponent>(gameObject);
+			if (comp.Type == LightType::Directional) {
+				if (comp.Directional.IsMainLight) {
+					return GameObject{ gameObject,this };
 				}
+			}
 		}
+
 		return otherResult;
 	}
 

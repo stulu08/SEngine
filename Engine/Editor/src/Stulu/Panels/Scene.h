@@ -30,6 +30,9 @@ namespace Editor {
 		inline entt::entity GetHoveredObject() const { return m_hoveredObject; }
 
 		void DrawMenuBars(ImVec2 startPos, bool showToolbar = true, float parentWindowWidth = -1.0f);
+
+		void Moveto(const glm::vec3& position, float duration = 0.5f);
+		void UpdateMoveTo();
 	private:
 		ImVec2 m_windowPos = ImVec2(0, 0);
 		ImVec2 m_windowPadding = ImVec2(6.0f, 8.0f);

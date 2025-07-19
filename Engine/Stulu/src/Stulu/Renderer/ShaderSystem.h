@@ -117,6 +117,9 @@ namespace Stulu {
 #define ST_ShaderViewFlags_DisplayOcclusion ((uint32_t)ShaderViewFlags::DisplayAmbientOcclusion)
 #define ST_ShaderViewFlags_DisplayDepth ((uint32_t)ShaderViewFlags::DisplayDepth)
 	static inline constexpr int32_t ST_MAXLIGHTS = 50;
+	// how my shadow casters 
+	static inline constexpr int32_t ST_MAX_SHADOW_CASTERS = 50;
+
 	static inline constexpr int32_t ST_MAX_SHADOW_CASCADES = 6;
 
 	enum class ShaderViewFlags {

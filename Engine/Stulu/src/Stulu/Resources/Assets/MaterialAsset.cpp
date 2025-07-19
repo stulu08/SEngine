@@ -26,7 +26,7 @@ namespace Stulu {
 		if (!shader)
 			return false;
 
-		Ref<TestMaterial> material = createRef<TestMaterial>(shader);
+		Ref<TestMaterial> material = createRef<TestMaterial>(shader, std::filesystem::path(GetPath()).stem().string());
 
 		if (yaml["Instanced"])
 			material->SetInstanced(yaml["Instanced"].as<bool>());

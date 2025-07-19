@@ -2,6 +2,7 @@
 #include "Stulu/Core/Core.h"
 #include "Stulu/Core/Log.h"
 #include "Stulu/Types/UUID.h"
+#include "Stulu/Resources/Assets/ModelAsset.h"
 #include <entt.hpp>
 
 namespace Stulu {
@@ -34,6 +35,8 @@ namespace Stulu {
 
 		virtual bool IsScene() const { return false; }
 		virtual Scene* GetAsScene() { return nullptr; }
+
+		virtual void SpawnModelAsset(const ModelAsset& model);
 	protected:
 		entt::registry m_registry;
 

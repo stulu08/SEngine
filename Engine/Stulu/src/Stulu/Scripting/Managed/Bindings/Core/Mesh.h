@@ -48,8 +48,8 @@ namespace StuluBindings {
 			if (!asset.IsValid())
 				return;
 
-			Stulu::MeshSubmesh subMesh = asset->GetSubmeshes()[id];
-
+			Stulu::MeshSubmesh subMesh = asset->GetSubmeshes()[index];
+			
 			mesh->indexOffset = subMesh.indexOffset;
 			mesh->indexCount = subMesh.indexCount;
 			mesh->vertexOffset = subMesh.vertexOffset;
@@ -64,11 +64,11 @@ namespace StuluBindings {
 			auto& subMeshes = asset->GetSubmeshes();
 
 			if (mesh->indexCount == 0) {
-				subMeshes.erase(subMeshes.begin() + id);
+				subMeshes.erase(subMeshes.begin() + index);
 				return;
 			}
 
-			Stulu::MeshSubmesh& subMesh = asset->GetSubmeshes()[id];
+			Stulu::MeshSubmesh& subMesh = asset->GetSubmeshes()[index];
 
 			subMesh.indexOffset = mesh->indexOffset;
 			subMesh.indexCount = mesh->indexCount;

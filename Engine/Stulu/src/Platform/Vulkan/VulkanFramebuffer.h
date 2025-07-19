@@ -11,7 +11,11 @@ namespace Stulu {
 		VulkanFramebuffer(const FrameBufferSpecs& specs, const TextureSettings& defaultCB, const TextureSettings& defaultDB);
 		virtual ~VulkanFramebuffer();
 
-		virtual void bind() const override;
+		virtual void bind(const Viewport& viewport) const override;
+		virtual void bind() const override {
+			bind({ 0,0,m_specs.width, m_specs.height });
+		}
+
 		virtual void unbind() const override;
 
 		virtual void invalidate() override;

@@ -84,8 +84,7 @@ namespace Stulu
 		/// </summary>
 		public SubMeshDescription GetSubMesh(int index)
 		{
-			SubMeshDescription desc;
-			GetSubMeshInternal(ID, out desc, index);
+			GetSubMeshInternal(ID, out SubMeshDescription desc, index);
 			return desc;
 		}
 

@@ -15,58 +15,71 @@ struct LightComputeData {
 	float metallic;
 	vec3 F0;
 };
-vec3 ComputeOutgoingLight(const Light light, const LightComputeData data, inout vec3 lightDirection){
-    float distance = length(light.positionAndType.xyz - data.worldPos);
+vec3 ComputeOutgoingLight(const Light light, const LightComputeData data){
+	// Unpack data
+	vec3 lightColor   = light.ColorStrength.rgb;
+	float strength    = light.ColorStrength.a;
+	vec3 lightPos     = light.PositionType.xyz;
+	float lightType   = light.PositionType.w;
+	vec3 lightDir     = normalize(-light.Direction.xyz); // forward direction
+	vec4 extra        = light.Data;
 
-	vec3 L;
-	vec3 H;
-	float attenuation = 1.0f;
+	vec3 L, H;
+	float attenuation = 1.0;
 	vec3 radiance;
 
-	//calculate by light type
-	if(light.positionAndType.w == 0){
-		// calculate per-light radiance
-		L = normalize(-light.rotation.xyz);
+	 // Directional Light
+	if (lightType == LIGHT_TYPE_DIR) {
+		L = lightDir;
 		H = normalize(data.view + L);
-		radiance = light.colorAndStrength.xyz * attenuation;        
+		radiance = lightColor * strength;
 	}
-	//point
-	else if(light.positionAndType.w == 1){
-		// calculate per-light radiance
-		L = normalize(light.positionAndType.xyz - data.worldPos);
-		H = normalize(data.view + L);
-		float radius = light.spotLightData.w;
-		attenuation = 1.0-(min(distance/radius,1.0));
-		radiance     = light.colorAndStrength.xyz * attenuation;        
-	}
-	//spot
-	else if(light.positionAndType.w == 2) {
-		// calculate per-light radiance
-		L = normalize(light.positionAndType.xyz - data.worldPos);
-		H = normalize(data.view + L);
-		float theta = dot(L, normalize(-light.rotation.xyz));
-		float epsilon   = light.spotLightData.x - light.spotLightData.y;
-		float intensity = clamp((theta - light.spotLightData.y) / epsilon, 0.0, 1.0);    
-		attenuation = intensity;
-		radiance     = light.colorAndStrength.xyz * attenuation;   
-	}
-	lightDirection = L;
 
-	// cook-torrance brdf
+	// Point Light
+	else if (lightType == LIGHT_TYPE_POINT) {
+		vec3 delta = lightPos - data.worldPos;
+		float dist = length(delta);
+		L = normalize(delta);
+		H = normalize(data.view + L);
+		float radius = extra.x;
+
+		attenuation = clamp(1.0 - dist / radius, 0.0, 1.0);
+		radiance = lightColor * strength * attenuation;
+	}
+
+	// Spot Light
+	else if (lightType == LIGHT_TYPE_SPOT) {
+		vec3 delta = lightPos - data.worldPos;
+		float dist = length(delta);
+		L = normalize(delta);
+		H = normalize(data.view + L);
+		float inner = extra.x;
+		float outer = extra.y;
+
+		float theta = dot(L, lightDir);
+		float epsilon = max(inner - outer, 0.001);
+		float spotIntensity = clamp((theta - outer) / epsilon, 0.0, 1.0);
+
+		float radius = extra.z > 0.0 ? extra.z : 10.0;
+		attenuation = clamp(1.0 - dist / radius, 0.0, 1.0);
+
+		radiance = lightColor * strength * attenuation * spotIntensity;
+	} 
+
+	 // PBR Cook-Torrance BRDF
 	float NDF = DistributionGGX(data.normal, H, data.roughness);        
 	float G   = GeometrySmith(data.normal, data.view, L, data.roughness);      
 	vec3 F    = fresnelSchlick(max(dot(H, data.view), 0.0), data.F0); 
+
 	vec3 kS = F;
-	vec3 kD = vec3(1.0) - kS;
-	kD *= 1.0 - data.metallic;	 
+	vec3 kD = (vec3(1.0) - kS) * (1.0 - data.metallic);	 
 
 	vec3 numerator    = NDF * G * F;
 	float denominator = 4.0 * max(dot(data.normal, data.view), 0.0) * max(dot(data.normal, L), 0.0);
 	vec3 specular     = numerator / max(denominator, 0.001);  
 
-	// add to outgoing radiance Lo
 	float NdotL = max(dot(data.normal, L), 0.0);                
-	return (kD * data.albedo / PI + specular) * radiance * NdotL * light.colorAndStrength.w;
+	return (kD * data.albedo / PI + specular) * radiance * NdotL;
 }
 
 
@@ -102,30 +115,30 @@ void ApplyDefaultFog(inout vec3 color, vec3 vertexPosition) {
 }
 
 void ApplyHorizonFog(inout vec3 color, vec3 vertexPosition) {
-    vec3 viewDir = normalize(vertexPosition - cameraPosition.xyz);
+	vec3 viewDir = normalize(vertexPosition - cameraPosition.xyz);
 
-    // Horizon factor: 0 when looking up/down, 1 near horizon
-    float horizon = abs(dot(viewDir, vec3(0.0, 1.0, 0.0)));
-    float horizonFactor = pow(1.0 - horizon, FogHorizonFalloff);
-    horizonFactor = smoothstep(0.0, 1.0, horizonFactor); // Optional softening
+	// Horizon factor: 0 when looking up/down, 1 near horizon
+	float horizon = abs(dot(viewDir, vec3(0.0, 1.0, 0.0)));
+	float horizonFactor = pow(1.0 - horizon, FogHorizonFalloff);
+	horizonFactor = smoothstep(0.0, 1.0, horizonFactor); // Optional softening
 
-    // Height fog offset
-    float verticalOffset = FogHorizonOffset;
-    float heightFactor = clamp(1.0 - ((vertexPosition.y - verticalOffset) / FogHorizonHeightFalloff), 0.0, 1.0);
-    heightFactor = smoothstep(0.0, 1.0, heightFactor);
+	// Height fog offset
+	float verticalOffset = FogHorizonOffset;
+	float heightFactor = clamp(1.0 - ((vertexPosition.y - verticalOffset) / FogHorizonHeightFalloff), 0.0, 1.0);
+	heightFactor = smoothstep(0.0, 1.0, heightFactor);
 
-    float horizonFogFactor = mix(horizonFactor, 1.0, FogHorizonStrength) * EnableFogHorizon;
-    float heightFogFactor = heightFactor * EnableHorizonHeightFog;
+	float horizonFogFactor = mix(horizonFactor, 1.0, FogHorizonStrength) * EnableFogHorizon;
+	float heightFogFactor = heightFactor * EnableHorizonHeightFog;
 
 	// Ground fog
-    float groundFog = mix(0.0, clamp(1.0 - (vertexPosition.y / 30.0), 0.0, 1.0), FogGroundStrength) * EnableGroundFog;
-    groundFog = smoothstep(0.0, 1.0, groundFog);
+	float groundFog = mix(0.0, clamp(1.0 - (vertexPosition.y / 30.0), 0.0, 1.0), FogGroundStrength) * EnableGroundFog;
+	groundFog = smoothstep(0.0, 1.0, groundFog);
 
-    float fogMultiplier = clamp(horizonFogFactor + heightFogFactor + groundFog, 0.0, 1.0);
+	float fogMultiplier = clamp(horizonFogFactor + heightFogFactor + groundFog, 0.0, 1.0);
 
-    float fogAmount = GetFogStrength(vertexPosition) * fogMultiplier;
+	float fogAmount = GetFogStrength(vertexPosition) * fogMultiplier;
 
-    color = mix(color, fogColor.rgb, fogAmount);
+	color = mix(color, fogColor.rgb, fogAmount);
 }
 
 #endif

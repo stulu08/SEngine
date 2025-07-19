@@ -38,6 +38,8 @@ namespace Editor {
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_Mesh(string,ulong&)", StuluBindings::ImGui::Mesh);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_GameObject(string,ulong&)", StuluBindings::ImGui::GameObject);
 		manager->RegisterFunction("Editor.EditorCalls::ImGui_SameLine(single,single)", ImGui::SameLine);
-
+		manager->RegisterFunction("Editor.EditorCalls::Indent(single)", ImGui::Indent);
+		manager->RegisterFunction("Editor.EditorCalls::Unindent(single)", ImGui::Unindent);
+		
 	}
 }

@@ -10,7 +10,7 @@ namespace Stulu
 		/// <summary>
 		/// Base Material, GetMaterial(0)
 		/// </summary>
-		public Mesh Mesh { get => Mesh.CreateWeak(GetMeshInternal(id)); set => SetMeshInternal(id, value.ID); }
+		public Mesh Mesh { get => Mesh.CreateWeak(GetMeshInternal(id)); set => SetMeshInternal(id, AssetHandle.GetIDSafe(value)); }
 
 		
 		[MethodImpl(MethodImplOptions.InternalCall)]

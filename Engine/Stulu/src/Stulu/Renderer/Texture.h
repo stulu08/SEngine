@@ -50,7 +50,7 @@ namespace Stulu {
 		TextureFiltering filtering = TextureFiltering::Linear;
 		uint32_t arraySize = 1;
 
-		TextureSettings(TextureFormat format, TextureWrap wrap = TextureWrap::ClampToEdge,
+		TextureSettings(TextureFormat format, TextureWrap wrap = TextureWrap::Repeat,
 			const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1, glm::vec4 border = glm::vec4(1.0f),
 			TextureFiltering filtering = TextureFiltering::Linear)
 			:format(format), wrap(wrap), tiling(tiling), levels(levels), border(border), filtering(filtering), arraySize(1) {}

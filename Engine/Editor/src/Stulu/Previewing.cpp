@@ -89,7 +89,7 @@ namespace Editor {
 
 		m_camera = m_scene->Create("Camera");
 		m_light = m_scene->Create("Light");
-		m_light.addComponent<LightComponent>(LightComponent::Directional).strength = 4;
+		m_light.addComponent<LightComponent>(LightType::Directional).Strength = 1.0f;
 		m_light.getComponent<TransformComponent>().SetRotation(glm::quat(glm::radians(glm::vec3(-45.0f, -45.0f, .0f))));
 
 		CamDefault();
@@ -113,11 +113,11 @@ namespace Editor {
 
 		if (material->GetShader() == Renderer::getShaderSystem()->GetShader("Renderer/SkyBox")) {
 			m_camera.addComponent<SkyBoxComponent>().material = material;
-			m_renderObject.saveAddComponent<MeshRendererComponent>().material = Stulu::Resources::DefaultMaterialAsset();
+			m_renderObject.saveAddComponent<MeshRendererComponent>().SetMaterial(Stulu::Resources::ReflectiveMaterialAsset());
 		}
 		else {
 			m_camera.addComponent<SkyBoxComponent>().material = Resources::DefaultSkyBoxMaterialAsset();
-			m_renderObject.saveAddComponent<MeshRendererComponent>().material = material;
+			m_renderObject.saveAddComponent<MeshRendererComponent>().SetMaterial(material);
 		}
 	}
 	void Preview::SetupSkybox(SkyBoxAsset skybox) {
@@ -127,7 +127,7 @@ namespace Editor {
 		m_camera.getComponent<CameraComponent>().SetClearType(ClearType::Skybox);
 		m_renderObject = m_scene->Create("RenderObject");
 		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(Resources::SphereMesh());
-		m_renderObject.saveAddComponent<MeshRendererComponent>().material = Resources::ReflectiveMaterialAsset();
+		m_renderObject.saveAddComponent<MeshRendererComponent>().SetMaterial(Resources::ReflectiveMaterialAsset());
 	}
 	void Preview::SetupMesh(MeshAsset mesh) {
 		m_camera.addComponent<SkyBoxComponent>().material = Resources::DefaultSkyBoxMaterialAsset();
@@ -138,7 +138,7 @@ namespace Editor {
 
 		m_renderObject = m_scene->Create("RenderObject");
 		m_renderObject.saveAddComponent<MeshFilterComponent>().SetMesh(mesh);
-		m_renderObject.saveAddComponent<MeshRendererComponent>().material = Resources::DefaultMaterialAsset();
+		m_renderObject.saveAddComponent<MeshRendererComponent>().SetMaterial(Resources::DefaultMaterialAsset());
 
 		glm::vec3 furthest = glm::abs(mesh->GetBoundingBox().getExtents());
 

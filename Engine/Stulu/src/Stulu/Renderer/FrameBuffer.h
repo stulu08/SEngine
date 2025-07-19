@@ -12,10 +12,17 @@ namespace Stulu {
 			: width(width), height(height), samples(samples), swapChainTarget(swapChainTarget)
 		{}
 	};
+
+	struct Viewport {
+		uint32_t x, y;
+		uint32_t width, height;
+	};
+
 	class STULU_API FrameBuffer {
 	public:
 		virtual ~FrameBuffer() = default;
 		virtual void bind() const = 0;
+		virtual void bind(const Viewport& viewport) const = 0;
 		virtual void unbind() const = 0;
 		virtual void invalidate() = 0;
 		virtual void resize(uint32_t width, uint32_t height) = 0;

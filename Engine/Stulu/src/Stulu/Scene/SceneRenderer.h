@@ -25,7 +25,7 @@ namespace Stulu {
 		void End();
 
 		void LoadLights();
-		void AddLight(const TransformComponent& transform, const LightComponent& light);
+		void AddLight(const LightComponent& light);
 		void UploadLightBuffer();
 
 		void DrawSceneToCamera(SceneCamera& sceneCam, CameraComponent& mainCam);
@@ -47,6 +47,7 @@ namespace Stulu {
 		void drawSceneShadow();
 		void drawScene();
 		void drawSkyBox(TestMaterial* skybox);
+		bool DrawObject(const RenderObject& object);
 
 		void resizeShadowMap();
 
@@ -62,7 +63,8 @@ namespace Stulu {
 			return m_shadowMap;
 		}
 
-		std::pair<glm::mat4, float> GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const;
+		std::tuple<glm::mat4, glm::mat4, glm::vec2> GetLightSpaceMatrix(float nearPlane, float farPlane, const TransformComponent& cameraTransform, const CameraComponent& cameraComp, const TransformComponent& lightTransform) const;
+		void CascadeShadowPass(const TransformComponent& transform, const CameraComponent& cam);
 
 	private:
 		std::vector<RenderObject> m_drawList;
@@ -71,7 +73,6 @@ namespace Stulu {
 		//shadows
 		Ref<Shader> m_shadowShader;
 		Ref<FrameBuffer> m_shadowMap;
-		int32_t m_shadowCaster = -1;
 
 		LightBufferData m_lightBufferData = LightBufferData();
 		SceneBufferData m_sceneBufferData = SceneBufferData();

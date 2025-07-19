@@ -107,5 +107,14 @@ namespace Stulu {
 			string path = GetAssetPath(assetID);
 			return path.Length == 0 && path.Contains(":");
 		}
+
+		/// <summary>
+		/// Static method to get the asset id, works even if object is null
+		/// </summary>
+		public static UUID GetIDSafe<T>(T assetObject) where T : AssetHandle
+		{
+			if(assetObject == null) return UUID.Null;
+			return assetObject.ID;
+		}
 	}
 }

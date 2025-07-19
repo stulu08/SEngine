@@ -1,27 +1,2 @@
-uuid: 2904010800186938074
-type: 4
-props:
-  meshes:
-    - uuid: 2161173347119674618
-      index: 0
-    - uuid: 17389030225621365859
-      index: 1
-    - uuid: 15618860397662744035
-      index: 2
-    - uuid: 11514348873006363167
-      index: 3
-    - uuid: 14517094254859980335
-      index: 4
-    - uuid: 11431685838056168385
-      index: 5
-    - uuid: 8671276292822289440
-      index: 6
-    - uuid: 1475112583025679647
-      index: 7
-  materials:
-    - uuid: 10639133997756873107
-      index: 0
-    - uuid: 3831966388287761699
-      index: 1
 UUID: 2904010800186938074
 TypeName: ModelAsset

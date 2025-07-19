@@ -6,8 +6,8 @@
 #include "Stulu/Renderer/Renderer.h"
 
 namespace Stulu {
-	TestMaterial::TestMaterial(Ref<ShaderEntry> shaderEntry) 
-		: m_shader(shaderEntry->GetShader()) {
+	TestMaterial::TestMaterial(Ref<ShaderEntry> shaderEntry, const std::string& name)
+		: m_shader(shaderEntry->GetShader()), m_name(name) {
 		size_t materialBufferSize = 0;
 
 		for (const auto& prop : shaderEntry->GetProperities()) {

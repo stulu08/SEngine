@@ -52,9 +52,9 @@ namespace Stulu {
 		static Frustum setCamera(float aspect, float zNear, float zFar, float fovY, TransformComponent& transform);
 		static Frustum setCamera(float aspect, float zNear, float zFar, float fovY, const glm::vec3& pos, const glm::quat& rotation);
 		static inline void setCamera(const Frustum& frustum) { s_frustum = frustum; }
-		static Frustum createFrustum(float aspect, float zNear, float zFar, float fovY, TransformComponent& transform);
+		static Frustum createFrustum(float aspect, float zNear, float zFar, float fovY, const TransformComponent& transform);
 		static Frustum createFrustum(float aspect, float zNear, float zFar, float fovY, const glm::vec3& pos, const glm::quat& rotation);
-		static Frustum createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, TransformComponent& transform);
+		static Frustum createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, const TransformComponent& transform);
 		static Frustum createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, const glm::vec3& pos, const glm::quat& rotation);
 
 		static void setEnabled(bool value) { s_isEnabled = value; }

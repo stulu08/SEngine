@@ -100,7 +100,7 @@ namespace Stulu
 			if (type == typeof(Vector3)) { Vector3 v = (Vector3)val; SetPropertyValueFloat3(id, name, ref v); return; }
 			if (type == typeof(Vector4)) { Vector4 v = (Vector4)val; SetPropertyValueFloat4(id, name, ref v); return; }
 			if (type == typeof(MaterialColor)) { MaterialColor v = (MaterialColor)val; SetPropertyValueColor(id, name, ref v); return; }
-			if (type == typeof(Texture2D)) { UUID v = ((Texture2D)val).ID; SetPropertyValueSampler2D(id, name, ref v.ID); return; }
+			if (type == typeof(Texture2D)) { UUID v = AssetHandle.GetIDSafe((Texture2D)val); SetPropertyValueSampler2D(id, name, ref v.ID); return; }
 			throw new ArgumentException($"Unsupported type {type}");
 		}
 

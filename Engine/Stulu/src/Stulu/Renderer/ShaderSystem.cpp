@@ -14,8 +14,8 @@ namespace Stulu {
 		AddIncludePath(std::filesystem::current_path().string());
 		AddInternalIncludeFile("Stulu/Internals.glsl",
 			std::string("#ifndef _STULU_INTERNALS_GLSL_\n") +
-			std::string("#define _STULU_INTERNALS_GLSL_\n") +
-			std::string("#define ENTITY_ID_NULL 0xffffffff\n") +
+			std::string("#define _STULU_INTERNALS_GLSL_\n") + 
+
 			std::string("#define ST_BUFFER_MODEL_BIND  ") + std::to_string((uint32_t)BufferBinding::Model) + "\n" +
 			std::string("#define ST_BUFFER_CAMERA_BIND  ") + std::to_string((uint32_t)BufferBinding::Camera) + "\n" +
 			std::string("#define ST_BUFFER_POSTPROCESS_BIND  ") + std::to_string((uint32_t)BufferBinding::PostProcessing) + "\n" +
@@ -23,13 +23,18 @@ namespace Stulu {
 			std::string("#define ST_BUFFER_SCENE_BIND  ") + std::to_string((uint32_t)BufferBinding::Scene) + "\n" +
 			std::string("#define ST_BUFFER_MATERIAL_BIND  ") + std::to_string((uint32_t)BufferBinding::Material) + "\n" +
 			std::string("#define ST_BUFFER_USER_MATERIAL_BIND  ") + std::to_string((uint32_t)BufferBinding::UserMaterial) + "\n" +
+			std::string("#define ST_USER_MATERIAL_BINDING ") + std::to_string((int)BufferBinding::UserMaterial) + "\n" +
+
 			std::string("#define ST_SKYBOX_TEXTURE_BIND_ENV  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_ENV) + "\n" +
 			std::string("#define ST_SKYBOX_TEXTURE_BIND_IRR  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_IRR) + "\n" +
 			std::string("#define ST_SKYBOX_TEXTURE_BIND_PRE  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_PRE) + "\n" +
 			std::string("#define ST_SKYBOX_TEXTURE_BIND_BRD  ") + std::to_string(ST_SKYBOX_TEXTURE_BIND_BRD) + "\n" +
-			std::string("#define ST_SHADOW_TEXTURE_BIND_MAP  ") + std::to_string(ST_SHADOW_TEXTURE_BIND_MAP) + "\n" +
-			std::string("#define ST_MAX_INSTANCES ") + std::to_string(ST_MAX_INSTANCES) + "\n" +
-			std::string("#define ST_MAX_BONES  ") + std::to_string(ST_MAX_BONES) + "\n" +
+
+			std::string("#define ST_MAX_SHADOW_CASCADES ") + std::to_string(ST_MAX_SHADOW_CASCADES) + "\n" +
+			std::string("#define ST_DEFAULT_SHADOW_TEXTURE_BIND_MAP  ") + std::to_string(ST_DEFAULT_SHADOW_TEXTURE_BIND_MAP) + "\n" +
+			std::string("#define ST_POINT_SHADOW_TEXTURE_BIND_MAP  ") + std::to_string(ST_POINT_SHADOW_TEXTURE_BIND_MAP) + "\n" +
+			std::string("#define ST_CASCADE_SHADOW_TEXTURE_BIND_MAP  ") + std::to_string(ST_CASCADE_SHADOW_TEXTURE_BIND_MAP) + "\n" +
+
 			std::string("#define ST_USER_TEXTURE_0  ") + std::to_string(ST_USER_TEXTURE_START + 0) + "\n" +
 			std::string("#define ST_USER_TEXTURE_1  ") + std::to_string(ST_USER_TEXTURE_START + 1) + "\n" +
 			std::string("#define ST_USER_TEXTURE_2  ") + std::to_string(ST_USER_TEXTURE_START + 2) + "\n" +
@@ -39,15 +44,15 @@ namespace Stulu {
 			std::string("#define ST_USER_TEXTURE_6  ") + std::to_string(ST_USER_TEXTURE_START + 6) + "\n" +
 			std::string("#define ST_USER_TEXTURE_7  ") + std::to_string(ST_USER_TEXTURE_START + 7) + "\n" +
 			std::string("#define ST_USER_TEXTURE_8  ") + std::to_string(ST_USER_TEXTURE_START + 8) + "\n" +
-			std::string("#define ST_USER_TEXTURE_9  ") + std::to_string(ST_USER_TEXTURE_START + 9) + "\n" +
-			std::string("#define ST_USER_TEXTURE_10 ") + std::to_string(ST_USER_TEXTURE_START + 10) + "\n" +
 			std::string("#define ST_USER_TEXTURE_COUNT ") + std::to_string(ST_USER_TEXTURE_COUNT) + "\n" +
 			std::string("#define ST_USER_TEXTURE_START ") + std::to_string(ST_USER_TEXTURE_START) + "\n" +
 			std::string("#define ST_USER_TEXTURE_END ") + std::to_string(ST_USER_TEXTURE_END) + "\n" +
+
 			std::string("const int st_maxLights = ") + std::to_string(ST_MAXLIGHTS) + ";\n" +
+			std::string("#define ENTITY_ID_NULL 0xffffffff\n") +
 			std::string("#define MAX_REFLECTION_LOD ") + std::to_string(ST_MAX_REFLECTION_LOD) + "\n" +
-			std::string("#define ST_MAX_SHADOW_CASCADES ") + std::to_string(ST_MAX_SHADOW_CASCADES) + "\n" +
-			std::string("#define ST_USER_MATERIAL_BINDING ") + std::to_string((int)BufferBinding::UserMaterial) + "\n" +
+			std::string("#define ST_MAX_INSTANCES ") + std::to_string(ST_MAX_INSTANCES) + "\n" +
+			std::string("#define ST_MAX_BONES  ") + std::to_string(ST_MAX_BONES) + "\n" +
 			std::string("#endif\n")
 		);
 	}

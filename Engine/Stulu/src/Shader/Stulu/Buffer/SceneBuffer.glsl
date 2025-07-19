@@ -7,7 +7,6 @@ layout (binding = ST_SKYBOX_TEXTURE_BIND_ENV) uniform samplerCube environmentMap
 layout (binding = ST_SKYBOX_TEXTURE_BIND_IRR) uniform samplerCube irradianceMap;
 layout (binding = ST_SKYBOX_TEXTURE_BIND_PRE) uniform samplerCube prefilterMap;
 layout (binding = ST_SKYBOX_TEXTURE_BIND_BRD) uniform sampler2D BRDFLUTMap;
-layout (binding = ST_SHADOW_TEXTURE_BIND_MAP) uniform sampler2DArray cascadeShadowMap;
 
 layout(std140, binding = ST_BUFFER_SCENE_BIND) uniform ShaderSceneBufferData
 {
@@ -16,13 +15,13 @@ layout(std140, binding = ST_BUFFER_SCENE_BIND) uniform ShaderSceneBufferData
 
 	bool useSkybox;
 	uint viewFlags;
-	int shadowCaster;
-	uint cascadeCount;
+	float environmentStrength;
+	float environmentReflections;
 
 	mat4 lightSpaceMatrices[ST_MAX_SHADOW_CASCADES + 1];
-	vec4 cascadePlaneDistances[ST_MAX_SHADOW_CASCADES + 1]; // distance (far plane), near plane, lightWidth
-	vec4 shadowSettingsPack; // blendDistance, Poisson Quality
-	vec4 shadowCasterPosPacked; // shadowCasterPos (xyz) + env_lod (w)
+	vec4 cascadePlaneDistances[ST_MAX_SHADOW_CASCADES + 1]; // distance (far plane), NearPlane
+	vec4 shadowSettingsPack1; // BlendDistance, Poisson Quality, CascadeCount, LightWidth
+	vec4 shadowSettingsPack2; // SoftShadows, PCSS Poisson Quality
 
 	vec4 fogColor;
 	float fogMode;
@@ -40,11 +39,11 @@ layout(std140, binding = ST_BUFFER_SCENE_BIND) uniform ShaderSceneBufferData
 };
 
 
-vec3 shadowCasterPos = shadowCasterPosPacked.xyz;
-float env_lod = shadowCasterPosPacked.w;
-
-float CascadeBlendDistance = shadowSettingsPack.x;
-int ShadowQuality = int(shadowSettingsPack.y);
-
-
+float CascadeBlendDistance = shadowSettingsPack1.x;
+int ShadowQuality = int(shadowSettingsPack1.y);
+int CascadeCount = int(shadowSettingsPack1.z);
+float CascadeLightSize = shadowSettingsPack1.w;
+float CascadeSoftShadows = shadowSettingsPack2.x;
+int PCSSQuality = int(shadowSettingsPack2.y);
+float CascadeBiasMod = shadowSettingsPack2.z;
 #endif

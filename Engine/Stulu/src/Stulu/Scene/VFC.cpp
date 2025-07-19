@@ -27,7 +27,7 @@ namespace Stulu {
         s_frustum = createFrustum(aspect, zNear, zFar, DegfovY, pos, rotation);
         return s_frustum;
     }
-    Frustum VFC::createFrustum(float aspect, float zNear, float zFar, float DegfovY, TransformComponent& tc) {
+    Frustum VFC::createFrustum(float aspect, float zNear, float zFar, float DegfovY, const TransformComponent& tc) {
         Frustum frustum;
 
         float fovY = glm::radians(DegfovY);
@@ -66,7 +66,7 @@ namespace Stulu {
         frustum.bottomFace = Plane(worldPosition, glm::cross(frontMultFar + up * halfVSide, right));
         return frustum;
     }
-    Frustum VFC::createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, TransformComponent& transform) {
+    Frustum VFC::createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, const TransformComponent& transform) {
         return createFrustum_ortho(left, right, bottom, top, zNear, zFar, transform.GetWorldPosition(), transform.GetWorldRotation());
     }
     Frustum VFC::createFrustum_ortho(float left, float right, float bottom, float top, float zNear, float zFar, const glm::vec3& worldPosition, const glm::quat& rotation) {
