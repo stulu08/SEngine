@@ -59,11 +59,5 @@ void main (){
 	PBRResult result = ComputePBR(data);
 
 	ApplyDefaultFog(result.color, vertex.worldPos);
-
 	WriteDefaultOut(result);
-
-	if (data.albedo.a == 0.0) {
-		discard;
-	}
-
 }

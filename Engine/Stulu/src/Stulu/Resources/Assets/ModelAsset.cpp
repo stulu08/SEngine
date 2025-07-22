@@ -29,7 +29,7 @@ namespace Stulu {
 			aiProcess_FindInvalidData |
 			//aiProcess_FlipUVs |
 			//aiProcess_CalcTangentSpace |
-			aiProcess_GenSmoothNormals |
+			//aiProcess_GenSmoothNormals |
 			//aiProcess_ImproveCacheLocality |
 			aiProcess_OptimizeMeshes |
 			aiProcess_OptimizeGraph

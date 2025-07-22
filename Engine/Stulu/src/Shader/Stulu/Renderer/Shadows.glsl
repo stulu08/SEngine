@@ -101,10 +101,7 @@ float SampleCascadePCSS(const vec3 shadowCoords, const int layer, const float bi
 	return SampleCascadePoisonPCF(shadowCoords, layer, bias, filterRadius);
 }
 
-float SampleCascadeMap(const vec4 world, const int layer, const float bias) { 
-	vec3 shadowCoords = GetProjectedCascedeShadowCoords(world, layer);
-	if (shadowCoords.z > 1.0)
-		return 0.0;
+float SampleCascadeMap(const vec3 shadowCoords, const int layer, const float bias) { 
 
 	float shadow = 0.0;
 	if(CascadeSoftShadows == 1.0)
@@ -119,16 +116,21 @@ float ComputeCSMShadow(const vec4 world, const vec3 pixelNormal, const Light lig
 	const float fragDepth = abs((viewMatrix * world).z);
 	const int layer = SelectCSMLayer(fragDepth);
 	const float bias = CalculateBias(pixelNormal, normalize(-light.Direction.xyz), CascadeBiasMod);
+	const vec3 shadowCoords = GetProjectedCascedeShadowCoords(world, layer);
+	
+	if (shadowCoords.z > 1.0)
+		return 0.0;
 
 	// outside light view
-	float shadow = SampleCascadeMap(world, layer, bias);
+	float shadow = SampleCascadeMap(shadowCoords, layer, bias);
 
-	// no blending for last layer
-	if(layer == CascadeCount - 1)
+	// no blending for last layer, or if next layer not availabe
+	const vec3 nextShadowCoords = GetProjectedCascedeShadowCoords(world, layer + 1);
+	if(layer == CascadeCount - 1 || nextShadowCoords.z > 1.0)
 		return shadow;
 
 	// blend with next layer
-	float nextShadow = SampleCascadeMap(world, layer + 1, bias);
+	float nextShadow = SampleCascadeMap(nextShadowCoords, layer + 1, bias);
 	return BlendCascades(shadow, nextShadow, GetCascadeFarPlane(layer), fragDepth);
 }
 

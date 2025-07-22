@@ -15,22 +15,24 @@ uint ST_EntityID = ENTITY_ID_NULL;
 
 
 
-#ifdef ST_PBR
-void WriteDefaultOut(PBRResult result) {
-	FragColor = vec4(result.color, result.alpha);
-	WriteEntityIDOut(ST_EntityID);
-}
-#endif
-void WriteDefaultOut(vec4 color) {
-	FragColor = color;
-	WriteEntityIDOut(ST_EntityID);
-}
-void WriteDefaultOut(vec3 color) {
-	FragColor = vec4(color, 1.0);
-	WriteEntityIDOut(ST_EntityID);
-}
 void WriteDefaultOut(vec3 color, float alpha) {
 	FragColor = vec4(color, alpha);
 	WriteEntityIDOut(ST_EntityID);
+
+	if (alpha == 0.0) {
+		discard;
+	}
 }
+void WriteDefaultOut(vec4 color) {
+	WriteDefaultOut(color.xyz, color.w);
+}
+void WriteDefaultOut(vec3 color) {
+	WriteDefaultOut(color, 1.0);
+}
+#ifdef ST_PBR
+void WriteDefaultOut(PBRResult result) {
+	WriteDefaultOut(result.color, result.alpha);
+}
+#endif
+
 #endif
