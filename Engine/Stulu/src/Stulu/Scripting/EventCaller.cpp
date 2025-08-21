@@ -3,51 +3,56 @@
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/Components/Components.h"
-#include "Stulu/Scene/Behavior.h"
+#include "Stulu/Scripting/Managed/Bindings/Core/Asset.h"
 
 namespace Stulu {
+
+	std::unordered_map<size_t, EventCaller::LayerRegistryEntry> EventCaller::s_registeredSceneLayers;
+
+
 	EventCaller::EventCaller(Scene* scene)
-		: m_scene(scene) {
+		: m_scene(scene), m_initManagedMethod(nullptr) {
+
+		for (auto& [id, funcEntry] : s_registeredSceneLayers) {
+			auto [layerHash, layerPtr] = funcEntry.first(scene);
+			if (layerHash && layerPtr)
+				m_layer.insert({ layerHash, layerPtr });
+		}
 		m_manager = Application::get().getAssemblyManager();
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("Initilize", 1);
 	}
-#define IMPL_EVENT(name) \
-	void EventCaller::name(const GameObject& object) { \
-		if (object) { \
-			if (object.hasComponent<NativeScriptComponent>()) { \
-				NativeScriptComponent& script = object.getComponent<NativeScriptComponent>(); \
-				if (!script.instance) { \
-					ConstructNative(object); \
-				} \
-				if (script.instance) { \
-					script.instance->name(); \
-				} \
-			} \
-			if (object.hasComponent<ScriptingComponent>()) { \
-				CallManagedEvent(m_manager->getEvents().name, object); \
-			} \
-			return; \
-		} \
-		m_scene->m_registry.view<NativeScriptComponent>().each([this](auto goID, NativeScriptComponent& script) { \
-			if (!script.instance) { \
-				ConstructNative({ goID , m_scene}); \
-			} \
-			if (script.instance) { \
-				script.instance->onAwake(); \
-			} \
-		}); \
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) { \
-			const GameObject gameObject = { id, m_scene }; \
-			CallManagedEvent(m_manager->getEvents().name, gameObject); \
-		} \
+
+	EventCaller::EventCaller(Scene* scene, Scene* copyTarget)
+		: m_scene(scene), m_initManagedMethod(nullptr) {
+		
+		Ref<EventCaller> targetCaller = copyTarget->getCaller();
+
+		for (auto& [id, funcEntry] : s_registeredSceneLayers) {
+			if (targetCaller->HasLayer(id)) {
+				// copy layer
+				auto [layerHash, layerPtr] = funcEntry.second(scene, targetCaller->GetLayer(id));
+				if (layerHash && layerPtr)
+					m_layer.insert({ layerHash, layerPtr });
+			}
+			else {
+				// create layer
+				auto [layerHash, layerPtr] = funcEntry.first(scene);
+				if (layerHash && layerPtr)
+					m_layer.insert({ layerHash, layerPtr });
+			}
+		}
+
+		m_manager = Application::get().getAssemblyManager();
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("Initilize", 1);
 	}
-	IMPL_EVENT(onAwake);
-	IMPL_EVENT(onStart);
-	IMPL_EVENT(onUpdate);
-	IMPL_EVENT(onRender);
-	IMPL_EVENT(onRender2D);
-	IMPL_EVENT(onDrawGizmos);
-	IMPL_EVENT(onDestroy);
-	IMPL_EVENT(onSceneExit);
+
+	EventCaller::~EventCaller() {
+		for (auto& [hash, layer] : m_layer) {
+			if (layer)
+				delete layer;
+		}
+		m_layer.clear();
+	}
 
 	void EventCaller::ConstructManaged(const GameObject& object) {
 		if (object) {
@@ -58,7 +63,7 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) {
 			const GameObject gameObject = { id, m_scene };
 			ConstructManaged(gameObject);
 		}
@@ -74,12 +79,10 @@ namespace Stulu {
 		}
 	}
 	bool EventCaller::InitManagedGameObject(const GameObject& gameObject, Ref<MonoObjectInstance>& script) {
-		Mono::Method func = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
-		if (func) {
-			entt::entity id = (entt::entity)gameObject;
-			void* args[1];
-			args[0] = &id;
-			m_manager->getAppAssembly()->InvokeMethod(func, script->getObject(), args);
+		if (m_initManagedMethod) {
+			uint64_t id = (uint64_t)gameObject.GetID();
+			void* args[1] = { &id };
+			script->CallMethod(m_initManagedMethod, args, false);
 			script->SetInitilized();
 			return true;
 		}
@@ -90,6 +93,9 @@ namespace Stulu {
 		if (object) {
 			ScriptingComponent& comp = object.getComponent<ScriptingComponent>();
 			for (auto& script : comp.runtimeScripts) {
+				if (!script)
+					continue;
+
 				if (!script->IsInitilized()) {
 					InitManagedRuntimeScript(object, script);
 				}
@@ -99,37 +105,99 @@ namespace Stulu {
 			}
 			return;
 		}
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) {
 			const GameObject gameObject = { id, m_scene };
 			CallManagedEvent(method, gameObject);
 		}
 	}
-	void EventCaller::ConstructNative(const GameObject& object) {
-		if (object) {
-			NativeScriptComponent& script = object.getComponent<NativeScriptComponent>();
-			script.instance = script.Instantiate();
-			script.instance->gameObject = object;
-			script.instance->onAwake();
-			return;
-		}
-		m_scene->m_registry.view<NativeScriptComponent>().each([=](auto gameObject, NativeScriptComponent& script) {
-			script.instance = script.Instantiate();
-			script.instance->gameObject = GameObject{ gameObject, m_scene };
-			script.instance->onAwake();
-			});
+
+#define DEFAULT_HANDLE_MANAGED(name) \
+	{\
+		ST_PROFILING_SCOPE("Managed Scripting - " #name); \
+		if (object.IsValid()) { \
+			if (object.hasComponent<ScriptingComponent>()) { \
+				CallManagedEvent(m_manager->getEvents().name, object); \
+			} \
+			return; \
+		} \
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) { \
+			const GameObject gameObject = { id, m_scene }; \
+			CallManagedEvent(m_manager->getEvents().name, gameObject); \
+		} \
+	} 
+
+#define DEFAULT_HANDLE_LAYER(name, ...) \
+	{\
+		ST_PROFILING_SCOPE("Native Scripting - " #name); \
+		for (auto& [id, layer] : m_layer) { \
+			layer->name(__VA_ARGS__); \
+		} \
 	}
-	void EventCaller::DestructNative(const GameObject& object) {
-		if (object) {
-			NativeScriptComponent& script = object.getComponent<NativeScriptComponent>();
-			if (script.instance) {
-				script.Destroy(&script);
-			}
-			return;
+
+	void EventCaller::onAwake(const GameObject& object) {
+		DEFAULT_HANDLE_MANAGED(onAwake);
+	}
+	void EventCaller::onDestroy(const GameObject& object) {
+		DEFAULT_HANDLE_MANAGED(onDestroy);
+	}
+
+	void EventCaller::onStart(const GameObject& object) {
+		DEFAULT_HANDLE_MANAGED(onStart);
+	}
+	void EventCaller::onUpdate(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Update);
 		}
-		m_scene->m_registry.view<NativeScriptComponent>().each([=](auto gameObject, NativeScriptComponent& script) {
-			if (script.instance) {
-				script.Destroy(&script);
-			}
-		});
+
+		DEFAULT_HANDLE_MANAGED(onUpdate);
+	}
+	void EventCaller::onRender(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Render);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onRender);
+	}
+	void EventCaller::onRender2D(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(Render2D);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onRender2D);
+	}
+	void EventCaller::onDrawGizmos(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(DrawGizmos);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onDrawGizmos);
+	}
+	void EventCaller::onSceneExit(const GameObject& object) {
+		if (object == GameObject::null) {
+			DEFAULT_HANDLE_LAYER(SceneExit);
+		}
+
+		DEFAULT_HANDLE_MANAGED(onSceneExit);
+
+		// check assets created inside managed code
+		StuluBindings::AssetHandle::CleanUpAssets(true);
+	}
+	void EventCaller::NativeSceneStart() {
+		DEFAULT_HANDLE_LAYER(SceneStart);
+	}
+	void EventCaller::NativePreUpdate() {
+		DEFAULT_HANDLE_LAYER(PreUpdate);
+	}
+	void EventCaller::NativeGameObjectCreate(const GameObject& object) {
+		DEFAULT_HANDLE_LAYER(GameObjectCreate, object);
+	}
+	void EventCaller::NativeGameObjectDestory(const GameObject& object) {
+		DEFAULT_HANDLE_LAYER(GameObjectDestory, object);
+	}
+	void EventCaller::SerializerScene(YAML::Emitter& out) {
+		DEFAULT_HANDLE_LAYER(SerializerScene, out);
+	}
+	void EventCaller::DeserializerScene(YAML::Node& data) {
+		DEFAULT_HANDLE_LAYER(DeserializerScene, data);
 	}
 }

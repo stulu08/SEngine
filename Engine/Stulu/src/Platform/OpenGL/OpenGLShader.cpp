@@ -1,30 +1,17 @@
 #include "st_pch.h"
 #include "OpenGLShader.h"
+#include "OpenGLStateCache.h"
 
 #include <fstream>
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 #include "Stulu/Renderer/Shader.h"
 #include "OpenGLTexture.h"
 
 namespace Stulu {
-	static std::string stringFromShaderType(GLenum type) {
-		switch (type) {
-		case GL_VERTEX_SHADER:
-			return "Vertex";
-			break;
-		case GL_FRAGMENT_SHADER:
-			return "Fragment";
-			break;
-		case GL_COMPUTE_SHADER:
-			return "Compute";
-			break;
-		}
-		CORE_ERROR("Unknown Shadertype: {0}", type);
-		return "";
-	}
+	
 	static GLenum shaderTypeToGl(ShaderType type) {
 		switch (type) {
 		case ShaderType::Vertex:
@@ -33,6 +20,9 @@ namespace Stulu {
 		case ShaderType::Fragment:
 			return GL_FRAGMENT_SHADER;
 			break;
+		case ShaderType::Geometry:
+			return GL_GEOMETRY_SHADER;
+			break;
 		case ShaderType::Compute:
 			return GL_COMPUTE_SHADER;
 			break;
@@ -40,43 +30,26 @@ namespace Stulu {
 		CORE_ERROR("Unknown Shadertype: {0}", type);
 		return GL_NONE;
 	}
-	OpenGLShader::OpenGLShader(const std::string& name, const ShaderSource& sources)
-		: m_name(name) {
-		ST_PROFILING_FUNCTION();
-		compile(sources);
-	}
 
-	OpenGLShader::~OpenGLShader() {
-		ST_PROFILING_FUNCTION();
-		glDeleteProgram(m_rendererID);
-	}
+	OpenGLShaderCompiler::OpenGLShaderCompiler() {}
 
-	void OpenGLShader::reload(const ShaderSource& sources) {
-		ST_PROFILING_FUNCTION();
-
-		glDeleteProgram(m_rendererID);
-		m_rendererID = 0;
-
-		compile(sources);
-	}
-	void OpenGLShader::compile(const ShaderSource& sources){
-		ST_PROFILING_FUNCTION();
-
+	bool OpenGLShaderCompiler::Compile(const ShaderSource& sources, ShaderCompileResult& result) const {
 		GLuint rendererID = glCreateProgram();
 		
 		std::vector<GLenum> shaderIds;
 		shaderIds.resize(sources.Size(), 0);
 
 		for (uint32_t i = 0; i < sources.Size(); i++) {
-			const auto& kv = sources.Get(i);
+			const auto& [type, strSrc] = sources.Get(i);
 
-			GLenum type = shaderTypeToGl(kv.first);
-			const std::string& src = kv.second;
+			GLuint shader = glCreateShader(shaderTypeToGl(type));
 
-			GLuint shader = glCreateShader(type);
+			const std::string src = ApplyHeaders(strSrc);
 			const GLchar* source = src.c_str();
+
 			glShaderSource(shader, 1, &source, 0);
 			glCompileShader(shader);
+			
 			GLint isCompiled = 0;
 			glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
 			if (isCompiled == GL_FALSE) {
@@ -85,10 +58,10 @@ namespace Stulu {
 				std::vector<GLchar> infoLog(maxLength);
 				glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
 				glDeleteShader(shader);
-				CORE_ERROR("GLSL {1} Shader compilation error:\n{0}", infoLog.data(), stringFromShaderType(type));
-				CORE_ASSERT(false, stringFromShaderType(type) + " Shader compilation of \"" + m_name + "\" failed");
+				CORE_ERROR("GLSL {1} Shader compilation error:\n{0}", infoLog.data(), std::to_string(type));
 				break;
 			}
+
 			glAttachShader(rendererID, shader);
 			shaderIds[i] = shader;
 		}
@@ -102,10 +75,158 @@ namespace Stulu {
 			std::vector<GLchar> infoLog(maxLength);
 			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
 			glDeleteProgram(rendererID);
-			for(auto id : shaderIds)
+			for (auto id : shaderIds)
 				glDeleteShader(id);
 
 			CORE_ERROR("GLSL compilation error:\n{0}", infoLog.data());
+			return false;
+		}
+
+		for (auto id : shaderIds) {
+			glDetachShader(rendererID, id);
+			glDeleteShader(id);
+		}
+
+
+		// Retrieve the binary format and binary length
+		GLint bufferLength = 0;
+		GLenum binaryFormat = 0;
+		GLsizei programSize = 0;
+		glGetProgramiv(rendererID, GL_PROGRAM_BINARY_LENGTH, &bufferLength);
+		
+		size_t uint32_count = (bufferLength + sizeof(uint32_t) - 1) / sizeof(uint32_t);
+		std::vector<uint32_t> binary(uint32_count + 2);
+
+		unsigned char* binaryData = reinterpret_cast<unsigned char*>(&binary[2]);
+
+		glGetProgramBinary(rendererID, bufferLength, &programSize, &binaryFormat, binaryData);
+		CORE_ASSERT(bufferLength == programSize, "Error while retrieving program binary")
+
+		binary[0] = (uint32_t)binaryFormat;
+		binary[1] = (uint32_t)bufferLength;
+
+		result.Add(Stulu::ShaderType::Vertex, { std::move(binary) });
+
+		glDeleteProgram(rendererID);
+
+		return true;
+	}
+	bool OpenGLShaderCompiler::CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const {
+		if (Compile(sources, result)) {
+			std::filesystem::path path = cacheFile;
+			if (path.has_parent_path() && !std::filesystem::exists(path.parent_path()))
+				std::filesystem::create_directories(path.parent_path());
+
+			if (result.Size() != 1) {
+				CORE_ERROR("Invalid compilation result of OpenGLShaderCompiler");
+				return false;
+			}
+
+			const auto& [type, res] = result.Get(0);
+			const std::string name = path.string();
+			FILE* file = fopen(name.c_str(), "wb");
+
+			fwrite(&res.data[0], sizeof(res.data[0]), res.data.size(), file);
+			fclose(file);
+
+			return true;
+		}
+
+		return false;
+	}
+	bool OpenGLShaderCompiler::LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const {
+		return false;
+	}
+	bool OpenGLShaderCompiler::isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const {
+		return false;
+	}
+
+	std::string OpenGLShaderCompiler::ApplyHeaders(const std::string& src) const {
+		std::stringstream result;
+		
+		for (auto& header : m_headers) {
+			result << header << "\n";
+		}
+		result << src;
+		return result.str();
+	}
+
+
+	OpenGLShader::OpenGLShader(const std::string& name, const ShaderCompileResult& sources)
+		: m_name(name) {
+		link(sources);
+	}
+
+	OpenGLShader::~OpenGLShader() {
+		glDeleteProgram(m_rendererID);
+	}
+
+	void OpenGLShader::reload(const ShaderCompileResult& sources) {
+		glDeleteProgram(m_rendererID);
+		m_rendererID = 0;
+		link(sources);
+	}
+
+	void OpenGLShader::link(const ShaderCompileResult& sources) {
+		GLuint rendererID = glCreateProgram();
+		std::vector<GLenum> shaderIds;
+
+		if (!Renderer::getShaderSystem()->SpirvSupported()) {
+			// opengl compiled shaders
+
+			if (sources.Size() != 1) {
+				CORE_ASSERT(false, "Invalid compilation result of OpenGLShaderCompiler");
+				return;
+			}
+
+			const auto& result = sources.Get(0).second;
+
+			uint32_t format = result.data[0];  
+			uint32_t binSize = result.data[1]; 
+
+			const unsigned char* bin = reinterpret_cast<const unsigned char*>(&result.data[2]);
+
+			glProgramBinary(rendererID, (GLenum)format, bin, (GLsizei)binSize);
+		}
+		else {
+			shaderIds.resize(sources.Size(), 0);
+
+			// SPIRV compiled shaders
+			for (uint32_t i = 0; i < sources.Size(); i++) {
+				const auto& [type, result] = sources.Get(i);
+				GLuint shader = glCreateShader(shaderTypeToGl(type));
+
+				glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, &result.data[0], (GLsizei)(result.data.size() * sizeof(result.data[0])));
+				glSpecializeShader(shader, "main", 0, nullptr, nullptr);
+
+				shaderIds[i] = shader;
+			}
+
+
+			for (auto id : shaderIds) {
+				glAttachShader(rendererID, id);
+			}
+
+			glLinkProgram(rendererID);
+		}
+
+
+		GLint isLinked = 0;
+		glGetProgramiv(rendererID, GL_LINK_STATUS, (int*)&isLinked);
+		if (isLinked == GL_FALSE) {
+			GLint maxLength = 512;
+			glGetProgramiv(rendererID, GL_INFO_LOG_LENGTH, &maxLength);
+
+			maxLength = glm::max(maxLength, 512);
+			std::vector<GLchar> infoLog(maxLength);
+			
+			glGetProgramInfoLog(rendererID, maxLength, &maxLength, &infoLog[0]);
+			glDeleteProgram(rendererID);
+
+			for (auto id : shaderIds)
+				glDeleteShader(id);
+
+			CORE_ERROR("GLSL linking error:\n{0}", infoLog.data());
 			CORE_ASSERT(false, "Could not link shader program");
 			return;
 		}
@@ -115,20 +236,18 @@ namespace Stulu {
 			glDeleteShader(id);
 		}
 		m_rendererID = rendererID;
-
 	}
 
 	void OpenGLShader::bind() const {
-		glUseProgram(m_rendererID);
+		OpenGLStateCache::BindProgram(m_rendererID);
 	}
 
 	void OpenGLShader::unbind() const {
-		glUseProgram(0);
+		OpenGLStateCache::BindProgram(0);
 	}
 
 	void OpenGLShader::Dispatch(const glm::uvec3& size, uint32_t usage) {
-		ST_PROFILING_FUNCTION();
-		glUseProgram(m_rendererID);
+		OpenGLStateCache::BindProgram(m_rendererID);
 		glDispatchCompute(size.x, size.y, size.z);
 		if (usage != ComputeUsage::None)
 			glMemoryBarrier(usage);
@@ -187,7 +306,7 @@ namespace Stulu {
 		else
 			internalFormat = TextureFormatToGLenum(format).first;
 
-		glUseProgram(m_rendererID);
+		OpenGLStateCache::BindProgram(m_rendererID);
 		GLint loc = glGetUniformLocation(m_rendererID, name.c_str());
 		glUniform1i(loc, binding);
 		glBindImageTexture(binding, textureID, mipLevel, GL_FALSE, 0, (uint32_t)mode, (uint32_t)internalFormat);

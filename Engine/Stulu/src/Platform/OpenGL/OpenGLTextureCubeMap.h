@@ -3,14 +3,13 @@
 #include <Stulu/Renderer/Shader.h>
 #include "OpenGLVertexArray.h"
 namespace Stulu {
-	class STULU_API OpenGLCubeMap : public CubeMap {
+	class STULU_API OpenGLCubeMap : public virtual CubeMap {
 	public:
 		OpenGLCubeMap(uint32_t resolution, TextureSettings settings);
 
 		virtual ~OpenGLCubeMap();
 
 		virtual void bind(uint32_t slot) const override;
-		virtual void draw() const override;
 		virtual void genMips() const override;
 
 		virtual void* getNativeRendererObject() const override { return (void*)(&m_map); }
@@ -27,13 +26,12 @@ namespace Stulu {
 		TextureSettings m_settings;
 		friend class OpenGLReflectionMap;
 	};
-	class STULU_API OpenGLReflectionMap : public ReflectionMap {
+	class STULU_API OpenGLReflectionMap : public virtual ReflectionMap {
 	public:
-		OpenGLReflectionMap(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB16F, TextureWrap::Repeat, {1,1}, ST_MAX_REFLECTION_LOD+1));
+		OpenGLReflectionMap(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB16F, TextureWrap::ClampToEdge, {1,1}, ST_MAX_REFLECTION_LOD+1));
 		virtual ~OpenGLReflectionMap();
 
 		virtual void bind(uint32_t slot) const override { m_prefilterMap->bind(slot); }
-		virtual void draw() const override { m_sourceMap->draw(); }
 		virtual void genMips() const override { m_sourceMap->genMips(); }
 
 		virtual void GenerateReflectionMips(uint32_t) override;
@@ -51,7 +49,7 @@ namespace Stulu {
 		Ref<OpenGLCubeMap> m_prefilterMap;
 		uint32_t m_captureFBO, m_captureRBO;
 	};
-	class OpenGLSkyBox : public SkyBox {
+	class OpenGLSkyBox : public virtual SkyBox {
 	public:
 		OpenGLSkyBox(uint32_t resolution, void* data) { update(resolution, data); }
 		OpenGLSkyBox(const std::vector<std::string>& faces, uint32_t resolution) { update(faces, resolution); }
@@ -65,7 +63,6 @@ namespace Stulu {
 		virtual void bindPrefilter(uint32_t slot) const override;
 		virtual void bindBRDFLUT(uint32_t slot) const override;
 
-		virtual void draw() const override;
 		virtual void genMips() const override { CORE_WARN("Not supported"); }
 
 		virtual void* getNativeRendererObject() const override { return (void*)(&m_envCubemap); }
@@ -89,12 +86,12 @@ namespace Stulu {
 
 		static Ref<Texture2D> genrateBRDFLUT(uint32_t resolution);
 	private:
-		TextureSettings m_settings;
+		TextureSettings m_settings = TextureFormat::RGB16F;
 		uint32_t m_resolution;//need to be set in constructor
 		uint32_t m_envCubemap;//need to be set in constructor
 		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
 		uint32_t m_brdfLUT = 0;
-		static inline uint32_t s_quadVAO = 0, s_quadVBO = 0;
+		static uint32_t s_quadVAO, s_quadVBO;
 
 		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
 
@@ -105,7 +102,6 @@ namespace Stulu {
 		static Ref<Shader> getEquirectangularToCubemapShader();
 		static Ref<Shader> getIrradianceShader();
 		static Ref<Shader> getPrefilterShader();
-		static Ref<Shader> getCubeMapShader();
 		static Ref<Shader> getBRDFLUTShader();
 	};
 }

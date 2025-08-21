@@ -8,7 +8,7 @@ namespace Stulu {
 
 	Layer::~Layer()
 	{
-
+		
 	}
 
 }

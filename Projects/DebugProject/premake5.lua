@@ -46,6 +46,12 @@ TargetDir = "%{wks.location}/Data"
 ObjectDir = "%{wks.location}/Compiler"
 AssetDir = "%{wks.location}/Assets"
 RuntimeDir = "%{wks.location}/Runtime"
+RuntimeBuildDir = "%{wks.location}/Build"
+
+group "Dependencies"
+dofile (EngineSourceDir .. "/Dependencies/imgui/premake5.lua")
+dofile (EngineSourceDir .. "/Dependencies/yaml-cpp/premake5.lua")
+group ""
 
 include "Config/Runtime.lua"
 include "Config/Native.lua"

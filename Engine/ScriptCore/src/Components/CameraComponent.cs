@@ -1,0 +1,79 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Stulu
+{
+	/// <summary>
+	/// How a camera shoul clear the screen
+	/// </summary>
+	public enum ClearType { 
+		/// Clear using a color
+		Color = 0, 
+		/// Clear using the skybox component of the camera object
+		Skybox = 1 
+	};
+	/// <summary>
+	/// Multisampling
+	/// </summary>
+	public enum MSAASamples
+	{
+		/// <summary>
+		/// One Sample
+		/// </summary>
+		Disabled = 1,
+		/// <summary>
+		/// Two samples
+		/// </summary>
+		Two = 2,
+		/// <summary>
+		/// Four samples
+		/// </summary>
+		Four = 4,
+		/// <summary>
+		/// Eight samples
+		/// </summary>
+		Eight = 8,
+		/// <summary>
+		/// Sixteen samples
+		/// </summary>
+		Sixteen = 16
+	};
+
+	/// <summary>
+	/// Acces to camera settings
+	/// </summary>
+	public class CameraComponent : GameObjectAttached {
+		/// <summary>
+		/// Field of View
+		/// </summary>
+		public float Fov { get => InternalCalls.cameraComp_fov(id);  set => InternalCalls.cameraComp_fov(id, value); }
+		/// <summary>
+		/// The near value, how near can can something be renderer
+		/// </summary>
+		public float Near { get => InternalCalls.cameraComp_near(id); set => InternalCalls.cameraComp_near(id, value); }
+		/// <summary>
+		/// View distance
+		/// </summary>
+		public float Far { get => InternalCalls.cameraComp_far(id); set => InternalCalls.cameraComp_far(id, value); }
+		/// <summary>
+		/// How the camera clears the screen
+		/// </summary>
+		public ClearType ClearType { get => (ClearType)InternalCalls.cameraComp_clearType(id); set => InternalCalls.cameraComp_clearType(id, (int)value); }
+		/// <summary>
+		/// How the camera clears the screen
+		/// </summary>
+		public MSAASamples Samples { get => (MSAASamples)InternalCalls.cameraComp_samples(id); set => InternalCalls.cameraComp_samples(id, (int)value); }
+		/// <summary>
+		/// Aspect ratio of the camera ( width/height )
+		/// </summary>
+		public float AspectRatio { get => InternalCalls.cameraComp_aspect(id); }
+
+		/// <summary>
+		/// Applies the changed to the camera
+		/// </summary>
+		public void Update() => InternalCalls.cameraComp_update(id);
+	}
+}

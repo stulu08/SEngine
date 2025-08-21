@@ -8,12 +8,11 @@
 
 
 struct PBRData {
-	vec3  albedo;
+	vec4  albedo;
 	vec3  emission;
 	float metallic;
 	float roughness;
 	float ao;
-	float alpha;
 
 	vec3 worldPos;
 	vec3 normal;
@@ -21,98 +20,90 @@ struct PBRData {
 };
 
 struct PBRResult { 
-	vec3 diffuse;
-	vec3 specular;
-	vec3 ambient;
-	vec3 lightOut;
-	vec3 normal;
 	vec3 color;
 	float alpha;
+	vec3 normal;
 };
 
 PBRResult ComputePBR(const PBRData data) {
-	vec3 N = normalize(data.normal);
-	vec3 V = normalize(cameraPosition.xyz - data.worldPos);
-	vec3 R = reflect(-V, N);
-	vec3 F0 = vec3(0.04); 
-	F0 = mix(F0, data.albedo, data.metallic);
+	vec3 albedo = data.albedo.xyz;
+	float alpha = data.albedo.w;
+
+	vec3 normal = normalize(data.normal);
+	vec3 view = normalize(cameraPosition.xyz - data.worldPos);
+	vec3 F0 = mix(vec3(0.04), albedo, data.metallic);; 
+
 	//lighting
-	vec3 Lo = data.emission;
-	for(int i = 0; i < lightCount; i++){
+	LightComputeData lightData;
+	lightData.worldPos = data.worldPos;
+	lightData.view = view;
+	lightData.normal = normal;
+	lightData.albedo = albedo;
+	lightData.roughness = data.roughness;
+	lightData.metallic = data.metallic;
+	lightData.F0 = F0;
 
-		LightComputeData lightData;
-		lightData.worldPos = data.worldPos;
-		lightData.view = V;
-		lightData.normal = N;
-		lightData.albedo = data.albedo;
-		lightData.roughness = data.roughness;
-		lightData.metallic = data.metallic;
-		lightData.F0 = F0;
-		
-		vec3 L = vec3(0);
-		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData, L);
+	vec3 lightingOut = data.emission;
+	for(int i = 0; i < GetNumLights(); i++){
 
-		float shadow = 1.0;
-		if(shadowCaster == i) {
-			shadow = ComputeShadow(lightSpaceMatrix * vec4(data.worldPos, 1.0), shadowMap, N, L);
+		vec3 lightOut = ComputeOutgoingLight(lights[i], lightData);
+
+		float lightShadow = 0.0;
+		if(IsLightMainCaster(i)) {
+			lightShadow += ComputeCSMShadow(vec4(data.worldPos, 1.0), normal, lights[i]);
 		}
 
-		Lo += lightOut * shadow;
+		lightingOut += lightOut * saturate(1.0 - lightShadow);
 	}
 
-	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, data.roughness);
-	vec3 kS = F;
-	vec3 kD = 1.0 - kS;
-	kD *= 1.0 - data.metallic;
+	vec3 F = fresnelSchlickRoughness(max(dot(normal, view), 0.0), F0, data.roughness);
+	vec3 kD = (1.0 - F) * (1.0 - data.metallic);
   
-	vec3 prefilteredColor = vec3(0.0);
-	vec3 irradiance = vec3(clearColor);
-	vec2 brdf = vec2(0.0);
+	vec3 specular = vec3(0.0);
+	vec3 diffuse = albedo * vec3(clearColor);
 
 	if(useSkybox) {
-		vec3 SB_N = getSkyBoxCoords(N, skyBoxRotation);
-		vec3 SB_R = getSkyBoxCoords(R, skyBoxRotation);
-		vec3 SB_V = getSkyBoxCoords(V, skyBoxRotation);
+		vec3 SB_N = GetSkyBoxCoords(normal, skyBoxRotation);
+		vec3 SB_V = GetSkyBoxCoords(view, skyBoxRotation);
+		vec3 SB_R = GetSkyBoxCoords(reflect(-view, normal), skyBoxRotation);
 		
-		irradiance = texture(irradianceMap, SB_N).rgb;
-		//irradiance = texture(irradianceMap, N).rgb;
+		vec3 irradiance = texture(irradianceMap, SB_N).rgb * environmentStrength;
+		diffuse = irradiance * albedo;
 
-		prefilteredColor = textureLod(prefilterMap, SB_R, data.roughness * MAX_REFLECTION_LOD).rgb;
-		//prefilteredColor = textureLod(prefilterMap, R, data.roughness * MAX_REFLECTION_LOD).rgb;
-
-		brdf  = texture(BRDFLUTMap, vec2(max(dot(SB_N, SB_V), 0.0), data.roughness)).rg;
-		//brdf  = texture(BRDFLUTMap, vec2(max(dot(N, V), 0.0), data.roughness)).rg;
+		vec2 brdf  = texture(BRDFLUTMap, vec2(max(dot(SB_N, SB_V), 0.0), data.roughness)).rg;
+		vec3 prefilteredColor = textureLod(prefilterMap, SB_R, data.roughness * MAX_REFLECTION_LOD).rgb * environmentReflections;
+		specular = prefilteredColor * (F * brdf.x + brdf.y);
 	}
 
+	vec3 ambient = ((kD * diffuse * alpha) + specular) * data.ao;
+
 	PBRResult res;
-	res.lightOut = Lo;
-	res.diffuse  = irradiance * data.albedo;
-	res.specular = prefilteredColor * (F * brdf.x + brdf.y);
-	res.ambient = ((kD * res.diffuse * data.alpha) + res.specular)*data.ao;
-	res.normal = data.normal;
-	res.color = (res.ambient + res.lightOut);	
-	res.alpha = data.alpha;
+	res.normal = normal;
+	res.alpha = alpha;
+	res.color = (ambient + lightingOut);	
 
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayLighting))
-		res.color = vec3(res.lightOut);
+		res.color = vec3(lightingOut);
 	if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDepth))
-		res.color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y)/cameraNearFar.y);
+		res.color = vec3(linearizeDepth(gl_FragCoord.z, cameraNearFar.x, cameraNearFar.y));
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayDiffuse))
-		res.color = vec3(res.diffuse);
+		res.color = vec3(diffuse);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplaySpecular))
-		res.color = vec3(res.specular);
+		res.color = vec3(specular);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
+		res.color = vec3(ambient);
+	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbientOcclusion))
+		res.color = vec3(data.ao);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayNormal))
-		res.color = vec3(data.normal) * 0.5 + 0.5;
+		res.color = saturate(vec3(normal)) * 0.5 + 0.5;
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayRoughness))
 		res.color = vec3(data.roughness);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayMetallic))
 		res.color = vec3(data.metallic);
-	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayAmbient))
-		res.color = vec3(data.ao);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayTexCoords))
 		res.color = vec3(data.texCoords, 0);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayVertices))
-		res.color = vec3(data.albedo);
+		res.color = vec3(albedo);
 	else if(isFlagEnabled(viewFlags, ShaderViewFlag_DisplayEmission))
 		res.color = vec3(data.emission);
 

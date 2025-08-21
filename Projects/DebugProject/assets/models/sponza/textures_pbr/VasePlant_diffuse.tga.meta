@@ -2,3 +2,11 @@ uuid: 12792618598827556925
 type: 1
 props:
   format: [0, 1, [1, 1], 0, [1, 1, 1, 1]]
+UUID: 12792618598827556925
+TypeName: Texture2DAsset
+Border: [1, 1, 1, 1]
+Tiling: [1, 1]
+Levels: 1
+Format: RGBA
+Wrap: Repeat
+Filtering: Linear

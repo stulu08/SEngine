@@ -1,0 +1,72 @@
+#pragma once
+#include "Stulu/Scripting/Managed/Bindings/Bindings.h"
+#include "Stulu/Physics/Components/RigidbodyComponent.h"
+
+namespace StuluBindings {
+	class Rigidbody {
+	public:
+		static inline void addForce(uint64_t go, struct Vector3* force, uint32_t mode) {
+			Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>().AddForce(force->toNative(), (Stulu::ForceMode)mode);
+		}
+		static inline void getMassCenterPos(uint64_t go, struct Vector3* pos) {
+			glm::vec3& npos = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>().GetMassCenterPosition();
+			pos->x = npos.x;
+			pos->y = npos.y;
+			pos->z = npos.z;
+		}
+		static inline void setMassCenterPos(uint64_t go, struct Vector3* pos) {
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetMassCenterPosition(pos->toNative());
+			
+		}
+		static inline void setRetainAccel(uint64_t go, bool val) {
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetRetainAcceleration(val);
+		}
+		static inline bool getRetainAccel(uint64_t go) {
+			return Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>().IsRetainingAcceleration();
+		}
+		static inline void setKinematic(uint64_t go, bool val) {
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetKinematic(val);
+		}
+		static inline bool getKinematic(uint64_t go) {
+			return Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>().IsKinematic();
+		}
+		static inline void setuseGravity(uint64_t go, bool val) {
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetUseGravity(val);
+		}
+		static inline bool getuseGravity(uint64_t go) {
+			return Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>().IsUsingGravity();
+		}
+		static inline void setMass(uint64_t go, float val) {
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetMass(val);
+		}
+		static inline float getMass(uint64_t go) {
+			return Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>().GetMass();
+		}
+
+		static inline void setAngularLock(uint64_t go, int32_t index, bool value) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetRotationLock(index, value);
+		}
+		static inline bool getAngularLock(uint64_t go, int32_t index) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			return rb.HasRotationLock(index);
+		}
+		static inline void setLinearLock(uint64_t go, int32_t index, bool value) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			rb.SetMoveLock(index, value);
+		}
+		static inline bool getLinearLock(uint64_t go, int32_t index) {
+			index = glm::clamp(index, 0, 2);
+			auto& rb = Stulu::GameObject((entt::entity)go, GetCurrentRegistry()).getComponent<Stulu::RigidbodyComponent>();
+			return rb.HasMoveLock(index);
+		}
+	};
+}

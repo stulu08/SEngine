@@ -92,7 +92,7 @@ namespace Stulu {
 		/// </summary>
 		public static void drawQuad(Vector2 position, Vector2 scale, float rotation, Vector4 color) {
 			Vector3 _position = new Vector3(position, 0);
-			Quaternion _rotation = new Quaternion(new Vector3(0, 0, rotation));
+			Quaternion _rotation = Quaternion.EulerDegree(new Vector3(0, 0, rotation));
 			Vector3 _scale = new Vector3(scale, 1);
 			InternalCalls.renderer2D_drawQuad(ref _position, ref _rotation, ref _scale, ref color);
 		}
@@ -140,9 +140,16 @@ namespace Stulu {
 		/// </summary>
 		public static void drawOutlinedQuad(Vector2 position, Vector2 scale, float rotation, Vector4 color) {
 			Vector3 _position = new Vector3(position, 0);
-			Quaternion _rotation = new Quaternion(new Vector3(0, 0, rotation));
+			Quaternion _rotation = Quaternion.EulerDegree(new Vector3(0, 0, rotation));
 			Vector3 _scale = new Vector3(scale, 1);
 			InternalCalls.gizmo_drawRect(ref _position, ref _rotation, ref _scale, ref color);
+		}
+		/// <summary>
+		/// Draws a 2D Outlined Quad
+		/// </summary>
+		public static void drawOutlinedQuad(ref Matrix4 matrix, Vector4 color)
+		{
+			InternalCalls.gizmo_drawRect(ref matrix, ref color);
 		}
 		#endregion
 		#region Circle
@@ -188,7 +195,7 @@ namespace Stulu {
 		/// </summary>
 		public static void drawCircle(Vector2 position, Vector2 scale, float rotation, Vector4 color, float thickness = 1.0f, float fade = 0.005f) {
 			Vector3 _position = new Vector3(position, 0);
-			Quaternion _rotation = new Quaternion(new Vector3(0, 0, rotation));
+			Quaternion _rotation = Quaternion.EulerDegree(new Vector3(0, 0, rotation));
 			Vector3 _scale = new Vector3(scale, 1);
 			InternalCalls.gizmo_drawCircle(ref _position, ref _rotation, ref _scale, ref color, thickness, fade);
 		}

@@ -1,5 +1,6 @@
 #include "st_pch.h"
 #include "OpenGLVertexArray.h"
+#include "OpenGLStateCache.h"
 
 #include <glad/glad.h>
 
@@ -26,36 +27,44 @@ namespace Stulu {
 	}
 
 	OpenGLVertexArray::OpenGLVertexArray() {
-		ST_PROFILING_FUNCTION();
 		glCreateVertexArrays(1, &m_rendererID);
 	}
 	OpenGLVertexArray::~OpenGLVertexArray() {
-		ST_PROFILING_FUNCTION();
 		glDeleteVertexArrays(1, &m_rendererID);
 	}
 
 	void OpenGLVertexArray::addVertexBuffer(const Ref<VertexBuffer>& vBuffer) {
-		ST_PROFILING_FUNCTION();
 		CORE_ASSERT(vBuffer->getLayout().getElements().size(), "Vertexbuffer has no layout");
-		glBindVertexArray(m_rendererID);
+		OpenGLStateCache::BindVertexArray(m_rendererID);
 		vBuffer->bind();
 		const auto& layout = vBuffer->getLayout();
 		for (const auto& element : layout) {
 			glEnableVertexAttribArray(m_vertexbufferIndex);
-			glVertexAttribPointer(
-				m_vertexbufferIndex, element.getComponentCount(),
-				ShaderDataTypeToOpenGLBaseType(element.type),
-				element.normalized ? GL_TRUE : GL_FALSE,
-				layout.getStride(), (const void*)(intptr_t)element.offset
-			);
+			GLenum dataType = ShaderDataTypeToOpenGLBaseType(element.type);
+			if (dataType == GL_INT) {
+				glVertexAttribIPointer(
+					m_vertexbufferIndex, element.getComponentCount(),
+					dataType,
+					layout.getStride(), (const void*)(intptr_t)element.offset
+				);
+			}
+			else {
+				glVertexAttribPointer(
+					m_vertexbufferIndex, element.getComponentCount(),
+					dataType,
+					element.normalized ? GL_TRUE : GL_FALSE,
+					layout.getStride(), (const void*)(intptr_t)element.offset
+				);
+			}
+
+			
 			m_vertexbufferIndex++;
 		}
 		m_vertexBufffers.push_back(vBuffer);
 	}
 
 	void OpenGLVertexArray::clearVertexBuffers() {
-		ST_PROFILING_FUNCTION();
-		glBindVertexArray(m_rendererID);
+		OpenGLStateCache::BindVertexArray(m_rendererID);
 		for (auto& vb : m_vertexBufffers) {
 			vb->unbind();
 		}
@@ -64,17 +73,16 @@ namespace Stulu {
 	}
 
 	void OpenGLVertexArray::setIndexBuffer(const Ref<IndexBuffer>& iBuffer) {
-		ST_PROFILING_FUNCTION();
-		glBindVertexArray(m_rendererID);
+		OpenGLStateCache::BindVertexArray(m_rendererID);
 		iBuffer->bind();
 		m_indexBuffer = iBuffer;
 	}
 
 	void OpenGLVertexArray::bind() const {
-		glBindVertexArray(m_rendererID);
+		OpenGLStateCache::BindVertexArray(m_rendererID);
 	}
 
 	void OpenGLVertexArray::unbind() const {
-		glBindVertexArray(0);
+		OpenGLStateCache::BindVertexArray(0);
 	}
 }

@@ -4,8 +4,6 @@
 #include "Stulu/Branchless.glsl"
 #include "Stulu/Math.glsl"
 
-#include "Stulu/Renderer/PostProcessing/PostProcessing.glsl"
-
 layout(std430, binding = 6) buffer data {
     vec4 threshFilter;
 	vec2 desRes;
@@ -20,14 +18,21 @@ layout (binding = 1) uniform sampler2D downSampledSource;
 layout(rgba32f, binding = 2) uniform writeonly image2D destination;
 
 vec3 TextureSourceLoad(const vec2 pixelPos) {
-    return textureLod(source, pixelPos / desRes, iteration).xyz;
+    vec2 uv = (pixelPos + 0.5) / (desRes + 1.0);
+    return textureLod(source, uv, float(int(iteration))).xyz;
 }
 vec3 TextureDSSourceLoad(const vec2 pixelPos) {
-    return textureLod(downSampledSource, pixelPos / desRes, iteration - 1).xyz;
+    vec2 uv = (pixelPos + 0.5) / (desRes + 1.0);
+    return textureLod(downSampledSource, uv, float(int(iteration - 1))).xyz;
 }
 
 void DestinationStore(const vec4 color, const vec2 pixelPos) {
-	imageStore(destination, ivec2(round(pixelPos.x), round(pixelPos.y)), color);
+    imageStore(destination, ivec2(round(pixelPos.x), round(pixelPos.y)), color);
+}
+
+vec3 BlendColors(vec3 left, vec3 right) {
+    // return left + right; // addative
+    return mix(left, right, 0.5); // linear
 }
 
 vec3 Prefilter(vec3 color) { 

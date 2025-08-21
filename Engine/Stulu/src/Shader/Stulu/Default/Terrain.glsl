@@ -1,7 +1,6 @@
 #SShader "Default/Terrain"
 
 #type vertex
-#version 460 core
 layout (location = 0) in vec3 a_pos;
 layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec2 a_textureIndex;
@@ -15,7 +14,7 @@ layout(std140, binding = 1) uniform modelData
 	mat4 normalMatrix;
 	mat4 transform;
 };
-struct vertOutput
+struct VertexData
 {
 	vec3 worldPos;
 	vec3 normal;
@@ -25,31 +24,30 @@ struct vertOutput
 	float metallic;
 };
 layout (location = 0) out flat float textureIndex;
-layout (location = 1) out vertOutput v_output;
+layout (location = 1) out VertexData vertex;
 
 void main()
 {
 	vec4 world = transform * vec4(a_pos, 1.0);
 
     textureIndex = a_textureIndex.x; 
-    v_output.worldPos = world.xyz;
-    v_output.normal = (normalMatrix * vec4(a_normal, 0.0)).xyz;
-	v_output.color = a_color;
-	v_output.texCoords = a_pos.xz;
-	v_output.roughness = a_material.x;
-	v_output.metallic = a_material.y;
+    vertex.worldPos = world.xyz;
+    vertex.normal = (normalMatrix * vec4(a_normal, 0.0)).xyz;
+	vertex.color = a_color;
+	vertex.texCoords = a_pos.xz;
+	vertex.roughness = a_material.x;
+	vertex.metallic = a_material.y;
 
     gl_Position = viewProjection * world;
 }
 
 
 #type fragment
-#version 460 core
 
 #include "Stulu/PBR.glsl"
 #include "Stulu/Out.glsl"
 
-struct vertInput
+struct VertexData
 {
 	vec3 worldPos;
 	vec3 normal;
@@ -59,7 +57,7 @@ struct vertInput
 	float metallic;
 };
 layout (location = 0) in flat float textureIndex;
-layout (location = 1) in vertInput vertex;
+layout (location = 1) in VertexData vertex;
 
 layout(std140, binding = 5) uniform material {
 	uint transparencyMode;
@@ -72,12 +70,11 @@ layout (binding = ST_USER_TEXTURE_START) uniform sampler2D u_textures[ST_USER_TE
 void main (){
 	PBRData data;
 	
-	data.albedo = vertex.color.rgb;
+	data.albedo = vec4(vertex.color.rgb, 1.0);
 	data.emission = vec3(0.0);
 	data.ao = 0.2;
 	data.metallic = vertex.metallic;
 	data.roughness = vertex.roughness;
-	data.alpha = vertex.color.a;
 
 	data.normal = vertex.normal;
 	data.worldPos = vertex.worldPos;
@@ -86,7 +83,7 @@ void main (){
 	PBRResult result = ComputePBR(data);
 	WriteDefaultOut(result);
 
-	if(data.alpha == 0.0) {
+	if(data.albedo.a == 0.0) {
 		discard;
 	}
 }

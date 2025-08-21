@@ -9,6 +9,7 @@ namespace Stulu {
 		OpenGLContext();
 
 		virtual void init(Window* window) override;
+		virtual void beginBuffer() override;
 		virtual void swapBuffers() override;
 		virtual void setVSync(bool enabled) override;
 		virtual API_Infos getApiInfos() override;

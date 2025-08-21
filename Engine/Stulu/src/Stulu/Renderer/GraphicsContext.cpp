@@ -8,11 +8,11 @@ namespace Stulu {
 	Scope<GraphicsContext> GraphicsContext::create() {
 		switch (Renderer::getRendererAPI())
 		{
-		case RenderAPI::API::OpenGL:
+		case Renderer::API::OpenGL:
 			return createScope<OpenGLContext>();
-		case RenderAPI::API::Vulkan:
+		case Renderer::API::Vulkan:
 			return createScope<WindowsVulkanContext>();
-		case RenderAPI::API::none:
+		case Renderer::API::none:
 			CORE_ASSERT(false, "No renderAPI specified")
 				return nullptr;
 		default:

@@ -28,10 +28,16 @@ namespace Stulu {
 		virtual ~WindowsVulkanContext();
 
 		virtual void init(Window* window) override;
+		virtual void beginBuffer() override;
 		virtual void swapBuffers() override;
 		virtual void setVSync(bool enabled) override;
 		virtual API_Infos getApiInfos() override;
+
+		inline void requestResize() {
+			this->resized = true;
+		}
 	private:
+
 #ifndef ST_DEBUG
 		const bool enableValidationLayers = false;
 #else
@@ -42,8 +48,13 @@ namespace Stulu {
 		VkInstance instance;
 		VkSurfaceKHR surface;
 		VkDebugUtilsMessengerEXT debugMessenger;
+		VkSemaphore imageAvailableSemaphore;
+		VkSemaphore renderFinishedSemaphore;
+		VkFence inFlightFence;
 
 		Device device;
+
+		bool resized = false;
 
 		//Mailbox = no Vsync
 		//Fifo = Vsync
@@ -64,7 +75,13 @@ namespace Stulu {
 		void createLogicalDevice();
 		void pickPhysicalDevice();
 		void createSwapChain();
-		void createImageViews();
+		void createRenderPass();
+		void createFrameBuffers();
+		void createSemaphores();
+		void createCommandBuffer();
+
+		void cleanupSwapChain();
+		void recreateSwapChain();
 
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availFormats);
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availModes);

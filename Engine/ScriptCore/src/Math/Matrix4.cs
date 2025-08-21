@@ -1,17 +1,17 @@
 ﻿#pragma warning disable 1591
 namespace Stulu {
     public struct Matrix4 {
-        public float D00; public float D01; public float D02; public float D03;
-        public float D10; public float D11; public float D12; public float D13;
-        public float D20; public float D21; public float D22; public float D23;
-        public float D30; public float D31; public float D32; public float D33;
+		public float D00, D10, D20, D30;  // Column 0
+		public float D01, D11, D21, D31;  // Column 1
+		public float D02, D12, D22, D32;  // Column 2
+		public float D03, D13, D23, D33;  // Column 3
 
-        //a b c d
-        //e f g h
-        //i j k l
-        //m n o p
+		//a b c d
+		//e f g h
+		//i j k l
+		//m n o p
 
-        public float a { get => this.D00; set { this.D00 = value; } }
+		public float a { get => this.D00; set { this.D00 = value; } }
         public float b { get => this.D01; set { this.D01 = value; } }
         public float c { get => this.D02; set { this.D02 = value; } }
         public float d { get => this.D03; set { this.D03 = value; } }

@@ -1,4 +1,5 @@
 #pragma once
+#include "Stulu/Core/Application.h"
 
 namespace StuluBindings {
 	class Application {

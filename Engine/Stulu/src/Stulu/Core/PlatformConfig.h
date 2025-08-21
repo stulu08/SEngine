@@ -28,6 +28,7 @@
 	#error "Unknown platform!"
 #endif
 #ifdef _WIN32
+	#define NOMINMAX
 	#if ST_DYNAMIC_LINK
 		#ifdef ST_DLL_BUILD
 			#define STULU_API __declspec(dllexport)

@@ -20,30 +20,28 @@ namespace Stulu {
 	}
 
 	WindowsWindow::WindowsWindow(void* glfwWindowPtr) {
-		ST_PROFILING_FUNCTION();
 		m_selfInitilized = false;
 		m_graphicsContext = nullptr;
 		m_window = (GLFWwindow*)glfwWindowPtr;
-		m_runtimeData = new WindowProps();
+
+		m_runtimeData = WindowProps();
 		int width, height;
 		glfwGetWindowSize(m_window, &width, &height);
-		m_runtimeData->width = width;
-		m_runtimeData->height = height;
-		m_runtimeData->VSync = false;
+		m_runtimeData.width = width;
+		m_runtimeData.height = height;
+		m_runtimeData.VSync = false;
 	}
 
-	WindowsWindow::WindowsWindow(WindowProps& props) {
-		ST_PROFILING_FUNCTION();
+	WindowsWindow::WindowsWindow(const WindowProps& props) 
+		: m_runtimeData(props) {
 		m_selfInitilized = true;
-		init(props);
+		init();
 	}
 	WindowsWindow::~WindowsWindow() { shutDown(); }
 
 
-	void WindowsWindow::init(WindowProps& props) {
-		ST_PROFILING_FUNCTION();
-		m_runtimeData = &props;
-		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
+	void WindowsWindow::init() {
+		CORE_INFO("Creating window {0} ({1}, {2})", m_runtimeData.title, m_runtimeData.width, m_runtimeData.height);
 
 		if (!s_glfwInitilized) {
 
@@ -52,7 +50,7 @@ namespace Stulu {
 			glfwSetErrorCallback(glfwErrorCallback);
 			s_glfwInitilized = true;
 		}
-		if (Renderer::getRendererAPI() == RenderAPI::API::OpenGL) {
+		if (Renderer::getRendererAPI() == Renderer::API::OpenGL) {
 #ifndef ST_DIST
 			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
@@ -62,21 +60,22 @@ namespace Stulu {
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 		}
-		else if (Renderer::getRendererAPI() == RenderAPI::API::GLES) {
+		else if (Renderer::getRendererAPI() == Renderer::API::GLES) {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
 		}
-		else if (Renderer::getRendererAPI() == RenderAPI::API::Vulkan){
+		else if (Renderer::getRendererAPI() == Renderer::API::Vulkan){
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		}
 		m_graphicsContext = GraphicsContext::create();
-		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
+		m_window = glfwCreateWindow((int)m_runtimeData.width, (int)m_runtimeData.height, m_runtimeData.title.c_str(), nullptr, nullptr);
 		m_graphicsContext->init(this);
 
-		glfwSetWindowUserPointer(m_window, m_runtimeData);
+		m_graphicsContext->setVSync(m_runtimeData.VSync);
+
+		glfwSetWindowUserPointer(m_window, &m_runtimeData);
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			data.width = width;
@@ -146,14 +145,11 @@ namespace Stulu {
 		});
 	}
 	void WindowsWindow::shutDown() {
-		ST_PROFILING_FUNCTION();
 		glfwDestroyWindow(m_window);
 	}
 	void WindowsWindow::onUpdate() {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Win32 - Update");
 		glfwPollEvents();
-		if(m_graphicsContext)
-			m_graphicsContext->swapBuffers();
 	}
 
 	glm::vec2 WindowsWindow::getWindowPos() const {
@@ -163,25 +159,22 @@ namespace Stulu {
 	}
 	uint32_t WindowsWindow::getWidth() const {
 		if (!m_selfInitilized) {
-			int width, height;
-			glfwGetWindowSize(m_window, &width, &height);
-			m_runtimeData->width = width;
-			m_runtimeData->height = height;
+			int width;
+			glfwGetWindowSize(m_window, &width, NULL);
+			return width;
 		}
-		return m_runtimeData->width;
+		return m_runtimeData.width;
 	}
 	uint32_t WindowsWindow::getHeight() const {
 		if (!m_selfInitilized) {
-			int width, height;
-			glfwGetWindowSize(m_window, &width, &height);
-			m_runtimeData->width = width;
-			m_runtimeData->height = height;
+			int height;
+			glfwGetWindowSize(m_window, NULL, &height);
+			return height;
 		}
-		return m_runtimeData->height;
+		return m_runtimeData.height;
 	}
 
 	void WindowsWindow::setWindowIcon(const std::string& path) {
-		ST_PROFILING_FUNCTION();
 		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(0);
 		stbi_uc* textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -198,21 +191,18 @@ namespace Stulu {
 		glfwSetWindowIcon(m_window, 1, images);
 	}
 	void WindowsWindow::setWindowTitle(const std::string& title) {
-		ST_PROFILING_FUNCTION();
 		glfwSetWindowTitle(m_window, title.c_str());
-		m_runtimeData->title = title;
+		m_runtimeData.title = title;
 	}
 	void WindowsWindow::setVSync(bool enabled) {
 		if (m_graphicsContext)
 			m_graphicsContext->setVSync(enabled);
-		m_runtimeData->VSync = enabled;
+		m_runtimeData.VSync = enabled;
 	}
 	void WindowsWindow::hide() {
-		ST_PROFILING_FUNCTION();
 		glfwHideWindow(m_window);
 	}
 	void WindowsWindow::show() {
-		ST_PROFILING_FUNCTION();
 		glfwShowWindow(m_window);
 	}
 	void WindowsWindow::setAttribute(const WindowAttribute attribute, int32_t value) {
@@ -224,5 +214,7 @@ namespace Stulu {
 	int WindowsWindow::getAttribute(const WindowAttribute attribute) {
 		return glfwGetWindowAttrib(m_window, 0x00020001 + (int)attribute);
 	}
-	bool WindowsWindow::isVSync() const { return m_runtimeData->VSync; }
+	bool WindowsWindow::isVSync() const { 
+		return m_runtimeData.VSync; 
+	}
 }

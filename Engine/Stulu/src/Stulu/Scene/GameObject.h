@@ -1,106 +1,84 @@
 #pragma once
 #include <entt.hpp>
-#include "Scene.h"
+#include "Registry.h"
 
 namespace Stulu {
-	class STULU_API GameObject {
+	class GameObject {
 	public:
-		GameObject() = default;
-		GameObject(entt::entity entity, Scene* scene);
-		GameObject(const GameObject& other) = default;
+		inline GameObject() = default;
+		inline GameObject(entt::entity entity, Registry* registry)
+			: m_entity(entity), m_registry(registry) {
+		}
+		inline GameObject(const GameObject& other) = default;
+
+		STULU_API static GameObject GetById(entt::entity id, Registry* registry);
 
 		template<typename T>
-		bool hasComponent() const {
-			return m_scene->m_registry.storage<T>().contains(m_entity);
+		inline bool hasComponent() const {
+			return m_registry->HasComponent<T>(m_entity);
 		}
 		template<typename T, typename... Args>
-		T& addComponent(Args&&... args) {
+		inline T& addComponent(Args&&... args) const {
 			if (hasComponent<T>()) {
 				CORE_WARN("GameObject already has component, returning component");
-				return getComponent<T>();
+				return m_registry->GetComponent<T>(m_entity);
 			}
-			T& component = m_scene->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
-			component.gameObject = { m_entity,m_scene };
-			m_scene->onComponentAdded<T>(*this, component);
+			T& component = m_registry->AddComponent<T>(m_entity, std::forward<Args>(args)...);
 			return component;
 		}
 		template<typename T, typename... Args>
-		T& saveAddComponent(Args&&... args) {
-			if (hasComponent<T>())
-				return getComponent<T>();
-			T& component = m_scene->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
-			m_scene->onComponentAdded<T>(*this, component);
-			component.gameObject = {m_entity,m_scene};
-			return component;
-		}
-		template<typename T, typename... Args>
-		T& addOrReplaceComponent(Args&&... args) {
-			T& component = m_scene->m_registry.emplace_or_replace<T>(m_entity, std::forward<Args>(args)...);
-			component.gameObject = { m_entity,m_scene };
-			m_scene->onComponentAdded<T>(*this, component);
+		inline T& saveAddComponent(Args&&... args) const {
+			if (hasComponent<T>()) 
+				return m_registry->GetComponent<T>(m_entity);
+
+			T& component = m_registry->AddComponent<T>(m_entity, std::forward<Args>(args)...);
 			return component;
 		}
 		template<typename T>
-		T& getComponent() const {
+		inline T& getComponent() const {
 			CORE_ASSERT(hasComponent<T>(), "GameObject does not have component");
-			return m_scene->m_registry.get<T>(m_entity);
+			return m_registry->GetComponent<T>(m_entity);
+		}
+		template<class T>
+		inline T* tryGetComponent() const {
+			return m_registry->TryGetComponent<T>(m_entity);
 		}
 		template<typename T>
-		bool saveGetComponent(T& t) const {
-			if (m_scene->m_registry.storage<T>().contains(m_entity)) {
-				t = m_scene->m_registry.get<T>(m_entity);
+		inline bool removeComponent() const {
+			return m_registry->RemoveComponent<T>(m_entity);;
+		}
+
+		inline Registry* GetRegistry() { return m_registry; }
+		inline Registry* GetRegistry() const { return m_registry; }
+
+		// defined after GameObjectBaseComponent to keep the function inline
+		inline bool IsValid() const;
+
+		inline entt::entity GetID() const {
+			return m_entity;
+		}
+
+		inline operator bool() const { 
+			return IsValid(); 
+		}
+
+		inline bool operator==(const GameObject& other) const {
+			// if both ids are invalid they are same, important if (gameobject == GameObject::null)
+			if (other.GetID() == entt::null && this->GetID() == entt::null)
 				return true;
-			}
-			return false;
-		}
-		template<typename T>
-		bool removeComponent() {
-			if (!hasComponent<T>()) {
-				CORE_ERROR("GameObject does not have component");
-				return false;
-			}
-			m_scene->onComponentRemove<T>(*this, getComponent<T>());
-			m_scene->m_registry.remove<T>(m_entity);
-			return true;
-		}
-		template<typename T>
-		bool saveRemoveComponent() {
-			if (!hasComponent<T>()) {
-				return false;
-			}
-			m_scene->onComponentRemove<T>(*this, getComponent<T>());
-			m_scene->m_registry.remove<T>(m_entity);
-			return true;
-		}
-		bool isValid() const;
 
-		Scene* getScene() const { return m_scene; }
-
-		UUID getId() const;
-		static GameObject getById(const UUID& id, Scene* scene);
-
-		operator bool() const { 
-			return isValid(); 
+			return GetID() == other.GetID() && m_registry == other.m_registry;
 		}
-		operator entt::entity() const { return m_entity; }
-		operator uint32_t() const { return (uint32_t)m_entity; }
-		operator UUID() const { return getId(); }
-		operator void*() const { return (void*)(uint64_t)m_entity; }
-
-		bool operator==(const GameObject& other) const {
-			return m_entity == other.m_entity && m_scene == other.m_scene;
-		}
-		bool operator!=(const GameObject& other) const {
+		inline bool operator!=(const GameObject& other) const {
 			return !(*this == other);
 		}
 
 		static GameObject null;
 	private:
 		entt::entity m_entity{ entt::null };
-		Scene* m_scene = nullptr;
-
-		friend class EditorInspectorPanel;
-		friend class Scene;
+		Registry* m_registry = nullptr;
 	};
+
+	inline GameObject GameObject::null = { entt::entity{ entt::null }, nullptr };
 }
 

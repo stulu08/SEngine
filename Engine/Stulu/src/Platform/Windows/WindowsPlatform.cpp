@@ -12,7 +12,6 @@ namespace Stulu {
 		return (float)glfwGetTime();
 	}
 	std::string Platform::openFile(const char* filter, const char* initialDir) {
-		ST_PROFILING_FUNCTION();
 		OPENFILENAMEA ofn;       // common dialog box structure
 		char szFile[260];       // buffer for file name
 		//HWND hwnd;              // owner window
@@ -40,7 +39,6 @@ namespace Stulu {
 		return std::string();
 	}
 	std::string Platform::saveFile(const char* filter, const char* initialDir){
-		ST_PROFILING_FUNCTION();
 		OPENFILENAMEA ofn;       // common dialog box structure
 		char szFile[260];       // buffer for file name
 		//HWND hwnd;              // owner window
@@ -70,7 +68,6 @@ namespace Stulu {
 		return std::string();
 	}
 	std::string Platform::browseFolder() {
-		ST_PROFILING_FUNCTION();
 		char szTitle[MAX_PATH];
 		BROWSEINFOA bi;
 		bi.hwndOwner = NULL;
@@ -120,7 +117,6 @@ namespace Stulu {
 		return std::string();*/
 	}
 	bool Platform::createDirectory(const char* directory) {	
-		ST_PROFILING_FUNCTION();
 		if (CreateDirectoryA(std::string(directory).c_str(), NULL)) {
 			return true;
 		}
@@ -129,7 +125,6 @@ namespace Stulu {
 	}
 	//https://stackoverflow.com/a/64166/13917861
 	MemoryUsageInfo Platform::getMemoryUsage() {
-		ST_PROFILING_FUNCTION();
 		MEMORYSTATUSEX memInfo;
 		memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 		GlobalMemoryStatusEx(&memInfo);

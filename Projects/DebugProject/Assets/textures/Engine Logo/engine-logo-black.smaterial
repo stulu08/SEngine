@@ -1,0 +1,29 @@
+Shader: Default/PBR
+Instanced: false
+TransparencyMode: 0
+Cutout: 0.400000006
+Properties:
+  Albedo: [1, 1, 1, 1]
+  Emission: [0.25, 0.25, 0.25, 5]
+  Metallic: 0.0
+  Roughness: 0.317999989
+  Ambient Occlusion: 0.128000006
+  Albedo Map:
+    Default: 1
+    UUID: 5873076562288971920
+  Metallic Map:
+    Default: 0
+    UUID: 5873076562288971920
+  Roughness Map:
+    Default: 0
+    UUID: 5873076562288971920
+  Normal Map:
+    Default: 0
+    UUID: 6335358180639752903
+  Ambient Occlusion Map:
+    Default: 0
+    UUID: 2248837177389290309
+  Emission Map:
+    Default: 0
+    UUID: 16140463562823251146
+  Tilling: [1, 1]

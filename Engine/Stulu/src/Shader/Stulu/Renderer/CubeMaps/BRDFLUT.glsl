@@ -1,11 +1,11 @@
 #SShader "Renderer/CubeMap/BRDFLUT"
 
 #type vertex
-#version 440 core
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 texCoords;
 
-out vec2 TexCoords;
+
+layout (location = 0) out vec2 TexCoords;
 
 void main() {
 	TexCoords = texCoords;
@@ -13,10 +13,10 @@ void main() {
 }
 
 #type fragment
-#version 440 core
 
-in vec2 TexCoords;
-out vec2 FragColor;
+layout (location = 0) in vec2 TexCoords;
+layout (location = 0) out vec2 FragColor;
+
 const float PI = 3.14159265359;
 
 // ----------------------------------------------------------------------------

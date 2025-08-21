@@ -31,6 +31,7 @@
 #include <stdio.h>
 
 #include "Stulu/Debug/Instrumentor.h"
+#include "Stulu/Debug/Profiler.h"
 #include "Stulu/Debug/RenderDataProfiler.h"
 
 

@@ -1,0 +1,113 @@
+Scene: Untitled
+Settings:
+  shaderFlags: 0
+  enablePhsyics3D: true
+  Shadows:
+    MapSize: 2048
+    CascadeCount:
+      - 10
+      - 23.2558136
+      - 160.600006
+      - 500
+    NearPlane: 0.00999999978
+    FarPlane: 500
+    BlendingDistance: 3
+    SampleQuality: 2
+    PCSSQuality: 1
+    ZMult: 10
+  Fog:
+    fogMode: 0
+    fogColor: [1, 0.999899983, 0.999899983, 1]
+    linearFogStart: 50
+    linearFogEnd: 250
+    fogDensity: 0.000690000015
+    FogHorizonStrength: 0
+    FogHorizonFalloff: 10
+    EnableFogHorizon: 1
+    FogGroundStrength: 0.453999996
+    EnableGroundFog: 1
+    FogHorizonOffset: -589
+    FogHorizonHeightFalloff: 1116
+    EnableHorizonHeightFog: 0
+Physics3D:
+  m_gravity: [0, -9.81000042, 0]
+GameObjects:
+  - GameObject: 5
+    GameObjectBaseComponent:
+      name: Directional Light
+      tag: default
+    LightComponent:
+      Type: 0
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: true
+      Shadows:
+        Strength: 1
+        Bias: 0.00100000005
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 10.0500002
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [0, 20, 0]
+      rotation: [-0.141406476, 0.0857481807, -0.0248591043, 0.985917628]
+      scale: [1, 1, 1]
+  - GameObject: 1
+    GameObjectBaseComponent:
+      name: Cube
+      tag: default
+    MeshRendererComponent:
+      cullmode: 0
+      Materials:
+        - 12
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+    MeshFilterComponent:
+      mesh: 401
+  - GameObject: 0
+    GameObjectBaseComponent:
+      name: Perspective Camera
+      tag: MainCam
+    TransformComponent:
+      position: [0, 3.25741124, 8.20740891]
+      rotation: [-0.156434476, -0, 0, 0.987688363]
+      scale: [1, 1, 1]
+    SkyBoxComponent:
+      rotation: [0, 0, 0]
+      LightStrength: 1
+      ReflectionIntensity: 1
+      SkyBox: 11
+    PostProcessingComponent:
+      Gamma Correction:
+        enabled: true
+        gamma: 2.20000005
+        exposure: 1
+        maxWhite: 4
+        mappingMode: 1
+      Bloom:
+        enabled: true
+        intensity: 0.0700000003
+        threshold: 3.79999995
+        knee: 0.430999994
+        clamp: 11.1999998
+        resolutionScale: 0.5
+        diffusion: 10
+        maxSamples: 10
+    CameraComponent:
+      m_mode: 0
+      m_clearType: 1
+      m_depth: 1
+      m_fov: 80
+      m_far: 1000
+      m_clearColor: [0, 0, 0, 1]
+      m_renderTarget: 0
+      MSAASamples: 4

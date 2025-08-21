@@ -1,4 +1,5 @@
 #pragma once
+#include "Stulu/Resources/Resources.h"
 
 namespace StuluBindings {
 	class Folders {

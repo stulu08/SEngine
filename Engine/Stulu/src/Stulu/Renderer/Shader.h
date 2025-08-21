@@ -1,12 +1,19 @@
 #pragma once
-#include "Stulu/Renderer/Texture.h"
-
-#include <vector>
+#include "Texture.h"
+#include "ShaderCompiler.h"
 
 namespace Stulu {
-	enum class ShaderType : uint32_t {
-		None, Vertex, Fragment, Compute
-	};
+	constexpr auto ST_MAX_INSTANCES = 250;
+	constexpr auto ST_MAX_BONES = ST_MAX_INSTANCES;
+
+	constexpr auto ST_DEFAULT_SHADOW_TEXTURE_BIND_MAP = 4;
+	constexpr auto ST_POINT_SHADOW_TEXTURE_BIND_MAP = 5;
+	constexpr auto ST_CASCADE_SHADOW_TEXTURE_BIND_MAP = 6;
+
+	constexpr auto ST_USER_TEXTURE_START = 7;
+	constexpr auto ST_USER_TEXTURE_END = 16;
+	constexpr auto ST_USER_TEXTURE_COUNT = (ST_USER_TEXTURE_END - ST_USER_TEXTURE_START);
+
 	enum class AccesMode {
 		ReadOnly = 0x88B8,
 		WriteOnly = 0x88B9,
@@ -57,31 +64,7 @@ namespace Stulu {
 		// All supported barriers for the corresponding command will be inserted
 		static inline const uint32_t All = 0xFFFFFFFF;
 	};
-	struct ShaderSource {
-	public:
-		ShaderSource() {
 
-		}
-		ShaderSource(const std::string& vertex, const std::string& fragment) {
-			Add(ShaderType::Vertex, vertex);
-			Add(ShaderType::Fragment, fragment);
-		}
-		ShaderSource(const std::string& compute) {
-			Add(ShaderType::Compute, compute);
-		}
-
-		inline void Add(ShaderType type, const std::string& source) {
-			m_sources.push_back({ type, source });
-		}
-
-		inline size_t Size() const { return m_sources.size(); }
-
-		inline const std::pair<ShaderType, std::string>& Get(size_t index) const { return m_sources.at(index); }
-		inline std::pair<ShaderType, std::string>& Get(size_t index) { return m_sources[index]; }
-		inline std::pair<ShaderType, std::string>& operator[](size_t index) { return m_sources[index]; }
-	private:
-		std::vector<std::pair<ShaderType, std::string>> m_sources;
-	};
 	class STULU_API Shader {
 	public:
 		virtual ~Shader() = default;
@@ -90,16 +73,12 @@ namespace Stulu {
 		virtual void unbind() const = 0;
 		virtual const std::string& getName() const = 0;
 
-		static Ref<Shader> create(const std::string& name, const ShaderSource& sources);
-		static Ref<Shader> create(const std::string& name, const std::string& vertex, const std::string& fragment) { return create(name, ShaderSource{ vertex, fragment }); }
-		static Ref<Shader> create(const std::string& name, const std::string& compute) { return create(name, ShaderSource{ compute }); }
+		static Ref<Shader> create(const std::string& name, const ShaderCompileResult& sources);
 
 		virtual void Dispatch(const glm::uvec3& numWorkGroups = { 1,1,1 }, uint32_t usage = ComputeUsage::All) = 0;
 		virtual void Dispatch(const uint32_t numWorkGroupsX = 1, const uint32_t numWorkGroupsY = 1, const uint32_t numWorkGroupsZ = 1, uint32_t usage = ComputeUsage::All) = 0;
 
-		virtual void reload(const ShaderSource& sources) = 0;
-		virtual void reload(const std::string& vertex, const std::string& fragment) = 0;
-		virtual void reload(const std::string& compute) = 0;
+		virtual void reload(const ShaderCompileResult& source) = 0;
 
 		virtual void setMat(const std::string& name, const glm::mat4& mat) = 0;
 		virtual void setVec(const std::string& name, const glm::vec4& value) = 0;

@@ -16,6 +16,8 @@ public class SpectatorCamera : Component {
 	public float FireRate = 20.0f;
 	[ShowInEditor]
 	public bool AutoFire = false;
+	[ShowInEditor]
+	public Texture2D Texture;
 
 	KeyCode front = KeyCode.W;
 	KeyCode back = KeyCode.S;
@@ -31,6 +33,13 @@ public class SpectatorCamera : Component {
 
 	public override void onStart() {
 		mouse = transform.eulerAngles;
+
+		Log.Trace("Test");
+		Log.Info("Test");
+		Log.Warn("Test");
+		Log.Error("Test");
+		Log.Critical("Test");
+
 	}
 	public override void onUpdate() {
 		Vector3 inputDiagonal = Input.getAxis(front, back) * transform.forward;
@@ -40,25 +49,30 @@ public class SpectatorCamera : Component {
 		Vector3 move = inputDiagonal + inputVertical + inputHorizonatl;
 		transform.position += move * MoveSpeed * (Input.getKey(accelerate) ? Acceleration : 1.0f) * Time.deltaTime;
 
-		mouse.y += Input.getMouseDelta().x * (MouseHorizontal * Time.deltaTime);
-		mouse.z -= Input.getMouseDelta().y * (MouseVertical * Time.deltaTime);
-		transform.setRotation(new Quaternion(mouse));
+		mouse.y -= Input.getMouseDelta().x * (MouseHorizontal * Time.deltaTime);
+		mouse.x -= Input.getMouseDelta().y * (MouseVertical * Time.deltaTime);
+		transform.setRotation(Quaternion.Euler(mouse));
 
-		if (Input.getMouseButtonDown(MouseButton.Left)) {
+		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) {
 			Input.setCursorMode(CursorMode.Disabled);
-		}
-		if (!AutoFire ? Input.getMouseButtonDown(MouseButton.Left) : Input.getMouseButton(MouseButton.Left)) { 
-			if(nextTimeToFire < Time.time) {
+
+			if (nextTimeToFire < Time.time) {
 				GameObject projectile = GameObject.CreateSphere("Projectile_" + projectileCount, transform.position);
 				RigidbodyComponent rb = projectile.addComponent<RigidbodyComponent>();
 				rb.kinematic = false;
 				rb.addForce(transform.forward * BulletForce, ForceMode.Impulse);
 
-				//projectile.addComponent<TestScript>().camera = this.gameObject;
+				projectile.addComponent<TestScript>().camera = this.gameObject;
 
 				projectileCount++;
 				nextTimeToFire = Time.time + (1.0f / FireRate);
 			}
 		}
+	}
+
+	public override void onDrawGizmos() {
+		Gizmo.drawOutlinedCube(transform.position, Color.Cyan);
+		if(Texture != null)
+			Graphics2D.drawTexturedQuad(Texture, transform.position, Color.White);
 	}
 }

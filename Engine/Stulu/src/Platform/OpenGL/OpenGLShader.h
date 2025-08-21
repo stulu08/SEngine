@@ -1,18 +1,41 @@
 #pragma once
 #include "Stulu/Renderer/Shader.h"
-
+#include "Stulu/Renderer/Renderer.h"
 typedef unsigned int GLenum;
 
 namespace Stulu {
+	class STULU_API OpenGLShaderCompiler : public ShaderCompiler {
+	public:
+		OpenGLShaderCompiler();
+
+		virtual bool Compile(const ShaderSource& sources, ShaderCompileResult& result) const override;
+		virtual bool CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const override;
+
+		virtual bool LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const override;
+
+		virtual bool isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const override;
+
+		virtual inline void AddHeader(const std::string& headers) override {
+			m_headers.push_back(headers);
+		}
+		virtual inline void AddHeaderFront(const std::string& headers) override {
+			m_headers.insert(m_headers.begin(), headers);
+		}
+		virtual inline const std::vector<std::string>& GetHeaders() const { return m_headers; }
+		virtual inline std::vector<std::string>& GetHeaders() override { return m_headers; }
+	private:
+		std::vector<std::string> m_headers;
+
+		std::string ApplyHeaders(const std::string& src) const;
+	};
+
 	class STULU_API OpenGLShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& name, const ShaderSource& sources);
+		OpenGLShader(const std::string& name, const ShaderCompileResult& sources);
 		virtual ~OpenGLShader();
 
-		virtual void reload(const ShaderSource& sources) override;
-		virtual void reload(const std::string& vertex, const std::string& fragment) override { reload(ShaderSource{ vertex, fragment }); }
-		virtual void reload(const std::string& compute) override { reload(ShaderSource{ compute }); } 
+		virtual void reload(const ShaderCompileResult& sources) override;
 
 		virtual void bind() const override;
 		virtual void unbind() const override;
@@ -40,7 +63,7 @@ namespace Stulu {
 		uint32_t m_rendererID;
 		std::string m_name;
 
-		void compile(const ShaderSource& sources);
+		void link(const ShaderCompileResult& sources);
 	};
 }
 

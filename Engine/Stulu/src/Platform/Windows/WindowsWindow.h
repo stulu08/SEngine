@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Stulu/Core/Window.h"
+#include "Stulu/Renderer/Window.h"
 
 struct GLFWwindow;
 
@@ -8,7 +8,7 @@ namespace Stulu {
 	class STULU_API WindowsWindow : public Window {
 	public:
 		WindowsWindow(void* glfwWindowPtr);
-		WindowsWindow(WindowProps& props);
+		WindowsWindow(const WindowProps& props);
 		virtual ~WindowsWindow();
 
 		void onUpdate() override;
@@ -25,7 +25,7 @@ namespace Stulu {
 		glm::vec2 getWindowPos() const override;
 
 		//attributes
-		inline void setEventCallback(const EventCallbackFn& callback) override { m_runtimeData->eventCallback = callback; }
+		inline void setEventCallback(const EventCallbackFn& callback) override { m_runtimeData.eventCallback = callback; }
 		virtual void setWindowIcon(const std::string& path) override;
 		virtual void setWindowTitle(const std::string& title) override;
 		void setVSync(bool enabled) override;
@@ -34,13 +34,12 @@ namespace Stulu {
 		virtual void* getNativeWindow() const { return m_window; }
 		virtual Scope<GraphicsContext>& getContext() override { return m_graphicsContext; }
 	private:
-		virtual void init(WindowProps& props);
+		virtual void init();
 		virtual void shutDown();
 
 		bool m_selfInitilized;
 		GLFWwindow* m_window;
 		Scope<GraphicsContext> m_graphicsContext;
-
-		WindowProps* m_runtimeData;
+		WindowProps m_runtimeData;
 	};
 }

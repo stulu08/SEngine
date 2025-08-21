@@ -8,19 +8,12 @@
 #include "Gizmo.h"
 
 #include "Stulu/Core/Application.h"
-#include "Stulu/Core/Input.h"
+#include "Stulu/Input/Input.h"
 #include "Stulu/Core/Utils.h"
 
-#ifdef USING_GLFW
-	#include "backends/imgui_impl_glfw.h"
-	#include <GLFW/glfw3.h>
-#endif
-#if IMGUI_OPENGL_3
-	#include "backends/imgui_impl_opengl3.h"
-#endif
-#if IMGUI_OPENGL_4
-	#include "backends/imgui_impl_opengl4.h"
-#endif
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include <GLFW/glfw3.h>
 
 
 namespace Stulu {
@@ -33,7 +26,6 @@ namespace Stulu {
 	}
 
 	void ImGuiLayer::onAttach() {
-		ST_PROFILING_FUNCTION();
 		IMGUI_CHECKVERSION();
 		m_context = ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -55,70 +47,42 @@ namespace Stulu {
 		Application& app = Application::get();
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.getWindow().getNativeWindow());
 
-#ifdef USING_GLFW
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
-	#if IMGUI_OPENGL_3
 		ImGui_ImplOpenGL3_Init("#version 460");
-	#endif
-	#if IMGUI_OPENGL_4
-		ImGui_ImplOpenGL4_Init("#version 460");
-	#endif
-#endif
 
 	}
 
 	void ImGuiLayer::onDetach() {
-		ST_PROFILING_FUNCTION();
-#ifdef USING_GLFW
-#if IMGUI_OPENGL_3
 		ImGui_ImplOpenGL3_Shutdown();
-#endif
-#if IMGUI_OPENGL_4
-		ImGui_ImplOpenGL4_Shutdown();
-#endif
 		ImGui_ImplGlfw_Shutdown();
-#endif
 		ImGui::DestroyContext();
 	}
 
 	void ImGuiLayer::Begin() {
-		ST_PROFILING_FUNCTION();
-#ifdef USING_GLFW
-#if IMGUI_OPENGL_3
-		ImGui_ImplOpenGL3_NewFrame();
-#endif
-#if IMGUI_OPENGL_4
-		ImGui_ImplOpenGL4_NewFrame();
-#endif
-		ImGui_ImplGlfw_NewFrame();
-#endif
+        ST_PROFILING_SCOPE("ImGui - Begin");
 
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 	}
 	void ImGuiLayer::End() {
-		ST_PROFILING_FUNCTION();
+        ST_PROFILING_SCOPE("ImGui - Rendering");
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::get();
 		io.DisplaySize = ImVec2((float)app.getWindow().getWidth(), (float)app.getWindow().getHeight());
 		// Rendering
 		ImGui::Render();
-#ifdef USING_GLFW
-#if IMGUI_OPENGL_3
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#endif
-#if IMGUI_OPENGL_4
-			ImGui_ImplOpenGL4_RenderDrawData(ImGui::GetDrawData());
-#endif
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
-#endif
 	}
 	void ImGuiLayer::onImguiRender(Timestep timestep) {
 		
@@ -128,35 +92,19 @@ namespace Stulu {
 		if (m_blockEvents) {
 			ImGuiIO& io = ImGui::GetIO();
 			e.handled |= e.isInCategory(KeyboardEventCategrory) & io.WantCaptureKeyboard;
+            // basicly only for the transform edit
+            e.handled |= e.isInCategory(MouseButtonEventCategrory) & Gizmo::WasHovered();
 		}
 	}
 
 
 }
 
-ImVec2 operator*(const ImVec2& vec, const float v) {
-	return ImVec2(vec.x * v, vec.y * v);
-}
-ImVec2 operator/(const ImVec2& vec, const float v) {
-	return ImVec2(vec.x / v, vec.y / v);
-}
 ImVec2 operator+(const ImVec2& vec, const float v) {
 	return ImVec2(vec.x + v, vec.y + v);
 }
 ImVec2 operator-(const ImVec2& vec, const float v) {
 	return ImVec2(vec.x - v, vec.y - v);
-}
-ImVec2 operator*(const ImVec2& vec, const ImVec2& vec2) {
-	return ImVec2(vec.x * vec2.x, vec.y * vec2.y);
-}
-ImVec2 operator/(const ImVec2& vec, const ImVec2& vec2) {
-	return ImVec2(vec.x / vec2.x, vec.y / vec2.y);
-}
-ImVec2 operator+(const ImVec2& vec, const ImVec2& vec2) {
-	return ImVec2(vec.x + vec2.x, vec.y + vec2.y);
-}
-ImVec2 operator-(const ImVec2& vec, const ImVec2& vec2) {
-	return ImVec2(vec.x - vec2.x, vec.y - vec2.y);
 }
 ImVec2 operator*(const ImVec2& vec, const glm::vec2& vec2) {
 	return ImVec2(vec.x * vec2.x, vec.y * vec2.y);
@@ -171,28 +119,28 @@ ImVec2 operator-(const ImVec2& vec, const glm::vec2& vec2) {
 	return ImVec2(vec.x - vec2.x, vec.y - vec2.y);
 }
 
-void ImGui::Image(const Stulu::Ref<Stulu::Texture>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col) {
-	ImGui::Image(StuluTextureToImGui(texture), size, uv0, uv1, tint_col, border_col);
+void ImGui::Image(const Stulu::Texture2D* texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col) {
+    ImGui::Image(StuluTextureToImGui(texture), size, uv0, uv1, tint_col, border_col);
 }
 
-void ImGui::Image(const Stulu::Ref<Stulu::Texture>& texture, const glm::vec2& size, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec4& tint_col, const glm::vec4& border_col) {
-	ImGui::Image(StuluTextureToImGui(texture), { size.x,  size.y }, { uv0.x,  uv0.y }, { uv1.x,  uv1.y }, { tint_col.x, tint_col.y, tint_col.z, tint_col.w }, { border_col.x, border_col.y, border_col.z, border_col.w });
+void ImGui::Image(const Stulu::Texture2D* texture, const glm::vec2& size, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec4& tint_col, const glm::vec4& border_col) {
+    ImGui::Image(StuluTextureToImGui(texture), { size.x,  size.y }, { uv0.x,  uv0.y }, { uv1.x,  uv1.y }, { tint_col.x, tint_col.y, tint_col.z, tint_col.w }, { border_col.x, border_col.y, border_col.z, border_col.w });
 }
 
-bool ImGui::ImageButton(const Stulu::Ref<Stulu::Texture>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col) {
-	return ImGui::ImageButton(StuluTextureToImGui(texture), size, uv0, uv1,frame_padding, bg_col, tint_col);
+bool ImGui::ImageButton(const std::string& id, const  Stulu::Texture* texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col) {
+    return ImGui::ImageButton(id.c_str(), StuluTextureToImGui(texture), size, uv0, uv1, bg_col, tint_col);
 }
 
-bool ImGui::ImageButton(const Stulu::Ref<Stulu::Texture>& texture, const glm::vec2& size, const glm::vec2& uv0, const glm::vec2& uv1, int frame_padding, const glm::vec4& bg_col, const glm::vec4& tint_col) {
-	return ImGui::ImageButton(StuluTextureToImGui(texture), {size.x,  size.y}, {uv0.x,  uv0.y}, {uv1.x,  uv1.y}, frame_padding, {bg_col.x, bg_col.y, bg_col.z, bg_col.w}, {tint_col.x, tint_col.y, tint_col.z, tint_col.w});
+bool ImGui::ImageButton(const std::string& id, const  Stulu::Texture* texture, const glm::vec2& size, const glm::vec2& uv0, const glm::vec2& uv1, const glm::vec4& bg_col, const glm::vec4& tint_col) {
+	return ImGui::ImageButton(id.c_str(), StuluTextureToImGui(texture), {size.x,  size.y}, {uv0.x,  uv0.y}, {uv1.x,  uv1.y}, {bg_col.x, bg_col.y, bg_col.z, bg_col.w}, {tint_col.x, tint_col.y, tint_col.z, tint_col.w});
 }
 
-ImTextureID ImGui::StuluTextureToImGui(const Stulu::Ref<Stulu::Texture>& texture) {
-	ImTextureID id = nullptr;
-	if (Stulu::Renderer::getRendererAPI() == Stulu::RenderAPI::API::OpenGL || Stulu::Renderer::getRendererAPI() == Stulu::RenderAPI::API::GLES)
-		id = reinterpret_cast<void*>((uint64_t)(Stulu::NativeRenderObjectCast<uint32_t>(texture->getNativeRendererObject())));
+ImTextureID ImGui::StuluTextureToImGui(const Stulu::Texture* texture) {
+    ImTextureID id = 0;
+    if (Stulu::Renderer::getRendererAPI() == Stulu::Renderer::API::OpenGL || Stulu::Renderer::getRendererAPI() == Stulu::Renderer::API::GLES)
+        id = (ImTextureID)reinterpret_cast<void*>((uint64_t)(Stulu::NativeRenderObjectCast<uint32_t>(texture->getNativeRendererObject())));
 
-	return id;
+    return id;
 }
 
 
@@ -372,3 +320,14 @@ void ImGui::HelpMarker(const char* text) {
         ImGui::EndTooltip();
     }
 }
+
+void ImGui::Dummy(const ImVec2& size, const char* str_id) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+    ImGui::ItemSize(size);
+    ImGui::ItemAdd(bb, window->GetID(str_id));
+}
+

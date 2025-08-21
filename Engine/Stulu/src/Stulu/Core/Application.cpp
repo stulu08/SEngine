@@ -1,114 +1,120 @@
 #include "st_pch.h"
 #include "Application.h"
 
+#include "Stulu/Input/Input.h"
 #include "Stulu/Core/Platform.h"
-#include "Stulu/Core/Timestep.h"
-#include "Stulu/Renderer/Renderer.h"
-#include "Stulu/Renderer/OrthographicCamera.h"
-#include "Stulu/Renderer/Renderer2D.h"
-#include "Stulu/Scene/AssetsManager.h"
-#include "Stulu/Core/Input.h"
-#include "Stulu/Core/Resources.h"
-#include "Stulu/Scripting/Managed/AssemblyManager.h"
+#include "Stulu/Resources/Resources.h"
+#include "Stulu/Types/Timestep.h"
 #include "Stulu/ImGui/Gizmo.h"
+#include "Stulu/Renderer/Renderer.h"
+#include "Stulu/Renderer/Renderer2D.h"
+#include "Stulu/Resources/AssetsManager.h"
+#include "Stulu/Scripting/Managed/AssemblyManager.h"
+
+#include "Stulu/Resources/AssetHandel.h"
+#include "Stulu/Scripting/Managed/Bindings/Core/Asset.h"
 
 namespace Stulu {
-#ifdef OPENGL
-	// we want the best gpu cause shaders wont compile with intel uhd graphics on my laptop and windows does not want to use my nvidia card automaticly
-	// enable optimus!
 	extern "C" {
 		_declspec(dllexport) DWORD NvOptimusEnablement = 1;
 		_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 	}
-#endif
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+	
+	
 	Application* Application::s_instance = nullptr;
 
 	Application::Application(const ApplicationInfo& appInfo)
 		:m_appInfo(appInfo) {
-		ST_PROFILING_FUNCTION();
 		s_instance = this;
+		m_cpuDispatcher = createScope<CpuDispatcher>(appInfo.threadPoolSize);
+		m_assetsManager = createScope<AssetsManager>();
 
 		Resources::EngineDataDir = appInfo.DataPath;
 		Resources::AppDataDir = appInfo.AppPath;
 		Resources::AppAssetDir = appInfo.AppAssetPath;
 
+		Renderer::s_data.api = appInfo.api;
+
+		Module::LoadBaseModules();
+
 		m_window = Window::create(m_appInfo.WindowProps);
 		m_window->setEventCallback(BIND_EVENT_FN(onEvent));
 
-		if (appInfo.LoadDefaultAssets) {
-			Renderer::init();
-		}
+		RenderCommand::init();
 
 		if (appInfo.HideWindowOnSart) {
 			m_window->hide();
 		}
-		else if(appInfo.LoadDefaultAssets){
-			//Load Texture for loading
-			Renderer::onWindowResize(WindowResizeEvent(m_appInfo.WindowProps.width, m_appInfo.WindowProps.height));
-
-			const float zoom = 0.75f;
-			const float aspectRatio = (float)m_appInfo.WindowProps.width / (float)m_appInfo.WindowProps.height;
-			const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
-			const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
-			
-			Ref<Texture> texture = Resources::getLoadingTexture();
-
-			RenderCommand::setClearColor({ 0,0,0,1 });
-			RenderCommand::clear();
-
-			Renderer::uploadCameraBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
-			Renderer2D::begin();
-			Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .0f, .0f), glm::vec3(1.0f)), texture);
-			Renderer2D::flush();
-
-
-			m_window->onUpdate();
-		}
 
 		if (appInfo.LoadDefaultAssets) {
+			Renderer::init();
 			CORE_INFO("Loading all Engine assets: {0}", appInfo.DataPath);
 			Resources::load();
 		}
+		LoadingScreen(0.25f);
 
-		if(!appInfo.AppAssembly.empty())
-			m_assembly = createRef<AssemblyManager>(appInfo.AppAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll");
+		if(!appInfo.AppManagedAssembly.empty())
+			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll", appInfo.DebugFeatures);
+
+		Component::RegisterBaseComponents();
+
+
+		// transfer ownership to layerstack, and attach modules to application
+		for (size_t i = 0; i < m_moduleLoader.GetSize(); i++) {
+			if (i >= m_moduleLoader.GetInsertIndex()) {
+				pushOverlay((Layer*)m_moduleLoader[i]);
+			}
+			else {
+				pushLayer((Layer*)m_moduleLoader[i]);
+			}
+		}
+		LoadingScreen(0.5f);
+
+
+		m_moduleLoader.clear();
 
 		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
 		}
 
+		LoadingScreen(0.75f);
+
 		if (appInfo.LoadDefaultAssets) {
 			Gizmo::init();
 		}
-
+		LoadingScreen(1.0f);
 	}
+
 	Application::~Application() {
-		ST_PROFILING_FUNCTION();
-		Renderer2D::shutdown();
-		m_window.reset();
-	}
-	void Application::pushLayer(Layer* layer) {
-		m_layerStack.pushLayer(layer);
-	}
-	void Application::pushOverlay(Layer* layer) {
-		m_layerStack.pushOverlay(layer);
-	}
-	void Application::popLayer(Layer* layer) {
-		m_layerStack.popLayer(layer);
-	}
-	void Application::popOverlay(Layer* layer) {
-		m_layerStack.popOverlay(layer);
-	}
+		Gizmo::ShutDown();
+		Resources::ReleaseAll();
+		Renderer::Shutdown();
 
-	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
-		return m_assembly->getScriptCoreAssembly();
+		// layerstack also contains modules
+		m_layerStack.clear();
+
+		if(m_assembly)
+			StuluBindings::AssetHandle::CleanUpAssets(true);
+
+		m_assetsManager.reset();
+
+		Component::ClearRegisteredComponents();
+		EventCaller::ClearRegisteredLayers();
+
+		m_window.reset();
+		m_assembly.reset();
+
+		m_cpuDispatcher.reset();
+
+		s_instance = nullptr;
 	}
 
 	void Application::onEvent(Event& e) {
-		ST_PROFILING_FUNCTION();
+		ST_PROFILING_SCOPE("Application - Events");
+
 		EventDispatcher dispacther(e);
 		dispacther.dispatch<WindowCloseEvent>(BIND_EVENT_FN(onWindowClose));
 		dispacther.dispatch<WindowResizeEvent>(BIND_EVENT_FN(onWindowResize));
@@ -126,38 +132,60 @@ namespace Stulu {
 		m_lastFrameTime = Platform::getTime();
 		m_runnig = true;
 		while (m_runnig) {
-			ST_PROFILING_SCOPE("Run Loop");
-			float time = Platform::getTime();
-			Timestep delta = time - m_lastFrameTime;
-			Time::applicationRuntime = time;
-			m_lastFrameTime = time;
+			ST_PROFILING_SCOPE("Application - Loop");
+			// update input
+			Input::update();
+			m_window->onUpdate();
+
+			// begin render command buffer
+			m_window->getContext()->beginBuffer();
+
+			// update timing
+			Time::applicationRuntime = Platform::getTime();
+			Timestep delta = Time::applicationRuntime - m_lastFrameTime;
 			Time::frameTime = delta;
 			Time::deltaTime = delta * Time::Scale;
+			m_lastFrameTime = Time::applicationRuntime;
+			
 			if (!m_minimized) {
 				ST_PROFILING_RENDERDATA_BEGIN();
-				for (Layer* layer : m_layerStack) {
-					layer->onUpdate(delta);
-				}
-				if (m_appInfo.EnableImgui) {
-					ST_PROFILING_SCOPE("ImGui - Update");
-					m_imguiLayer->Begin();
-					for (Layer* layer : m_layerStack) {
-						layer->onImguiRender(delta);
+				{
+					ST_PROFILING_SCOPE("Application - Layer Updates");
+
+					// update every layer
+					for (const auto& layer : m_layerStack) {
+						layer->onUpdate(delta);
 					}
-					for (Layer* layer : m_layerStack) {
-						layer->onRenderGizmo();
+				}
+
+				if (m_appInfo.EnableImgui) {
+					// update imgui
+					ST_PROFILING_SCOPE("Application - ImGui Updates");
+					m_imguiLayer->Begin();
+					{
+						ST_PROFILING_SCOPE("ImGui - Layer Updates");
+
+						for (const auto& layer : m_layerStack) {
+							layer->onImguiRender(delta);
+						}
+
+						if (Gizmo::Begin()) {
+							for (const auto& layer : m_layerStack) {
+								layer->onRenderGizmo();
+							}
+						}
+						Gizmo::End();
 					}
 					m_imguiLayer->End();
 				}
 				ST_PROFILING_RENDERDATA_END();
 			}
-			Input::update();
-			m_window->onUpdate();
+
+			// update events, end render buffer and swap buffers
+			m_window->getContext()->swapBuffers();
 		}
 	}
 	void Application::exit(int32_t code) {
-		ST_PROFILING_FUNCTION();
-
 		if (s_instance == nullptr) {
 			CORE_CRITICAL("Application can't shut down! It hasn't been created yet");
 			return;
@@ -173,17 +201,48 @@ namespace Stulu {
 		return;
 	}
 	bool Application::onWindowClose(WindowCloseEvent& e) {
-		ST_PROFILING_FUNCTION();
 		exit(0);
 		return m_runnig;
 	}
 	bool Application::onWindowResize(WindowResizeEvent& e) {
-		ST_PROFILING_FUNCTION();
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
 		m_minimized ? 0 : Renderer::onWindowResize(e);
 		return m_minimized;
 	}
 	std::string Application::getWorkingDirectory() const {
 		return CleanPath(Platform::getCurrentWorkingDirectory());
+	}
+	void Application::LoadingScreen(float progress) {
+		const auto& app = s_instance;
+
+		if (app->getApplicationInfo().HideWindowOnSart || !app->getApplicationInfo().LoadDefaultAssets)
+			return;
+
+		app->getWindow().getContext()->beginBuffer();
+
+		//Load Texture for loading
+		Renderer::onWindowResize(WindowResizeEvent(app->getWidth(), app->getHeight()));
+
+		const float zoom = 0.75f;
+		const float aspectRatio = (float)app->getWidth() / (float)app->getHeight();
+		const glm::mat4 proj = glm::ortho(zoom * -aspectRatio, zoom * aspectRatio, zoom * -1.0f, zoom * 1.0f, .001f, 100.0f);
+		const glm::mat4 view = glm::inverse(Math::createMat4(glm::vec3(.0f, .0f, .1f), glm::quat(glm::vec3(.0f)), glm::vec3(1.0f)));
+
+		RenderCommand::setClearColor({ 0,0,0,1 });
+		RenderCommand::clear();
+
+		Renderer::uploadCameraBufferData(proj, view, glm::vec3(.0f, .0f, .1f), glm::vec3(.0f));
+		Renderer2D::begin();
+		Renderer2D::drawTexturedQuad(Math::createMat4(glm::vec3(.0f, .1f, .0f), glm::vec3(.75f)), Resources::LoadingTexture());
+		Renderer2D::drawSlider(glm::vec3(.0f, -.3f, .0f), glm::vec3(1.f, .1f, 1.0f), progress);
+		Renderer2D::flush();
+
+
+		app->getWindow().onUpdate();
+		app->getWindow().getContext()->swapBuffers();
+	}
+
+	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
+		return m_assembly->getScriptCoreAssembly();
 	}
 }

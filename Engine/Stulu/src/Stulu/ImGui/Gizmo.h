@@ -26,19 +26,28 @@ namespace Stulu {
 		ScaleEu = Scale_XU | Scale_YU | Scale_ZU, // universal
 		Universal = Translate | Rotate | ScaleEu
 	};
+
 	class STULU_API Gizmo {
 	public:
 		static void init();
-		static void Begin();
+		static void ShutDown();
+		static bool Begin();
+		// always call end
 		static void End();
+		static void setWindow(const std::string& windowName, bool* windowOpenPtr = nullptr);
 		static void setCamData(const glm::mat4& cameraProjection, const glm::mat4& cameraView);
 		static void setRect(const float x, const float y, const float width, const float height);
 		static void ApplyToFrameBuffer(const Ref<FrameBuffer>& camera);
 
-		static bool IsUsing();
+		static bool WasUsed();
+		static bool WasHovered();
 
-		static bool TransformEdit(TransformComponent& tc, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
+		static bool TransformEdit(const GameObject& object, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
+		static bool TransformEdit(const std::vector<entt::entity>& objects, Registry* registry, GizmoTransformEditMode gizmoEditType = GizmoTransformEditMode::Translate, const glm::vec3& snap = glm::vec3(.0f));
 		static void drawGrid(const glm::mat4& transform, float size);
+
+		// cameraTransform is write only, view and projection matrix is used from setCamData(...)
+		static bool ViewManipulate(TransformComponent& cameraTransform, const glm::vec3& selectedPosition, ImVec2 pos, ImVec2 size);
 
 		static void drawLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec4& color = glm::vec4(1.0f,1.0f,1.0f,1.0f));
 
@@ -48,8 +57,8 @@ namespace Stulu {
 		static void drawOutlineCube(const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void drawOutlineCube(const glm::vec3& min, const glm::vec3& max, const glm::mat4& transform, const glm::vec4& color);
 
-		static void drawTexture(const Ref<Texture>& texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4);
-		static void drawTextureBillBoard(const Ref<Texture>& texture, const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec3& up = { 0, 1, 0 }, const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawTexture(Texture2D* texture, const glm::vec3& position, const glm::quat& rotation, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawTextureBillBoard(Texture2D* texture, const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec3& up = { 0, 1, 0 }, const glm::vec4& color = COLOR_WHITE_VEC4);
 		
 		static void drawCircle(const glm::vec3& position, const glm::vec2& scale, const glm::quat& rotation , const glm::vec4& color = COLOR_WHITE_VEC4, float thickness = 1.0f, float fade = .005f);
 		static void drawCircleBillBoard(const glm::vec3& position, const glm::vec2& scale = glm::vec2(1.0f), const glm::vec4& color = COLOR_WHITE_VEC4, float thickness = 1.0f, float fade = .005f, const glm::vec3& up = { 0, 1, 0 });
@@ -60,13 +69,16 @@ namespace Stulu {
 		static void drawSphere(const glm::mat4& transformation, const glm::vec4& color = COLOR_WHITE_VEC4);
 		static void drawSphere(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, const glm::vec4& color = COLOR_WHITE_VEC4);
 
+		static void DrawArc(const glm::vec3& center, const glm::vec3& right, const glm::vec3& up, float radius, float startAngle, float endAngle, int segments, const glm::vec4& color = COLOR_WHITE_VEC4);
+		static void drawCapsule(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale, float radius, float height, bool vertical, const glm::vec4& colo = COLOR_WHITE_VEC4);
+
 		static void drawGUIRect(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color = {1,1,1,1}, bool border = false, float overrideBorderSize = 0);
-		static bool drawGUITextureButton(const Ref<Texture>& texture, const glm::vec2& position, 
+		static bool drawGUITextureButton(Texture2D* texture, const glm::vec2& position, 
 			const glm::vec2& size = {50,50}, const glm::vec4& color = {1,1,1,1}, 
 			const glm::vec2& uv1 = { 0,1 }, const glm::vec2& uv2 = { 1,0 }, 
 			const int borderSize = 1.0f, const glm::vec4& bgColor = {0,0,0,0});
 
-
+		static void drawText(const std::string& text, const glm::vec3& worldPos, const glm::vec4& color = { 1,1,1,1 });
 	private:
 		static void resetCubes();
 		static void resetSpheres();

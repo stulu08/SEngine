@@ -1,4 +1,5 @@
 #pragma once
+#include "Stulu/ImGui/Gizmo.h"
 
 namespace StuluBindings {
 	class Gizmo {
@@ -30,6 +31,9 @@ namespace StuluBindings {
 			Stulu::Gizmo::drawSphere(
 				Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
 				color->toNative_s());
+		}
+		static inline void drawRectMatrix(struct Matrix4* matrix, struct Vector4* color) {
+			Stulu::Gizmo::drawRect(matrix->toNative(), color->toNative_s());
 		}
 	};
 }

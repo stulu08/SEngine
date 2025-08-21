@@ -43,6 +43,11 @@ typedef struct MonoVTable MonoVTable;
 struct _MonoArrayType;
 typedef struct _MonoArrayType MonoArrayType;
 
+struct _MonoArray;
+typedef struct _MonoArray MonoArray;
+
+struct _MonoCustomAttrEntry;
+struct _MonoCustomAttrInfo;
 
 #ifndef NO_EXPORT_MONO_WRAPPER
 	#define ST_MONO_API STULU_API
@@ -51,6 +56,7 @@ typedef struct _MonoArrayType MonoArrayType;
 namespace Stulu {
 	namespace Mono {
 		class ST_MONO_API Type;
+		class ST_MONO_API ReflectionType;
 		class ST_MONO_API Method;
 		class ST_MONO_API Class;
 		class ST_MONO_API String;
@@ -62,6 +68,9 @@ namespace Stulu {
 		class ST_MONO_API MethodDesc;
 		class ST_MONO_API Thread;
 		class ST_MONO_API GCHandle;
+		class ST_MONO_API CustomAttrInfo;
+		class ST_MONO_API CustomAttrEntry;
+		class ST_MONO_API Array;
 
 		class ST_MONO_API Image {
 		public:
@@ -177,6 +186,23 @@ namespace Stulu {
 			MonoType* m_type;
 		};
 		
+		class ST_MONO_API ReflectionType {
+		public:
+			ReflectionType(MonoReflectionType* ptr)
+				: m_type(ptr) {};
+
+			Type GetType() const;
+
+			inline operator bool() const {
+				return m_type != nullptr;
+			}
+			inline operator MonoReflectionType* () {
+				return m_type;
+			}
+		private:
+			MonoReflectionType* m_type;
+		};
+
 		class ST_MONO_API Method {
 		public:
 			Method(MonoMethod* ptr)
@@ -211,6 +237,7 @@ namespace Stulu {
 			ClassField GetFields(void** iter) const;
 
 			Method GetMethodFromName(const std::string& name, int param_count) const;
+			Method GetMethodFromNameInHierarchy(const std::string& name, int param_count) const;
 
 			inline bool operator ==(const Class& left) const {
 				return this->m_class == left.m_class;
@@ -228,6 +255,50 @@ namespace Stulu {
 
 			MonoClass* m_class;
 		};
+
+
+		class ST_MONO_API CustomAttrEntry {
+		public:
+			CustomAttrEntry(_MonoCustomAttrEntry* entry)
+				: m_entry(entry) {}
+
+			Method GetConstructor() const;
+			size_t GetDataSize() const;
+			void* GetData() const;
+
+			inline operator bool() const {
+				return m_entry != nullptr;
+			}
+			inline operator _MonoCustomAttrEntry* () {
+				return m_entry;
+			}
+		private:
+			_MonoCustomAttrEntry* m_entry;
+		};
+
+		class ST_MONO_API CustomAttrInfo {
+		public:
+			CustomAttrInfo(_MonoCustomAttrInfo* infos)
+				: m_infos(infos){}
+
+			static CustomAttrInfo FromField(Class clas, ClassField field);
+			static CustomAttrInfo FromClass(Class clas);
+			static CustomAttrInfo FromMethod(Method method);
+
+			bool HasAttribute(Class attribute) const;
+			Object GetAttribute(Class attribute) const;
+			void Free();
+
+			inline operator bool() const {
+				return m_infos != nullptr;
+			}
+			inline operator _MonoCustomAttrInfo* () {
+				return m_infos;
+			}
+		private:
+			_MonoCustomAttrInfo* m_infos;
+		};
+
 
 		class ST_MONO_API String {
 		public:
@@ -340,6 +411,7 @@ namespace Stulu {
 				return m_thread;
 			}
 
+			static Thread Attach(Domain domain);
 			static Thread GetCurrent();
 			static Thread GetMain();
 			static void SetMain(Thread thread);
@@ -353,9 +425,9 @@ namespace Stulu {
 				: m_handle(ptr) {};
 
 			void Free();
-			Object GetTarget();
+			Object GetTarget() const;
 
-			inline operator uint32_t () {
+			inline operator uint32_t () const {
 				return m_handle;
 			}
 
@@ -363,6 +435,57 @@ namespace Stulu {
 			static GCHandle NewWeakRef(Object obj, bool track_resurrection);
 		private:
 			uint32_t m_handle;
+		};
+
+		/* Definition of MonoArray
+		struct _MonoArray {
+			MonoObject obj;
+
+			// bounds is NULL for szarrays 
+			MonoArrayBounds* bounds;
+
+			// total number of elements of the array 
+			mono_array_size_t max_length;
+
+			// we use mono_64bitaligned_t to ensure proper alignment on platforms that need it 
+			mono_64bitaligned_t vector[MONO_ZERO_LEN_ARRAY];
+		};
+		*/
+		class ST_MONO_API Array {
+		public:
+			Array(MonoArray* ptr)
+				: m_array(ptr) {};
+
+			static Array New(Domain domain, Class clas, size_t size);
+
+			void SetRef(size_t index, Object value);
+
+			template<class T>
+			inline T& Get(size_t index) {
+				T* addr = (T*)GetElementAddressWithSize(index, sizeof(T));
+				return *addr;
+			}
+			template<class T>
+			inline const T& Get(size_t index) const {
+				T* addr = (T*)GetElementAddressWithSize(index, sizeof(T));
+				return *addr;
+			}
+			template<class T>
+			inline T* GetElementAddress(size_t index) {
+				return (T*)GetElementAddressWithSize(index, sizeof(T));
+			}
+
+			size_t Length() const;
+			byte* GetElementAddressWithSize(size_t index, size_t typeSize);
+
+			inline operator bool() const {
+				return m_array != nullptr;
+			}
+			inline operator MonoArray* () {
+				return m_array;
+			}
+		private:
+			MonoArray* m_array;
 		};
 
 		namespace JIT {
@@ -432,10 +555,31 @@ namespace Stulu {
 			ST_MONO_API Domain JitThreadAttach(Domain domain);
 		}
 
+		namespace Debug {
+			enum class Format {
+				NONE,
+				MONO,
+				/* Deprecated, the mdb debugger is not longer supported. */
+				DEBUGGER
+			};
+
+			ST_MONO_API void Init(Format format);
+			ST_MONO_API void CreateDomain(Domain domain);
+			ST_MONO_API void OpenImageFromMemory(Image image, const char* data, int32_t dataLen);
+		}
+
+		namespace GC {
+			ST_MONO_API void Collect(int generations);
+			ST_MONO_API int MaxGenerations();
+		}
+
 		ST_MONO_API void SetDirs(const std::string& assembly_dir, const std::string& config_dir);
 		ST_MONO_API Domain GetRootDomain();
+		ST_MONO_API Class GetObjectClass();
+		ST_MONO_API Class GetExceptionClass();
 		ST_MONO_API void AddInternallCall(const std::string& name, const void* method);
 		ST_MONO_API Object RuntimeInvoke(Method method, void* obj, void** params, MonoObject** exc = NULL);
 		ST_MONO_API void RuntimeObjectInit(Object object);
+		ST_MONO_API void PrintUnhandledException(Object object);
 	}
 }

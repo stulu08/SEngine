@@ -1,5 +1,7 @@
 #pragma once
-#include "Stulu/Core/Core.h"
+#include "Stulu/Types/Pointers.h"
+
+#include <string>
 namespace Stulu {
 	class Window;
 	struct API_Infos {
@@ -13,6 +15,7 @@ namespace Stulu {
 		virtual ~GraphicsContext() = default;
 
 		virtual void init(Window* window) = 0;
+		virtual void beginBuffer() = 0;
 		virtual void swapBuffers() = 0;
 		virtual void setVSync(bool enabled) = 0;
 
