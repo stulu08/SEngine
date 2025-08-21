@@ -9,7 +9,12 @@ namespace Stulu {
 
 		m_compiler = ShaderCompiler::Create();
 		m_compiler->AddHeaderFront("#version 450");
-		
+		m_compiler->AddHeader("#extension GL_ARB_separate_shader_objects : enable");
+		m_compiler->AddHeader("#extension GL_ARB_shading_language_420pack : enable");
+		if(m_spirvSupported)
+			m_compiler->AddHeader("#extension GL_GOOGLE_cpp_style_line_directive : enable");
+
+
 		AddIncludePath(Resources::EngineDataDir + "/Stulu/Shader");
 		AddIncludePath(std::filesystem::current_path().string());
 		AddInternalIncludeFile("Stulu/Internals.glsl",
@@ -362,6 +367,8 @@ namespace Stulu {
 	void ShaderSystem::FlattenShaderInclude(const ShaderIncludeNode& node, std::ostream& out, const std::string& indent) const {
 		size_t lineCount = 0;
 		size_t includeIdx = 0;
+		// intel intergrated graphics has no support for 'GL_ARB_shading_language_include' or 'GL_GOOGLE_cpp_style_line_directive'
+		const bool SupportsLineDirective = m_spirvSupported;
 
 		for (size_t i = 0; i < node.lines.size(); ++i) {
 			// Is this line an include marker?
@@ -369,9 +376,11 @@ namespace Stulu {
 				const ShaderIncludeNode& child = node.includes[includeIdx].second;
 
 				out << indent << "/* Begin Include \"" << child.filename << "\" */\n";
-				out << indent << "#line 1 \"" << child.filename << "\"\n";
+				if(SupportsLineDirective)
+					out << indent << "#line 1 \"" << child.filename << "\"\n";
 				FlattenShaderInclude(child, out, indent);
-				out << indent << "#line " << (lineCount + 3) << " \"" << node.filename << "\"\n";
+				if (SupportsLineDirective)
+					out << indent << "#line " << (lineCount + 3) << " \"" << node.filename << "\"\n";
 				out << indent << "/* End Include \"" << child.filename << "\" */\n";
 
 				includeIdx++;
