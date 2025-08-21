@@ -22,20 +22,12 @@ namespace Stulu {
 		virtual bool HasExtension(const std::string& extension) const override {
 			return extension == ".png" || extension == ".jpg" || extension == ".jpeg" || extension == ".tga";
 		};
-		virtual bool Load() override { 
-			if (!IsMemoryLoaded()) {
-				m_texture = Texture2D::create(GetPath(), ReadSettings());
-			}
-			return m_texture != nullptr;
-		}
-		virtual bool Save() const override {
-			if (!IsMemoryLoaded()) {
-				if (m_texture)
-					return SaveSetting(m_texture->getSettings());
-				else return false;
-			}
-			return true;
-		}
+
+		TextureSettings ReadSettings();
+		bool SaveSetting(TextureSettings settings) const;
+
+		virtual bool Load() override;
+		virtual bool Save() const override;
 
 		Ref<Texture2D> GetTextureHandle() const {
 			return m_texture;
@@ -46,9 +38,6 @@ namespace Stulu {
 		const NativeType* GetNative() const { return m_texture.get(); }
 	private:
 		Ref<Texture2D> m_texture;
-
-		TextureSettings ReadSettings();
-		bool SaveSetting(TextureSettings settings) const;
 	};
 
 	class STULU_API SharedSkyBoxAssetData : public SharedAssetData {

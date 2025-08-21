@@ -15,42 +15,37 @@ namespace Stulu {
 
 		template<typename T>
 		inline bool hasComponent() const {
-			return m_registry->m_registry.storage<T>().contains(m_entity);
+			return m_registry->HasComponent<T>(m_entity);
 		}
 		template<typename T, typename... Args>
 		inline T& addComponent(Args&&... args) const {
 			if (hasComponent<T>()) {
 				CORE_WARN("GameObject already has component, returning component");
-				return m_registry->m_registry.get<T>(m_entity);
+				return m_registry->GetComponent<T>(m_entity);
 			}
-			T& component = m_registry->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
-			component.gameObject = { m_entity,m_registry };
-			m_registry->onComponentAdded<T>(*this, component);
+			T& component = m_registry->AddComponent<T>(m_entity, std::forward<Args>(args)...);
 			return component;
 		}
 		template<typename T, typename... Args>
 		inline T& saveAddComponent(Args&&... args) const {
 			if (hasComponent<T>()) 
-				return m_registry->m_registry.get<T>(m_entity);
-			T& component = m_registry->m_registry.emplace<T>(m_entity, std::forward<Args>(args)...);
-			m_registry->onComponentAdded<T>(*this, component);
-			component.gameObject = {m_entity,m_registry};
+				return m_registry->GetComponent<T>(m_entity);
+
+			T& component = m_registry->AddComponent<T>(m_entity, std::forward<Args>(args)...);
 			return component;
 		}
 		template<typename T>
 		inline T& getComponent() const {
 			CORE_ASSERT(hasComponent<T>(), "GameObject does not have component");
-			return m_registry->m_registry.get<T>(m_entity);
+			return m_registry->GetComponent<T>(m_entity);
+		}
+		template<class T>
+		inline T* tryGetComponent() const {
+			return m_registry->TryGetComponent<T>(m_entity);
 		}
 		template<typename T>
 		inline bool removeComponent() const {
-			if (!hasComponent<T>()) {
-				CORE_ERROR("GameObject does not have component");
-				return false;
-			}
-			m_registry->onComponentRemove<T>(*this, m_registry->m_registry.get<T>(m_entity));
-			m_registry->m_registry.remove<T>(m_entity);
-			return true;
+			return m_registry->RemoveComponent<T>(m_entity);;
 		}
 
 		inline Registry* GetRegistry() { return m_registry; }

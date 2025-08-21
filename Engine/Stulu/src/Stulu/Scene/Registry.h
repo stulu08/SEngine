@@ -25,12 +25,11 @@ namespace Stulu {
 		inline auto GetAllAsGroupWith() {
 			return m_registry.group<Components...>();
 		}
-		
-		inline bool IsValid(entt::entity go) const {
-			return go != entt::null && m_registry.valid(go);
+		template<class T>
+		inline auto Each() {
+			return m_registry.storage<T>().each();
 		}
 
-		inline entt::registry& GetRegistry() { return m_registry; }
 		GameObject FindByName(const std::string& name);
 
 		virtual bool IsScene() const { return false; }
@@ -40,14 +39,16 @@ namespace Stulu {
 	protected:
 		entt::registry m_registry;
 
+		inline entt::registry& GetRegistry() { return m_registry; }
+
 		template<typename T>
-		inline void onComponentAdded(GameObject gameObject, T& component) {
-			component.gameObject = gameObject;
+		inline void onComponentAdded(entt::entity goID, T& component) {
+			component.gameObject = GameObject(goID, this);
 			component.onComponentAdded(this);
 		}
 		template<typename T>
-		inline void onComponentRemove(GameObject gameObject, T& component) {
-			component.gameObject = gameObject;
+		inline void onComponentRemove(entt::entity goID, T& component) {
+			component.gameObject = GameObject(goID, this);
 			component.onComponentRemove(this);
 		}
 
@@ -55,5 +56,36 @@ namespace Stulu {
 		GameObject CreateEmpty(entt::entity id = entt::null);
 		
 		friend class GameObject;
+	public:
+		inline bool IsObjectValid(entt::entity id) {
+			return m_registry.valid(id);
+		}
+		template<typename T>
+		inline bool HasComponent(entt::entity id) {
+			return m_registry.storage<T>().contains(id);
+		}
+		template<typename T, typename... Args>
+		inline T& AddComponent(entt::entity id, Args&&... args) {
+			T& comp = m_registry.emplace<T>(id, std::forward<Args>(args)...);
+			onComponentAdded<T>(id, comp);
+			return comp;
+		}
+		template<typename T>
+		inline T& GetComponent(entt::entity id) {
+			return m_registry.get<T>(id);
+		}
+		template<class T>
+		inline T* TryGetComponent(entt::entity id) {
+			return m_registry.try_get<T>(id);
+		}
+		template<typename T>
+		inline bool RemoveComponent(entt::entity id) {
+			if (T* comp = TryGetComponent<T>(id)) {
+				onComponentRemove<T>(id, *comp);
+				m_registry.remove<T>(id);
+				return true;
+			}
+			return false;
+		}
 	};
 }

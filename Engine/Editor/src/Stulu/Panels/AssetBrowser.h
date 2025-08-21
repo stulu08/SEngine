@@ -1,3 +1,4 @@
+#pragma once
 #include <Stulu/Resources/AssetsManager.h>
 
 #include "Stulu/Panel.h"
@@ -37,9 +38,7 @@ namespace Editor {
 		virtual void PostWindow() override;
 
 		// for files
-		inline void SetSelcted(const std::filesystem::path& path) {
-			m_selected = path;
-		}
+		void SetSelcted(const std::filesystem::path& path);
 		// for files
 		inline bool IsSelected(const std::filesystem::path& path) const {
 			return m_selected == path;
@@ -47,6 +46,9 @@ namespace Editor {
 		// for files
 		inline void ClearSelected() {
 			m_selected = "";
+		}
+		inline auto GetSelcted() {
+			return m_selected;
 		}
 
 		// for the selected directory
@@ -56,6 +58,10 @@ namespace Editor {
 		// for the selected directory
 		inline void SetPath(const std::filesystem::path& path) {
 			m_path = path;
+		}
+
+		inline auto& GetPreview() {
+			return m_preview;
 		}
 	private:
 		const std::filesystem::path m_root;

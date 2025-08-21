@@ -33,6 +33,20 @@ namespace Stulu {
 		}
 		return false;
 	}
+	bool SharedTexture2DAssetData::Load() {
+		if (!IsMemoryLoaded()) {
+			m_texture = Texture2D::create(GetPath(), ReadSettings());
+		}
+		return m_texture != nullptr;
+	}
+	bool SharedTexture2DAssetData::Save() const {
+		if (!IsMemoryLoaded()) {
+			if (m_texture)
+				return SaveSetting(m_texture->getSettings());
+			else return false;
+		}
+		return true;
+	}
 	bool SharedSkyBoxAssetData::Load() {
 		const auto& manager = AssetsManager::GlobalInstance();
 		if (!IsMemoryLoaded()) {

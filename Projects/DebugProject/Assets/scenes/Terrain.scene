@@ -7,61 +7,55 @@ Settings:
     CascadeCount:
       - 10
       - 23.2558136
+      - 160.600006
       - 500
     NearPlane: 0.00999999978
     FarPlane: 500
-    BlendingDistance: 10
-    SampleQuality: 1
+    BlendingDistance: 3
+    SampleQuality: 2
+    PCSSQuality: 1
     ZMult: 10
   Fog:
-    fogMode: 0
-    fogColor: [0.439999998, 0.439999998, 0.439999998, 1]
+    fogMode: 2
+    fogColor: [1, 0.999899983, 0.999899983, 1]
     linearFogStart: 50
     linearFogEnd: 250
-    fogDensity: 0.00499999989
+    fogDensity: 0.000690000015
     FogHorizonStrength: 0
-    FogHorizonFalloff: 15
+    FogHorizonFalloff: 10
     EnableFogHorizon: 1
-    FogGroundStrength: 1
-    EnableGroundFog: 0
-    FogHorizonOffset: -1000
-    FogHorizonHeightFalloff: 2000
-    EnableHorizonHeightFog: 1
+    FogGroundStrength: 0.453999996
+    EnableGroundFog: 1
+    FogHorizonOffset: -589
+    FogHorizonHeightFalloff: 1116
+    EnableHorizonHeightFog: 0
 Physics3D:
   m_gravity: [0, -9.81000042, 0]
 GameObjects:
-  - GameObject: 9
+  - GameObject: 2
     GameObjectBaseComponent:
-      name: Mount_hood
-      tag: Default
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0.0136464247, 0, 0.999906898]
-      scale: [1, 1, 1]
-      parent: 4294967303
-  - GameObject: 11
-    GameObjectBaseComponent:
-      name: Terrain
+      name: $MergedNode_0
       tag: Default
     MeshRendererComponent:
       cullmode: 0
       Materials:
-        - 16269915815478776434
+        - 1350532634325666432
+        - 14876248348074463558
     TransformComponent:
-      position: [4.41762107e-28, -35581.6406, -2.1787472e-12]
-      rotation: [-0.0137060788, -0.0136451442, 0.000187056401, 0.999812961]
-      scale: [100.000008, 100, 100.000008]
-      parent: 9
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 8589934599
     MeshFilterComponent:
-      mesh: 681015590103837370
-  - GameObject: 4294967303
+      mesh: 9356373321157932352
+  - GameObject: 8589934599
     GameObjectBaseComponent:
       name: Mount_Hood
       tag: Default
     TransformComponent:
       position: [0, 0, 0]
-      rotation: [-0.707106769, -0, 0, 0.707106769]
-      scale: [0.00100000005, 0.00100000005, 0.00100000005]
+      rotation: [0, -0.707106769, 0, 0.707106769]
+      scale: [1, 1, 1]
   - GameObject: 0
     GameObjectBaseComponent:
       name: Sphere
@@ -101,7 +95,7 @@ GameObjects:
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     SkyBoxComponent:
-      rotation: [0, 0, 0]
+      rotation: [0, 61, 0]
       LightStrength: 1
       ReflectionIntensity: 1
       SkyBox: 11
@@ -130,32 +124,6 @@ GameObjects:
       m_clearColor: [0, 0, 0, 1]
       m_renderTarget: 0
       MSAASamples: 1
-  - GameObject: 5
-    GameObjectBaseComponent:
-      name: Directional Light
-      tag: default
-    LightComponent:
-      Type: 0
-      Color: [1, 1, 1]
-      Strength: 1
-      CastShadows: false
-      Shadows:
-        Strength: 1
-        Bias: 0.00100000005
-        TextureSize: 256
-        ShadowMode: 0
-      Directional:
-        Size: 1
-        IsMainLight: true
-      Point:
-        Radius: 5
-      Spot:
-        InnerCutoff: 5
-        OuterCutoff: 10
-    TransformComponent:
-      position: [0, -2.53458739e-13, 3.5]
-      rotation: [-0.221389756, -5.78575809e-09, 2.54854857e-08, 0.975185394]
-      scale: [1, 1, 1]
   - GameObject: 1
     GameObjectBaseComponent:
       name: Cube
@@ -186,3 +154,30 @@ GameObjects:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
       material: [0.600000024, 0.600000024, 0]
+  - GameObject: 5
+    GameObjectBaseComponent:
+      name: Directional Light
+      tag: default
+    LightComponent:
+      Type: 0
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: true
+      Shadows:
+        Strength: 1
+        Bias: 0.00100000005
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 10.0500002
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [0, -2.53458739e-13, 3.5]
+      rotation: [0.576070905, -0.26690641, -0.760333598, -0.137098491]
+      scale: [1, 1, 1]

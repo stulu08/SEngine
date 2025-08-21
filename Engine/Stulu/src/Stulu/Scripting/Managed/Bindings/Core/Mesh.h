@@ -1,4 +1,6 @@
 #pragma once
+#include "AssetWrapper.h"
+
 namespace StuluBindings {
 	struct SubMeshDescription {
 		uint32_t indexOffset;
@@ -7,129 +9,89 @@ namespace StuluBindings {
 		Stulu::Mono::String name;
 	};
 
-	class Mesh {
+	class Mesh : public AssetWrapper<Stulu::MeshAsset> {
 	public:
-		static inline MonoString* GetName(uint64_t id) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (asset.IsValid())
+		static inline MonoString* GetNameInternal(uint64_t id) {
+			if (auto asset = SaveGetAsset(id)) {
 				return Stulu::Mono::String::New(getCoreDomain(), asset->GetName());
-
+			}
 			return Stulu::Mono::String::New(getCoreDomain(), "");
 		}
 
-		static inline MonoString* GetNameInternal(uint64_t id) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return Stulu::Mono::String::New(getCoreDomain(), "");
-
-			return Stulu::Mono::String::New(getCoreDomain(), asset->GetName());
-		}
 		static inline void SetNameInternal(uint64_t id, Stulu::Mono::String name) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-
-			asset->SetName(name.ToUtf8());
+			if (auto asset = SaveGetAsset(id)) {
+				asset->SetName(name.ToUtf8());
+			}
 		}
 		static inline int32_t GetSubMeshCountInternal(uint64_t id) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return 0;
-
-			return (int32_t)asset->GetSubmeshes().size();
+			if (auto asset = SaveGetAsset(id)) {
+				return (int32_t)asset->GetSubmeshes().size();
+			}
+			return 0;
 		}
 		static inline void GetSubMeshInternal(uint64_t id, SubMeshDescription* mesh, int32_t index) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
+			if (auto asset = SaveGetAsset(id)) {
+				Stulu::MeshSubmesh subMesh = asset->GetSubmeshes()[index];
 
-			Stulu::MeshSubmesh subMesh = asset->GetSubmeshes()[index];
-			
-			mesh->indexOffset = subMesh.indexOffset;
-			mesh->indexCount = subMesh.indexCount;
-			mesh->vertexOffset = subMesh.vertexOffset;
-			mesh->name = Mono::String::New(getCoreDomain(), subMesh.name.c_str());
+				mesh->indexOffset = subMesh.indexOffset;
+				mesh->indexCount = subMesh.indexCount;
+				mesh->vertexOffset = subMesh.vertexOffset;
+				mesh->name = Stulu::Mono::String::New(getCoreDomain(), subMesh.name.c_str());
+			}
 		}
 		static inline void SetSubMeshInternal(uint64_t id, SubMeshDescription* mesh, int32_t index) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
+			if (auto asset = SaveGetAsset(id)) {
+				auto& subMeshes = asset->GetSubmeshes();
+				if (mesh->indexCount == 0) {
+					subMeshes.erase(subMeshes.begin() + index);
+					return;
+				}
 
-			auto& subMeshes = asset->GetSubmeshes();
+				Stulu::MeshSubmesh& subMesh = asset->GetSubmeshes()[index];
 
-			if (mesh->indexCount == 0) {
-				subMeshes.erase(subMeshes.begin() + index);
-				return;
+				subMesh.indexOffset = mesh->indexOffset;
+				subMesh.indexCount = mesh->indexCount;
+				subMesh.vertexOffset = mesh->vertexOffset;
+				subMesh.name = mesh->name.ToUtf8();
 			}
-
-			Stulu::MeshSubmesh& subMesh = asset->GetSubmeshes()[index];
-
-			subMesh.indexOffset = mesh->indexOffset;
-			subMesh.indexCount = mesh->indexCount;
-			subMesh.vertexOffset = mesh->vertexOffset;
-			subMesh.name = mesh->name.ToUtf8();
 		}
 		static inline void SetVerticesInternal(uint64_t id, NativeArray<Stulu::Vertex>* vertices) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-
-			asset->SetVertices(vertices->DataPtr, vertices->Length);
+			if (auto asset = SaveGetAsset(id)) {
+				asset->SetVertices(vertices->DataPtr, vertices->Length);
+			}
 		}
 		static inline void GetVerticesInternal(uint64_t id, NativeArray<Stulu::Vertex>* vertices) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-
-			vertices->DataPtr = (Vertex*)asset->GetVertices();
-			vertices->Length = asset->GetVerticesCount();
+			if (auto asset = SaveGetAsset(id)) {
+				vertices->DataPtr = (Stulu::Vertex*)asset->GetVertices();
+				vertices->Length = asset->GetVerticesCount();
+			}
 		}
 		static inline void SetIndicesInternal(uint64_t id, NativeArray<uint32_t>* indices) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-
-			asset->SetIndices(indices->DataPtr, (uint32_t)indices->Length);
+			if (auto asset = SaveGetAsset(id)) {
+				asset->SetIndices(indices->DataPtr, (uint32_t)indices->Length);
+			}
 		}
 		static inline void GetIndicesInternal(uint64_t id, NativeArray<uint32_t>* indices) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-
-			indices->DataPtr = (uint32_t*)asset->GetIndices().data();
-			indices->Length = asset->GetIndices().size();
+			if (auto asset = SaveGetAsset(id)) {
+				indices->DataPtr = (uint32_t*)asset->GetIndices().data();
+				indices->Length = asset->GetIndices().size();
+			}
 		}
 		static inline void CalculateBoundsInternal(uint64_t id) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-			asset->CalculateBounds();
+			if (auto asset = SaveGetAsset(id)) {
+				asset->CalculateBounds();
+			}
 		}
 		static inline void CalculateNormalsInternal(uint64_t id, bool upload) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-			asset->CalculateNormals(upload);
+			if (auto asset = SaveGetAsset(id)) {
+				asset->CalculateNormals();
+			}
 		}
 		static inline void CreateVertexMeshInternal(uint64_t id) {
-			using namespace Stulu;
-			MeshAsset asset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(id);
-			if (!asset.IsValid())
-				return;
-			asset->UploadIndexBuffer();
-			asset->UploadVertexBuffer(Stulu::Mesh::DefaultVertexLayout());
+			if (auto asset = SaveGetAsset(id)) {
+				asset->UploadIndexBuffer();
+				asset->UploadVertexBuffer(Stulu::Mesh::DefaultVertexLayout());
+			}
 		}
 	};
 }

@@ -48,6 +48,6 @@ namespace Stulu{
 		virtual void* getNativeWindow() const = 0;
 		virtual Scope<GraphicsContext>& getContext() = 0;
 		static Scope<Window> create(void* handle);
-		static Scope<Window> create(WindowProps& props = WindowProps());
+		static Scope<Window> create(const WindowProps& props = WindowProps());
 	};
 }

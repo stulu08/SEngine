@@ -212,38 +212,42 @@ namespace Editor {
 				Controls::Default("Inner Radius", comp.Spot.InnerCutoff);
 				Controls::Default("Outer Radius", comp.Spot.OuterCutoff);
 			}
-			
 
 
-			if (IsMainLight) {
-				ImGui::BeginDisabled();
-				Controls::SetControlHelpMark("Some shadow settings are ignored for the main light");
-			}
-			ImGui::Text("Shadows");
-			if (IsMainLight) {
-				Controls::PopControlHelpMark();
-				comp.CastShadows = true;
-			}
-			
-			Controls::Default("Cast Shadows", comp.CastShadows);
+			ImGui::PushID("##LightShadow");
+			{
+				if (IsMainLight) {
+					ImGui::BeginDisabled();
+					Controls::SetControlHelpMark("Some shadow settings are ignored for the main light");
+				}
+				Controls::Text("Shadows");
 
-			if (comp.CastShadows) {
-				Controls::Float("Strength", comp.Shadows.Strength, 0, 100.0f, 0.1f);
-				
+				if (IsMainLight) {
+					Controls::PopControlHelpMark();
+					comp.CastShadows = true;
+				}
+
+				Controls::Default("Cast Shadows", comp.CastShadows);
+
+				if (comp.CastShadows) {
+					Controls::Float("Strength", comp.Shadows.Strength, 0, 100.0f, 0.1f);
+
+					if (IsMainLight) {
+						ImGui::EndDisabled();
+					}
+					Controls::Slider::Float("Bias Mods", comp.Shadows.Bias, 0.00001f, 0.01f, "%.5f");
+					Controls::Default("Soft Shadows", comp.Shadows.Soft);
+					if (IsMainLight) {
+						ImGui::BeginDisabled();
+					}
+				}
+
+
 				if (IsMainLight) {
 					ImGui::EndDisabled();
 				}
-				Controls::Slider::Float("Bias Mods", comp.Shadows.Bias, 0.00001f, 0.01f, "%.5f");
-				Controls::Default("Soft Shadows", comp.Shadows.Soft);
-				if (IsMainLight) {
-					ImGui::BeginDisabled();
-				}
 			}
-
-
-			if (IsMainLight) {
-				ImGui::EndDisabled();
-			}
+			ImGui::PopID();
 			
 		}
 		virtual std::string GetHeader() const override {

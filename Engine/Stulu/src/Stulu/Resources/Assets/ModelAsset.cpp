@@ -14,56 +14,105 @@
 #include <Stulu/Renderer/Material/MaterialProperty.h>
 
 namespace Stulu {
+	ModelImportSettings SharedModelAssetData::ReadSettings() {
+		const auto& manager = AssetsManager::GlobalInstance();
+		ModelImportSettings settings = {};
+		MetaInfo info;
+		if (manager.ReadFileMeta(&info, GetPath())) {
+			settings.OptimizeMeshes = manager.GetMetaValue(info, "OptimizeMeshes", settings.OptimizeMeshes);
+			settings.RemoveRedundancies = manager.GetMetaValue(info, "RemoveRedundancies", settings.RemoveRedundancies);
+			settings.HandleInvalidData = manager.GetMetaValue(info, "HandleInvalidData", settings.HandleInvalidData);
+			settings.LoadMeshes = manager.GetMetaValue(info, "LoadMeshes", settings.LoadMeshes);
+			settings.LoadMaterials = manager.GetMetaValue(info, "LoadMaterials", settings.LoadMaterials);
+			settings.ScaleMod = manager.GetMetaValue(info, "ScaleMod", settings.ScaleMod);
+			settings.ScaleVertices = manager.GetMetaValue(info, "ScaleVertices", settings.ScaleVertices);
+		}
+		return settings;
+	}
+	bool SharedModelAssetData::SaveSetting(ModelImportSettings settings) const {
+		const auto& manager = AssetsManager::GlobalInstance();
+		MetaInfo info;
+		if (manager.ReadFileMeta(&info, GetPath())) {
+			manager.SetMetaValue(info, "OptimizeMeshes", settings.OptimizeMeshes);
+			manager.SetMetaValue(info, "RemoveRedundancies", settings.RemoveRedundancies);
+			manager.SetMetaValue(info, "HandleInvalidData", settings.HandleInvalidData);
+			manager.SetMetaValue(info, "LoadMeshes", settings.LoadMeshes);
+			manager.SetMetaValue(info, "LoadMaterials", settings.LoadMaterials);
+			manager.SetMetaValue(info, "ScaleMod", settings.ScaleMod);
+			manager.SetMetaValue(info, "ScaleVertices", settings.ScaleVertices);
+			return manager.WriteFileMeta(info, GetPath());
+		}
+		return false;
+	}
+
+
 
 	bool SharedModelAssetData::Load() {
-		Assimp::Importer importer;
-		//const aiScene* scene = importer.ReadFile(GetPath(), aiProcessPreset_TargetRealtime_Quality);
-		const aiScene* scene = importer.ReadFile(GetPath(),
-			aiProcess_Triangulate |
-			aiProcess_JoinIdenticalVertices |
-			//aiProcess_GenUVCoords |
-			aiProcess_TransformUVCoords  |
-			//aiProcess_SortByPType |
-			aiProcess_RemoveRedundantMaterials |
-			//aiProcess_FlipWindingOrder | reverse backface culling
-			aiProcess_FindInvalidData |
-			//aiProcess_FlipUVs |
+		auto settings = ReadSettings();
+		
+		uint32_t ImportFlags = (
 			//aiProcess_CalcTangentSpace |
-			//aiProcess_GenSmoothNormals |
-			//aiProcess_ImproveCacheLocality |
-			aiProcess_OptimizeMeshes |
-			aiProcess_OptimizeGraph
-			//aiProcess_SplitLargeMeshes 
-		);
+			aiProcess_GenUVCoords |
+			aiProcess_SortByPType |
+			aiProcess_JoinIdenticalVertices |
+			aiProcess_TransformUVCoords |
+		0);
+
+		if (settings.OptimizeMeshes) {
+			ImportFlags |= aiProcess_GenSmoothNormals;
+			ImportFlags |= aiProcess_ImproveCacheLocality;
+			ImportFlags |= aiProcess_SplitLargeMeshes;
+			ImportFlags |= aiProcess_OptimizeMeshes;
+		}
+		if (settings.HandleInvalidData) {
+			ImportFlags |= aiProcess_LimitBoneWeights;
+			ImportFlags |= aiProcess_Triangulate;
+			ImportFlags |= aiProcess_FindDegenerates;
+			ImportFlags |= aiProcess_FindInvalidData;
+		}
+		if (settings.RemoveRedundancies) {
+			ImportFlags |= aiProcess_RemoveRedundantMaterials;
+			ImportFlags |= aiProcess_OptimizeGraph;
+		}
+
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(GetPath(), ImportFlags);
 		
 		if (!scene || !scene->mRootNode) {
-			CORE_ERROR("Error during model import: ", importer.GetErrorString());
+			CORE_ERROR("Error during model import: {0}", importer.GetErrorString());
 			importer.FreeScene();
 			return {};
 		}
 		scene->mRootNode->mName = std::filesystem::path(GetPath()).stem().string();
-		LoadMaterialPool(scene, GetPath());
 
-		m_rootNode = ProcessNode(scene->mRootNode, scene);
+		if(settings.LoadMaterials)
+			LoadMaterialPool(scene, GetPath());
+
+		m_rootNode = ProcessNode(scene->mRootNode, scene, settings);
 
 		importer.FreeScene();
 		return true;
 	}
 
-	ModelNode SharedModelAssetData::ProcessNode(const aiNode* node, const aiScene* scene) {
+	ModelNode SharedModelAssetData::ProcessNode(const aiNode* node, const aiScene* scene, const ModelImportSettings& settings) {
 		std::string nodeName = node->mName.C_Str();
 
 		aiVector3D aiPos, aiRot, aiScale;
 		node->mTransformation.Decompose(aiScale, aiRot, aiPos);
 
+		glm::vec3 scaleMod = glm::vec3(settings.ScaleMod);
+
 		ModelNode resultNode = {};
 		resultNode.name = nodeName;
 		resultNode.Position = glm::vec3(aiPos.x, aiPos.y, aiPos.z);
-		resultNode.Scale = glm::vec3(aiScale.x, aiScale.y, aiScale.z);
 		resultNode.Rotation = Math::EulerToQuaternion(glm::radians(glm::vec3(aiRot.x, aiRot.y, aiRot.z)));
-
+		if(settings.ScaleVertices)
+			resultNode.Scale = glm::vec3(1.0, 1.0, 1.0);
+		else
+			scaleMod *= glm::vec3(aiScale.x, aiScale.y, aiScale.z);
+		
 		// load meshes
-		if (node->mNumMeshes > 0) {
+		if (node->mNumMeshes > 0 && settings.LoadMeshes) {
 			std::vector<Vertex> vertices;
 			std::vector<uint32_t> indices;
 			std::vector<MeshSubmesh> submeshes;
@@ -72,7 +121,10 @@ namespace Stulu {
 			size_t indexOffset = 0;
 			for (size_t meshIndex = 0; meshIndex < node->mNumMeshes; meshIndex++) {
 				aiMesh* mesh = scene->mMeshes[node->mMeshes[meshIndex]];
-				
+				if (mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE) {
+					continue;
+				}
+
 				MeshSubmesh submesh;
 				submesh.name = mesh->mName.C_Str();
 				submesh.vertexOffset = static_cast<uint32_t>(vertices.size());
@@ -81,9 +133,9 @@ namespace Stulu {
 				const size_t vertexStart = vertices.size();
 				for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 					Vertex vertex = {};
-					vertex.pos.x = mesh->mVertices[i].x;
-					vertex.pos.y = mesh->mVertices[i].y;
-					vertex.pos.z = mesh->mVertices[i].z;
+					vertex.pos.x = mesh->mVertices[i].x * scaleMod.x;
+					vertex.pos.y = mesh->mVertices[i].y * scaleMod.y;
+					vertex.pos.z = mesh->mVertices[i].z * scaleMod.z;
 
 					if (mesh->HasNormals()) {
 						vertex.normal.x = mesh->mNormals[i].x;
@@ -118,7 +170,7 @@ namespace Stulu {
 				submeshes.push_back(submesh);
 
 				uint32_t materalIndex = mesh->mMaterialIndex;
-				if (materalIndex < m_materialPool.size()) {
+				if (materalIndex < m_materialPool.size() && settings.LoadMaterials) {
 					resultNode.mesh.materials.push_back(m_materialPool[materalIndex]);
 				}
 				
@@ -133,6 +185,11 @@ namespace Stulu {
 			}
 
 			MeshAsset meshAsset = AssetsManager::GlobalInstance().GetAsset<MeshAsset>(meshUUID);
+			
+			if (*meshAsset == nullptr) {
+				meshAsset.GetAsset()->SetMeshRefrence(createRef<Mesh>());
+			}
+
 			meshAsset->ConstructMesh(vertices, indices);
 			meshAsset->SetName(nodeName);
 			for (const auto& sm : submeshes) {
@@ -143,7 +200,7 @@ namespace Stulu {
 		}
 
 		for (size_t childId = 0; childId < node->mNumChildren; childId++) {
-			resultNode.children.push_back(ProcessNode(node->mChildren[childId], scene));
+			resultNode.children.push_back(ProcessNode(node->mChildren[childId], scene, settings));
 		}
 
 		return resultNode;
@@ -194,8 +251,9 @@ namespace Stulu {
 			aiString texPath;
 			auto LoadMap = [&](aiTextureType type, uint32_t index) -> Texture2DAsset {
 				if (material->GetTextureCount(type) > 0 && material->GetTexture(type, index, &texPath) == AI_SUCCESS) {
-					std::string fullPath = directory + "/" + texPath.C_Str();
-
+					// sometimes models linking textures contain url texture paths: Textures/Wall%20Albedo.png
+					std::string fullPath = directory + "/" + UrlDecode(texPath.C_Str());
+					
 					UUID textureID = UUID::null;
 					SharedAssetData* assetData = AssetsManager::GlobalInstance().GetFromPath(fullPath);
 					if (!assetData) {

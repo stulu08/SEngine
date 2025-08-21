@@ -1,6 +1,7 @@
 #include "st_pch.h"
 #include "AssetsManager.h"
 
+#include "Stulu/Core/Utils.h"
 #include "Stulu/Serialization/YAML.h"
 #include "Assets/TextureAssets.h"
 #include "Assets/MeshAsset.h"
@@ -44,7 +45,7 @@ namespace Stulu {
 	}
 
 	AssetsManager::IDType AssetsManager::LoadFile(const std::string& filePath) {
-		const std::filesystem::path path = filePath;
+		const std::filesystem::path path = Stulu::CleanPath(filePath);
 		const std::string extension = path.extension().string();
 
 		if (std::filesystem::is_directory(path)) {
@@ -60,11 +61,11 @@ namespace Stulu {
 		}
 
 		MetaInfo metaInfo;
-		if (!ReadFileMeta(&metaInfo, filePath)) {
+		if (!ReadFileMeta(&metaInfo, path.string())) {
 			metaInfo.uuid = IDType();
 			metaInfo.type = FindTypeByExtension(extension);
 		}
-		if (!WriteFileMeta(metaInfo, filePath)) {
+		if (!WriteFileMeta(metaInfo, path.string())) {
 			return IDType::null;
 		}
 
@@ -76,7 +77,7 @@ namespace Stulu {
 
 			CORE_ERROR("Asset with UUID {0} already loaded, but found type mismatch: {1}", metaInfo.uuid, path);
 		}
-		else if (AddAsset(metaInfo.type, filePath, metaInfo.uuid)) {
+		else if (AddAsset(metaInfo.type, path.string(), metaInfo.uuid)) {
 			return metaInfo.uuid;
 		}
 		return IDType::null;

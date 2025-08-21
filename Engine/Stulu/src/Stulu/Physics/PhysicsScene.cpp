@@ -77,7 +77,7 @@ namespace Stulu {
 
 
         // only update dynamic objects
-        for (auto id : m_scene->GetRegistry().view<RigidbodyComponent>()) {
+        for (auto id : m_scene->GetAllWith<RigidbodyComponent>()) {
             GameObject object = { id, m_scene };
             auto& rb = object.getComponent<RigidbodyComponent>();
             rb.ApplyTransformChanges();
@@ -86,22 +86,22 @@ namespace Stulu {
         CreatePhysicsObject();
     }
     void PhysicsScene::CreatePhysicsObject() {
-        for (auto id : m_scene->GetRegistry().view<BoxColliderComponent>()) {
+        for (auto id : m_scene->GetAllWith<BoxColliderComponent>()) {
             GameObject object = { id, m_scene };
             if (object.getComponent<BoxColliderComponent>().GetShape() == nullptr)
                 object.getComponent<BoxColliderComponent>().Create(this);
         }
-        for (auto id : m_scene->GetRegistry().view<SphereColliderComponent>()) {
+        for (auto id : m_scene->GetAllWith<SphereColliderComponent>()) {
             GameObject object = { id, m_scene };
             if (object.getComponent<SphereColliderComponent>().GetShape() == nullptr)
                 object.getComponent<SphereColliderComponent>().Create(this);
         }
-        for (auto id : m_scene->GetRegistry().view<CapsuleColliderComponent>()) {
+        for (auto id : m_scene->GetAllWith<CapsuleColliderComponent>()) {
             GameObject object = { id, m_scene };
             if (object.getComponent<CapsuleColliderComponent>().GetShape() == nullptr)
                 object.getComponent<CapsuleColliderComponent>().Create(this);
         }
-        for (auto id : m_scene->GetRegistry().view<MeshColliderComponent>()) {
+        for (auto id : m_scene->GetAllWith<MeshColliderComponent>()) {
             GameObject object = { id, m_scene };
             if (object.getComponent<MeshColliderComponent>().GetShape() == nullptr)
                 object.getComponent<MeshColliderComponent>().Create(this);

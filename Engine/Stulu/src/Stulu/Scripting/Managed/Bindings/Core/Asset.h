@@ -1,6 +1,7 @@
 #pragma once
 #include "Stulu/Resources/AssetsManager.h"
 #include "Stulu/Scripting/Managed/Bindings/Bindings.h"
+
 namespace StuluBindings {
 	class AssetHandle {
 	public:

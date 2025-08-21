@@ -147,9 +147,9 @@ namespace Stulu {
 			if (isStatic) return;
 
 			dirty = true;
-			auto& registry = GetRegistry()->GetRegistry();
-			for (auto& child : children) {
-				registry.get<TransformComponent>(child).MarkDirty();
+			for (auto& childID : children) {
+				GameObject childObject = { childID, GetRegistry() };
+				childObject.getComponent<TransformComponent>().MarkDirty();
 			}
 		}
 

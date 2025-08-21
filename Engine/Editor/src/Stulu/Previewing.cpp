@@ -83,7 +83,7 @@ namespace Editor {
 	}
 
 	void Preview::SetUpScene() {
-		m_scene = createRef<Scene>();
+		m_scene = createRef<Scene>(SceneData(), false);
 
 		m_scene->onViewportResize(200, 200);
 

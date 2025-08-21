@@ -41,18 +41,17 @@ vec3 ComputeOutgoingLight(const Light light, const LightComputeData data){
 		float dist = length(delta);
 		L = normalize(delta);
 		H = normalize(data.view + L);
+
 		float radius = extra.x;
 
 		attenuation = clamp(1.0 - dist / radius, 0.0, 1.0);
 		radiance = lightColor * strength * attenuation;
 	}
-
 	// Spot Light
 	else if (lightType == LIGHT_TYPE_SPOT) {
-		vec3 delta = lightPos - data.worldPos;
-		float dist = length(delta);
-		L = normalize(delta);
+		L = normalize(lightPos - data.worldPos);
 		H = normalize(data.view + L);
+
 		float inner = extra.x;
 		float outer = extra.y;
 
@@ -60,10 +59,7 @@ vec3 ComputeOutgoingLight(const Light light, const LightComputeData data){
 		float epsilon = max(inner - outer, 0.001);
 		float spotIntensity = clamp((theta - outer) / epsilon, 0.0, 1.0);
 
-		float radius = extra.z > 0.0 ? extra.z : 10.0;
-		attenuation = clamp(1.0 - dist / radius, 0.0, 1.0);
-
-		radiance = lightColor * strength * attenuation * spotIntensity;
+		radiance = lightColor * strength * theta;
 	} 
 
 	 // PBR Cook-Torrance BRDF

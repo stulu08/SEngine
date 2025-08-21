@@ -330,7 +330,7 @@ namespace Stulu {
 		// Manipulate using ImGuizmo
 		ImGuizmo::MANIPULATED operated = ImGuizmo::Manipulate(
 			glm::value_ptr(s_data.viewMatrix), glm::value_ptr(s_data.projMatrix),
-			static_cast<ImGuizmo::OPERATION>((uint32_t)gizmoEditType), ImGuizmo::MODE::LOCAL,
+			static_cast<ImGuizmo::OPERATION>((uint32_t)gizmoEditType), ImGuizmo::MODE::WORLD,
 			glm::value_ptr(gizmoTransform), nullptr, snapPtr
 		);
 

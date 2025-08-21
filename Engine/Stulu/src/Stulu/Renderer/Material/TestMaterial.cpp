@@ -8,6 +8,30 @@
 namespace Stulu {
 	TestMaterial::TestMaterial(Ref<ShaderEntry> shaderEntry, const std::string& name)
 		: m_shader(shaderEntry->GetShader()), m_name(name) {
+		SetShader(shaderEntry);
+	}
+	void TestMaterial::SetData(size_t offset, size_t size, const void* data) {
+		m_buffer->setData(data, (uint32_t)size, (uint32_t)offset);
+	}
+
+	void TestMaterial::RenderReady() {
+		GlobalMaterialBufferData data{ (uint32_t)m_transparencyMode, m_cutOut };
+		Renderer::uploadBufferData(BufferBinding::Material, &data, sizeof(data));
+
+		for (auto& prop : m_properties) {
+			const MaterialPropertyType type = prop->GetType();
+			if (MaterialProperty::IsTextureType(type))
+				prop->ApplyValue(this);
+		}
+
+		m_buffer->bind((uint32_t)BufferBinding::UserMaterial);
+	}
+
+	void TestMaterial::SetShader(Ref<ShaderEntry> shaderEntry) {
+		m_shader = shaderEntry->GetShader();
+		m_properties.clear();
+		m_buffer.reset();
+
 		size_t materialBufferSize = 0;
 
 		for (const auto& prop : shaderEntry->GetProperities()) {
@@ -63,22 +87,6 @@ namespace Stulu {
 			materialBufferSize = glm::max(materialBufferSize, thisSize);
 		}
 		m_buffer = UniformBuffer::create((uint32_t)materialBufferSize, (uint32_t)BufferBinding::UserMaterial);
-	}
-	void TestMaterial::SetData(size_t offset, size_t size, const void* data) {
-		m_buffer->setData(data, (uint32_t)size, (uint32_t)offset);
-	}
-
-	void TestMaterial::RenderReady() {
-		GlobalMaterialBufferData data{ (uint32_t)m_transparencyMode, m_cutOut };
-		Renderer::uploadBufferData(BufferBinding::Material, &data, sizeof(data));
-
-		for (auto& prop : m_properties) {
-			const MaterialPropertyType type = prop->GetType();
-			if (MaterialProperty::IsTextureType(type))
-				prop->ApplyValue(this);
-		}
-
-		m_buffer->bind((uint32_t)BufferBinding::UserMaterial);
 	}
 
 	bool TestMaterial::HasProperity(const std::string& name) const {

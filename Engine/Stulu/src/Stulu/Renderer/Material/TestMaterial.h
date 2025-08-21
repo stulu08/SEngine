@@ -23,7 +23,9 @@ namespace Stulu {
 		// will bind everything beside the shader
 		void RenderReady();
 
+
 		Ref<Shader> GetShader() const { return m_shader; }
+		void SetShader(Ref<ShaderEntry> shaderEntry);
 		Ref<UniformBuffer> GetBuffer() const { return m_buffer; }
 
 		bool IsTransparent() const { return m_transparencyMode != MaterialTransparencyMode::Opaque; }

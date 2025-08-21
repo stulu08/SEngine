@@ -13,7 +13,17 @@ namespace Editor {
                     ImGuiHoveredFlags_AllowWhenOverlapped |
                     ImGuiHoveredFlags_Stationary)) {
 
-                    float& time = ImGui::GetCurrentContext()->HoverItemDelayTimer;
+                    auto ctx = ImGui::GetCurrentContext();
+
+                    const ImGuiID currentHoverId = ctx->HoverItemDelayId;
+                    const ImGuiID lastHoveredID = ctx->HoverItemDelayIdPreviousFrame;
+                    float& time = ctx->HoverItemDelayTimer;
+                    
+                    if (currentHoverId != lastHoveredID) {
+                        time = 0.f;
+                        return false;
+                    }
+
                     const float DRAGDROP_HOLD_TO_OPEN_TIMER = 0.70f;
                     if (time >= DRAGDROP_HOLD_TO_OPEN_TIMER) {
                         time = 0.f;
@@ -56,13 +66,20 @@ namespace Editor {
         }
         inline bool ReceiveDragDopGameObjects(std::vector<entt::entity>& gameobjects) {
             if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAMEOBJECT_LIST")) {
-                    size_t count = static_cast<size_t>(payload->DataSize / sizeof(entt::entity));
-                    entt::entity* data = (entt::entity*)payload->Data;
-                    gameobjects = std::vector<entt::entity>(data, data + count);
+                const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+                std::string type = std::string(payload->DataType);
+                
+                if (type.rfind("GAMEOBJECT", 0) == 0) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(type.c_str())) {
+                        size_t count = static_cast<size_t>(payload->DataSize / sizeof(entt::entity));
 
-                    ImGui::EndDragDropTarget();
-                    return true;
+                        gameobjects.resize(count);
+                        for (size_t i = 0; i < count; i++)
+                            gameobjects[i] = ((entt::entity*)payload->Data)[i];
+
+                        ImGui::EndDragDropTarget();
+                        return true;
+                    }
                 }
                 ImGui::EndDragDropTarget();
             }

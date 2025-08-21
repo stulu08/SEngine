@@ -37,3 +37,9 @@ props:
       index: 7
 UUID: 1947108394254370375
 TypeName: ModelAsset
+OptimizeMeshes: true
+RemoveRedundancies: true
+HandleInvalidData: true
+LoadMeshes: true
+LoadMaterials: true
+ScaleMod: 1

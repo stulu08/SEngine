@@ -1,30 +1,30 @@
 #pragma once
+#include "AssetWrapper.h"
 
 namespace StuluBindings {
-	class Texture2D {
+	class Texture2D : public AssetWrapper<Stulu::Texture2DAsset> {
 	public:
 		static inline float getWidth(uint64_t id) {
-			using namespace Stulu;
-			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
-			if (asset.IsLoaded()) return (float)asset->getWidth();
+			if (auto asset = SaveGetAsset(id)) {
+				return (float)asset->getWidth();
+			}
 			return 0.0f;
 		}
 		static inline float getHeight(uint64_t id) {
-			using namespace Stulu;
-			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
-			if (asset.IsLoaded()) return (float)asset->getHeight();
+			if (auto asset = SaveGetAsset(id)) {
+				return (float)asset->getHeight();
+			}
 			return 0.0f;
 		}
 		static inline MonoString* getPath(uint64_t id) {
-			using namespace Stulu;
-			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
-			if (asset.IsValid() && !asset.IsMemoryLoaded()) 
+			if (auto asset = SaveGetAsset(id)) {
 				return Stulu::Mono::String::New(getCoreDomain(), asset.Path());
+			}
 			return Stulu::Mono::String::New(getCoreDomain(), "");
 		}
 		static inline uint64_t findByPath(Stulu::Mono::String mono_path) {
 			const std::string path = mono_path.ToUtf8();
-			Stulu::SharedAssetData* assetData = Stulu::AssetsManager::GlobalInstance().GetFromPath(Stulu::Resources::AppAssetDir + "/" + path);
+			auto* assetData = GetManager().GetFromPath(Stulu::Resources::AppAssetDir + "/" + path);
 			if (assetData) {
 				return assetData->GetUUID();
 			}
@@ -38,17 +38,12 @@ namespace StuluBindings {
 		}
 
 		static inline void GetTextureSettings(uint64_t id, Stulu::TextureSettings* outSettings) {
-			using namespace Stulu;
-			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
-			if (asset.IsLoaded()) {
+			if (auto asset = SaveGetAsset(id)) {
 				*outSettings = asset->getSettings();
-			} 
-
+			}
 		}			   
 		static inline void SetTextureSettings(uint64_t id, Stulu::TextureSettings* newSettings){
-			using namespace Stulu;
-			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
-			if (asset.IsLoaded()) {
+			if (auto asset = SaveGetAsset(id)) {
 				bool needReload = asset->getSettings().format != newSettings->format;
 
 				// save new settings

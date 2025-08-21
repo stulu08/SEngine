@@ -35,7 +35,8 @@ namespace Stulu {
 		template<class T>
 		static inline void RegisterManaged(const std::string& managedName) {
 			m_componentTable[typeid(T).hash_code()].second = managedName;
-			Application::get().getAssemblyManager()->RegisterComponent<T>(managedName);
+			if(Application::get().getAssemblyManager())
+				Application::get().getAssemblyManager()->RegisterComponent<T>(managedName);
 		}
 		template<class T>
 		static inline void Register(const std::string& nativeName, const std::string& managedName) {

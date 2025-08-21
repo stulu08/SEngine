@@ -119,8 +119,9 @@ namespace Stulu {
         s_instance = nullptr;
 	}
 
-    void PhysicsModule::onLoad() {
+    bool PhysicsModule::onLoad(const ApplicationInfo& appInfo) {
         EventCaller::RegisterLayer<PhysicsScene>();
+        return true;
     }
 
     void PhysicsModule::onDetach() {

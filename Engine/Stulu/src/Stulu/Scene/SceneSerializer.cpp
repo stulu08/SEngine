@@ -30,7 +30,7 @@ namespace Stulu {
 
 	void RegistrySerializer::SerializeGameObjects(YAML::Emitter& out) {
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		for (auto [id, comp] : m_registry->GetRegistry().storage<GameObjectBaseComponent>().each()) {
+		for (auto [id, comp] : m_registry->Each<GameObjectBaseComponent>()) {
 			GameObject go = { id, m_registry };
 			if (!go.IsValid())
 				return;
@@ -147,7 +147,8 @@ namespace Stulu {
 
 			}
 			out << YAML::EndMap;
-			scene->getCaller()->SerializerScene(out);
+			if(scene->getCaller())
+				scene->getCaller()->SerializerScene(out);
 
 			SerializeGameObjects(out);
 		}
@@ -233,7 +234,8 @@ namespace Stulu {
 				}
 
 			}
-			scene->getCaller()->DeserializerScene(Data);
+			if (scene->getCaller())
+				scene->getCaller()->DeserializerScene(Data);
 			
 			DeserializeGameObjects(Data);
 

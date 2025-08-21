@@ -34,7 +34,8 @@ namespace Stulu {
 
 	GameObject Scene::Create(const std::string& name, entt::entity id) {
 		GameObject go = Registry::Create(name, id);
-		m_caller->NativeGameObjectCreate(go);
+		if(m_caller)
+			m_caller->NativeGameObjectCreate(go);
 		return go;
 	}
 	void Scene::Destroy(GameObject gameObject) {
@@ -42,8 +43,10 @@ namespace Stulu {
 			CORE_ERROR("Cant destroy GameObject null");
 			return;
 		}
-		m_caller->NativeGameObjectDestory(gameObject);
-		m_caller->onDestroy(gameObject);
+		if (m_caller) {
+			m_caller->NativeGameObjectDestory(gameObject);
+			m_caller->onDestroy(gameObject);
+		}
 
 		auto& transform = gameObject.getComponent<TransformComponent>();
 
@@ -73,13 +76,14 @@ namespace Stulu {
 		m_updatesRan = false;
 
 		// basicly the firt runtime update
-		if (m_sceneRuntimeTime == 0.0f)
+		if (m_sceneRuntimeTime == 0.0f && m_caller)
 			m_caller->onStart();
 
 		m_sceneRuntimeTime += Time::deltaTime;
 
 		//calculations
-		m_caller->NativePreUpdate();
+		if (m_caller)
+			m_caller->NativePreUpdate();
 		GeneralUpdates();
 
 		//rendering
@@ -90,14 +94,15 @@ namespace Stulu {
 	void Scene::GeneralUpdates() {
 		if (m_updatesRan)
 			return;
-		m_caller->onUpdate();
+		if (m_caller)
+			m_caller->onUpdate();
 		setupSceneForRendering(true);
 		m_updatesRan = true;
 	}
 	void Scene::renderScene(bool callEvents) {
 		ST_PROFILING_SCOPE("Scene - Runtime Render");
 		//setupSceneForRendering(callEvents); //we do it while waiting for physx
-		auto& view = m_registry.view<CameraComponent>();
+		auto& view = GetAllWith<CameraComponent>();
 		for (auto goID : view) {
 			renderSceneForCamera(GameObject(goID, this), callEvents);
 		}
@@ -107,7 +112,7 @@ namespace Stulu {
 	void Scene::setupSceneForRendering(bool callEvents) {
 		m_renderer->Begin();
 
-		if(callEvents) {
+		if(callEvents && m_caller) {
 			m_caller->onRender();
 		}
 	}
@@ -145,20 +150,25 @@ namespace Stulu {
 	}
 
 	void Scene::onRuntimeStart() {
-		m_caller->NativeSceneStart();
-		m_caller->ConstructManaged();
+		if (m_caller) {
+			m_caller->NativeSceneStart();
+			m_caller->ConstructManaged();
+		}
 		m_sceneRuntimeTime = 0.0f;
 	}
 	void Scene::onRuntimeStop() {
-		m_caller->onSceneExit();
-		m_caller->onDestroy();
+		if (m_caller) {
+			m_caller->onSceneExit();
+			m_caller->onDestroy();
+		}
+			
 		m_sceneRuntimeTime = 0.0f;
 	}
 
 	void Scene::onViewportResize(uint32_t width, uint32_t height) {
 		m_viewportWidth = width;
 		m_viewportHeight = height;
-		auto view = m_registry.view<CameraComponent>();
+		auto view = GetAllWith<CameraComponent>();
 		for (auto entity : view) {
 			auto& cameraComponent = view.get<CameraComponent>(entity);
 			if(!cameraComponent.IsRenderTarget())
@@ -171,7 +181,7 @@ namespace Stulu {
 	}
 
 	GameObject Scene::getMainCamera() {
-		auto view = m_registry.view<GameObjectBaseComponent, CameraComponent>();
+		auto view = GetAllWith<GameObjectBaseComponent, CameraComponent>();
 		for (auto gameObject : view) {
 			const auto& base = view.get<GameObjectBaseComponent>(gameObject);
 			if (base.tag == "MainCam" && !view.get<CameraComponent>(gameObject).IsRenderTarget()) {
@@ -182,7 +192,7 @@ namespace Stulu {
 	}
 
 	GameObject Scene::getMainLight() {
-		auto view = m_registry.view<LightComponent>();
+		auto view = GetAllWith<LightComponent>();
 		GameObject otherResult = GameObject::null;
 
 		for (auto gameObject : view) {
@@ -204,7 +214,8 @@ namespace Stulu {
 		newScene->m_viewportHeight = scene->m_viewportHeight;
 
 		// copy layers
-		newScene->m_caller = createRef<EventCaller>(newScene.get(), scene.get());
+		if (scene->m_caller)
+			newScene->m_caller = createRef<EventCaller>(newScene.get(), scene.get());
 
 		// parent, childs
 		std::unordered_map<entt::entity, std::vector<entt::entity>> parentMap;

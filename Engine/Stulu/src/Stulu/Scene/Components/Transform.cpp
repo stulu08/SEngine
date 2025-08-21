@@ -14,7 +14,8 @@ namespace Stulu {
 			
 
 		for (entt::entity child : GetChildren()) {
-			GetRegistry()->GetRegistry().get<TransformComponent>(child).SyncWithPhysics(onlyPosition);
+			GameObject childObject = { child, GetRegistry() };
+			childObject.getComponent<TransformComponent>().SyncWithPhysics(onlyPosition);
 		}
 	}
 }

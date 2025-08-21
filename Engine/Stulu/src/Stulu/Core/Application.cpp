@@ -15,16 +15,14 @@
 #include "Stulu/Scripting/Managed/Bindings/Core/Asset.h"
 
 namespace Stulu {
-#ifdef OPENGL
-	// we want the best gpu cause shaders wont compile with intel uhd graphics on my laptop and windows does not want to use my nvidia card automaticly
-	// enable optimus!
 	extern "C" {
 		_declspec(dllexport) DWORD NvOptimusEnablement = 1;
 		_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 	}
-#endif
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+	
+	
 	Application* Application::s_instance = nullptr;
 
 	Application::Application(const ApplicationInfo& appInfo)
@@ -46,34 +44,42 @@ namespace Stulu {
 
 		RenderCommand::init();
 
-		if (appInfo.LoadDefaultAssets) {
-			Renderer::init();
-			LoadingScreen(0.25f);
-		}
-
 		if (appInfo.HideWindowOnSart) {
 			m_window->hide();
 		}
 
 		if (appInfo.LoadDefaultAssets) {
+			Renderer::init();
 			CORE_INFO("Loading all Engine assets: {0}", appInfo.DataPath);
 			Resources::load();
 		}
-		LoadingScreen(0.5f);
+		LoadingScreen(0.25f);
 
 		if(!appInfo.AppManagedAssembly.empty())
 			m_assembly = createRef<AssemblyManager>(appInfo.AppManagedAssembly, Resources::EngineDataDir + "/Stulu/Managed/Stulu.ScriptCore.dll", appInfo.DebugFeatures);
 
 		Component::RegisterBaseComponents();
 
+
+		// transfer ownership to layerstack, and attach modules to application
+		for (size_t i = 0; i < m_moduleLoader.GetSize(); i++) {
+			if (i >= m_moduleLoader.GetInsertIndex()) {
+				pushOverlay((Layer*)m_moduleLoader[i]);
+			}
+			else {
+				pushLayer((Layer*)m_moduleLoader[i]);
+			}
+		}
+		LoadingScreen(0.5f);
+
+
+		m_moduleLoader.clear();
+
 		if (m_appInfo.EnableImgui) {
 			m_imguiLayer = new ImGuiLayer();
 			pushOverlay(m_imguiLayer);
 		}
 
-		for (auto& module : m_moduleStack) {
-			m_layerStack.pushLayer(module->GetLayer());
-		}
 		LoadingScreen(0.75f);
 
 		if (appInfo.LoadDefaultAssets) {
@@ -81,15 +87,14 @@ namespace Stulu {
 		}
 		LoadingScreen(1.0f);
 	}
+
 	Application::~Application() {
 		Gizmo::ShutDown();
 		Resources::ReleaseAll();
 		Renderer::Shutdown();
 
 		// layerstack also contains modules
-		m_layerStack.deleteAll();
 		m_layerStack.clear();
-		m_moduleStack.clear();
 
 		if(m_assembly)
 			StuluBindings::AssetHandle::CleanUpAssets(true);
@@ -105,24 +110,6 @@ namespace Stulu {
 		m_cpuDispatcher.reset();
 
 		s_instance = nullptr;
-	}
-	void Application::pushLayer(Layer* layer) {
-		m_layerStack.pushLayer(layer);
-	}
-	void Application::pushOverlay(Layer* layer) {
-		m_layerStack.pushOverlay(layer);
-	}
-	void Application::popLayer(Layer* layer) {
-		m_layerStack.popLayer(layer);
-	}
-	void Application::popOverlay(Layer* layer) {
-		m_layerStack.popOverlay(layer);
-	}
-	Application& Application::get() {
-		return *s_instance;
-	}
-	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
-		return m_assembly->getScriptCoreAssembly();
 	}
 
 	void Application::onEvent(Event& e) {
@@ -166,7 +153,7 @@ namespace Stulu {
 					ST_PROFILING_SCOPE("Application - Layer Updates");
 
 					// update every layer
-					for (Layer* layer : m_layerStack) {
+					for (const auto& layer : m_layerStack) {
 						layer->onUpdate(delta);
 					}
 				}
@@ -178,12 +165,12 @@ namespace Stulu {
 					{
 						ST_PROFILING_SCOPE("ImGui - Layer Updates");
 
-						for (Layer* layer : m_layerStack) {
+						for (const auto& layer : m_layerStack) {
 							layer->onImguiRender(delta);
 						}
 
 						if (Gizmo::Begin()) {
-							for (Layer* layer : m_layerStack) {
+							for (const auto& layer : m_layerStack) {
 								layer->onRenderGizmo();
 							}
 						}
@@ -228,7 +215,7 @@ namespace Stulu {
 	void Application::LoadingScreen(float progress) {
 		const auto& app = s_instance;
 
-		if (app->getApplicationInfo().HideWindowOnSart)
+		if (app->getApplicationInfo().HideWindowOnSart || !app->getApplicationInfo().LoadDefaultAssets)
 			return;
 
 		app->getWindow().getContext()->beginBuffer();
@@ -253,5 +240,9 @@ namespace Stulu {
 
 		app->getWindow().onUpdate();
 		app->getWindow().getContext()->swapBuffers();
+	}
+
+	const Ref<ScriptAssembly>& Application::getScriptCoreAssembly() const {
+		return m_assembly->getScriptCoreAssembly();
 	}
 }

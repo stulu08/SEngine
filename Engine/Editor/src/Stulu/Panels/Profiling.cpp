@@ -217,7 +217,7 @@ namespace Editor {
 
 	void ProfilingPanel::DrawPhysics() {
 		Ref<Scene> scene = App::get().GetLayer().GetActiveScene();
-		if (scene->PhysicsEnable() && scene->getCaller()->HasLayer<PhysicsScene>()) {
+		if (scene->PhysicsEnable() && scene->getCaller() && scene->getCaller()->HasLayer<PhysicsScene>()) {
 			const auto& physics = scene->getCaller()->GetLayer<PhysicsScene>();
 			if (physics.IsValid()) {
 				bool value = false;

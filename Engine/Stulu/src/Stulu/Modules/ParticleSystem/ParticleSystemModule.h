@@ -12,7 +12,7 @@ namespace Stulu {
 		ParticleSystemModule();
 		~ParticleSystemModule();
 		
-		void onLoad() override;
+		bool onLoad(const ApplicationInfo& appInfo) override;
 		void onAttach() override;
 	};
 }

@@ -81,7 +81,6 @@ namespace Stulu {
 		}
 	};
 
-
 	class SkyBoxComponent : public Component {
 	public:
 		MaterialAsset material;
@@ -118,63 +117,6 @@ namespace Stulu {
 		}
 	};
 
-	class MeshRendererComponent : public Component {
-	public:
-		std::vector<MaterialAsset> Materials;
-		CullMode cullmode = CullMode::Back;
-		// Value will be written to the stencil buffer in the next frame
-		uint8_t StencilValue = 0x00;
-
-		MeshRendererComponent() = default;
-		MeshRendererComponent(const MeshRendererComponent&) = default;
-
-
-		inline size_t GetMaterialCount() const { return Materials.size(); }
-		inline void AddMaterial(const MaterialAsset& asset) {
-			Materials.push_back(asset);
-		}
-		inline void SetMaterial(const MaterialAsset& asset, uint32_t index = 0) {
-			if (index < Materials.size()) {
-				Materials[index] = asset;
-			}
-			else {
-				Materials.insert(Materials.begin() + index, asset);
-			}
-		}
-		inline MaterialAsset GetMaterial(size_t index = 0) {
-			if (index < Materials.size())
-				return Materials.at(glm::min(index, GetMaterialCount() - 1));
-			else
-				return AssetsManager::InvalidAsset<MaterialAsset>();
-		}
-		inline const MaterialAsset GetMaterial(size_t index = 0) const {
-			return GetMaterial();
-		}
-
-		virtual void Serialize(YAML::Emitter& out) const override {
-			out << YAML::Key << "cullmode" << YAML::Value << (int)cullmode;
-
-			std::vector<UUID> materialIDs;
-			for (const auto& material : Materials) {
-				materialIDs.push_back(material.GetUUID());
-			}
-			out << YAML::Key << "Materials" << YAML::Value << materialIDs;
-		}
-		virtual void Deserialize(YAML::Node& node) override {
-			if (node["cullmode"])
-				cullmode = (CullMode)node["cullmode"].as<int>();
-			if (node["material"]) {
-				MaterialAsset mat = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["material"].as<UUID>());
-				SetMaterial(mat);
-			}
-			if (node["Materials"]) {
-				std::vector<UUID> materialIDs = node["Materials"].as<std::vector<UUID>>();
-				for (const auto& id : materialIDs) {
-					AddMaterial(AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(id));
-				}
-			}
-		}
-	};
 	class MeshFilterComponent : public Component {
 	public:
 
@@ -212,5 +154,92 @@ namespace Stulu {
 
 	private:
 		MeshAsset mesh;
+	};
+
+	// internal usage
+	class STULU_API RendererComponent : public Component {
+	public:
+		// Value will be written to the stencil buffer in the next frame
+		uint8_t StencilValue = 0x00;
+		CullMode cullmode = CullMode::Back;
+		bool CastShadows = true;
+	};
+
+	class STULU_API MeshRendererComponent : public RendererComponent {
+	public:
+		std::vector<MaterialAsset> Materials;
+
+		MeshRendererComponent() = default;
+		MeshRendererComponent(const MeshRendererComponent&) = default;
+
+		inline size_t GetMaterialCount() const { return Materials.size(); }
+		inline void AddMaterial(const MaterialAsset& asset) {
+			Materials.push_back(asset);
+		}
+		inline void SetMaterial(const MaterialAsset& asset, uint32_t index = 0) {
+			if (index < Materials.size()) {
+				Materials[index] = asset;
+			}
+			else {
+				Materials.insert(Materials.begin() + index, asset);
+			}
+		}
+		inline MaterialAsset GetMaterial(size_t index = 0) const {
+			if (index < Materials.size())
+				return Materials.at(glm::min(index, GetMaterialCount() - 1));
+			else
+				return AssetsManager::InvalidAsset<MaterialAsset>();
+		}
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "cullmode" << YAML::Value << (int)cullmode;
+			out << YAML::Key << "CastShadows" << YAML::Value << CastShadows;
+
+			std::vector<UUID> materialIDs;
+			for (const auto& material : Materials) {
+				materialIDs.push_back(material.GetUUID());
+			}
+			out << YAML::Key << "Materials" << YAML::Value << materialIDs;
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["cullmode"])
+				cullmode = (CullMode)node["cullmode"].as<int>();
+			if (node["CastShadows"])
+				CastShadows = node["CastShadows"].as<bool>();
+
+			if (node["material"]) {
+				MaterialAsset mat = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["material"].as<UUID>());
+				SetMaterial(mat);
+			}
+			if (node["Materials"]) {
+				std::vector<UUID> materialIDs = node["Materials"].as<std::vector<UUID>>();
+				for (const auto& id : materialIDs) {
+					AddMaterial(AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(id));
+				}
+			}
+		}
+	};
+
+	class STULU_API SkinnedMeshRenderer : public RendererComponent {
+	public:
+		MaterialAsset Material;
+
+		inline MaterialAsset GetMaterial() const {
+			return Material;
+		}
+
+		virtual void Serialize(YAML::Emitter& out) const override {
+			out << YAML::Key << "cullmode" << YAML::Value << (int)cullmode;
+			out << YAML::Key << "CastShadows" << YAML::Value << CastShadows;
+			out << YAML::Key << "Material" << YAML::Value << Material.GetUUID();
+		}
+		virtual void Deserialize(YAML::Node& node) override {
+			if (node["cullmode"])
+				cullmode = (CullMode)node["cullmode"].as<int>();
+			if (node["CastShadows"])
+				CastShadows = node["CastShadows"].as<bool>();
+			if (node["material"])
+				Material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(node["material"].as<UUID>());
+		}
 	};
 }

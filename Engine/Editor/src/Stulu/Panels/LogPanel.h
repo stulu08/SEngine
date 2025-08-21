@@ -12,7 +12,7 @@ namespace Editor {
 		std::string msg;
 		std::chrono::system_clock::time_point timestamp;
 	};
-
+	
 	class LogPanel : public Panel {
 	public:
 		LogPanel();

@@ -49,6 +49,26 @@ namespace Stulu {
 		std::transform(newString.begin(), newString.end(), newString.begin(), [](char c) { return c == '\\' ? '/' : c; });
 		return newString;
 	}
+	inline std::string UrlDecode(const std::string& urlEncodedString) {
+		std::ostringstream output;
+
+		for (size_t i = 0; i < urlEncodedString.length(); i++) {
+			// we use 8 bit string, %FF would be the max hex value 
+			if (urlEncodedString[i] == '%' && i + 2 < urlEncodedString.length()) {
+				std::string hexStr = urlEncodedString.substr(i + 1, 2);
+				int value = 0;
+				std::istringstream(hexStr) >> std::hex >> value;
+				output << static_cast<char>(value);
+				i += 2;
+			}
+			else {
+				output << urlEncodedString[i];
+			}
+		}
+
+		return output.str();
+	}
+
 	inline std::vector<std::string> SplitString(const std::string& input, char delimiter = '@') {
 		std::vector<std::string> result;
 		std::stringstream ss(input);

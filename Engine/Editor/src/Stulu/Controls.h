@@ -9,10 +9,11 @@
 #include "Icons.h"
 
 namespace Editor {
+	
 	namespace Controls {
 		template<class T>
 		inline bool Default(const std::string& label, T& value) {
-			static_assert(false, "Default Controle not defined for T!");
+			static_assert(false, "Default Control not defined for T");
 			return false;
 		}
 
@@ -45,10 +46,31 @@ namespace Editor {
 			return Controls::Vector4(label, value);
 		}
 		template<>
+		inline bool Default(const std::string& label, glm::ivec2& value) {
+			return Controls::Vector2Int(label, value);
+		}
+		template<>
+		inline bool Default(const std::string& label, glm::ivec3& value) {
+			return Controls::Vector3Int(label, value);
+		}
+		template<>
+		inline bool Default(const std::string& label, glm::ivec4& value) {
+			return Controls::Vector4Int(label, value);
+		}
+		template<>
 		inline bool Default(const std::string& label, Stulu::Texture2DAsset& value) {
 			Stulu::UUID uuid = value.GetUUID();
 			if (Controls::Texture2D(label, uuid)) {
 				value = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::Texture2DAsset>(uuid);
+				return true;
+			}
+			return false;
+		}
+		template<>
+		inline bool Default(const std::string& label, Stulu::SkyBoxAsset& value) {
+			Stulu::UUID uuid = value.GetUUID();
+			if (Controls::SkyBox(label, uuid)) {
+				value = Stulu::AssetsManager::GlobalInstance().GetAsset<Stulu::SkyBoxAsset>(uuid);
 				return true;
 			}
 			return false;

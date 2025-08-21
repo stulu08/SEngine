@@ -45,13 +45,13 @@ namespace Stulu {
 		virtual inline bool IsMemoryLoaded() const {
 			return m_path.empty() || (m_path.rfind(MemoryAssetPath, 0) == 0);
 		}
-	protected:
 		virtual void Unload() = 0;
 		virtual bool Load() = 0;
 		virtual bool Save() const { return true; };
 
 		virtual bool HasExtension(const std::string& extension) const { return false; };
 
+	protected:
 		inline size_t UseCount() const { return m_refCount; }
 		inline size_t IncRef() {
 			return ++m_refCount;

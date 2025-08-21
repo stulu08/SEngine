@@ -53,6 +53,17 @@ namespace Editor {
 		DrawCreateFileModal();
 	}
 
+	void AssetBrowser::SetSelcted(const std::filesystem::path& path) {
+		m_selected = path;
+
+		auto& editor = App::get().GetLayer().GetPanel<AssetEditor>();
+		const auto* assetData = AssetsManager::GlobalInstance().GetFromPath(path.string());
+		if (assetData) {
+			editor.SetAsset(assetData->GetUUID());
+		}
+
+	}
+
 	void AssetBrowser::DrawBrowser() {
 		// top bar
 		{
@@ -249,7 +260,7 @@ namespace Editor {
 		const ImVec2 totalSize(m_iconSize, m_iconSize + descriptionHeight);
 
 		const ImVec4 imageBgColor = ImGui::GetStyle().Colors[ImGuiCol_PopupBg];
-		const ImVec4 descriptionBgColor = ImGui::GetStyle().Colors[ImGuiCol_TabHovered];
+		const ImVec4 descriptionBgColor = ImGui::GetStyle().Colors[ImGuiCol_FrameBg];
 		const ImVec4 shadowsColor = ImGui::GetStyle().Colors[ImGuiCol_TitleBg];
 			  ImVec4 tintColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
 		const ImVec2 padding = ImVec2(ImGui::GetStyle().FramePadding.x / 2.0f, ImGui::GetStyle().FramePadding.y);

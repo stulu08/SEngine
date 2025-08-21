@@ -34,7 +34,7 @@ constexpr uint32_t ScaleFlag_Z = (uint32_t)GizmoTransformEditMode::Scale_Z;
 
 namespace Editor {
 	ScenePanel::ScenePanel()
-	: m_sceneCamera(0.0, 85.0f, .001f, 1000.0f, MSAASamples::Four), Panel("Scene") {
+	: m_sceneCamera(0.0, 85.0f, .001f, 2000.0f, MSAASamples::Four), Panel("Scene") {
 		auto& layer = App::get().GetLayer();
 
 		TextureSettings gameObejctBufferSpecs = TextureFormat::R32UI;
@@ -187,6 +187,11 @@ namespace Editor {
 			}
 			return true;
 			}), Keyboard::Z, false, false, false));
+		// toggle bounding boxes
+		layer.AddShortCut(Shortcut("Scene - Toogle bounding boxes", ([&]() {
+			m_showBoundingBoxes = !m_showBoundingBoxes;
+			return true;
+			}), Keyboard::B, true, false, false));
 
 		// move to selected
 		layer.AddShortCut(Shortcut("Scene - Move to object", ([&]() {
@@ -233,13 +238,14 @@ namespace Editor {
 
 		ImGui::Image(frameBuffer->getColorAttachment(0).get(), viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 
-		if (ImGui::IsItemHovered()) {
+		if (ImGui::IsWindowHovered()) {
 			const uint32_t clickX = (uint32_t)(ImGui::GetMousePos().x - m_windowPos.x);
 			const uint32_t clickY = m_height - (uint32_t)(ImGui::GetMousePos().y - m_windowPos.y);
 			entt::entity id = (entt::entity)frameBuffer->getColorAttachment(1)->getPixel(clickX, clickY);
-			if (layer.GetActiveScene()->IsValid(id)) {
+			if (layer.GetActiveScene()->IsObjectValid(id)) {
 				m_hoveredObject = id;
 			}
+			m_hovered = true;
 		}
 
 
@@ -252,6 +258,16 @@ namespace Editor {
 		Gizmo::setCamData(m_sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().GetWorldTransform()));
 		Gizmo::setWindow(GetID(), &OpenPtr());
 
+		if (m_hoveredObject != entt::null) {
+			Stulu::UUID materialUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<MaterialAsset>());
+			if (materialUUID != Stulu::UUID::null) {
+				MaterialAsset asset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(materialUUID);
+				GameObject go = { m_hoveredObject, layer.GetActiveScene().get() };
+				if (go.hasComponent<MeshRendererComponent>()) {
+					go.getComponent<MeshRendererComponent>().SetMaterial(asset);
+				}
+			}
+		}
 		Stulu::UUID sceneUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<SceneAsset>());
 		if (sceneUUID != Stulu::UUID::null) {
 			SceneAsset asset = AssetsManager::GlobalInstance().GetAsset<SceneAsset>(sceneUUID);
@@ -264,14 +280,7 @@ namespace Editor {
 			layer.GetActiveScene()->SpawnModelAsset(asset);
 		}
 
-		Stulu::UUID materialUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<MaterialAsset>());
-		if (materialUUID != Stulu::UUID::null && m_hoveredObject != entt::null) {
-			MaterialAsset asset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(materialUUID);
-			GameObject go = { m_hoveredObject, layer.GetActiveScene().get()};
-			if (go.hasComponent<MeshRendererComponent>()) {
-				go.getComponent<MeshRendererComponent>().SetMaterial(asset);
-			}
-		}
+		
 	}
 	void ScenePanel::DrawImGuizmo() {
 		auto& layer = App::get().GetLayer();
@@ -314,6 +323,21 @@ namespace Editor {
 				Renderer2D::drawTexturedQuad(Math::createMat4(transf.GetWorldPosition(), transf.GetWorldRotation(),
 					glm::vec3(.75f)) * glm::toMat4(glm::quat(glm::radians(glm::vec3(0, -90, 0)))), Resources::GetCameraTexture());
 		}
+		// draw bounding boxes
+		if (m_showBoundingBoxes) {
+			for (entt::entity goID : scene->GetAllWith<TransformComponent>()) {
+				GameObject go = GameObject(goID, scene.get());
+				TransformComponent& transform = go.getComponent<TransformComponent>();
+				const BoundingBox& bounds = transform.GetBounds();
+				
+				const glm::vec3 center = bounds.getTransformedCenter();
+				const glm::vec3 extents = bounds.getTransformedExtents();
+
+				if (extents != glm::zero<glm::vec3>()) {
+					Gizmo::drawOutlineCube(center - extents, center + extents, glm::mat4(1.0f), COLOR_CYAN);
+				}
+			}
+		}
 		//draw all lights
 		for (entt::entity goID : scene->GetAllWith<LightComponent>()) {
 			GameObject go = GameObject(goID, scene.get());
@@ -340,7 +364,7 @@ namespace Editor {
 				}
 			}
 		}
-		if (layer.IsRuntime() && scene->getCaller()->HasLayer<PhysicsScene>()) {
+		if (layer.IsRuntime() && scene->getCaller() && scene->getCaller()->HasLayer<PhysicsScene>()) {
 			scene->getCaller()->GetLayer<PhysicsScene>().RenderSceneDebugData();
 		}
 	}
@@ -388,11 +412,12 @@ namespace Editor {
 		}
 
 		m_hoveredObject = entt::null;
+		m_hovered = false;
 	}
 
 
 	void ScenePanel::OnEvent(Stulu::Event& e) {
-		if (IsFocused()) {
+		if (IsFocused() && m_hovered) {
 			EventDispatcher dispatcher(e);
 			dispatcher.dispatch<MouseButtonDownEvent>(ST_BIND_EVENT_FN(ScenePanel::OnMouseDown));
 

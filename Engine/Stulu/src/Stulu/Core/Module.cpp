@@ -8,8 +8,8 @@
 
 namespace Stulu {
 	void Module::LoadBaseModules() {
-		Application::AddModule<PhysicsModule>();
-		Application::AddModule<ParticleSystemModule>();
+		Application::LoadModule<PhysicsModule>();
+		Application::LoadModule<ParticleSystemModule>();
 	}
 }
 

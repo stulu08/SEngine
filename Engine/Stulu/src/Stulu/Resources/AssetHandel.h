@@ -20,13 +20,13 @@ namespace Stulu {
 	public:
 		using SharedAssetDataType = T;
 
-		WeakAssetHandle() : m_data(nullptr) {}
-		WeakAssetHandle(std::nullptr_t) : m_data(nullptr) {}
-		WeakAssetHandle(SharedAssetData* data) : m_data(data) {}
+		inline WeakAssetHandle() : m_data(nullptr) {}
+		inline WeakAssetHandle(std::nullptr_t) : m_data(nullptr) {}
+		inline WeakAssetHandle(SharedAssetData* data) : m_data(data) {}
 
 		AssetHandle<T> Lock() const;
 
-		void ForceLoad() {
+		inline void ForceLoad() {
 			if (!m_data) return;
 			if (IsLoaded()) {
 				CORE_INFO("Asset already loaded, force load not possible!");
@@ -36,34 +36,38 @@ namespace Stulu {
 			this->m_data->Load();
 		}
 
-		auto operator*() const {
+		inline auto operator*() const {
 			if constexpr (HasNativeAssetType<T>::value)
 				return static_cast<T*>(m_data)->GetNative();
 			else
 				return static_cast<T*>(m_data);
 		}
-		auto operator->() const {
+		inline auto operator->() const {
 			if constexpr (HasNativeAssetType<T>::value)
 				return static_cast<T*>(m_data)->GetNative();
 			else
 				return static_cast<T*>(m_data);
 		}
 
-		T* GetAsset() { return static_cast<T*>(m_data); }
-		const T* GetAsset() const { return static_cast<const T*>(m_data); }
+		inline operator bool() const {
+			return IsValid();
+		}
 
-		bool IsValid() const { return m_data; }
-		bool IsLoaded() const { return m_data ? m_data->Loaded() : false; }
-		bool IsMemoryLoaded() const { return m_data ? m_data->IsMemoryLoaded() : false; }
-		UUID GetUUID() const { return m_data ? m_data->GetUUID() : UUID::null; }
-		const std::string& Path() const { return m_data ? m_data->GetPath() : EmptyString(); }
+		inline T* GetAsset() { return static_cast<T*>(m_data); }
+		inline const T* GetAsset() const { return static_cast<const T*>(m_data); }
 
-		static std::type_index TypeID() { return typeid(T); }
+		inline bool IsValid() const { return m_data; }
+		inline bool IsLoaded() const { return m_data ? m_data->Loaded() : false; }
+		inline bool IsMemoryLoaded() const { return m_data ? m_data->IsMemoryLoaded() : false; }
+		inline UUID GetUUID() const { return m_data ? m_data->GetUUID() : UUID::null; }
+		inline const std::string& Path() const { return m_data ? m_data->GetPath() : EmptyString(); }
+
+		static inline std::type_index TypeID() { return typeid(T); }
 		// dynamic type check
 		static inline bool TypeCheck(SharedAssetData* data) { return dynamic_cast<T*>(data) != nullptr; }
 
 		// used by bindings, only for internal usage
-		void IncRefCount() {
+		inline void IncRefCount() {
 			// First strong reference: load the asset
 			if (this->m_data->UseCount() < 1) {
 				CORE_TRACE("Loading: {0}", this->m_data->GetPath());
@@ -72,7 +76,7 @@ namespace Stulu {
 			this->m_data->IncRef();
 		}
 		// used by bindings, only for internal usage
-		void DecRefCount() {
+		inline void DecRefCount() {
 			if (this->m_data && this->m_data->DecRef() < 1) {
 				this->m_data->Unload();
 			}
@@ -93,23 +97,23 @@ namespace Stulu {
 		using WeakRef = WeakAssetHandle<T>;
 
 		// Empty asset
-		AssetHandle() : WeakAssetHandle<T>(nullptr) {}
-		AssetHandle(std::nullptr_t) : WeakAssetHandle<T>(nullptr) {}
+		inline AssetHandle() : WeakAssetHandle<T>(nullptr) {}
+		inline AssetHandle(std::nullptr_t) : WeakAssetHandle<T>(nullptr) {}
 
 		// Increments the ref counter and loads the asset if needed
-		AssetHandle(SharedAssetData* data) 
+		inline AssetHandle(SharedAssetData* data)
 			: WeakAssetHandle<T>(data) {
 			Initialize();
 		}
 
 		// Copies and increments the ref counter and loads the asset if needed
-		AssetHandle(const AssetHandle& other)
+		inline AssetHandle(const AssetHandle& other)
 			: WeakAssetHandle<T>(other.m_data) {
 			Initialize();
 		}
 
 		// Releases the old refrencence, and copies + increments the ref counter and loads the asset if needed
-		AssetHandle& operator=(const AssetHandle& other) {
+		inline AssetHandle& operator=(const AssetHandle& other) {
 			if (this != &other) {
 				Release();
 				this->m_data = other.m_data;
@@ -118,23 +122,23 @@ namespace Stulu {
 			return *this;
 		}
 
-		~AssetHandle() {
+		inline ~AssetHandle() {
 			Release();
 		}
 
 		// Releases the refrence and unloads the asset if needed
-		void Release() {
+		inline void Release() {
 			this->DecRefCount();
 			this->m_data = nullptr;
 		}
 
-		WeakRef AsWeak() const {
+		inline WeakRef AsWeak() const {
 			return WeakRef(this->m_data);
 		}
 
-		size_t UseCount() const { return this->m_data ? this->m_data->UseCount() : 0; }
+		inline size_t UseCount() const { return this->m_data ? this->m_data->UseCount() : 0; }
 	protected:
-		void Initialize() {
+		inline void Initialize() {
 			if (!this->m_data) return;
 
 			// Check for the correct type
@@ -150,7 +154,7 @@ namespace Stulu {
 	};
 
 	template<typename T>
-	AssetHandle<T> WeakAssetHandle<T>::Lock() const {
+	inline AssetHandle<T> WeakAssetHandle<T>::Lock() const {
 		if (IsValid()) return AssetHandle<T>(m_data);
 		return AssetHandle<T>(); // empty handle
 	}

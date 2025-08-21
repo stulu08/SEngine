@@ -9,8 +9,9 @@ namespace Stulu {
 	ParticleSystemModule::~ParticleSystemModule() {
 
 	}
-	void ParticleSystemModule::onLoad() {
+	bool ParticleSystemModule::onLoad(const ApplicationInfo& appInfo) {
 		EventCaller::RegisterLayer<ParticleSystemLayer>();
+		return true;
 	}
 	void ParticleSystemModule::onAttach() {
 		Component::Register<ParticleSystemComponent>("ParticleSystemComponent", "Stulu.ParticleSystemComponent");

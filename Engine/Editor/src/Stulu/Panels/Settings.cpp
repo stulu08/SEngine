@@ -174,7 +174,7 @@ namespace Editor {
 
 		Controls::Bool("Enabled", sceneSettings.enablePhsyics3D);
 
-		if (!sceneSettings.enablePhsyics3D || !m_scene->getCaller()->HasLayer<PhysicsScene>())
+		if (!sceneSettings.enablePhsyics3D || !m_scene->getCaller() || !m_scene->getCaller()->HasLayer<PhysicsScene>())
 			return;
 		
 		PhysicsScene& physicsLayer = m_scene->getCaller()->GetLayer<PhysicsScene>();

@@ -55,7 +55,7 @@ namespace Editor {
 			ImGui::PushStyleVarY(ImGuiStyleVar_CellPadding, 0.0f);
 
 			if (m_scene) {
-				for (auto& [gameObjectID, baseComponent] : GetRegistry().storage<GameObjectBaseComponent>().each()) {
+				for (auto& [gameObjectID, baseComponent] : m_scene->Each<GameObjectBaseComponent>()) {
 					GameObject gameObject = baseComponent.gameObject;
 					if (!gameObject.IsValid())
 						continue;
@@ -265,7 +265,12 @@ namespace Editor {
 		bool treeOpen = ImGui::TreeNodeEx(objectName.c_str(), treeFlags);
 
 		// drag drop to child
-		DragDropSource();
+		if (m_selected.size() > 1) {
+			Controls::DragDropGameObjects(m_selected);
+		}
+		else {
+			Controls::DragDropGameObject(gameObject.GetID());
+		}
 		DragDropTarget(gameObject);
 
 		if (Controls::DragDropHoverBtnPressed()) {
@@ -275,7 +280,7 @@ namespace Editor {
 				ImGui::TreeNodeSetOpen(TreeNodeID, !ImGui::TreeNodeGetOpen(TreeNodeID));
 			}
 			else {
-				SetSelected(gameObject.GetID());
+				//SetSelected(gameObject.GetID());
 			}
 		}
 		// selecting
@@ -338,10 +343,6 @@ namespace Editor {
 		}
 	}
 
-	void HierarchyPanel::DragDropSource() {
-		Controls::DragDropGameObjects(m_selected);
-	}
-
 	void HierarchyPanel::SetParents(const Stulu::GameObject& parent, const std::vector<entt::entity> children) {
 		for (entt::entity child : children) {
 			GameObject target = { child, m_scene };
@@ -355,8 +356,9 @@ namespace Editor {
 					}
 					ancestor = ancestor.getComponent<TransformComponent>().GetParent();
 				}
+				auto& targetTransform = target.getComponent<TransformComponent>();
 
-				target.getComponent<TransformComponent>().SetParent(parent);
+				targetTransform.SetParent(parent);
 			}
 		}
 	}

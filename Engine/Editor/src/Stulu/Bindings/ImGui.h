@@ -72,10 +72,11 @@ namespace StuluBindings {
 		}
 		static inline bool GameObject(Stulu::Mono::String name, uint64_t* goID) {
 			Stulu::Registry* registry = StuluBindings::GetCurrentRegistry();
-			
 			entt::entity id = (entt::entity)(*goID);
+			Stulu::GameObject gameObject = { id, registry };
+			
 			std::string objectName = "GameObject";
-			if (GameObjectBaseComponent* component = registry->GetRegistry().try_get<GameObjectBaseComponent>(id)) {
+			if (GameObjectBaseComponent* component = gameObject.tryGetComponent<GameObjectBaseComponent>()) {
 				objectName = component->name;
 			}
 

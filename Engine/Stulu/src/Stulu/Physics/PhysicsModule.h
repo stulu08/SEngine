@@ -10,7 +10,7 @@ namespace Stulu {
 		PhysicsModule();
 		~PhysicsModule();
 
-		void onLoad() override;
+		bool onLoad(const ApplicationInfo& appInfo) override;
 		void onDetach() override;
 		void onAttach() override;
 

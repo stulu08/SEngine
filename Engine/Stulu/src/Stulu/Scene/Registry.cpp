@@ -33,7 +33,7 @@ namespace Stulu {
 
 
 	GameObject Registry::FindByName(const std::string& name) {
-		auto view = m_registry.view<GameObjectBaseComponent>();
+		auto view = GetAllWith<GameObjectBaseComponent>();
 		for (auto gameObject : view)
 		{
 			if (view.get<GameObjectBaseComponent>(gameObject).name == name)

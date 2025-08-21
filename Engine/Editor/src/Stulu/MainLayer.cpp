@@ -10,6 +10,7 @@
 #include "Panels/Inspector.h"
 #include "Panels/Settings.h"
 #include "Panels/Shortcut.h"
+#include "Panels/AssetEditor.h"
 
 #include <Stulu/Scripting/Managed/Bindings/Core/Input.h>
 #include <Stulu/Physics/Components/Collider.h>
@@ -49,6 +50,7 @@ namespace Editor {
 		AddPanel<GamePanel>();
 		AddPanel<InspectorPanel>();
 		AddPanel<SettingsPanel>();
+		AddPanel<AssetEditor>();
 
 		m_scenePanel = &GetPanel<ScenePanel>();
 		m_gamePanel = &GetPanel<GamePanel>();
@@ -93,59 +95,6 @@ namespace Editor {
 		static bool ste = false;
 		if (ImGui::Begin("Debug")) {
 			ImGui::Checkbox("Style Editor", &ste);
-
-			static glm::vec3 t(1.f);
-			static Stulu::UUID defaultMaterial = Stulu::Resources::UUIDDefaultMaterial;
-			static Stulu::UUID reflectiveMaterial = Stulu::Resources::UUIDReflectiveMaterial;
-			static Stulu::UUID editMaterial = Stulu::Resources::UUIDDefaultMaterial;
-			Controls::Material("Default Material", defaultMaterial);
-			Controls::Material("Reflective Material", reflectiveMaterial);
-			Controls::Material("Edit Material", editMaterial);
-			if (editMaterial) {
-				auto material = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(editMaterial);
-
-				auto tMode = material->GetTransparencyMode();
-				if (Controls::Combo("Transparency Mode", tMode)) {
-					material->SetTransparencyMode(tMode);
-				}
-				
-				for (auto& metaProp : material->GetProperities()) {
-					if (metaProp->GetType() == MaterialPropertyType::Sampler2D) {
-						auto prop = material->GetProperityAs<MaterialSampler2DProperty>(metaProp->GetName());
-						auto val = prop->GetValue();
-						if (Controls::Default(prop->GetName(), val))
-							prop->SetValue(val);
-					}
-					if (metaProp->GetType() == MaterialPropertyType::Color) {
-						auto prop = material->GetProperityAs<MaterialColorProperty>(metaProp->GetName());
-						auto val = prop->GetValue();
-						if (Controls::Color(prop->GetName(), val, prop->IsHDR()))
-							prop->SetValue(val);
-					}
-					if (metaProp->GetType() == MaterialPropertyType::Float2) {
-						auto prop = material->GetProperityAs<MaterialFloat2Property>(metaProp->GetName());
-						auto val = prop->GetValue();
-						if (Controls::Default(prop->GetName(), val))
-							prop->SetValue(val);
-					}
-					if (metaProp->GetType() == MaterialPropertyType::Float) {
-						auto prop = material->GetProperityAs<MaterialFloatProperty>(metaProp->GetName());
-						auto val = prop->GetValue();
-						if (prop->HasLimits()) {
-							if (Controls::Slider::Float(prop->GetName(), val, prop->GetMin(), prop->GetMax()))
-								prop->SetValue(val);
-						}
-						else {
-							if (Controls::Default(prop->GetName(), val))
-								prop->SetValue(val);
-						}
-						
-					}
-					metaProp->ApplyValue(*material);
-				}
-			}
-
-
 			App::get().getAssemblyManager()->getScriptCoreAssembly()->InvokeMethod(debugMethod, NULL, NULL);
 		}
 		
@@ -161,13 +110,15 @@ namespace Editor {
 			blockEvents = false;
 		if (m_scenePanel->IsFocused())
 			blockEvents = false;
+
+		// shortcuts have a higher priority the gizmos
+		if (!m_gamePanel->IsFocused() && !blockEvents)
+			CheckShortcuts();
+
 		if (Gizmo::WasHovered())
 			blockEvents = true;
 
 		Application::get().getImGuiLayer()->blockEvents(blockEvents);
-
-		if (!m_gamePanel->IsFocused())
-			CheckShortcuts();
 
 	}
 	void MainLayer::onEvent(Event& e) {
@@ -206,7 +157,8 @@ namespace Editor {
 
 
 		CallPanels<&Panel::DrawImGuizmo>();
-		GetActiveScene()->getCaller()->onDrawGizmos();
+		if(GetActiveScene()->getCaller())
+			GetActiveScene()->getCaller()->onDrawGizmos();
 	}
 
 	void MainLayer::DrawObjectStencilOutline(entt::entity objID) {
@@ -244,7 +196,7 @@ namespace Editor {
 		RenderCommand::StencilNotEqual(0xFF);
 		RenderCommand::setDepthTesting(false);
 		for (entt::entity id : selectedObjects) {
-			if (GetActiveScene()->IsValid(id)) {
+			if (GetActiveScene()->IsObjectValid(id)) {
 				DrawObjectStencilOutline(id);
 			}
 		}

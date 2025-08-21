@@ -15,7 +15,7 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in Window creation");
 		return nullptr;
 	}
-	Scope<Window> Window::create(WindowProps& props) {
+	Scope<Window> Window::create(const WindowProps& props) {
 #ifdef ST_PLATFORM_WINDOWS
 		return createScope<WindowsWindow>(props);
 #else

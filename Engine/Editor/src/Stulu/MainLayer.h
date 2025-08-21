@@ -8,6 +8,7 @@
 #include "Panels/Scene.h"
 #include "Panels/Game.h"
 #include "Panels/LogPanel.h"
+#include "Panels/AssetBrowser.h"
 
 using namespace Stulu;
 

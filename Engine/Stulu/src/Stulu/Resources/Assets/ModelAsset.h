@@ -9,6 +9,17 @@ struct aiScene;
 struct aiNode;
 
 namespace Stulu {
+	struct ModelImportSettings {
+		bool OptimizeMeshes = true;
+		bool RemoveRedundancies = false;
+		bool HandleInvalidData = true;
+		bool ScaleVertices = false;
+
+		bool LoadMeshes = true;
+		bool LoadMaterials = true;
+		float ScaleMod = 1.0f;
+	};
+
 	struct ModelMeshNode {
 		ModelMeshNode() = default;
 		ModelMeshNode(const ModelMeshNode&) = delete;
@@ -54,19 +65,23 @@ namespace Stulu {
 		virtual bool Load() override;
 		virtual bool Save() const override { return false; }
 		virtual bool HasExtension(const std::string& extension) const override {
-			return extension == ".glb" || extension == ".gltf" || extension == ".obj" || extension == ".fbx";
+			return extension == ".glb" || extension == ".gltf" || extension == ".obj" || extension == ".fbx" || extension == ".blend";
 		};
+
+		ModelImportSettings ReadSettings();
+		bool SaveSetting(ModelImportSettings settings) const;
 
 		inline ModelNode& GetRootNode() { return m_rootNode; }
 	private:
 		ModelNode m_rootNode;
 		std::vector<MaterialAsset> m_materialPool;
+		std::vector<MeshAsset> m_meshPool;
 
 		inline Stulu::UUID BuildSubAssetUUID(const std::string& subName) {
-			return UUID(GetPath() + "@" + subName);
+			return UUID(std::to_string(GetUUID()) + "@" + subName);
 		}
 
-		ModelNode ProcessNode(const aiNode* node, const aiScene* scene);
+		ModelNode ProcessNode(const aiNode* node, const aiScene* scene, const ModelImportSettings& settings);
 		void LoadMaterialPool(const aiScene* scene, const std::string& RootPath);
 	};
 

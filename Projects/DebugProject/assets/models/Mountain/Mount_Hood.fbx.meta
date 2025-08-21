@@ -1,2 +1,9 @@
 UUID: 2904010800186938074
 TypeName: ModelAsset
+OptimizeMeshes: true
+RemoveRedundancies: true
+HandleInvalidData: true
+LoadMeshes: true
+LoadMaterials: true
+ScaleMod: 0.00100000005
+ScaleVertices: false

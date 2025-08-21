@@ -63,15 +63,10 @@ namespace Editor {
 		std::string m_search;
 		float m_windowPaddingOriginal = 0.0f;
 
-		inline entt::registry& GetRegistry() {
-			return m_scene->GetRegistry();
-		}
-
 		void DrawGameObject(Stulu::GameObjectBaseComponent& baseComponent, const Stulu::GameObject& parent = Stulu::GameObject::null);
 
 		void DummyDragDropTarget(const Stulu::GameObject& parent);
 		void DragDropTarget(const Stulu::GameObject& parent);
-		void DragDropSource();
 
 		void SetParents(const Stulu::GameObject& parent, const std::vector<entt::entity> children);
 	};

@@ -5,7 +5,7 @@
 #include "Stulu/Color.glsl"
 
 float CalculateBias(const vec3 pixelNormal, const vec3 lightDir, const float biasMod /*= 0.0005*/) {
-	return max(biasMod * (1.0 - dot(pixelNormal, lightDir)), 0.0005);
+	return max(biasMod * (1.0 - dot(pixelNormal, lightDir)), 0.000001);
 }
 
 float GetCascadeFarPlane(int layer) {

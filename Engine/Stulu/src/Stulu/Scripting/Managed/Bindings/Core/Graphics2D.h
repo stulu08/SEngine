@@ -1,7 +1,8 @@
 #pragma once
+#include "AssetWrapper.h"
 
 namespace StuluBindings {
-	class Graphics2D {
+	class Graphics2D : public AssetWrapper<Stulu::Texture2DAsset> {
 	public:
 		static inline void drawLine(struct Vector3* start, struct Vector3* end, struct Vector4* color) {
 			Stulu::Renderer2D::drawLine(start->toNative_s(), end->toNative_s(), color->toNative_s());
@@ -12,9 +13,9 @@ namespace StuluBindings {
 				color->toNative_s());
 		}
 		static inline void drawQuadTexture(struct Vector3* pos, struct Quaternion* rotation, struct Vector3* scale, struct Vector4* color, struct Vector2* tiling, uint64_t id) {
-			using namespace Stulu;
-			Texture2DAsset asset = AssetsManager::GlobalInstance().GetAsset<Texture2DAsset>(id);
-			if (asset.IsValid()) {
+			Stulu::Texture2D* texture = nullptr;
+			
+			if (auto asset = SaveGetAsset(id)) {
 				Stulu::Renderer2D::drawTexturedQuad(
 					Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
 					*asset, tiling->toNative_s(), color->toNative_s());
@@ -24,7 +25,6 @@ namespace StuluBindings {
 					Stulu::Math::createMat4(pos->toNative_s(), rotation->toNative_s(), scale->toNative_s()),
 					color->toNative_s());
 			}
-			
 		}
 		static inline void drawCircle(struct Vector3* pos, struct Quaternion* rotation, struct Vector3* scale, struct Vector4* color, float thickness, float fade) {
 			Stulu::Renderer2D::drawCircle(

@@ -63,7 +63,7 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto& [id, comp] : m_scene->GetRegistry().storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) {
 			const GameObject gameObject = { id, m_scene };
 			ConstructManaged(gameObject);
 		}
@@ -105,7 +105,7 @@ namespace Stulu {
 			}
 			return;
 		}
-		for (auto& [id, comp] : m_scene->GetRegistry().storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) {
 			const GameObject gameObject = { id, m_scene };
 			CallManagedEvent(method, gameObject);
 		}
@@ -120,7 +120,7 @@ namespace Stulu {
 			} \
 			return; \
 		} \
-		for (auto& [id, comp] : m_scene->GetRegistry().storage<ScriptingComponent>().each()) { \
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) { \
 			const GameObject gameObject = { id, m_scene }; \
 			CallManagedEvent(m_manager->getEvents().name, gameObject); \
 		} \

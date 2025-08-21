@@ -63,6 +63,8 @@ namespace Stulu {
 
 		bool SaveToFile(const std::string& fileDest) const;
 
+		void SetMeshRefrence(const Ref<Mesh> mesh) { m_mesh = mesh; }
+
 		using NativeType = Mesh;
 		NativeType* GetNative() { return m_mesh.get(); }
 		const NativeType* GetNative() const { return m_mesh.get(); }

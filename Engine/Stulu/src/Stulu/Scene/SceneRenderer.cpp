@@ -387,7 +387,7 @@ namespace Stulu {
 	}
 
 	void SceneRenderer::Register3dObjects() {
-		auto group = m_scene->GetRegistry().view<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
+		auto group = m_scene->GetAllWith<MeshFilterComponent, TransformComponent, MeshRendererComponent>();
 		for (auto gameObject : group) {
 			if (group.get<MeshFilterComponent>(gameObject).GetMesh().IsValid()) {
 				RegisterObject(group.get<MeshRendererComponent>(gameObject), group.get<MeshFilterComponent>(gameObject), group.get<TransformComponent>(gameObject));
@@ -405,8 +405,8 @@ namespace Stulu {
 			}type;
 		};
 		const glm::vec3 camPos = camera.GetWorldPosition();
-		auto quadview = m_scene->GetRegistry().view<TransformComponent, SpriteRendererComponent>();
-		auto circleView = m_scene->GetRegistry().view<TransformComponent, CircleRendererComponent>();
+		auto quadview = m_scene->GetAllWith<TransformComponent, SpriteRendererComponent>();
+		auto circleView = m_scene->GetAllWith<TransformComponent, CircleRendererComponent>();
 
 		std::vector<Entry> drawList;
 		drawList.reserve(quadview.size_hint() + circleView.size_hint());
@@ -440,7 +440,7 @@ namespace Stulu {
 			}
 		}
 
-		if (callEvents) {
+		if (callEvents && m_scene->getCaller()) {
 			m_scene->getCaller()->onRender2D();
 		}
 

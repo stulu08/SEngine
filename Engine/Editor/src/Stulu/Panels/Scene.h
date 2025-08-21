@@ -39,7 +39,7 @@ namespace Editor {
 		Stulu::SceneCamera m_sceneCamera;
 		uint32_t m_width = 1, m_height = 1;
 		uint32_t m_gizmoMode = (uint32_t)Stulu::GizmoTransformEditMode::None;
-		bool m_drawGrid = false;
+		bool m_drawGrid = false, m_hovered = false, m_showBoundingBoxes = false;
 		entt::entity m_hoveredObject = entt::null;
 
 
