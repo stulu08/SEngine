@@ -1,5 +1,6 @@
 include "./Dependencies/premake/premake_customization/solution_items.lua"
 include "./Dependencies/premake/premake_customization/generate_doc.lua"
+
 workspace "Stulu"
 	startproject "Editor"
 	configurations
@@ -58,7 +59,6 @@ include "Dependencies/assimp"
 include "Dependencies/yaml-cpp"
 include "Dependencies/ImGuizmo"
 include "Dependencies/premake-core-static-lib/premake5-proj.lua"
-include "Dependencies/discord-game-sdk/CPP SDK.lua"
 include "Dependencies/glslang-xs/project.lua"
 group "Engine"
 include "Engine/Stulu/Stulu.lua"

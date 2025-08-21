@@ -396,7 +396,7 @@ namespace Stulu {
 			createInfo.subresourceRange.layerCount = 1;
 			CORE_ASSERT(vkCreateImageView(device.device, &createInfo, nullptr, &imageView) == VK_SUCCESS, "failed to create Image views!");
 
-			device.swapChainImages[i] = createRef<VulkanImage2D>(imageView, device.swapChainExtent.width, device.swapChainExtent.height);
+			device.swapChainImages[i] = createRef<VulkanImage2D>(imageView, device.swapChainExtent.width, device.swapChainExtent.height, TextureFormat::RGBA);
 		}
 		
 	}

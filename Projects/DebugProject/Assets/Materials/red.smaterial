@@ -1,0 +1,23 @@
+Shader: Default/PBR
+Instanced: false
+TransparencyMode: 0
+Cutout: 0.400000006
+Properties:
+  Albedo: [1, 0, 0, 1]
+  Emission: [0, 0, 0, 0]
+  Metallic: 0.0
+  Roughness: 0.317999989
+  Ambient Occlusion: 0.128000006
+  Albedo Map:
+    Default: 1
+  Metalloc Map:
+    Default: 0
+  Roughness Map:
+    Default: 0
+  Normal Map:
+    Default: 0
+  Ambient Occlusion Map:
+    Default: 0
+  Emission Map:
+    Default: 0
+  Tilling: [1, 1]

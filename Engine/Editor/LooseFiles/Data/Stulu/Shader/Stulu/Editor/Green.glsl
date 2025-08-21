@@ -1,5 +1,7 @@
 #SShader "Editor/Green"
+
 #include "Stulu/Default/Vertex.glsl"
+
 #type fragment
 layout (location = 0) out vec4 FragColor;
 

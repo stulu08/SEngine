@@ -2,36 +2,37 @@
 #include "ParticleSystemLayer.h"
 
 namespace Stulu {
-	void ParticleSystemLayer::Initlize(Scene* scene) {
+	bool ParticleSystemLayer::Initlize(Scene* scene) {
 		m_scene = scene;
+		return true;
 	}
-	void ParticleSystemLayer::Start() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+	void ParticleSystemLayer::SceneStart() {
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneStart) {
-					particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
+					particle.emit(transform.GetWorldPosition(), transform.GetWorldEulerRotation(), particle.getData().emitCount);
 			}
 		}
 	}
 	void ParticleSystemLayer::Update() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			if (particle.getData().emitStart == ParticleSystemData::EmitStart::SceneUpdate) {
-				particle.emit(transform.worldPosition, transform.eulerAnglesWorldDegrees, particle.getData().emitCount);
+				particle.emit(transform.GetWorldPosition(), transform.GetWorldEulerRotation(), particle.getData().emitCount);
 			}
 			particle.update(Time::deltaTime);
 		}
 	}
 	void ParticleSystemLayer::Render2D() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			particle.draw();
 		}
 	}
-
+	/*
 	void ParticleSystemLayer::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {
 		BEGIN_SERIALIZE_COMPONENT(ParticleSystemComponent);
 		{
@@ -108,9 +109,9 @@ namespace Stulu {
 		}
 		END_DESERIALIZE_COMPONENT();
 	}
-
+	*/
 	void ParticleSystemLayer::ClearAllParticles() {
-		auto particleView = m_scene->getAllGameObjectsWith<TransformComponent, ParticleSystemComponent>();
+		auto particleView = m_scene->GetAllWith<TransformComponent, ParticleSystemComponent>();
 		for (auto gameObject : particleView) {
 			auto [transform, particle] = particleView.get<TransformComponent, ParticleSystemComponent>(gameObject);
 			particle.clear();

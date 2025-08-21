@@ -1,19 +1,14 @@
 #SShader "Renderer/SkyBox"
+#Expose Skybox("Texture", auto_align)
 
 #type vertex
-		
 #include "Stulu/MeshLayout.glsl"
 #include "Stulu/Scene.glsl"
 
-struct vertOutput
-{
-	vec3 texCoords;
-};
-layout (location = 0) out vertOutput v_output;
+layout (location = 0) out vec3 v_texCoords;
 
 void main() {
-
-	v_output.texCoords = a_pos;
+	v_texCoords = a_pos;
 
 	mat4 view = mat4(mat3(viewMatrix));
 	vec4 pos = projMatrix * view * vec4(a_pos, 1.0);
@@ -23,41 +18,22 @@ void main() {
 
 #type fragment
 
-layout (location = 0) out vec4 FragColor;
+#include "Stulu/Texture.glsl"
+#include "Stulu/Renderer/Lighting.glsl"
+#include "Stulu/Out.glsl"
 
-#include "Stulu/Utils.glsl"
-#include "Stulu/Scene.glsl"
+layout (location = 0) in vec3 v_texCoords;
 
-struct vertInput
-{
-	vec3 texCoords;
+layout(std140, binding = ST_USER_MATERIAL_BINDING) uniform Material {
+	float hasSkybox;
 };
-layout (location = 0) in vertInput vertex;
 
 void main() {
-	vec3 view = getSkyBoxCoords(vertex.texCoords, skyBoxRotation);
+	const vec3 view = GetSkyBoxCoords(v_texCoords, skyBoxRotation);
+	vec3 outColor = SampleSkybox(environmentMap, view, hasSkybox, clearColor.rgb);
 
-	vec4 color = vec4(.0f);
-
-	if(useSkybox){
-		vec3 mapColor = clearColor.xyz;
-
-		if(skyboxMapType == 0){
-			//acces mip maps if needed
-			if(env_lod == 0)
-				mapColor = texture(environmentMap, view).rgb;
-			else {
-				mapColor = textureLod(environmentMap, view, env_lod).rgb;
-			}
-		} 
-		else if(skyboxMapType == 1) {
-			mapColor = texture(irradianceMap, view).rgb;
-		} 
-		else if(skyboxMapType == 2) {
-			mapColor = texture(prefilterMap, view).rgb;
-		}
-		color = vec4(mapColor, 1.0f);
-	}
+	const vec3 worldPos = cameraPosition.xyz + normalize(v_texCoords) * 5000.0;
+	ApplyHorizonFog(outColor, worldPos);
 	
-	FragColor = color;
+	WriteDefaultOut(outColor);
 }

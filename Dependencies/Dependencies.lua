@@ -17,7 +17,6 @@ ProjectDir["DebugProject"] = "%{InstallDir}/Projects/DebugProject"
 ProjectDir["PhysX"] = "%{Dependencies}/PhysX/"
 ProjectDir["mono"] = os.getenv("MONO_PATH")
 ProjectDir["VulkanSDK"] = os.getenv("VULKAN_SDK")
-ProjectDir["Discord"] = "%{Dependencies}/discord-game-sdk/"
 ProjectDir["glslang"] = "%{Dependencies}/glslang-xs/"
 
 LibraryDir = {}
@@ -25,7 +24,6 @@ LibraryDir["StuluNative"] = "%{BuildDir}/Editor/Data/Stulu/Native/"
 LibraryDir["StuluManaged"] = "%{BuildDir}/Editor/Data/Stulu/Managed/"
 LibraryDir["mono"] = "%{ProjectDir.mono}/lib"
 LibraryDir["Vulkan"] = "%{ProjectDir.VulkanSDK}/Lib"
-LibraryDir["Discord"] = "%{ProjectDir.Discord}/lib/%{cfg.architecture}"
 
 Library = {}
 Library["Stulu"] = "Stulu.lib"
@@ -34,8 +32,6 @@ Library["OpenGL"] = "opengl32.lib"
 Library["Vulkan"] = "vulkan-1.lib"
 Library["VulkanLayerUtils"] = "VkLayer_utils.lib"
 Library["mono"] = "libmono-static-sgen.lib"
-Library["Discord"] = "discord_game_sdk.dll"
-Library["DiscordLib"] = "discord_game_sdk.dll-lib"
 
 IncludeDir = {}
 IncludeDir["Stulu"] = "%{ProjectDir.Stulu}/src"
@@ -54,5 +50,4 @@ IncludeDir["premake"] = "%{Dependencies}/premake-core-static-lib/include"
 IncludeDir["Vulkan"] = "%{ProjectDir.VulkanSDK}/Include"
 IncludeDir["PhysX"] = "%{ProjectDir.PhysX}/include"
 IncludeDir["mono"] = "%{ProjectDir.mono}/include/mono-2.0"
-IncludeDir["Discord"] = "%{ProjectDir.Discord}/cpp"
 IncludeDir["glslang"] = "%{ProjectDir.glslang}"

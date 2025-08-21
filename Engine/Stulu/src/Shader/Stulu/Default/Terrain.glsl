@@ -70,12 +70,11 @@ layout (binding = ST_USER_TEXTURE_START) uniform sampler2D u_textures[ST_USER_TE
 void main (){
 	PBRData data;
 	
-	data.albedo = vertex.color.rgb;
+	data.albedo = vec4(vertex.color.rgb, 1.0);
 	data.emission = vec3(0.0);
 	data.ao = 0.2;
 	data.metallic = vertex.metallic;
 	data.roughness = vertex.roughness;
-	data.alpha = vertex.color.a;
 
 	data.normal = vertex.normal;
 	data.worldPos = vertex.worldPos;
@@ -84,7 +83,7 @@ void main (){
 	PBRResult result = ComputePBR(data);
 	WriteDefaultOut(result);
 
-	if(data.alpha == 0.0) {
+	if(data.albedo.a == 0.0) {
 		discard;
 	}
 }

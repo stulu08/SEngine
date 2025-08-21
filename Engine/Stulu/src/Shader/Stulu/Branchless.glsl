@@ -30,6 +30,8 @@ st_impl_for_all_types(st_and_impl)
 st_impl_for_all_types(st_or_impl)
 st_impl_for_all_types(st_not_impl)
 
+float when_zero(float x) { return 1.0 - min(1.0, abs(x)); }
+
 #include "Stulu/Flags.glsl"
 
 float FisFlagEnabled(uint flags, uint flag) {

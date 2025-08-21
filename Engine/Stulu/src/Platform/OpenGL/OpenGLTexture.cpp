@@ -1,131 +1,175 @@
 #include "st_pch.h"
 #include "OpenGLTexture.h"
+#include "OpenGLStateCache.h"
 
 #include <glad/glad.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace Stulu {
-	OpenGLTexture2D::OpenGLTexture2D(uint32_t internalID, uint32_t width, uint32_t height, const TextureSettings& settings) {
-		m_width = width;
-		m_height = height;
-		m_settings = settings;
-		m_rendererID = internalID;
+
+	inline uint32_t OpenGLTexture2D::GetInternalTextureType() const {
+		if (IsArray()) {
+			return HasMSAA() ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_ARRAY;
+		}
+		else {
+			return HasMSAA() ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+		}
 	}
-	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings) {
-		m_width = width;
-		m_height = height;
-		m_settings = settings;
-		m_rendererID = 0;
 
-		std::pair<GLenum, GLenum> format = TextureFormatToGLenum(m_settings.format);
+	void OpenGLTexture2D::CreateTextureResource() {
+		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(m_settings.format);
+		GLenum textureType = GetInternalTextureType();
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-		glTextureStorage2D(m_rendererID, m_settings.levels, format.first, m_width, m_height);
+		glCreateTextures(textureType, 1, &m_rendererID);
+		glBindTexture(textureType, m_rendererID);
+
+
+		if (IsArray()) {
+			if (HasMSAA())
+				glTextureStorage3DMultisample(m_rendererID, (GLsizei)m_sampels, internalFormat, m_width, m_height, GetArraySize(), GL_TRUE);
+			else
+				glTextureStorage3D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height, GetArraySize());
+		}
+		else {
+			if (HasMSAA())
+				glTextureStorage2DMultisample(m_rendererID, (GLsizei)m_sampels, internalFormat, m_width, m_height, GL_TRUE);
+			else
+				glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
+		}
+
 
 		updateParameters();
+	}
 
+	void OpenGLTexture2D::GenerateMips() {
 		if (HasMips())
-			glGenerateMipmap(GL_TEXTURE_2D);
+			glGenerateMipmap(GetInternalTextureType());
 	}
+
+	void OpenGLTexture2D::updateParameters() {
+		GLenum wrap = TextureWrapToGLenum(m_settings.wrap);
+		GLenum textureType = GetInternalTextureType();
+
+		glBindTexture(textureType, m_rendererID);
+		if (!HasMSAA()) {
+			glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenumMinification(m_settings.filtering));
+			glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenumMagnification(m_settings.filtering));
+
+			glTexParameteri(textureType, GL_TEXTURE_WRAP_S, wrap);
+			glTexParameteri(textureType, GL_TEXTURE_WRAP_T, wrap);
+			glTexParameteri(textureType, GL_TEXTURE_WRAP_R, wrap);
+			if (m_settings.wrap == TextureWrap::ClampToBorder) {
+				float borderColor[] = { m_settings.border.x,  m_settings.border.y,  m_settings.border.z,  m_settings.border.w };
+				glTextureParameterfv(m_rendererID, GL_TEXTURE_BORDER_COLOR, borderColor);
+			}
+		}
+
+
+	}
+
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples, uint32_t arrayCount, uint32_t internalID)
+		: m_settings(settings), m_width(width), m_height(height), m_rendererID(internalID), m_sampels(samples) {}
+
+
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const TextureSettings& settings, MSAASamples samples)
+		: m_settings(settings), m_width(width), m_height(height), m_rendererID(0), m_sampels(samples) {
+		CreateTextureResource();
+		GenerateMips();
+	}
+
 	OpenGLTexture2D::OpenGLTexture2D(const std::string& path, const TextureSettings& settings)
-		:m_path(path), m_settings(settings) {
-		update();
-	}
-	OpenGLTexture2D::~OpenGLTexture2D() {
-		glDeleteTextures(1, &m_rendererID);
-	}
-	void OpenGLTexture2D::bind(uint32_t slot) const {
-		glBindTextureUnit(slot, m_rendererID);
-	}
-	void OpenGLTexture2D::setData(const void* data, uint32_t size, uint32_t mipLevel) {
-		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(m_settings.format);
-		glTextureSubImage2D(m_rendererID, mipLevel, 0, 0, m_width, m_height, dataFormat, GL_UNSIGNED_BYTE, data);
-	}
-	void OpenGLTexture2D::setPixel(uint32_t hexData, uint32_t posX, uint32_t posY, uint32_t mipLevel) {
-		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(m_settings.format);
-		glTextureSubImage2D(m_rendererID, mipLevel, posX, posY, 1, 1, dataFormat, GL_UNSIGNED_BYTE, &hexData);
-	}
-	void OpenGLTexture2D::getData(void* data, uint32_t size, uint32_t mipLevel) const {
-		TextureFormat format = m_settings.format;
-		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(format);
-		glGetTextureImage(m_rendererID, mipLevel, dataFormat, GL_UNSIGNED_BYTE, size, data);
-	}
-	uint32_t OpenGLTexture2D::getPixel(uint32_t posX, uint32_t posY, uint32_t mipLevel) const {
-		uint32_t data;
+		:m_settings(settings), m_sampels(MSAASamples::Disabled) {
 
-		TextureFormat format = m_settings.format;
-		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(format);
-		glGetTextureSubImage(m_rendererID, mipLevel, posX, posY, 0, 1, 1, 1, dataFormat, GL_UNSIGNED_BYTE, sizeof(uint32_t), &data);
-
-		return data;
-	}
-	void OpenGLTexture2D::update() {
-		if (m_rendererID)
-			glDeleteTextures(1, &m_rendererID);
-
-		int32_t width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
 
 		void* textureData = nullptr;
 		bool isFloatData = false;
 
-		if (isTextureFileFloat(m_path.c_str())) {
-			textureData = stbi_loadf(m_path.c_str(), &width, &height, &channels, 0);
+		int32_t width, height, channels;
+		if (isTextureFileFloat(path.c_str())) {
+			textureData = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
 			isFloatData = true;
 		}
 		else {
-			textureData = stbi_load(m_path.c_str(), &width, &height, &channels, 0);
+			textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
 		}
 
-		CORE_ASSERT(textureData, "Texture failed to load: {0}", m_path);
+		CORE_ASSERT(textureData, "Texture failed to load: {0}", path);
 		m_width = width;
 		m_height = height;
-		
-		auto& format = TextureFormatToGLenum(m_settings.format);
-		if (!isCorrectFormat(m_settings.format, channels, m_path.c_str())) {
-			CORE_ERROR("Texture format not correct for texture {0}", m_path);
-			format = TextureFormatToGLenum(m_settings.format, channels);
+
+		if (!isCorrectFormat(m_settings.format, channels, path.c_str())) {
+			CORE_ERROR("Texture format not correct for texture {0}", path);
 		}
-		auto& [internalFormat, dataFormat] = format;
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-		glBindTexture(GL_TEXTURE_2D, m_rendererID);
-		glTextureStorage2D(m_rendererID, m_settings.levels, internalFormat, m_width, m_height);
-
-		updateParameters();
+		CreateTextureResource();
 
 		if (textureData) {
-			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, dataFormat, isFloatData ? GL_FLOAT : GL_UNSIGNED_BYTE, textureData);
+			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, TextureFormatToGLenum(m_settings.format).second, isFloatData ? GL_FLOAT : GL_UNSIGNED_BYTE, textureData);
 			stbi_image_free(textureData);
 		}
-
-		if (HasMips())
-			glGenerateMipmap(GL_TEXTURE_2D);
-
+		GenerateMips();
 
 	}
-	void OpenGLTexture2D::updateParameters() {
-		GLenum wrap = TextureWrapToGLenum(m_settings.wrap);
-		
-		glBindTexture(GL_TEXTURE_2D, m_rendererID);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenumMinification(m_settings.filtering));
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenumMagnification(m_settings.filtering));
+	OpenGLTexture2D::~OpenGLTexture2D() {
+		glDeleteTextures(1, &m_rendererID);
+		m_rendererID = 0;
+	}
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, wrap);
-		if (m_settings.wrap == TextureWrap::ClampToBorder) {
-			float borderColor[] = { m_settings.border.x,  m_settings.border.y,  m_settings.border.z,  m_settings.border.w };
-			glTextureParameterfv(m_rendererID, GL_TEXTURE_BORDER_COLOR, borderColor);
+	void OpenGLTexture2D::bind(uint32_t slot) const {
+		OpenGLStateCache::BindTextureUnit(slot, m_rendererID);
+	}
+
+	void OpenGLTexture2D::setData(const void* data, uint32_t size, uint32_t mipLevel) {
+		if (HasMSAA()) {
+			CORE_WARN("Can't set data of a multisampled image!");
+			return;
 		}
+
+		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(m_settings.format);
+		glTextureSubImage2D(m_rendererID, mipLevel, 0, 0, m_width, m_height, dataFormat, GL_UNSIGNED_BYTE, data);
 	}
+	void OpenGLTexture2D::setPixel(uint32_t hexData, uint32_t posX, uint32_t posY, uint32_t mipLevel) {
+		if (HasMSAA()) {
+			CORE_WARN("Can't set data of a multisampled image!");
+			return;
+		}
+
+		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(m_settings.format);
+		glTextureSubImage2D(m_rendererID, mipLevel, posX, posY, 1, 1, dataFormat, GL_UNSIGNED_BYTE, &hexData);
+	}
+
+	void OpenGLTexture2D::getData(void* data, uint32_t size, uint32_t mipLevel) const {
+		if (HasMSAA()) {
+			CORE_WARN("Can't get data of a multisampled image!");
+			return;
+		}
+
+		TextureFormat format = m_settings.format;
+		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(format);
+		glGetTextureImage(m_rendererID, mipLevel, dataFormat, GL_UNSIGNED_BYTE, size, data);
+	}
+	uint32_t OpenGLTexture2D::getPixel(uint32_t posX, uint32_t posY, uint32_t mipLevel) const {
+		uint32_t data = UINT32_MAX;
+
+		if (posX < 0 || posX >= m_width || posY < 0 || posY >= m_height) {
+			return data;
+		}
+
+		TextureFormat format = m_settings.format;
+		auto& [internalFormat, dataFormat] = TextureFormatToGLenum(format);
+		glGetTextureSubImage(m_rendererID, mipLevel, posX, posY, 0, 1, 1, 1, dataFormat, GL_UNSIGNED_INT, sizeof(uint32_t), &data);
+		
+		return data;
+	}
+
 	bool OpenGLTexture2D::operator==(const Texture& other) const {
 		return m_rendererID == *static_cast<uint32_t*>(other.getNativeRendererObject());
 	}
 
 
-	std::pair<uint32_t, uint32_t> TextureFormatToGLenum(TextureFormat& format, int channels) {
+	std::pair<uint32_t, uint32_t> TextureFormatToGLenum(TextureFormat format) {
 		GLenum internalFormat, m_dataFormat;
 		switch (format)
 		{
@@ -187,6 +231,10 @@ namespace Stulu {
 			internalFormat = GL_R32F;
 			m_dataFormat = GL_RED;
 			break;
+		case Stulu::TextureFormat::R32UI:
+			internalFormat = GL_R32UI;
+			m_dataFormat = GL_RED_INTEGER;
+			break;
 		//depth_stencil
 		case Stulu::TextureFormat::Depth16:
 			internalFormat = GL_DEPTH_COMPONENT16;
@@ -217,21 +265,8 @@ namespace Stulu {
 			m_dataFormat = GL_STENCIL_INDEX;
 			break;
 		case Stulu::TextureFormat::Auto:
-			switch (channels) {
-			case 4:
-				format = TextureFormat::RGBA;
-				break;
-			case 3:
-				format = TextureFormat::RGB;
-				break;
-			case 2:
-				format = TextureFormat::RG;
-				break;
-			case 1:
-				format = TextureFormat::R;
-				break;
-			}
-			return TextureFormatToGLenum(format, channels);
+			internalFormat = m_dataFormat = GL_NONE;
+			break;
 		}
 		return { internalFormat,m_dataFormat };
 	}
@@ -274,6 +309,59 @@ namespace Stulu {
 	bool isCorrectFormat(TextureFormat& format, int channels, const char* flName) {
 		bool is32 = stbi_is_hdr(flName);
 		bool is16 = stbi_is_16_bit(flName);
+		
+		if (format == TextureFormat::Auto) {
+			if (is32) {
+				switch (channels) {
+				case 4:
+					format = TextureFormat::RGBA32F;
+					break;
+				case 3:
+					format = TextureFormat::RGB32F;
+					break;
+				case 2:
+					format = TextureFormat::RG32F;
+					break;
+				case 1:
+					format = TextureFormat::R32F;
+					break;
+				}
+			}else if(is16) {
+				switch (channels) {
+				case 4:
+					format = TextureFormat::RGBA16F;
+					break;
+				case 3:
+					format = TextureFormat::RGB16F;
+					break;
+				case 2:
+					format = TextureFormat::RG16F;
+					break;
+				case 1:
+					format = TextureFormat::R16F;
+					break;
+				}
+			}
+			else {
+				switch (channels) {
+				case 4:
+					format = TextureFormat::RGBA;
+					break;
+				case 3:
+					format = TextureFormat::RGB;
+					break;
+				case 2:
+					format = TextureFormat::RG;
+					break;
+				case 1:
+					format = TextureFormat::R;
+					break;
+				}
+			}
+
+			return true;
+		}
+
 		if (is32) {
 			if (channels == 1) {
 				if (format == TextureFormat::R32F)
@@ -351,12 +439,12 @@ namespace Stulu {
 	bool isGLTextureFormat32BIT(const TextureFormat& format) {
 		//the easy way
 		const auto name = magic_enum::enum_name(format);
-		return name.find("16") != name.npos;
+		return name.find("32") != name.npos;
 	}
 	bool isGLTextureFormat16BIT(const TextureFormat& format) {
 		//the easy way
 		const auto name = magic_enum::enum_name(format);
-		return name.find("32") != name.npos;
+		return name.find("16") != name.npos;
 	}
 	bool isTextureFileFloat(const char* flName) {
 		return stbi_is_16_bit(flName) || stbi_is_hdr(flName);

@@ -1,7 +1,6 @@
 #pragma once
 #include "Stulu/Renderer/Mesh.h"
 #include "Stulu/Renderer/RenderAPI.h"
-#include "Stulu/Scene/Material.h"
 
 struct aiNode;
 struct aiMesh;
@@ -11,23 +10,7 @@ class aiMatrix4x4t;
 typedef aiMatrix4x4t<float> aiMatrix4x4;
 
 namespace Stulu {
-	struct MeshAsset {
-		std::string name;
-		Ref<Mesh> mesh;
-		mutable UUID uuid = UUID();
-
-		bool hasMesh = false;
-		UUID parentMeshAsset = UUID::null;
-		glm::mat4 transform = glm::mat4(1.0f);
-
-		std::vector<int32_t> materialIDs{};
-		std::vector<UUID> materials{};
-
-		CullMode cullMode = CullMode::Back;
-
-		MeshAsset() = default;
-		MeshAsset(const MeshAsset&) = default;
-	};
+	/*
 	class STULU_API Model
 	{
 	public:
@@ -51,8 +34,9 @@ namespace Stulu {
 		
 		bool loadMaterial(const aiScene* scene, uint32_t material);
 
-		static Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-		static SubMesh processSubMesh(aiMesh* mesh, const aiScene* scene);
+		static Ref<Mesh> processMesh(aiMesh* mesh, const aiScene* scene);
+		static Ref<Mesh> processMultiMesh(aiNode* mesh, const aiScene* scene);
 	};
+	*/
 }
 

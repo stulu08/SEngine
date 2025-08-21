@@ -7,26 +7,35 @@
 namespace Stulu {
 	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
 	std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
-	std::shared_ptr<spdlog::sinks::sink> Log::s_sink;
+	std::vector<std::shared_ptr<spdlog::sinks::sink>> Log::s_sinks;
 
 	void Log::init() {
 		spdlog::set_pattern("%^[%T][%n]: %v%$");
-		s_CoreLogger = spdlog::stdout_color_mt("STULU");
-		s_CoreLogger->set_level(spdlog::level::trace);
-		s_ClientLogger = spdlog::stdout_color_mt("APP");
-		s_ClientLogger->set_level(spdlog::level::trace);
+		if (!s_CoreLogger) {
+			s_CoreLogger = spdlog::stdout_color_mt("STULU");
+			s_CoreLogger->set_level(spdlog::level::trace);
+		}
+		if (!s_ClientLogger) {
+			s_ClientLogger = spdlog::stdout_color_mt("APP");
+			s_ClientLogger->set_level(spdlog::level::trace);
+		}
+		s_sinks.clear();
 		CORE_INFO("Created Core and Client Logger");
 	}
 
 	void Log::AddFileSink(const std::string& logFile, Level level) {
-		s_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true);
-		s_sink->set_level(spdlog::level::trace);
+		auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true);
+		AddSink(sink, level);
+		CORE_INFO("Added file sink: {0}", logFile);
+	}
 
+	void Log::AddSink(const std::shared_ptr<spdlog::sinks::sink> sink, Level level) {
+		sink->set_level((spdlog::level::level_enum)level);
 		s_CoreLogger->flush_on((spdlog::level::level_enum)level);
 		s_ClientLogger->flush_on((spdlog::level::level_enum)level);
-		s_CoreLogger->sinks().push_back(s_sink);
-		s_ClientLogger->sinks().push_back(s_sink);
-		CORE_INFO("Added file sink: {0}", logFile);
+		s_CoreLogger->sinks().push_back(sink);
+		s_ClientLogger->sinks().push_back(sink);
+		s_sinks.push_back(sink);
 	}
 
 	std::string Log::generateTimeString() {

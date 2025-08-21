@@ -1,8 +1,13 @@
 #pragma once
 #include "Stulu/Events/Event.h"
-#include "Stulu/Core/Timestep.h"
+#include "Stulu/Types/Timestep.h"
+#include "Stulu/Types/Stack.h"
 
 namespace Stulu {
+	// Here stuff like registering components, script bindings etc should happen
+	// It is loaded once on application startup
+	// Use SceneLayers to access other modules and use the EventCaller to get specific SceneLayers created by Modules
+	// Scene layers are where game logic should happen, see PhysicsLayer for example, a check is done before accessing the PhysicsModule
 	class STULU_API Layer
 	{
 	public:

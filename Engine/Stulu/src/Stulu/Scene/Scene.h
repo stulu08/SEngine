@@ -1,85 +1,75 @@
 #pragma once
+#include "Stulu/Events/KeyEvent.h" 
+#include "Stulu/Events/MouseEvent.h"
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Camera.h"
-#include "Stulu/Core/Timestep.h"
 #include "Stulu/Renderer/Shader.h"
+#include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Scene/Model.h"
-#include "Stulu/Scene/physx/PhysX.h"
-#include "Stulu/Core/UUID.h"
-#include "Stulu/Events/MouseEvent.h"
-#include "Stulu/Events/KeyEvent.h"
-#include <entt.hpp>
+#include "Stulu/Types/Timestep.h"
+#include "Registry.h"
 
-namespace Stulu {	
+namespace Stulu {
+	struct ShadowSettings {
+		uint32_t MapSize = 2048u;
+		std::vector<float> CascadeSplits = Math::CalculateCascadeSplits(3, 500.0f);
+		float NearPlane = 0.01f;
+		float FarPlane = 500.0f;
+		float ZMult = 10.0f;
+		float BlendingDistance = 10.0f;
+		// Poisson sample count: 0->8, 1->16, 2->32, 3->64
+		uint8_t SampleQuality = 1;
+		uint8_t PCSSQuality = 1;
+	};
 	struct SceneGraphicsData {
-		float env_lod = 1.0f;
-		float shadowDistance = 50.0f;
-		float shadowFar = 500.0f;
-		uint32_t shadowMapSize = 2048;
+		// this wont render the skybox, but will still bind it
+		bool transparentBG = false;
+		FogSettings fog;
+		ShadowSettings shadows;
 	};
 	struct SceneData {
 		SceneGraphicsData graphicsData;
 		bool enablePhsyics3D = true;
-		PhysicsData physicsData = PhysicsData();
 		uint32_t shaderFlags = 0;
 	};
 
-	class GameObject;
 	class STULU_API SceneCamera;
 	class STULU_API MonoObjectInstance;
 	class STULU_API SceneRenderer;
 	class STULU_API EventCaller;
 
-	class STULU_API Scene {
+	class STULU_API Scene : public Registry {
 	public:
 		Scene();
-		Scene(const SceneData data);
+		Scene(const SceneData data, bool createSceneCaller = true);
 		~Scene();
 
-		GameObject createGameObject(UUID uuid);
-		GameObject createGameObject(const std::string& name = "GameObject", UUID uuid = UUID(), uint32_t id = UINT32_MAX);
-		void destroyGameObject(GameObject gameObject);
+		virtual GameObject Create(const std::string& name, entt::entity id = entt::null) override;
+		virtual void Destroy(GameObject gameObject) override;
 
-		void onUpdateEditor(Timestep ts, SceneCamera& camera, bool render = true);
+		virtual bool IsScene() const override { return true; }
+		virtual Scene* GetAsScene() override { return this; }
+
+		void onUpdateEditor(SceneCamera& camera, bool render = true);
 		void onRuntimeStart();
-		void onUpdateRuntime(Timestep ts, bool render = true);
+		void onUpdateRuntime(bool render = true);
 		void onRuntimeStop();
 
 		void onViewportResize(uint32_t width, uint32_t height);
 		void onEvent(Stulu::Event& e);
 
-		GameObject addModel(Model& model);
-		GameObject addMeshAssetsToScene(MeshAsset& mesh, Model& model);
-		GameObject addMeshAssetToScene(MeshAsset& mesh);
-
 		GameObject getMainCamera();
 		GameObject getMainLight();
 		inline SceneData& getData() { return m_data; }
-		inline Ref<EventCaller>& getCaller() { return m_caller; }
+		inline Ref<EventCaller> getCaller() const { return m_caller; }
 
-		static inline void setActiveScene(Scene* scne) { s_activeScene = scne; }
-
-		static inline Scene* activeScene() { return s_activeScene; }
-
-		const Scope<PhysX>& getPhysics() const { return m_physics; }
-		const Scope<SceneRenderer>& getRenderer() const { return m_renderer; }
+		bool PhysicsEnable() const { return m_data.enablePhsyics3D; }
+		SceneRenderer* getRenderer() const { return m_renderer.get(); }
 		int32_t getViewportWidth() const { return m_viewportWidth; }
 		int32_t getViewportHeight() const { return m_viewportHeight; }
+		float GetSceneRuntime() const { return m_sceneRuntimeTime; }
 
-		void runtime_updatesetups();
-		void updateTransform(TransformComponent& tc);
-		void updateAllTransforms();
-		void updateTransformAndChangePhysicsPositionAndDoTheSameWithAllChilds(GameObject parent);
-		GameObject findGameObjectByName(const std::string& name);
-
-		template<typename... Components>
-		inline auto getAllGameObjectsWith() {
-			return m_registry.view<Components...>();
-		}
-		template<typename... Components>
-		inline auto getAllGameObjectsAsGroupWith() {
-			return m_registry.group<Components...>();
-		}
+		void GeneralUpdates();
 
 		static Ref<Scene> copy(Ref<Scene> scene);
 
@@ -92,41 +82,12 @@ namespace Stulu {
 	private:
 		uint32_t m_viewportWidth = 1, m_viewportHeight = 1;
 		SceneData m_data;
-		Scope<PhysX> m_physics = nullptr;
 		Scope<SceneRenderer> m_renderer = nullptr;
 		Ref<EventCaller> m_caller = nullptr;
+		float m_sceneRuntimeTime = 0.0f;
+		bool m_updatesRan = false;
 
-		bool m_firstRuntimeUpdate = false;
-
-		entt::registry m_registry;
-		std::unordered_map<UUID, entt::entity> m_uuidGameObjectMap;
-
-		void setupPhysics();
-		void updatePhysics();
 		void renderSceneEditor(SceneCamera& camera);
-
-		template<typename T>
-		void onComponentAdded(GameObject gameObject, T& component) {
-			component.gameObject = gameObject;
-			component.onComponentAdded(this);
-		}
-
-		template<typename T>
-		void onComponentRemove(GameObject gameObject, T& component) {
-			component.destroy();
-		}
-
-		friend class SceneRenderer;
-		friend class GameObject;
-		friend class EditorLayer;
-		friend class SceneSerializer;
-		friend class EditorHierarchyPanel;
-		friend class ComponentsRender;
-		friend class GameObjectBaseComponent;
-		friend class EventCaller;
-
-
-		static inline Scene* s_activeScene = nullptr;
 	};
 }
 

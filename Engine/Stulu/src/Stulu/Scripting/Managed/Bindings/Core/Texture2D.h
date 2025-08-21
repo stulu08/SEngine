@@ -1,55 +1,63 @@
 #pragma once
+#include "AssetWrapper.h"
 
 namespace StuluBindings {
-	class Texture2D {
+	class Texture2D : public AssetWrapper<Stulu::Texture2DAsset> {
 	public:
 		static inline float getWidth(uint64_t id) {
-			float width = 0.0f;
-			using namespace Stulu;
-			Stulu::Asset asset;
-			if (Stulu::AssetsManager::saveGetAndType(id, asset, Stulu::AssetType::Texture2D)) {
-				Ref<Stulu::Texture2D> texture = std::dynamic_pointer_cast<Stulu::Texture2D>(std::any_cast<Ref<Texture>>(asset.data));
-				if (texture) {
-					width = (float)texture->getWidth();
-				}
+			if (auto asset = SaveGetAsset(id)) {
+				return (float)asset->getWidth();
 			}
-			return width;
+			return 0.0f;
 		}
 		static inline float getHeight(uint64_t id) {
-			using namespace Stulu;
-			float height = 0.0f;
-			Stulu::Asset asset;
-			if (Stulu::AssetsManager::saveGetAndType(id, asset, Stulu::AssetType::Texture2D)) {
-				Ref<Stulu::Texture2D> texture = std::dynamic_pointer_cast<Stulu::Texture2D>(std::any_cast<Ref<Texture>>(asset.data));
-				if (texture) {
-					height = (float)texture->getHeight();
-				}
+			if (auto asset = SaveGetAsset(id)) {
+				return (float)asset->getHeight();
 			}
-			return height;
+			return 0.0f;
 		}
 		static inline MonoString* getPath(uint64_t id) {
-			using namespace Stulu;
-
-			std::string path = "";
-			Stulu::Asset asset;
-			if (Stulu::AssetsManager::saveGetAndType(id, asset, Stulu::AssetType::Texture2D)) {
-				Ref<Stulu::Texture2D> texture = std::dynamic_pointer_cast<Stulu::Texture2D>(std::any_cast<Ref<Texture>>(asset.data));
-				if (texture) {
-					path = texture->getPath();
-				}
+			if (auto asset = SaveGetAsset(id)) {
+				return Stulu::Mono::String::New(getCoreDomain(), asset.Path());
 			}
-			return mono_string_new(getCoreDomain(), path.c_str());
+			return Stulu::Mono::String::New(getCoreDomain(), "");
 		}
-		static inline uint64_t findByPath(MonoString* mono_path) {
-			const std::string path = mono_string_to_utf8(mono_path);
-			Stulu::UUID uuid = Stulu::AssetsManager::getFromPath((Stulu::Resources::AppAssetDir + "/" + path), Stulu::AssetType::Texture2D);
-			return uuid;
+		static inline uint64_t findByPath(Stulu::Mono::String mono_path) {
+			const std::string path = mono_path.ToUtf8();
+			auto* assetData = GetManager().GetFromPath(Stulu::Resources::AppAssetDir + "/" + path);
+			if (assetData) {
+				return assetData->GetUUID();
+			}
+			return Stulu::UUID::null;
 		}
 		static inline uint64_t getWhite() {
-			return Stulu::Resources::getWhiteTexture()->uuid;
+			return Stulu::Resources::UUIDWhiteTexture;
 		}
 		static inline uint64_t getBlack() {
-			return Stulu::Resources::getBlackTexture()->uuid;
+			return Stulu::Resources::UUIDBlackTexture;
+		}
+
+		static inline void GetTextureSettings(uint64_t id, Stulu::TextureSettings* outSettings) {
+			if (auto asset = SaveGetAsset(id)) {
+				*outSettings = asset->getSettings();
+			}
+		}			   
+		static inline void SetTextureSettings(uint64_t id, Stulu::TextureSettings* newSettings){
+			if (auto asset = SaveGetAsset(id)) {
+				bool needReload = asset->getSettings().format != newSettings->format;
+
+				// save new settings
+				asset->getSettings() = *newSettings;
+				asset.GetAsset()->Save();
+
+				if (!asset.IsMemoryLoaded() && needReload) {
+					asset.GetAsset()->Unload();
+					asset.GetAsset()->Load();
+				}
+				else {
+					asset->updateParameters();
+				}
+			}
 		}
 	};
 }

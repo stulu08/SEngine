@@ -4,18 +4,17 @@
 
 class APP_API ProjectLayer : public Stulu::SceneLayer {
 public:
-    virtual void Initlize(Stulu::Scene* scene) override {
-
+    virtual bool Initlize(Stulu::Scene* scene) override {
+        return true;
     }
 
 };
 
-class APP_API MyProject : public Stulu::Layer {
+class APP_API MyProject : public Stulu::Module {
 public:
 	virtual void onAttach() override {
         Stulu::EventCaller::RegisterLayer<ProjectLayer>();
-
-        Stulu::Component::Register<FreeCamera>("FreeCameraComponent");
+        Stulu::Component::Register<FreeCamera>("FreeCameraComponent", "FreeCameraComponent");
 	}
 	virtual void onUpdate(Stulu::Timestep ts) override {
 		
@@ -33,8 +32,7 @@ namespace Loader {
             CORE_ERROR("Instance has already been created!");
             return false;
         }
-        Instance = new MyProject();
-        Stulu::Application::get().pushLayer(Instance);
+        Stulu::Application::LoadModule<MyProject>();
         return true;
     }
     static bool Detach() {

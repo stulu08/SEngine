@@ -1,7 +1,7 @@
 #include "App.h"
 #include <Stulu/Core/EntryPoint.h>
 
-#include "Stulu/Scene/YAML.h"
+#include "Stulu/Serialization/YAML.h"
 
 Stulu::Application* Stulu::CreateApplication(int argc, char** argv) {
 	ApplicationInfo info;

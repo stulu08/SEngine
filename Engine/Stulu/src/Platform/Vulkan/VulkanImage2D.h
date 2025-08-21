@@ -7,10 +7,11 @@ namespace Stulu {
 	class STULU_API VulkanImage2D : public Texture2D {
 	public:
 		VulkanImage2D(uint32_t width, uint32_t height, const TextureSettings& settings);
-		VulkanImage2D(const std::string& path, const TextureSettings& settings = TextureSettings());
+		VulkanImage2D(const std::string& path, const TextureSettings& settings);
 
 		// internal for swap chain
-		inline VulkanImage2D(VkImageView view, uint32_t width, uint32_t height) :  m_imageView(view), m_image(nullptr), m_width(width), m_height(height) {}
+		inline VulkanImage2D(VkImageView view, uint32_t width, uint32_t height, TextureSettings settings) 
+			: m_imageView(view), m_settings(settings), m_image(nullptr), m_width(width), m_height(height) {}
 
 		virtual ~VulkanImage2D();
 
@@ -31,14 +32,20 @@ namespace Stulu {
 		virtual void getData(void* data, uint32_t size, uint32_t mipLevel = 0) const override;
 		virtual uint32_t getPixel(uint32_t posX, uint32_t posY, uint32_t mipLevel = 0) const override;
 
-		virtual void update() override;
+		virtual uint32_t GetArraySize() const override { return 1; }
+
+
 		virtual void updateParameters() override;
 
 		virtual bool operator == (const Texture& other) const override;
 		virtual operator int() override { return 0; }
 
-		//temp
-		virtual std::string getPath() const override { return m_path; }
+		virtual MSAASamples GetSamples() const override {
+			return MSAASamples::Disabled;
+		}
+		virtual void SetSamples(MSAASamples sampels) override {
+
+		}
 
 		// internal
 		void setSettings(const TextureSettings& settings) { m_settings = settings; }

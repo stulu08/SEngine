@@ -1,5 +1,6 @@
 #include "st_pch.h"
 #include "OpenGLBuffer.h"
+#include "OpenGLStateCache.h"
 #include <glad/glad.h>
 
 namespace Stulu {
@@ -66,7 +67,7 @@ namespace Stulu {
 		: m_size(size) {
 		glCreateBuffers(1, &m_rendererID);
 		glNamedBufferData(m_rendererID, size, nullptr, GL_DYNAMIC_DRAW);
-		glBindBufferBase(GL_UNIFORM_BUFFER, binding, m_rendererID);
+		OpenGLStateCache::BindUniformBuffer(binding, m_rendererID);
 	}
 	OpenGLUniformBuffer::~OpenGLUniformBuffer() {
 		glDeleteBuffers(1, &m_rendererID);
@@ -75,7 +76,7 @@ namespace Stulu {
 		glNamedBufferSubData(m_rendererID, offset, size, data);
 	}
 	void OpenGLUniformBuffer::bind(uint32_t binding) const {
-		glBindBufferBase(GL_UNIFORM_BUFFER, binding, m_rendererID);
+		OpenGLStateCache::BindUniformBuffer(binding, m_rendererID);
 	}
 
 	//------------//
@@ -85,7 +86,7 @@ namespace Stulu {
 		glCreateBuffers(1, &m_rendererID);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_rendererID);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, size, nullptr, BufferDrawModeToGl(m_mode));
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, m_rendererID);
+		OpenGLStateCache::BindStorageBuffer(binding, m_rendererID);
 	}
 	OpenGLShaderStorageBuffer::~OpenGLShaderStorageBuffer() {
 		glDeleteBuffers(1, &m_rendererID);
@@ -94,7 +95,7 @@ namespace Stulu {
 		glNamedBufferSubData(m_rendererID, offset, size, data);
 	}
 	void OpenGLShaderStorageBuffer::bind(uint32_t binding) const {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, m_rendererID);
+		OpenGLStateCache::BindStorageBuffer(binding, m_rendererID);
 	}
 
 	void OpenGLShaderStorageBuffer::getData(void* data, uint32_t size, uint32_t offset) const {

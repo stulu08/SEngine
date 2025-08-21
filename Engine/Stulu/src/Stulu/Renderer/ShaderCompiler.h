@@ -1,12 +1,13 @@
 #pragma once
-#include "Stulu/Core/Core.h"
+#include "Stulu/Core/Log.h"
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 namespace Stulu {
 	enum class ShaderType : uint32_t {
-		None, Vertex, Fragment, Compute
+		None, Vertex, Fragment, Geometry, Compute
 	};
 
 	inline ShaderType ShaderTypeFromString(std::string type) {
@@ -16,6 +17,8 @@ namespace Stulu {
 			return ShaderType::Vertex;
 		else if (type == "FRAGMENT" || type == "FRAG")
 			return ShaderType::Fragment;
+		else if (type == "GEOMETRY" || type == "GEOM")
+			return ShaderType::Geometry;
 		else if (type == "COMPUTE" || type == "COMP")
 			return ShaderType::Compute;
 
@@ -29,6 +32,8 @@ namespace Stulu {
 			return "vert";
 		case Stulu::ShaderType::Fragment:
 			return "frag";
+		case Stulu::ShaderType::Geometry:
+			return "geom";
 		case Stulu::ShaderType::Compute:
 			return "comp";
 		}
@@ -95,10 +100,10 @@ namespace Stulu {
 		virtual ~ShaderCompiler() = default;
 
 
-		virtual void Compile(const ShaderSource& sources, ShaderCompileResult& result) const = 0;
-		virtual void CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const = 0;
+		virtual bool Compile(const ShaderSource& sources, ShaderCompileResult& result) const = 0;
+		virtual bool CompileToCache(const ShaderSource& sources, const std::string& cacheFile, ShaderCompileResult& result) const = 0;
 
-		virtual void LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const = 0;
+		virtual bool LoadFromCache(const std::string& cacheFile, ShaderCompileResult& result) const = 0;
 		
 		virtual bool isCacheUpToDate(const std::string& cacheFile, const std::string& shaderSourceFile) const = 0;
 		

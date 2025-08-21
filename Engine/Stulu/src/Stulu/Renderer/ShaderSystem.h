@@ -1,27 +1,27 @@
 #pragma once
 #include "Shader.h"
 
+#include "Material/MaterialProperty.h"
+
 #include <map>
 
 namespace Stulu {
-	class STULU_API ShaderProperity;
-
 	class STULU_API ShaderEntry {
 	public:
 		ShaderEntry(const Ref<Shader>& shader, const std::string& path);
-		ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<ShaderProperity>>& props, const std::string& path);
+		ShaderEntry(const Ref<Shader>& shader, const std::vector<Ref<MaterialProperty>>& props, const std::string& path);
 
 		bool HasProperity(std::string name) const;
-		std::vector<Ref<ShaderProperity>>& GetProperities() { return m_props; }
-		const std::vector<Ref<ShaderProperity>>& GetProperities() const { return m_props; }
-		Ref<ShaderProperity> GetProperity(std::string name) const;
+		std::vector<Ref<MaterialProperty>>& GetProperities() { return m_props; }
+		const std::vector<Ref<MaterialProperty>>& GetProperities() const { return m_props; }
+		Ref<MaterialProperty> GetProperity(std::string name) const;
 
 		inline Ref<Shader> GetShader() const { return m_shader; }
 
 		inline std::string GetPath() const { return m_path; }
 	private:
 		Ref<Shader> m_shader;
-		std::vector<Ref<ShaderProperity>> m_props;
+		std::vector<Ref<MaterialProperty>> m_props;
 		std::string m_path;
 
 		friend class ShaderSystem;
@@ -35,9 +35,10 @@ namespace Stulu {
 		Ref<Shader> AddShader(const std::string& path);
 		void LoadAllShaders(const std::string& path);
 		
-		void ProcessShader(std::string& source) const;
+		// loads a file from the internal shader system or relative to the include directories
+		std::string LoadShaderSource(const std::string& shaderStr) const;
 
-		Ref<Shader> CreateShader(const std::string& name, const ShaderSource& source, const std::vector<Ref<ShaderProperity>>& properties = {}, const std::string& path = "");
+		Ref<Shader> CreateShader(const std::string& name, const ShaderSource& source, const std::vector<Ref<MaterialProperty>>& properties = {}, const std::string& path = "");
 
 		inline Ref<Shader> CreateShader(const std::string& name, const std::string& vertex, const std::string& fragment) {
 			return CreateShader(name, ShaderSource{ vertex, fragment });
@@ -48,8 +49,20 @@ namespace Stulu {
 		inline void AddInternalIncludeFile(const std::string& name, const std::string& content) { m_internalFiles[name] = content; }
 		inline void AddIncludePath(const std::string& path) { m_includeDirs.push_back(path); }
 
-		inline Ref<ShaderEntry> GetEntry(const std::string& name) const { return m_shaders.at(name); }
-		inline Ref<Shader> GetShader(const std::string& name) const { return m_shaders.at(name)->GetShader(); }
+		inline Ref<ShaderEntry> GetEntry(const std::string& name) const {
+			if(m_shaders.find(name) != m_shaders.end())
+				return m_shaders.at(name);
+
+			CORE_ERROR("Shader {0} not found!", name);
+			return nullptr;
+		}
+		inline Ref<Shader> GetShader(const std::string& name) const { 
+			if (m_shaders.find(name) != m_shaders.end())
+				return m_shaders.at(name)->GetShader();
+
+			CORE_ERROR("Shader {0} not found!", name);
+			return nullptr;
+		}
 
 		inline void RemoveShader(const std::string& name) { m_shaders.erase(name); }
 
@@ -69,88 +82,27 @@ namespace Stulu {
 			return m_cacheFolder + "/" + name + ".cached-shader";
 		}
 	private:
-		std::string GetShaderName(const std::string& source) const;
-		std::vector<Ref<ShaderProperity>> ProcessProperties(std::string& source) const;
-		ShaderSource ProcessRegions(std::string& source) const;
-
 		Ref<ShaderCompiler> m_compiler;
 		std::string m_cacheFolder;
 		std::map<std::string, Ref<ShaderEntry>> m_shaders;
 		std::vector<std::string> m_includeDirs;
 		std::unordered_map<std::string, std::string> m_internalFiles;
 		bool m_spirvSupported;
-	};
 
-	class STULU_API ShaderProperity {
-	public:
-		enum class Type {
-			None, Color, Range, Enum, Marker
+		struct ShaderIncludeNode {
+			std::string filename;
+			std::vector<std::string> lines;
+			std::vector<std::pair<size_t, ShaderIncludeNode>> includes;
 		};
-		virtual Type getType() const = 0;
-		virtual std::string getName() const = 0;
 
-		static Type TypeFromString(const std::string& str);
+		std::string ProcessShader(const std::string& fileName) const;
+		ShaderIncludeNode ParseShaderIncludeTree(const std::string& filepath) const;
+		void FlattenShaderInclude(const ShaderIncludeNode& node, std::ostream& out, const std::string& indent = "") const;
+
+		std::string GetShaderName(const std::string& source) const;
+		std::vector<Ref<MaterialProperty>> ProcessProperties(std::string& source) const;
+		ShaderSource ProcessRegions(std::string& source) const;
 	};
-
-	class STULU_API ShaderProperityRange : public ShaderProperity {
-	public:
-		ShaderProperityRange(const std::string& name, const std::string& values);
-		ShaderProperityRange(const std::string& name, const float min, const float max)
-			: m_name(name), m_min(min), m_max(max) {}
-
-		float getMin() const { return m_min; }
-		float getMax() const { return m_max; }
-
-		virtual Type getType() const override { return Type::Range; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		float m_min = .01f, m_max = 1.0f;
-	};
-	class STULU_API ShaderProperityColor : public ShaderProperity {
-	public:
-		ShaderProperityColor(const std::string& name, const std::string& values);
-		ShaderProperityColor(const std::string& name, bool hdr)
-			: m_name(name), m_hdr(hdr) {}
-
-		bool isHDR() const { return m_hdr; }
-
-		virtual Type getType() const override { return Type::Color; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		bool m_hdr = false;
-	};
-	class STULU_API ShaderProperityEnum : public ShaderProperity {
-	public:
-		ShaderProperityEnum(const std::string& name, const std::string& values);
-		ShaderProperityEnum(const std::string& name, const std::vector<std::string>& names)
-			: m_name(name), m_names(names) {}
-
-		const std::vector<std::string>& getNames() const { return m_names; };
-
-		virtual Type getType() const override { return Type::Enum; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		std::vector<std::string> m_names;
-	};
-	class STULU_API ShaderProperityMarker : public ShaderProperity {
-	public:
-		ShaderProperityMarker(const std::string& name, const std::string& text);
-
-		const std::string& getText() const { return m_text; }
-
-		virtual Type getType() const override { return Type::Marker; }
-		virtual std::string getName() const override { return m_name; }
-	private:
-		std::string m_name;
-		std::string m_text;
-	};
-
-#define ST_USER_TEXTURE_START 5
-#define ST_USER_TEXTURE_END 15
-#define ST_USER_TEXTURE_COUNT (ST_USER_TEXTURE_END - ST_USER_TEXTURE_START)
 
 #define ST_ShaderViewFlags_DisplayLighting ((uint32_t)ShaderViewFlags::DisplayLighting)
 #define ST_ShaderViewFlags_DisplayDiffuse ((uint32_t)ShaderViewFlags::DisplayDiffuse)
@@ -162,8 +114,13 @@ namespace Stulu {
 #define ST_ShaderViewFlags_DisplayTexCoords ((uint32_t)ShaderViewFlags::DisplayTexCoords)
 #define ST_ShaderViewFlags_DisplayVertices ((uint32_t)ShaderViewFlags::DisplayVertices)
 #define ST_ShaderViewFlags_DisplayEmission ((uint32_t)ShaderViewFlags::DisplayEmission)
+#define ST_ShaderViewFlags_DisplayOcclusion ((uint32_t)ShaderViewFlags::DisplayAmbientOcclusion)
 #define ST_ShaderViewFlags_DisplayDepth ((uint32_t)ShaderViewFlags::DisplayDepth)
 	static inline constexpr int32_t ST_MAXLIGHTS = 50;
+	// how my shadow casters 
+	static inline constexpr int32_t ST_MAX_SHADOW_CASTERS = 50;
+
+	static inline constexpr int32_t ST_MAX_SHADOW_CASCADES = 6;
 
 	enum class ShaderViewFlags {
 		DisplayLighting = 1 << 0,
@@ -177,7 +134,8 @@ namespace Stulu {
 		DisplayTexCoords = 1 << 7,
 		DisplayVertices = 1 << 8,
 		DisplayEmission = 1 << 9,
-		DisplayDepth = 1 << 10,
+		DisplayAmbientOcclusion = 1 << 10,
+		DisplayDepth = 1 << 11,
 	};
 }
 

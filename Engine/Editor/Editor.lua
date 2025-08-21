@@ -34,16 +34,14 @@ project "Editor"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yaml_cpp}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.premake}",
-		"%{IncludeDir.Discord}",
+		"%{IncludeDir.premake}"
 	}
 	links
 	{
 		"Stulu", 
 		"Premake5",
 		"ImGui",
-		"yaml-cpp",
-		"Discord C++ Game SDK",
+		"yaml-cpp"
 	}
 	prebuildcommands {
 		"{RMDIR} \"" .. BuildDir .. "/Editor/\"",
@@ -51,8 +49,6 @@ project "Editor"
 		"{RMDIR} \"%{ProjectDir.Editor}/LooseFiles/Data/Stulu/Shader/Stulu/Editor\"",
 		"{MKDIR} \"%{ProjectDir.Editor}/LooseFiles/Data/Stulu/Shader/Stulu/Editor\"",
 		"{COPYDIR} \"%{ProjectDir.Editor}/src/Shader/Stulu/Editor\" \"%{ProjectDir.Editor}/LooseFiles/Data/Stulu/Shader/Stulu/Editor\"",
-		-- copy discord game sdk dll
-		"{COPYFILE} \"%{LibraryDir.Discord}/%{Library.Discord}\" \"%{ProjectDir.Editor}/LooseFiles/%{Library.Discord}\"",
 	}
 
 	postbuildcommands {

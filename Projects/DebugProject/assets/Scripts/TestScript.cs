@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 
 public class TestScript : Component {
 	[ShowInEditor]
-	public Texture2D texture;
+	public GameObject camera;
 	[ShowInEditor]
 	public Vector4 color = Color.Cyan;
 
@@ -18,11 +18,12 @@ public class TestScript : Component {
 	public override void onUpdate() {
 	}
 	public override void onRender2D() {
-		//if (camera != null) {
-		//	Graphics2D.drawLine(transform.worldPosition, camera.transform.worldPosition, color);
-		//}
 	}
 	public override void onDrawGizmos() {
+	if (camera != null)
+	{
+		Graphics2D.drawLine(transform.worldPosition, camera.transform.worldPosition, color);
 
+		}
 	}
 }

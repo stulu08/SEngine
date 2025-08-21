@@ -26,12 +26,12 @@ namespace Stulu {
 	}
 
 	void RuntimeLayer::onUpdate(Timestep timestep) {
-		m_activeScene->onUpdateRuntime(timestep);
+		m_activeScene->onUpdateRuntime();
 		//draw texture to screen
 		{
 			m_activeScene->getRenderer()->GenSceneTexture(m_frameBuffer);
 
-			const auto& shader = Resources::getFullscreenShader();
+			const auto& shader = Resources::FullscreenShader();
 			const auto& vao = Resources::getFullscreenVA();
 			const float z = -1.0f;
 
@@ -67,15 +67,14 @@ namespace Stulu {
 			return;
 		}
 		Ref<Scene> nScene = createRef<Scene>();
-		SceneSerializer ss(nScene);
-		if (ss.deSerialze(path)) {
+		SceneSerializer ss(nScene.get());
+		if (ss.Deserialze(path)) {
 
 			if (m_activeScene)
 				m_activeScene->onRuntimeStop();
 
 			m_activeScene = nScene;
 			onResize(WindowResizeEvent(Application::get().getWidth(), Application::get().getHeight()));
-			Scene::setActiveScene(m_activeScene.get());
 			onRuntimeStart();
 			ST_TRACE("Opened Scene {0}", path);
 		}
@@ -87,14 +86,15 @@ namespace Stulu {
 	void RuntimeLayer::newScene() {
 		if (m_activeScene)
 			m_activeScene->onRuntimeStop();
+
 		m_activeScene = createRef<Scene>();
 		onResize(WindowResizeEvent(Application::get().getWidth(), Application::get().getHeight()));
-		Scene::setActiveScene(m_activeScene.get());
 		onRuntimeStart();
 		ST_TRACE("New Scene loaded");
 	}
 	void RuntimeLayer::onRuntimeStart() {
 		Time::Scale = 1.0f;
+		StuluBindings::SetCurrentRegistry(m_activeScene.get());
 		m_activeScene->onRuntimeStart();
 	}
 	void RuntimeLayer::onRuntimeStop() {

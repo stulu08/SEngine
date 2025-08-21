@@ -2,6 +2,7 @@
 #include "OpenGLRenderAPI.h"
 #include <stb_image.h>
 #include <glad/glad.h>
+#include "OpenGLStateCache.h"
 
 namespace Stulu {
 	//https://www.khronos.org/opengl/wiki/Debug_Output
@@ -37,11 +38,11 @@ namespace Stulu {
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-		glStencilMask(0x00);
-
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 		setDefault();
+
+
 #ifdef ST_GRAPHICS_API_DEBUG_LOGGING
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -59,87 +60,98 @@ namespace Stulu {
 	}
 
 	void OpenGLRenderAPI::setDefault() {
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glEnable(GL_DEPTH_TEST);
+		OpenGLStateCache::Reset();
+
+		setCullMode(CullMode::BackAndFront);
+		setDepthTesting(true);
+		glDepthFunc(GL_LESS);
+
+		StencilAlways(0xFF, 0);
+		SetStencilValue(0x00);
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDepthFunc(GL_LESS);
+
 		glLineWidth(1.0f);
+
+		
+
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 		glViewport(x, y, width, height);
 	}
 	void OpenGLRenderAPI::setWireFrame(bool value) {
-		//glPolygonMode(GL_FRONT, value ? GL_LINE : GL_FILL);
-		//glPolygonMode(GL_BACK, value ? GL_LINE : GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, value ? GL_LINE : GL_FILL);
 	}
 
 	void OpenGLRenderAPI::setCullMode(CullMode v) {
 		switch (v)
 		{
 		case Stulu::CullMode::Back:
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
+			OpenGLStateCache::SetCullFace(GL_BACK);
 			break;
 		case Stulu::CullMode::Front:
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
+			OpenGLStateCache::SetCullFace(GL_FRONT);
 			break;
 		case Stulu::CullMode::BackAndFront:
-			glDisable(GL_CULL_FACE);
+			OpenGLStateCache::SetCullFace(GL_FRONT_AND_BACK);
 			break;
 		}
 	}
 	//will make this more usefull but this is enough for now
-	void OpenGLRenderAPI::setStencil(StencilMode v) {
-		switch (v)
-		{
-		case Stulu::StencilMode::DisableWriting:
-			glStencilMask(0x00);
-			break;
-		case Stulu::StencilMode::WriteToBuffer:
-			glStencilMask(0xFF);
-			glClear(GL_STENCIL_BUFFER_BIT);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			break;
-		case Stulu::StencilMode::BeginDrawFromBuffer:
-			glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-			glStencilMask(0x00);
-			glDisable(GL_DEPTH_TEST);
-			setCullMode(CullMode::BackAndFront);
-			break;
-		case Stulu::StencilMode::EndDrawFromBuffer:
-			glStencilMask(0xFF);
-			glStencilFunc(GL_ALWAYS, 1, 0xFF);
-			glEnable(GL_DEPTH_TEST);
-			break;
-		}
+	void OpenGLRenderAPI::StencilNotEqual(uint8_t val, uint8_t ref) {
+		glStencilFunc(GL_NOTEQUAL, ref, val);
+	}
+
+	void OpenGLRenderAPI::SetStencilValue(uint8_t value) {
+		OpenGLStateCache::StencilMask(value);
+	}
+
+	void OpenGLRenderAPI::StencilAlways(uint8_t value, uint8_t ref) {
+		glStencilFunc(GL_ALWAYS, ref, value);
 	}
 
 	void OpenGLRenderAPI::setDepthTesting(bool v) {
-		if(v)
+		if (v) {
 			glEnable(GL_DEPTH_TEST);
-		else
+		}
+		else {
 			glDisable(GL_DEPTH_TEST);
+		}
 	}
 
 	void OpenGLRenderAPI::setClearColor(const glm::vec4& color) {
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 	void OpenGLRenderAPI::clear() {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		OpenGLStateCache::StencilMask(0xFF);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
-	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count, const uint32_t instanceCount) {
+	void OpenGLRenderAPI::drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t instanceCount) {
 		vertexArray->bind();
-		uint32_t _count = count ? count : vertexArray->getIndexBuffer()->getCount();
-		if(instanceCount < 1)
-			glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
-		else
-			glDrawElementsInstanced(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr, instanceCount);
+		const uint32_t count = indicesCount ? indicesCount : vertexArray->getIndexBuffer()->getCount();
+
+		if (instanceCount > 1) {
+			glDrawElementsInstanced(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, instanceCount);
+		}
+		else {
+			glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+		}
 	}
+
+	void OpenGLRenderAPI::drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset, const uint32_t instanceCount) {
+		vertexArray->bind();
+
+		if (instanceCount > 1) {
+			glDrawElementsInstanced(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)), instanceCount);
+		}
+		else {
+			glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(uint32_t)));
+		}
+	}
+
 	void OpenGLRenderAPI::drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count) {
 		vertexArray->bind();
 		glDrawArrays(GL_LINES, 0, count);

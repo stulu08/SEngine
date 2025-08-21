@@ -2,17 +2,16 @@
 #include "Renderer.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 #include "Stulu/Renderer/Renderer2D.h"
-#include "Stulu/Core/Resources.h"
+#include "Stulu/Resources/Resources.h"
 #include "Stulu/Core/Application.h"
 
 namespace Stulu {
 
 	Renderer::Data Renderer::s_data;
-
 	void Renderer::init() {
 		s_data.shaderSystem = createScope<ShaderSystem>();
 		// .../ShaderCache/{API-ID}/...
-		std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
+		std::string shaderCache = Application::get().getApplicationInfo().AppCachePath + "/ShaderCache/API-" + std::to_string((int)s_data.api) + "/";
 		s_data.shaderSystem->SetCacheFolder(shaderCache);
 		s_data.shaderSystem->LoadAllShaders(Resources::EngineDataDir + "/Stulu/Shader");
 
@@ -24,7 +23,7 @@ namespace Stulu {
 				s_data.lightDataUniformBuffer = UniformBuffer::create(sizeof(LightBufferData), (uint32_t)BufferBinding::Light);
 
 			if (s_data.postProcessingDataUniformBuffer == nullptr)
-				s_data.postProcessingDataUniformBuffer = UniformBuffer::create(sizeof(PostProcessingBufferData), (uint32_t)BufferBinding::PostProcessing);
+				s_data.postProcessingDataUniformBuffer = UniformBuffer::create(2048 /* should be enough */, (uint32_t)BufferBinding::PostProcessing);
 
 			if (s_data.sceneDataUniformBuffer == nullptr)
 				s_data.sceneDataUniformBuffer = UniformBuffer::create(sizeof(SceneBufferData), (uint32_t)BufferBinding::Scene);
@@ -38,11 +37,15 @@ namespace Stulu {
 			Renderer2D::init();
 		}
 	}
+	void Renderer::Shutdown() {
+		Renderer2D::shutdown();
+		s_data = Data();
+	}
 	void Renderer::onWindowResize(WindowResizeEvent& e) {
 		RenderCommand::setViewport(0, 0, e.getWidth(), e.getHeight());
 	}
 
-	void Renderer::ScreenQuad(const Ref<FrameBuffer>& destination, const Ref<Shader>& shader)  {
+	void Renderer::ScreenQuad(const Ref<FrameBuffer>& destination, const Shader* shader, const glm::vec4& userData)  {
 		if (!destination) {
 			CORE_ASSERT(false, "Renderer::ScreenQuad no destination provided");
 			return;
@@ -51,48 +54,55 @@ namespace Stulu {
 			CORE_ASSERT(false, "Renderer::ScreenQuad no shader provided");
 			return;
 		}
-
+		
 
 		shader->bind();
 
-		float z = -1.0f;
-		Renderer::getBuffer(BufferBinding::Model)->setData(&z, sizeof(float));
+		struct Data{
+			glm::vec4 userData = glm::vec4(0.0);
+			float z = -1.0f;
+			uint32_t pixelWidth = 1;
+			uint32_t pixelHeight = 1;
+		}data;
+		data.pixelWidth = destination->getSpecs().width;
+		data.pixelHeight = destination->getSpecs().height;
+		data.userData = userData;
 
+		Renderer::getBuffer(BufferBinding::Model)->setData(&data, sizeof(Data));
+		RenderCommand::setCullMode(CullMode::Back);
+
+		RenderCommand::setDepthTesting(false);
 		destination->bind();
 		RenderCommand::drawIndexed(Resources::getFullscreenVA(), 0);
 		destination->unbind();
+		RenderCommand::setDepthTesting(true);
 	}
 
-	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, uint32_t count) {
-		if (shader)
-			shader->bind();
-
-		static struct data { glm::mat4 normal; glm::mat4 transform; } data;
-		data.transform = transform;
-		data.normal = glm::transpose(glm::inverse(transform));
-		s_data.modelDataUniformBuffer->setData(&data, sizeof(data));
-
-		RenderCommand::drawIndexed(vertexArray, count);
+	void Renderer::UploadModelData(const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t id) {
+		static StaticModelDataBuffer buffer;
+		buffer.transform = transform;
+		buffer.normal = normalMatrix;
+		buffer.entityID = *reinterpret_cast<glm::vec4*>(&id);
+		s_data.modelDataUniformBuffer->setData(&buffer, sizeof(buffer));
 	}
-	void Renderer::submit(const Ref<VertexArray>& vertexArray, const Ref<Shader>& shader, const glm::mat4& transform, const glm::mat4& normalMatrix, uint32_t count) {
-		if (shader)
-			shader->bind();
+	void Renderer::UploadModelData(const SharedModelDataBuffer& buffer, size_t size) {
+		s_data.modelDataUniformBuffer->setData(&buffer, sizeof(buffer));
+	}
 
-		static struct data { glm::mat4 normal; glm::mat4 transform; } data;
-		data.transform = transform;
-		data.normal = normalMatrix;
-		s_data.modelDataUniformBuffer->setData(&data, sizeof(data));
+	void Renderer::RenderSkyBoxCube() {
+		RenderCommand::setCullMode(CullMode::BackAndFront);
+		RenderCommand::drawIndexed(Resources::CubeMesh()->GetVertexArray());
+	}
 
-		RenderCommand::drawIndexed(vertexArray, count);
+	void Renderer::BlibRenderBuffferToResultBuffer(
+		const Ref<FrameBuffer>& renderBuffer, const Ref<FrameBuffer>& resultBuffer,
+		bool BlibColor, bool BlibDepth, bool BlibStencil) {
+		
+		renderBuffer->BlitToOther(resultBuffer, BlibColor, BlibDepth, BlibStencil);
 	}
 
 	void Renderer::uploadCameraBufferData(const CameraBufferData& data) {
 		uploadBufferData(BufferBinding::Camera, &data, sizeof(data), 0);
-	}
-	void Renderer::uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& transform, float z_near, float z_far) {
-		glm::vec3 pos, rot, scale;
-		Math::decomposeTransformEuler(transform, pos, rot, scale);
-		uploadCameraBufferData(projection, glm::inverse(transform), pos, rot, z_near, z_far);
 	}
 	void Renderer::uploadCameraBufferData(const glm::mat4& projection, const glm::mat4& view, const glm::vec3 position, const glm::vec3 rotation, float z_near, float z_far) {
 		static CameraBufferData cameraData;

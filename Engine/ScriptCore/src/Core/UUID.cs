@@ -1,8 +1,12 @@
 ﻿#pragma warning disable 1591
 using System;
+using System.Runtime.InteropServices;
 
 namespace Stulu {
+	[StructLayout(LayoutKind.Explicit, Size = 8)]
 	public struct UUID {
+		public static UUID Null = 0;
+
 		public UUID(UInt64 id) {
 			this.ID = id;
 		}
@@ -17,6 +21,8 @@ namespace Stulu {
 			return ID.ToString();
 		}
 
-		UInt64 ID;
+		[MarshalAs(UnmanagedType.U8)]
+		[FieldOffset(0)]
+		public UInt64 ID;
 	}
 }

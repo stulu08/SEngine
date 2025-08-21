@@ -3,14 +3,15 @@
 
 #include <glad/glad.h>
 #include <stb_image.h>
-#include <Stulu/Core/Resources.h>
+#include <Stulu/Resources/Resources.h>
 #include <Stulu/Renderer/RenderCommand.h>
 #include <Stulu/Renderer/Renderer.h>
 #include "OpenGlTexture.h"
+#include "OpenGLStateCache.h"
 
 //https://learnopengl.com/PBR/IBL/Specular-IBL
 namespace Stulu {
-	void renderCube();
+
 	static glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 	static glm::mat4 captureViews[] =
 	{
@@ -180,7 +181,7 @@ namespace Stulu {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_envCubemap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			renderCube();
+			Renderer::RenderSkyBoxCube();
 		}
 		glDeleteTextures(1, &m_hdrTexture);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -238,7 +239,7 @@ namespace Stulu {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_irradianceMap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			renderCube();
+			Renderer::RenderSkyBoxCube();
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -286,7 +287,7 @@ namespace Stulu {
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_prefilterMap, mip);
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				renderCube();
+				Renderer::RenderSkyBoxCube();
 			}
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -298,29 +299,22 @@ namespace Stulu {
 	}
 
 	void OpenGLSkyBox::bind(uint32_t slot) const {
-		bindEnviromente(slot);
-		bindIrradiance(slot+1);
-		bindPrefilter(slot+2);
-		bindBRDFLUT(slot+3);
+		bindEnviromente(slot + ST_SKYBOX_TEXTURE_BIND_ENV_OFF);
+		bindIrradiance(slot + ST_SKYBOX_TEXTURE_BIND_IRR_OFF);
+		bindPrefilter(slot + ST_SKYBOX_TEXTURE_BIND_PRE_OFF);
+		bindBRDFLUT(slot + ST_SKYBOX_TEXTURE_BIND_BRD_OFF);
 	}
 	void OpenGLSkyBox::bindEnviromente(uint32_t slot) const {
-		glBindTextureUnit(slot, m_envCubemap);
+		OpenGLStateCache::BindTextureUnit(slot, m_envCubemap);
 	}
 	void OpenGLSkyBox::bindIrradiance(uint32_t slot) const {
-		glBindTextureUnit(slot, m_irradianceMap);
+		OpenGLStateCache::BindTextureUnit(slot, m_irradianceMap);
 	}
 	void OpenGLSkyBox::bindPrefilter(uint32_t slot) const {
-		glBindTextureUnit(slot, m_prefilterMap);
+		OpenGLStateCache::BindTextureUnit(slot, m_prefilterMap);
 	}
 	void OpenGLSkyBox::bindBRDFLUT(uint32_t slot) const {
-		glBindTextureUnit(slot, m_brdfLUT);
-	}
-
-	void OpenGLSkyBox::draw() const {
-		glDepthFunc(GL_LEQUAL);
-		glCullFace(GL_BACK);
-		renderCube();
-		glDepthFunc(GL_LESS);
+		OpenGLStateCache::BindTextureUnit(slot, m_brdfLUT);
 	}
 
 	bool OpenGLSkyBox::operator==(const Texture& other) const {
@@ -334,7 +328,7 @@ namespace Stulu {
 
 		bool hasMips = m_settings.filtering == TextureFiltering::Linear || m_settings.levels > 1;
 
-		auto [internalformat, dataformat] = TextureFormatToGLenum(m_settings.format, 4);
+		auto [internalformat, dataformat] = TextureFormatToGLenum(m_settings.format);
 
 
 		for (uint32_t i = 0; i < 6; i++)
@@ -362,14 +356,7 @@ namespace Stulu {
 	}
 
 	void OpenGLCubeMap::bind(uint32_t slot) const {
-		glBindTextureUnit(slot, m_map);
-	}
-
-	void OpenGLCubeMap::draw() const {
-		glDepthFunc(GL_LEQUAL);
-		glCullFace(GL_BACK);
-		renderCube();
-		glDepthFunc(GL_LESS);
+		OpenGLStateCache::BindTextureUnit(slot, m_map);
 	}
 
 	void OpenGLCubeMap::genMips() const {
@@ -429,7 +416,7 @@ namespace Stulu {
 				shader->setMat("view", captureViews[i]);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_prefilterMap->m_map, mip);
 				RenderCommand::clear();
-				renderCube();
+				Renderer::RenderSkyBoxCube();
 				if (side != 6) {
 					break;
 				}
@@ -482,89 +469,13 @@ namespace Stulu {
 		glDeleteFramebuffers(1, &captureFBO);
 		glDeleteRenderbuffers(1, &captureRBO);
 
-		TextureSettings settings;
-		settings.format = TextureFormat::RG;
+		TextureSettings settings = TextureFormat::RG;
 		settings.wrap = TextureWrap::ClampToEdge;
-
-		return createRef<OpenGLTexture2D>(texture, resolution, resolution, settings);
+		return createRef<OpenGLTexture2D>(resolution, resolution, settings, MSAASamples::Disabled, 1, texture);
 	}
 
-	void renderCube() {
-		static Ref<VertexArray> s_cubeVAO = nullptr;
-		if (!s_cubeVAO) {
-			std::vector<Vertex> vertices{
-				//top
-				{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//bottom														 		 
-				{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//right															 		 
-				{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//left															 		 
-				{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec2(1.0f, 1.0f)},
-				//front															 		 
-				{glm::vec3(-1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f,  1.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec2(1.0f, 1.0f)},
-				//back															 		 
-				{glm::vec3(-1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-				{glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-				{glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
-				{glm::vec3(1.0f,  1.0f, -1.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
-			};
-			std::vector<uint32_t> indices{
-				//top
-				0,1,2,
-				2,3,0,
-				//bottom
-				6,5,4,
-				4,7,6,
-				//right
-				8,9,10,
-				10,11,8,
-				//left
-				14,13,12,
-				12,15,14,
-				//front
-				18,17,16,
-				16,19,18,
-				//back
-				20,21,22,
-				22,23,20
-			};
-
-
-			Stulu::Ref<Stulu::VertexBuffer> vertexBuffer;
-			Stulu::Ref<Stulu::IndexBuffer> indexBuffer;
-
-			s_cubeVAO = Stulu::VertexArray::create();
-			vertexBuffer = Stulu::VertexBuffer::create((uint32_t)(vertices.size() * sizeof(Vertex)), &vertices[0]);
-			vertexBuffer->setLayout(BufferLayout{
-				{ Stulu::ShaderDataType::Float3, "a_pos" },
-				{ Stulu::ShaderDataType::Float3, "a_normal" },
-				{ Stulu::ShaderDataType::Float2, "a_texCoord" },
-				{ Stulu::ShaderDataType::Float4, "a_color" },
-				});
-			s_cubeVAO->addVertexBuffer(vertexBuffer);
-			indexBuffer = Stulu::IndexBuffer::create((uint32_t)indices.size(), indices.data());
-			s_cubeVAO->setIndexBuffer(indexBuffer);
-		}
-		s_cubeVAO->bind();
-		glDrawElements(GL_TRIANGLES, s_cubeVAO->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
-		glBindVertexArray(0);
-	}
+	uint32_t OpenGLSkyBox::s_quadVAO = 0;
+	uint32_t OpenGLSkyBox::s_quadVBO = 0;
 	void OpenGLSkyBox::renderQuad() {
 		if (s_quadVAO == 0)
 		{
@@ -578,7 +489,7 @@ namespace Stulu {
 			// setup plane VAO
 			glGenVertexArrays(1, &s_quadVAO);
 			glGenBuffers(1, &s_quadVBO);
-			glBindVertexArray(s_quadVAO);
+			OpenGLStateCache::BindVertexArray(s_quadVAO);
 			glBindBuffer(GL_ARRAY_BUFFER, s_quadVBO);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
 			glEnableVertexAttribArray(0);
@@ -587,35 +498,35 @@ namespace Stulu {
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 		}
 		glDisable(GL_BLEND);
-		glBindVertexArray(s_quadVAO);
+		OpenGLStateCache::BindVertexArray(s_quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		glBindVertexArray(0);
+		OpenGLStateCache::BindVertexArray(0);
 		glEnable(GL_BLEND);
 	}
 
 	Ref<Shader> OpenGLSkyBox::getEquirectangularToCubemapShader() {
-		static Ref<Shader> shader;
+		Ref<Shader> shader;
 		if (!shader) {
 			shader = Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/EquirectangularToCubemap");
 		}
 		return shader;
 	}
 	Ref<Shader> OpenGLSkyBox::getIrradianceShader() {
-		static Ref<Shader> shader;
+		Ref<Shader> shader;
 		if (!shader) {
 			shader = Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/Irradiance");
 		}
 		return shader;
 	}
 	Ref<Shader> OpenGLSkyBox::getPrefilterShader() {
-		static Ref<Shader> shader;
+		Ref<Shader> shader;
 		if (!shader) {
 			shader = Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/Prefilter");
 		}
 		return shader;
 	}
 	Ref<Shader> OpenGLSkyBox::getBRDFLUTShader() {
-		static Ref<Shader> shader;
+		Ref<Shader> shader;
 		if (!shader) {
 			shader = Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/BRDFLUT");
 		}

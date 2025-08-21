@@ -57,10 +57,13 @@ namespace Stulu {
 		virtual void setWireFrame(bool v) override;
 		virtual void setClearColor(const glm::vec4& color) override;
 		virtual void setDepthTesting(bool value) override;
-		virtual void setStencil(StencilMode v) override;
+		virtual void StencilNotEqual(uint8_t val, uint8_t ref) override;
+		virtual void SetStencilValue(uint8_t value) override;
+		virtual void StencilAlways(uint8_t value, uint8_t ref) override;
 		virtual void setCullMode(CullMode v) override;
 		virtual void clear() override;
-		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t count = 0, const uint32_t instanceCount = 0) override;
+		virtual void drawIndexed(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount = 0, const uint32_t instanceCount = 0);
+		virtual void drawIndexedSubMesh(const Ref<VertexArray>& vertexArray, const uint32_t indicesCount, const uint32_t indexOffset, const uint32_t vertexOffset = 0, const uint32_t instanceCount = 0);
 		virtual void drawLines(const Ref<VertexArray>& vertexArray, const uint32_t count = 0) override;
 
 		virtual const glm::ivec3 getMaxComputeWorkGroupCount() const override { return { 0,0,0 }; }

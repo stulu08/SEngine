@@ -18,7 +18,6 @@ namespace Stulu {
 		delete application;
 		CORE_INFO("Ended");
 		ST_FILE_PROFILING_END();
-
 		return 0;
 	}
 }

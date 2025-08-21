@@ -23,24 +23,25 @@ namespace Stulu {
 		m_selfInitilized = false;
 		m_graphicsContext = nullptr;
 		m_window = (GLFWwindow*)glfwWindowPtr;
-		m_runtimeData = new WindowProps();
+
+		m_runtimeData = WindowProps();
 		int width, height;
 		glfwGetWindowSize(m_window, &width, &height);
-		m_runtimeData->width = width;
-		m_runtimeData->height = height;
-		m_runtimeData->VSync = false;
+		m_runtimeData.width = width;
+		m_runtimeData.height = height;
+		m_runtimeData.VSync = false;
 	}
 
-	WindowsWindow::WindowsWindow(WindowProps& props) {
+	WindowsWindow::WindowsWindow(const WindowProps& props) 
+		: m_runtimeData(props) {
 		m_selfInitilized = true;
-		init(props);
+		init();
 	}
 	WindowsWindow::~WindowsWindow() { shutDown(); }
 
 
-	void WindowsWindow::init(WindowProps& props) {
-		m_runtimeData = &props;
-		CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
+	void WindowsWindow::init() {
+		CORE_INFO("Creating window {0} ({1}, {2})", m_runtimeData.title, m_runtimeData.width, m_runtimeData.height);
 
 		if (!s_glfwInitilized) {
 
@@ -69,10 +70,12 @@ namespace Stulu {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		}
 		m_graphicsContext = GraphicsContext::create();
-		m_window = glfwCreateWindow((int)props.width, (int)props.height, props.title.c_str(), nullptr, nullptr);
+		m_window = glfwCreateWindow((int)m_runtimeData.width, (int)m_runtimeData.height, m_runtimeData.title.c_str(), nullptr, nullptr);
 		m_graphicsContext->init(this);
 
-		glfwSetWindowUserPointer(m_window, m_runtimeData);
+		m_graphicsContext->setVSync(m_runtimeData.VSync);
+
+		glfwSetWindowUserPointer(m_window, &m_runtimeData);
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			WindowProps& data = *(WindowProps*)glfwGetWindowUserPointer(window);
 			data.width = width;
@@ -156,21 +159,19 @@ namespace Stulu {
 	}
 	uint32_t WindowsWindow::getWidth() const {
 		if (!m_selfInitilized) {
-			int width, height;
-			glfwGetWindowSize(m_window, &width, &height);
-			m_runtimeData->width = width;
-			m_runtimeData->height = height;
+			int width;
+			glfwGetWindowSize(m_window, &width, NULL);
+			return width;
 		}
-		return m_runtimeData->width;
+		return m_runtimeData.width;
 	}
 	uint32_t WindowsWindow::getHeight() const {
 		if (!m_selfInitilized) {
-			int width, height;
-			glfwGetWindowSize(m_window, &width, &height);
-			m_runtimeData->width = width;
-			m_runtimeData->height = height;
+			int height;
+			glfwGetWindowSize(m_window, NULL, &height);
+			return height;
 		}
-		return m_runtimeData->height;
+		return m_runtimeData.height;
 	}
 
 	void WindowsWindow::setWindowIcon(const std::string& path) {
@@ -191,12 +192,12 @@ namespace Stulu {
 	}
 	void WindowsWindow::setWindowTitle(const std::string& title) {
 		glfwSetWindowTitle(m_window, title.c_str());
-		m_runtimeData->title = title;
+		m_runtimeData.title = title;
 	}
 	void WindowsWindow::setVSync(bool enabled) {
 		if (m_graphicsContext)
 			m_graphicsContext->setVSync(enabled);
-		m_runtimeData->VSync = enabled;
+		m_runtimeData.VSync = enabled;
 	}
 	void WindowsWindow::hide() {
 		glfwHideWindow(m_window);
@@ -213,5 +214,7 @@ namespace Stulu {
 	int WindowsWindow::getAttribute(const WindowAttribute attribute) {
 		return glfwGetWindowAttrib(m_window, 0x00020001 + (int)attribute);
 	}
-	bool WindowsWindow::isVSync() const { return m_runtimeData->VSync; }
+	bool WindowsWindow::isVSync() const { 
+		return m_runtimeData.VSync; 
+	}
 }

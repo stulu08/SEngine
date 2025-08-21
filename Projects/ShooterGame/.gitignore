@@ -1,13 +1,20 @@
+Assets/Sponza
+
 # Files
 *.sln
 *.csproj
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
 
 # Folders
-temp
+Temp
+Compiler
 logs
 .vs
 .vscode
 bin
 bin-int
-build
-data
+Build
+Data
+LargeAssets

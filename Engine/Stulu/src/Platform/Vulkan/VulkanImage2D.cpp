@@ -3,14 +3,12 @@
 #include "VulkanRenderAPI.h"
 
 namespace Stulu {
-	VulkanImage2D::VulkanImage2D(uint32_t width, uint32_t height, const TextureSettings& settings) {
-		m_width = width;
-		m_height = height;
-		m_settings = settings;
-
+	VulkanImage2D::VulkanImage2D(uint32_t width, uint32_t height, const TextureSettings& settings) 
+		: m_settings(settings), m_width(width), m_height(height) {
 
 	}
-	VulkanImage2D::VulkanImage2D(const std::string& path, const TextureSettings& settings) {
+	VulkanImage2D::VulkanImage2D(const std::string& path, const TextureSettings& settings)
+		: m_settings(settings) {
 
 	}
 	VulkanImage2D::~VulkanImage2D() {
@@ -38,9 +36,6 @@ namespace Stulu {
 	uint32_t VulkanImage2D::getPixel(uint32_t posX, uint32_t posY, uint32_t mipLevel) const
 	{
 		return 0;
-	}
-	void VulkanImage2D::update()
-	{
 	}
 	void VulkanImage2D::updateParameters()
 	{

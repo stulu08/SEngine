@@ -1,13 +1,16 @@
 #include "st_pch.h"
 #include "ScriptAssembly.h"
 
+#include "AssemblyManager.h"
+#include "Stulu/Core/Application.h"
+
 #include "MonoObjectInstance.h"
 #include <mono/metadata/image.h>
 #include <mono/metadata/metadata.h>
 
 namespace Stulu {
 
-	void ScriptAssembly::LoadAssembly(const std::string& assembly) {
+	void ScriptAssembly::LoadAssembly(const std::string& assembly, bool loadDebugSymboles) {
 		//m_assembly = m_domain.OpenAssembly(assembly);
 		std::ifstream stream(assembly, std::ios::in | std::ios::binary | std::ios::ate);
 		if (!stream.is_open()) {
@@ -28,6 +31,26 @@ namespace Stulu {
 			CORE_ERROR("Mono error: {0}", Mono::Image::GetStatusError(status));
 		}
 
+		if (loadDebugSymboles) {
+			std::filesystem::path symbolesPath = assembly;
+			symbolesPath.replace_extension(".pdb");
+
+			std::ifstream symbolesStream(symbolesPath, std::ios::in | std::ios::binary | std::ios::ate);
+			if (symbolesStream.is_open()) {
+				const size_t symbolesSize = symbolesStream.tellg();
+
+				symbolesStream.seekg(0, std::ios::beg);
+				char* debugDataBuffer = new char[symbolesSize];
+				symbolesStream.read(debugDataBuffer, symbolesSize);
+				symbolesStream.close();
+
+				Mono::Debug::OpenImageFromMemory(tempImage, debugDataBuffer, (int32_t)symbolesSize);
+				CORE_INFO("Loaded Debug Symboles: {0}", symbolesPath);
+
+				delete[] debugDataBuffer;
+			}
+		}
+
 		m_assembly = Mono::Assembly::LoadFromFull(tempImage, assembly, &status, false);
 
 		if (status != Mono::Image::Status::OK) {
@@ -39,10 +62,10 @@ namespace Stulu {
 		delete[] buffer;
 	}
 
-	void ScriptAssembly::Load(const std::string& assembly) {
+	void ScriptAssembly::Load(const std::string& assembly, bool loadDebugSymboles) {
 		CORE_INFO("Loading Assembly: {0}", assembly);
-
-		LoadAssembly(assembly);
+		
+		LoadAssembly(assembly, loadDebugSymboles);
 
 		if (!m_assembly) {
 			CORE_ERROR("Mono Assembly creation failed for {0}", m_assembly);
@@ -107,18 +130,16 @@ namespace Stulu {
 		if (!method)
 			return nullptr;
 
-		MonoObject* ex = nullptr;
-		Mono::Object re = nullptr;
+		MonoObject* exceptionPtr = nullptr;
+		Mono::Object re = Mono::RuntimeInvoke(method, obj, args, &exceptionPtr);
 
-		re = Mono::RuntimeInvoke(method, obj, args, &ex);
-
-		if (ex) {
-			Mono::Object exception = ex;
-			std::string name = exception.GetClass().GetName();
+		if (exceptionPtr) {
+			Mono::Object exception = exceptionPtr;
 			Mono::String message = exception.ToString();
-			CORE_ERROR("{0} in Managed Code: {1}", name, Mono::String(message).ToUtf8());
+			CORE_ERROR("Unhandled Exception:\n{0}", Mono::String(message).ToUtf8());
 		}
 		return re;
+
 	}
 
 	std::vector<Mono::Class> ScriptAssembly::LoadAllClasses(Mono::Class parentClass) {
@@ -127,7 +148,7 @@ namespace Stulu {
 			return classes;
 
 		const MonoTableInfo* table_info = mono_image_get_table_info(m_image, MONO_TABLE_TYPEDEF);
-
+		
 		int rows = mono_table_info_get_rows(table_info);
 		for (int i = 0; i < rows; i++) {
 			uint32_t cols[MONO_TYPEDEF_SIZE];

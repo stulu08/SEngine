@@ -6,6 +6,7 @@ layout(location = 1) in vec3 a_localPos;
 layout(location = 2) in vec4 a_color;
 layout(location = 3) in float a_thickness;
 layout(location = 4) in float a_fade;
+layout(location = 5) in uint a_entityID;
 
 #include "Stulu/Scene.glsl"
 
@@ -23,12 +24,14 @@ struct VertexInfo
     float fade;
 };
 layout (location = 0) out VertexInfo Input;
+layout (location = 4) out flat uint ST_EntityID;
 
 void main() {
 	Input.localPos = a_localPos;
 	Input.color = a_color;
 	Input.thickness = a_thickness;
 	Input.fade = a_fade;
+    ST_EntityID = a_entityID;
 	gl_Position = viewProjection * vec4(a_pos, 1.0);
 }
 #type fragment
@@ -41,9 +44,10 @@ struct VertexInfo
     float fade;
 };
 layout (location = 0) in VertexInfo Input;
+layout (location = 4) in flat uint ST_EntityID;
 
-layout (location = 0) out vec4 a_color;
-
+#define ST_USE_ENTITY_ID 1
+#include "Stulu/Out.glsl"
 
 void main() {
 	 // Calculate distance and fill circle with white
@@ -52,8 +56,10 @@ void main() {
     circle *= smoothstep(Input.thickness + Input.fade, Input.thickness, distance);
 
     // Set output color
-    a_color = Input.color;
+    vec4 a_color = Input.color;
 	a_color.a *= circle;
+
+	WriteDefaultOut(a_color);
 
 	if (circle == 0.0 || Input.color == vec4(0.0))
 		discard;

@@ -9,29 +9,52 @@ namespace Stulu {
 	/// Holds information about the transform of a gameobject
 	/// </summary>
 	public class TransformComponent : GameObjectAttached {
+		/// <summary>
 		/// World position of the gameobject
-		public Vector3 position { get { Vector3 val; InternalCalls.transformComp_getPos(id, out val); return val; } set => InternalCalls.transformComp_setPos(id, ref value); }
+		/// </summary>
+		public Vector3 position { get { InternalCalls.transformComp_getPos(id, out Vector3 val); return val; } set => InternalCalls.transformComp_setPos(id, ref value); }
+		/// <summary>
 		/// Local position of the gameobject to the parent
-		public Vector3 worldPosition { get { Vector3 val; InternalCalls.transformComp_getWorldPos(id, out val); return val; } }
+		/// </summary>
+		public Vector3 worldPosition { get { InternalCalls.transformComp_getWorldPos(id, out Vector3 val); return val; } }
+		/// <summary>
 		/// World rotation of the gameobject
-		public Quaternion rotation { get { Quaternion val; InternalCalls.transformComp_getRotation(id, out val); return val; } }
+		/// </summary>
+		public Quaternion rotation { get { InternalCalls.transformComp_getRotation(id, out Quaternion val); return val; } }
+		/// <summary>
 		/// Local rotation of the gameobject to the parent
-		public Quaternion worldRotation { get { Quaternion val; InternalCalls.transformComp_getWorldRotation(id, out val); return val; } }
-		/// World rotation of the gameobjectin euler angles
-		public Vector3 eulerAngles { get { Vector3 val; InternalCalls.transformComp_getRotation(id, out val); return val; } }
+		/// </summary>
+		public Quaternion worldRotation { get { InternalCalls.transformComp_getWorldRotation(id, out Quaternion val); return val; } }
+		/// <summary>
+		/// Local rotation of the gameobjectin in euler angles
+		/// </summary>
+		public Vector3 eulerAngles => rotation.ToEuler();
+		/// <summary>
 		/// World scale of the gameobject
-		public Vector3 scale { get { Vector3 val; InternalCalls.transformComp_getScale(id, out val); return val; } set => InternalCalls.transformComp_setScale(id, ref value); }
+		/// </summary>
+		public Vector3 scale { get { InternalCalls.transformComp_getScale(id, out Vector3 val); return val; } set => InternalCalls.transformComp_setScale(id, ref value); }
+		/// <summary>
 		/// Local scale of the gameobject to the parent
-		public Vector3 worldScale { get { Vector3 val; InternalCalls.transformComp_getWorldScale(id, out val); return val; } }
+		/// </summary>
+		public Vector3 worldScale { get { InternalCalls.transformComp_getWorldScale(id, out Vector3 val); return val; } }
 
+		/// <summary>
 		/// Up vector for the gameobject
-		public Vector3 up { get { Vector3 val; InternalCalls.transformComp_up(id, out val); return val; } }
+		/// </summary>
+		public Vector3 up { get { InternalCalls.transformComp_up(id, out Vector3 val); return val; } }
+		/// <summary>
 		/// Right vector for the gameobject
-		public Vector3 right { get { Vector3 val; InternalCalls.transformComp_right(id, out val); return val; } }
+		/// </summary>
+		public Vector3 right { get { InternalCalls.transformComp_right(id, out Vector3 val); return val; } }
+		/// <summary>
 		/// Forward vector for the gameobject
-		public Vector3 forward { get { Vector3 val; InternalCalls.transformComp_forward(id, out val); return val; } }
+		/// </summary>
+		public Vector3 forward { get { InternalCalls.transformComp_forward(id, out Vector3 val); return val; } }
 
-		///  Sets the objects rotation
+		/// <summary>
+		/// Sets the objects rotation in radians
+		/// </summary>
+		/// <param name="rotation"></param>
 		public void setRotation(Quaternion rotation) => InternalCalls.transformComp_setRotation(id, ref rotation);
 	}
 }

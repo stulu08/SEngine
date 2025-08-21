@@ -3,20 +3,55 @@
 
 #include "Stulu/Core/Application.h"
 #include "Stulu/Scene/Components/Components.h"
+#include "Stulu/Scripting/Managed/Bindings/Core/Asset.h"
 
 namespace Stulu {
 
-	std::unordered_map<size_t, std::function<SceneLayer* (Scene*)>> EventCaller::s_registeredSceneLayers;
+	std::unordered_map<size_t, EventCaller::LayerRegistryEntry> EventCaller::s_registeredSceneLayers;
 
 
 	EventCaller::EventCaller(Scene* scene)
-		: m_scene(scene) {
+		: m_scene(scene), m_initManagedMethod(nullptr) {
 
-		for (auto& [id, func] : s_registeredSceneLayers) {
-			m_layer.push(func(scene));
+		for (auto& [id, funcEntry] : s_registeredSceneLayers) {
+			auto [layerHash, layerPtr] = funcEntry.first(scene);
+			if (layerHash && layerPtr)
+				m_layer.insert({ layerHash, layerPtr });
+		}
+		m_manager = Application::get().getAssemblyManager();
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("Initilize", 1);
+	}
+
+	EventCaller::EventCaller(Scene* scene, Scene* copyTarget)
+		: m_scene(scene), m_initManagedMethod(nullptr) {
+		
+		Ref<EventCaller> targetCaller = copyTarget->getCaller();
+
+		for (auto& [id, funcEntry] : s_registeredSceneLayers) {
+			if (targetCaller->HasLayer(id)) {
+				// copy layer
+				auto [layerHash, layerPtr] = funcEntry.second(scene, targetCaller->GetLayer(id));
+				if (layerHash && layerPtr)
+					m_layer.insert({ layerHash, layerPtr });
+			}
+			else {
+				// create layer
+				auto [layerHash, layerPtr] = funcEntry.first(scene);
+				if (layerHash && layerPtr)
+					m_layer.insert({ layerHash, layerPtr });
+			}
 		}
 
 		m_manager = Application::get().getAssemblyManager();
+		m_initManagedMethod = m_manager->getGoAttachedClass().GetMethodFromName("Initilize", 1);
+	}
+
+	EventCaller::~EventCaller() {
+		for (auto& [hash, layer] : m_layer) {
+			if (layer)
+				delete layer;
+		}
+		m_layer.clear();
 	}
 
 	void EventCaller::ConstructManaged(const GameObject& object) {
@@ -28,7 +63,7 @@ namespace Stulu {
 			return;
 		}
 
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) {
 			const GameObject gameObject = { id, m_scene };
 			ConstructManaged(gameObject);
 		}
@@ -44,12 +79,10 @@ namespace Stulu {
 		}
 	}
 	bool EventCaller::InitManagedGameObject(const GameObject& gameObject, Ref<MonoObjectInstance>& script) {
-		Mono::Method func = m_manager->getGoAttachedClass().GetMethodFromName("initilize", 1);
-		if (func) {
-			entt::entity id = (entt::entity)gameObject;
-			void* args[1];
-			args[0] = &id;
-			m_manager->getAppAssembly()->InvokeMethod(func, script->getObject(), args);
+		if (m_initManagedMethod) {
+			uint64_t id = (uint64_t)gameObject.GetID();
+			void* args[1] = { &id };
+			script->CallMethod(m_initManagedMethod, args, false);
 			script->SetInitilized();
 			return true;
 		}
@@ -60,6 +93,9 @@ namespace Stulu {
 		if (object) {
 			ScriptingComponent& comp = object.getComponent<ScriptingComponent>();
 			for (auto& script : comp.runtimeScripts) {
+				if (!script)
+					continue;
+
 				if (!script->IsInitilized()) {
 					InitManagedRuntimeScript(object, script);
 				}
@@ -69,7 +105,7 @@ namespace Stulu {
 			}
 			return;
 		}
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) {
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) {
 			const GameObject gameObject = { id, m_scene };
 			CallManagedEvent(method, gameObject);
 		}
@@ -78,13 +114,13 @@ namespace Stulu {
 #define DEFAULT_HANDLE_MANAGED(name) \
 	{\
 		ST_PROFILING_SCOPE("Managed Scripting - " #name); \
-		if (object) { \
+		if (object.IsValid()) { \
 			if (object.hasComponent<ScriptingComponent>()) { \
 				CallManagedEvent(m_manager->getEvents().name, object); \
 			} \
 			return; \
 		} \
-		for (auto& [id, comp] : m_scene->m_registry.storage<ScriptingComponent>().each()) { \
+		for (auto& [id, comp] : m_scene->Each<ScriptingComponent>()) { \
 			const GameObject gameObject = { id, m_scene }; \
 			CallManagedEvent(m_manager->getEvents().name, gameObject); \
 		} \
@@ -93,7 +129,7 @@ namespace Stulu {
 #define DEFAULT_HANDLE_LAYER(name, ...) \
 	{\
 		ST_PROFILING_SCOPE("Native Scripting - " #name); \
-		for (auto layer : m_layer) { \
+		for (auto& [id, layer] : m_layer) { \
 			layer->name(__VA_ARGS__); \
 		} \
 	}
@@ -106,10 +142,6 @@ namespace Stulu {
 	}
 
 	void EventCaller::onStart(const GameObject& object) {
-		if (object == GameObject::null) {
-			DEFAULT_HANDLE_LAYER(Start);
-		}
-
 		DEFAULT_HANDLE_MANAGED(onStart);
 	}
 	void EventCaller::onUpdate(const GameObject& object) {
@@ -146,17 +178,26 @@ namespace Stulu {
 		}
 
 		DEFAULT_HANDLE_MANAGED(onSceneExit);
+
+		// check assets created inside managed code
+		StuluBindings::AssetHandle::CleanUpAssets(true);
 	}
-	void EventCaller::GameObjectCreate(const GameObject& object) {
+	void EventCaller::NativeSceneStart() {
+		DEFAULT_HANDLE_LAYER(SceneStart);
+	}
+	void EventCaller::NativePreUpdate() {
+		DEFAULT_HANDLE_LAYER(PreUpdate);
+	}
+	void EventCaller::NativeGameObjectCreate(const GameObject& object) {
 		DEFAULT_HANDLE_LAYER(GameObjectCreate, object);
 	}
-	void EventCaller::GameObjectDestory(const GameObject& object) {
+	void EventCaller::NativeGameObjectDestory(const GameObject& object) {
 		DEFAULT_HANDLE_LAYER(GameObjectDestory, object);
 	}
-	void EventCaller::SerializerGameObject(YAML::Emitter& out, GameObject& gameObject) {
-		DEFAULT_HANDLE_LAYER(SerializerGameObject, out, gameObject);
+	void EventCaller::SerializerScene(YAML::Emitter& out) {
+		DEFAULT_HANDLE_LAYER(SerializerScene, out);
 	}
-	void EventCaller::DeserializerGameObject(YAML::detail::iterator_value& gameObject, GameObject& deserialized, const std::string& path) {
-		DEFAULT_HANDLE_LAYER(DeserializerGameObject, gameObject, deserialized, path);
+	void EventCaller::DeserializerScene(YAML::Node& data) {
+		DEFAULT_HANDLE_LAYER(DeserializerScene, data);
 	}
 }
