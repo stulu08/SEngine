@@ -39,6 +39,9 @@ namespace Stulu {
 		bool Class::IsEnum() const {
 			return mono_class_is_enum(m_class);
 		}
+		Type Class::GetType() const {
+			return mono_class_get_type(m_class);
+		}
 		uint32_t Class::GetTypeToken() const {
 			return mono_class_get_type_token(m_class);
 		}

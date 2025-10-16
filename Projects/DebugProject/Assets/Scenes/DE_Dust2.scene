@@ -3,103 +3,138 @@ Settings:
   shaderFlags: 0
   enablePhsyics3D: true
   Shadows:
-    MapSize: 2048
+    MapSize: 4096
     CascadeCount:
-      - 10
-      - 23.2558136
-      - 160.600006
-      - 500
+      - 2
+      - 12.1000004
+      - 40
     NearPlane: 0.00999999978
-    FarPlane: 500
-    BlendingDistance: 3
+    FarPlane: 40
+    BlendingDistance: 0
     SampleQuality: 2
     PCSSQuality: 1
-    ZMult: 10
+    ZMult: 8.5
+  Fog:
+    fogMode: 3
+    fogColor: [0.783263803, 0.324205279, 0.164847896, 1]
+    linearFogStart: 50
+    linearFogEnd: 250
+    fogDensity: 0.00222999998
+    FogHorizonStrength: 0.187999994
+    FogHorizonFalloff: 13
+    EnableFogHorizon: 1
+    FogGroundStrength: 1
+    EnableGroundFog: 0
+    FogHorizonOffset: -1000
+    FogHorizonHeightFalloff: 2000
+    EnableHorizonHeightFog: 0
 Physics3D:
   m_gravity: [0, -9.81000042, 0]
 GameObjects:
-  - GameObject: 2
+  - GameObject: 12884901895
     GameObjectBaseComponent:
-      name: $MergedNode_0
+      name: Static Mesh Map
       tag: Default
     MeshRendererComponent:
       cullmode: 0
+      CastShadows: true
       Materials:
-        - 1350532634325666432
-        - 14876248348074463558
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-      parent: 8589934599
-    MeshFilterComponent:
-      mesh: 9356373321157932352
-  - GameObject: 8589934599
-    GameObjectBaseComponent:
-      name: Mount_Hood
-      tag: Default
-    TransformComponent:
-      position: [0, 0, 0]
-      rotation: [0, -0.707106769, 0, 0.707106769]
-      scale: [1, 1, 1]
-  - GameObject: 0
-    GameObjectBaseComponent:
-      name: Sphere
-      tag: default
-    MeshRendererComponent:
-      cullmode: 0
-      Materials:
+        - 15356914416865799018
+        - 9820131432049319238
+        - 9819142971095746774
+        - 9821976412561078846
+        - 9821119893002891702
+        - 9823953334468223774
+        - 9822964873514651310
+        - 9825903868096291638
+        - 9824924203235744862
+        - 9827740052515025558
+        - 13904656098178531905
+        - 8853901988180920046
+        - 10040979821657131197
+        - 10663338587432412649
+        - 11319949339442911073
+        - 11972856936290351749
+        - 12629582037510184117
+        - 13159924874161909001
+        - 3891270549212689089
+        - 4421622181957439661
+        - 8539208082100586865
+        - 3431834157075039144
+        - 11660142151140419918
+        - 12318707834825499050
+        - 10476860931315664450
+        - 11005253234339321470
+        - 4231340215607838302
+        - 9821980810607591690
+        - 7888249919369585842
+        - 9505834318214326790
+        - 2804800267857550645
+        - 2148077365660974699
         - 2246654256457386391
+        - 4766474723934360599
     TransformComponent:
-      position: [0, 298.513458, 0]
-      rotation: [0, 0, 0, 1]
+      position: [0.555158377, 0, 0]
+      rotation: [-1, 0, -0, -4.37113883e-08]
       scale: [1, 1, 1]
+      parent: 3
     MeshFilterComponent:
-      mesh: 404
-    RigidbodyComponent:
-      UseGravity: true
-      RotationLockX: false
-      RotationLockY: false
-      RotationLockZ: false
-      MoveLockX: false
-      MoveLockY: false
-      MoveLockZ: false
-      Kinematic: false
-      RetainAccelaration: false
-      Mass: 1
-      MassCenterPosition: [0, 0, 0]
-    SphereColliderComponent:
-      Offset: [0, 0, 0]
-      Radius: 0.5
-      material: [0.600000024, 0.600000024, 0]
-  - GameObject: 4
+      mesh: 179832637186798176
+  - GameObject: 4294967300
     GameObjectBaseComponent:
-      name: Perspective Camera
+      name: Sun
+      tag: Default
+    LightComponent:
+      Type: 0
+      Color: [1, 0.849142432, 0.661001563]
+      Strength: 1
+      CastShadows: true
+      Shadows:
+        Strength: 1
+        Bias: 9.99999975e-05
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [-0.311308682, -0.112741463, 0.0372243151, 0.942863047]
+      scale: [1, 1, 1]
+  - GameObject: 4294967296
+    GameObjectBaseComponent:
+      name: Camera
       tag: MainCam
     TransformComponent:
-      position: [0, 0, 0.787358999]
+      position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
     SkyBoxComponent:
-      rotation: [0, 61, 0]
-      LightStrength: 1
+      rotation: [0, 0, 0]
+      LightStrength: 0.5
       ReflectionIntensity: 1
-      SkyBox: 11
+      SkyBox: 13712138917390
     PostProcessingComponent:
       Gamma Correction:
         enabled: true
-        gamma: 2.20000005
+        gamma: 2.25300002
         exposure: 1
         maxWhite: 4
         mappingMode: 1
       Bloom:
         enabled: true
-        intensity: 0.0700000003
-        threshold: 3.79999995
-        knee: 0.430999994
-        clamp: 11.1999998
-        resolutionScale: 0.5
-        diffusion: 10
+        intensity: 0.0399999991
+        threshold: 5
+        knee: 0.449999988
+        clamp: 15
+        resolutionScale: 0.460999995
+        diffusion: 6.53599977
         maxSamples: 10
     CameraComponent:
       m_mode: 0
@@ -109,54 +144,41 @@ GameObjects:
       m_far: 1000
       m_clearColor: [0, 0, 0, 1]
       m_renderTarget: 0
-      MSAASamples: 1
-  - GameObject: 1
+      MSAASamples: 8
+  - GameObject: 3
     GameObjectBaseComponent:
-      name: Cube
-      tag: default
-    MeshRendererComponent:
-      cullmode: 0
-      Materials:
-        - 2246654256457386391
+      name: Map Container
+      tag: Default
     TransformComponent:
-      position: [0, 296.386078, 0]
+      position: [0, 0, 0]
       rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
-    MeshFilterComponent:
-      mesh: 401
-    RigidbodyComponent:
-      UseGravity: true
-      RotationLockX: false
-      RotationLockY: false
-      RotationLockZ: false
-      MoveLockX: false
-      MoveLockY: false
-      MoveLockZ: false
-      Kinematic: false
-      RetainAccelaration: false
-      Mass: 1
-      MassCenterPosition: [0, 0, 0]
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      material: [0.600000024, 0.600000024, 0]
+  - GameObject: 1
+    GameObjectBaseComponent:
+      name: Lights
+      tag: Default
+    TransformComponent:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 3
   - GameObject: 5
     GameObjectBaseComponent:
-      name: Directional Light
-      tag: default
+      name: Light CT Spawn
+      tag: Default
     LightComponent:
-      Type: 0
+      Type: 1
       Color: [1, 1, 1]
       Strength: 1
-      CastShadows: true
+      CastShadows: false
       Shadows:
         Strength: 1
-        Bias: 0.00100000005
+        Bias: 0.000500000024
         TextureSize: 256
         ShadowMode: 0
         Soft: true
       Directional:
-        Size: 10.0500002
+        Size: 1
         IsMainLight: true
       Point:
         Radius: 5
@@ -164,6 +186,147 @@ GameObjects:
         InnerCutoff: 5
         OuterCutoff: 10
     TransformComponent:
-      position: [0, -2.53458739e-13, 3.5]
-      rotation: [0.576070905, -0.26690641, -0.760333598, -0.137098491]
+      position: [4.87390327, -0.505709469, -33.4199181]
+      rotation: [0, 0, 0, 1]
       scale: [1, 1, 1]
+      parent: 1
+  - GameObject: 6
+    GameObjectBaseComponent:
+      name: Light Long Doors
+      tag: Default
+    LightComponent:
+      Type: 1
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: false
+      Shadows:
+        Strength: 1
+        Bias: 0.000500000024
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [7.84349251, 1.36985028, -6.8056345]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 1
+  - GameObject: 2
+    GameObjectBaseComponent:
+      name: Light Long Pit
+      tag: Default
+    LightComponent:
+      Type: 1
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: false
+      Shadows:
+        Strength: 1
+        Bias: 0.000500000024
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [18.2573776, -0.964278162, -2.00113678]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 1
+  - GameObject: 8
+    GameObjectBaseComponent:
+      name: Light Lower B
+      tag: Default
+    LightComponent:
+      Type: 1
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: false
+      Shadows:
+        Strength: 1
+        Bias: 0.000500000024
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [-11.9465666, -0.375611633, -19.8447914]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 1
+  - GameObject: 9
+    GameObjectBaseComponent:
+      name: Light Stairs B
+      tag: Default
+    LightComponent:
+      Type: 1
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: false
+      Shadows:
+        Strength: 1
+        Bias: 0.000500000024
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [-14.1436462, 1.8023715, -14.4151754]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 1
+  - GameObject: 10
+    GameObjectBaseComponent:
+      name: Light Upper B
+      tag: Default
+    LightComponent:
+      Type: 1
+      Color: [1, 1, 1]
+      Strength: 1
+      CastShadows: false
+      Shadows:
+        Strength: 1
+        Bias: 0.000500000024
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 5
+        OuterCutoff: 10
+    TransformComponent:
+      position: [-25.9126263, 2.02941251, -15.8832207]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]
+      parent: 1

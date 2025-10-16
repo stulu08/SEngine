@@ -79,16 +79,19 @@ namespace Editor {
 			return changed;
 		}
 
-		inline bool AlignedButton(const std::string& label, float alignment = 0.5f) {
+		inline void AlignItem(float itemSizeX, float alignment = 0.5f) {
 			ImGuiStyle& style = ImGui::GetStyle();
 
-			float size = ImGui::CalcTextSize(label.c_str()).x + style.FramePadding.x * 2.0f;
+			float size = itemSizeX + style.FramePadding.x * 2.0f;
 			float avail = ImGui::GetContentRegionAvail().x;
 
 			float off = (avail - size) * alignment;
 			if (off > 0.0f)
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+		}
 
+		inline bool AlignedButton(const std::string& label, float alignment = 0.5f) {
+			AlignItem(ImGui::CalcTextSize(label.c_str()).x, alignment);
 			return ImGui::Button(label.c_str());
 		}
 	}

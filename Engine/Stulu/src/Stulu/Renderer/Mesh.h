@@ -68,6 +68,7 @@ namespace Stulu {
 		const std::string& GetName(int32_t index = -1) const;
 		const void SetName(const std::string& name, int32_t index = -1);
 
+		BoundingBox& GetBoundingBox() { return m_bounds; }
 		const BoundingBox& GetBoundingBox() const { return m_bounds; }
 
 		BufferElement GetPositionLayoutElement() const;

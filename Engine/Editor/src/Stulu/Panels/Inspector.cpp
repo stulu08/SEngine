@@ -50,12 +50,36 @@ namespace Editor {
 		auto& layer = App::get().GetLayer();
 		const auto& selectedObjects = layer.GetPanel<Editor::HierarchyPanel>().GetSelected();
 
+
 		if (selectedObjects.size() == 1) {
 			GameObject selected = GameObject(selectedObjects[0], layer.GetActiveScene().get());
 
 			if (!selected.IsValid())
 				return;
 			
+			if (ImGui::BeginPopupContextWindow("INSPECTOR_CONTEXT_MENU")) {
+				auto& scriptingComp = selected.saveAddComponent<ScriptingComponent>();
+
+				if (ImGui::BeginMenu("Scripting Components")) {
+					for (Mono::Class comp : Application::get().getAssemblyManager()->GetComponents()) {
+						bool has = scriptingComp.HasComponent(comp.GetType());
+						if (ImGui::MenuItem(comp.GetName().c_str(), NULL, false, !has)) {
+							scriptingComp.AddComponent(comp.GetType());
+						}
+					}
+					ImGui::EndMenu();
+				}
+
+				for (const auto& inspector : m_inspectors) {
+					bool has = inspector->HasComponent((uint64_t)selected.GetID());
+					if (ImGui::MenuItem(inspector->GetTypeName().c_str(), NULL, false, !has)) {
+						inspector->AddComponent((uint64_t)selected.GetID());
+					}
+				}
+
+				ImGui::EndPopup();
+			}
+
 			ImGui::PushID((void*)selected.GetID());
 
 			auto& base = selected.getComponent<GameObjectBaseComponent>();
@@ -69,6 +93,8 @@ namespace Editor {
 				}
 				ImGui::SameLine();
 				ImGui::Text(base.name.c_str());
+				ImGui::SameLine();
+				ImGui::Text(base.tag.c_str());
 			}
 			else {
 				if (ImGui::Button(ICON_FK_CHECK)) {
@@ -76,6 +102,8 @@ namespace Editor {
 				}
 				ImGui::SameLine();
 				ImGui::InputText("##name", &base.name);
+				ImGui::SameLine();
+				ImGui::InputText("##tag", &base.tag);
 			}
 
 			uint64_t id = (uint64_t)selected.GetID();
@@ -331,10 +359,10 @@ namespace Editor {
 				ImGui::OpenPopup("ToogleAddPFX");
 			}
 			if (ImGui::BeginPopup("ToogleAddPFX")) {
-				if (ImGui::MenuItem("Correction", "", false, comp.HasEffect<GammaCorrectionEffect>())) {
+				if (ImGui::MenuItem("Correction", "", false, !comp.HasEffect<GammaCorrectionEffect>())) {
 					comp.AddEffect<GammaCorrectionEffect>();
 				}
-				if (ImGui::MenuItem("Bloom", "", false, comp.HasEffect<BloomEffect>())) {
+				if (ImGui::MenuItem("Bloom", "", false, !comp.HasEffect<BloomEffect>())) {
 					comp.AddEffect<BloomEffect>();
 				}
 				ImGui::EndPopup();

@@ -109,39 +109,4 @@ namespace Stulu {
 		m_components.clear();
 		m_components = m_appAssembly->LoadAllClasses(m_componentClass);
 	}
-
-	void AssemblyManager::ManagedAddComponent(GameObject gameObject, Mono::Class componentChildClass) const {
-		Stulu::ScriptingComponent& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
-		auto object = Stulu::createRef<Stulu::MonoObjectInstance>(componentChildClass, m_appAssembly.get());
-		comp.runtimeScripts.push_back(object);
-	}
-	bool AssemblyManager::ManagedHasComponent(GameObject gameObject, Mono::Class componentChildClass) const {
-		auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
-		for (auto& script : comp.runtimeScripts) {
-			if (script->getClass() == componentChildClass) {
-				return true;
-			}
-		}
-		return false;
-	}
-	bool AssemblyManager::ManagedRemoveComponent(GameObject gameObject, Mono::Class componentChildClass) const {
-		auto& scripts = gameObject.saveAddComponent<Stulu::ScriptingComponent>().runtimeScripts;
-		for (uint32_t i = 0; i < scripts.size(); i++) {
-			if (scripts[i]->getClass() == componentChildClass) {
-				scripts.erase(scripts.begin() + i);
-				return true;
-			}
-		}
-		return false;
-	}
-	Mono::Object AssemblyManager::ManagedGetComponent(GameObject gameObject, Mono::Class componentChildClass) const {
-		auto& scripts = gameObject.saveAddComponent<Stulu::ScriptingComponent>().runtimeScripts;
-		for (auto& script : scripts) {
-			if (script->getClass() == componentChildClass) {
-				return script->getObject();
-			}
-		}
-		CORE_ERROR("GameObject does not have component");
-		return nullptr;
-	}
 }

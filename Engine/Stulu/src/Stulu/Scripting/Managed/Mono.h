@@ -229,6 +229,7 @@ namespace Stulu {
 			std::string GetNamespace() const;
 
 			bool IsEnum() const;
+			Type GetType() const;
 			uint32_t GetTypeToken() const;
 			Class GetParent() const;
 			

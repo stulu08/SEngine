@@ -157,7 +157,7 @@ namespace Stulu {
 		m_shadowShader->bind();
 
 		for (const RenderObject& object : m_drawList) {
-			if (!VFC::isInView(&object.transform->GetBounds())) {
+			if (!VFC::isInView(object.transform->GetBounds())) {
 				continue;
 			}
 			const glm::mat4& transform = object.transform->GetWorldTransform();
@@ -167,7 +167,7 @@ namespace Stulu {
 		}
 	}
 	inline bool SceneRenderer::DrawObject(const RenderObject& object) {
-		if (!VFC::isInView(&object.transform->GetBounds())) {
+		if (!VFC::isInView(object.transform->GetBounds())) {
 			return false;
 		}
 		// cull

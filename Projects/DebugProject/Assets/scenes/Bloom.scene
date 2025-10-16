@@ -31,71 +31,6 @@ Settings:
 Physics3D:
   m_gravity: [0, -9.81000042, 0]
 GameObjects:
-  - GameObject: 4294967305
-    GameObjectBaseComponent:
-      name: Point Light
-      tag: Default
-    LightComponent:
-      Type: 1
-      Color: [0.961688519, 0.133538961, 0.133538961]
-      Strength: 0.300000012
-      CastShadows: false
-      Shadows:
-        Strength: 1
-        Bias: 0.000500000024
-        TextureSize: 256
-        ShadowMode: 0
-        Soft: true
-      Directional:
-        Size: 1
-        IsMainLight: true
-      Point:
-        Radius: 5
-      Spot:
-        InnerCutoff: 67
-        OuterCutoff: 165
-    TransformComponent:
-      position: [0, 1.15233231, 0.0122848451]
-      rotation: [0, 0, 0, 1]
-      scale: [1, 1, 1]
-  - GameObject: 8589934603
-    GameObjectBaseComponent:
-      name: Saber
-      tag: Default
-    MeshRendererComponent:
-      cullmode: 0
-      Materials:
-        - 1425246061313655574
-        - 2246654256457386391
-        - 2364564461770066338
-        - 17851761544602668292
-        - 10010036910508528609
-        - 17631889449646420329
-        - 14159254834624236978
-    TransformComponent:
-      position: [0, 0.354691088, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [0.0644199625, 0.450939655, 0.0644199625]
-    MeshFilterComponent:
-      mesh: 15158141447637385482
-  - GameObject: 1
-    GameObjectBaseComponent:
-      name: Plane
-      tag: default
-    MeshRendererComponent:
-      cullmode: 0
-      Materials:
-        []
-    TransformComponent:
-      position: [0, -0.216676205, 0]
-      rotation: [0, 0, 0, 1]
-      scale: [6.8499999, 6.8499999, 6.8499999]
-    MeshFilterComponent:
-      mesh: 402
-    MeshColliderComponent:
-      Convex: false
-      material: [0.600000024, 0.600000024, 0]
-      Mesh: 402
   - GameObject: 10
     GameObjectBaseComponent:
       name: Perspective Camera
@@ -134,3 +69,70 @@ GameObjects:
       m_clearColor: [0, 0, 0, 1]
       m_renderTarget: 0
       MSAASamples: 4
+  - GameObject: 1
+    GameObjectBaseComponent:
+      name: Plane
+      tag: default
+    MeshRendererComponent:
+      cullmode: 0
+      CastShadows: true
+      Materials:
+        []
+    TransformComponent:
+      position: [0, -0.216676205, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [6.8499999, 6.8499999, 6.8499999]
+    MeshFilterComponent:
+      mesh: 402
+    MeshColliderComponent:
+      Convex: false
+      material: [0.600000024, 0.600000024, 0]
+      Mesh: 402
+  - GameObject: 8589934603
+    GameObjectBaseComponent:
+      name: Saber
+      tag: Default
+    MeshRendererComponent:
+      cullmode: 0
+      CastShadows: true
+      Materials:
+        - 1425246061313655574
+        - 2246654256457386391
+        - 2364564461770066338
+        - 17851761544602668292
+        - 10010036910508528609
+        - 17631889449646420329
+        - 14159254834624236978
+    TransformComponent:
+      position: [0, 0.354691088, 0]
+      rotation: [0, 0, 0, 1]
+      scale: [0.0644199625, 0.064000003, 0.0644199625]
+    MeshFilterComponent:
+      mesh: 15158141447637385482
+  - GameObject: 4294967305
+    GameObjectBaseComponent:
+      name: Point Light
+      tag: Default
+    LightComponent:
+      Type: 1
+      Color: [0.961688519, 0.133538961, 0.133538961]
+      Strength: 0.300000012
+      CastShadows: false
+      Shadows:
+        Strength: 1
+        Bias: 0.000500000024
+        TextureSize: 256
+        ShadowMode: 0
+        Soft: true
+      Directional:
+        Size: 1
+        IsMainLight: true
+      Point:
+        Radius: 5
+      Spot:
+        InnerCutoff: 67
+        OuterCutoff: 165
+    TransformComponent:
+      position: [0, 1.15233231, 0.0122848451]
+      rotation: [0, 0, 0, 1]
+      scale: [1, 1, 1]

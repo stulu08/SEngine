@@ -205,11 +205,11 @@ namespace Editor {
 				for (const entt::entity& entID : selcted) {
 					auto& tc = GameObject(entID, layer.GetActiveScene().get()).getComponent<TransformComponent>();
 					
-					const auto& bounds = tc.GetBounds();
-					if (bounds.getExtents() != glm::vec3(0.0f)) {
-						glm::vec3 center = bounds.getTransformedCenter();
+					const auto bounds = tc.GetBounds();
+					if (bounds) {
+						glm::vec3 center = bounds->getTransformedCenter();
 						glm::vec3 direction = glm::normalize(cameraPos - center);
-						avgPos += center + direction * bounds.getTransformedExtents() * 2.0f;
+						avgPos += center + direction * bounds->getTransformedExtents() * 2.0f;
 					}
 					else {
 						avgPos += tc.GetWorldPosition();
@@ -328,10 +328,13 @@ namespace Editor {
 			for (entt::entity goID : scene->GetAllWith<TransformComponent>()) {
 				GameObject go = GameObject(goID, scene.get());
 				TransformComponent& transform = go.getComponent<TransformComponent>();
-				const BoundingBox& bounds = transform.GetBounds();
+				const BoundingBox* bounds = transform.GetBounds();
 				
-				const glm::vec3 center = bounds.getTransformedCenter();
-				const glm::vec3 extents = bounds.getTransformedExtents();
+				if (bounds == nullptr)
+					continue;
+
+				const glm::vec3 center = bounds->getTransformedCenter();
+				const glm::vec3 extents = bounds->getTransformedExtents();
 
 				if (extents != glm::zero<glm::vec3>()) {
 					Gizmo::drawOutlineCube(center - extents, center + extents, glm::mat4(1.0f), COLOR_CYAN);

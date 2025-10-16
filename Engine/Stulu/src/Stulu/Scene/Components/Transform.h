@@ -102,11 +102,13 @@ namespace Stulu {
 			return Math::QuaternionToEuler(rotation);
 		}
 
-		inline void SetBounds(const BoundingBox& bounds) { 
+		inline void SetBounds(BoundingBox* bounds) { 
 			m_bounds = bounds; 
-			m_bounds.applyTransform(*this); 
+			if(m_bounds)
+				m_bounds->applyTransform(*this); 
 		}
-		inline BoundingBox& GetBounds() { return m_bounds; }
+		inline bool HasBounds() { return m_bounds != nullptr; }
+		inline const BoundingBox* GetBounds() { return m_bounds; }
 
 		virtual void Serialize(YAML::Emitter& out) const override {
 			out << YAML::Key << "position" << YAML::Value << position;
@@ -135,7 +137,7 @@ namespace Stulu {
 		mutable bool isStatic : 1;
 		mutable bool updatePhysics : 1;
 
-		mutable BoundingBox m_bounds;
+		mutable BoundingBox* m_bounds = nullptr;
 
 		entt::entity parentEntity = entt::null;
 		std::vector<entt::entity> children;
@@ -268,7 +270,8 @@ namespace Stulu {
 			}
 			dirty = false;
 			// if put above "dirty = false" recursive call, will end in stack overflow, since applyTransform uses GetWorldScale, ...
-			m_bounds.applyTransform(*this);
+			if(m_bounds)
+				m_bounds->applyTransform(*this);
 		}
 		return transform;
 	}

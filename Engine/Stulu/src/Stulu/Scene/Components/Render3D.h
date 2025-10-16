@@ -129,8 +129,8 @@ namespace Stulu {
 		void SetMesh(const MeshAsset& meshAsset) {
 			this->mesh = meshAsset;
 			if (mesh.IsLoaded()) {
-				TransformComponent& transform = gameObject.saveAddComponent<TransformComponent>();
-				transform.SetBounds(mesh->GetBoundingBox());
+				TransformComponent& transform = gameObject.getComponent<TransformComponent>();
+				transform.SetBounds(&mesh->GetBoundingBox());
 			}
 		}
 		const MeshAsset& GetMesh() const {
@@ -152,6 +152,13 @@ namespace Stulu {
 			}
 		}
 
+		virtual void onComponentRemove(Registry* scene) override {
+			if (mesh.IsLoaded()) {
+				TransformComponent& transform = gameObject.getComponent<TransformComponent>();
+				if(transform.HasBounds())
+					transform.SetBounds(nullptr);
+			}
+		};
 	private:
 		MeshAsset mesh;
 	};

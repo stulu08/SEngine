@@ -1,6 +1,5 @@
 #pragma once
 #include "MonoObjectInstance.h"
-
 #include "Mono.h"
 #include "Stulu/Scene/GameObject.h"
 
@@ -31,12 +30,6 @@ namespace Stulu {
 
 		void LoadComponents();
 
-		void ManagedAddComponent(GameObject object, Mono::Class componentChildClass) const;
-		bool ManagedHasComponent(GameObject object, Mono::Class componentChildClass) const;
-		bool ManagedRemoveComponent(GameObject object, Mono::Class componentChildClass) const;
-		Mono::Object ManagedGetComponent(GameObject gameObject, Mono::Class componentChildClass) const;
-
-
 		inline auto& GetPropertieRegister() { return m_propertieRegister; }
 		inline auto& GetComponentRegister_Add() { return m_addComponentRegister; }
 		inline auto& GetComponentRegister_Has() { return m_hasComponentRegister; }
@@ -56,7 +49,7 @@ namespace Stulu {
 		Mono::Class getComponentClass() const { return m_componentClass; }
 		Mono::Class getGoAttachedClass() const { return m_gameObjectAttachedClass; }
 		const auto& getEvents() const { return m_events; }
-		inline const std::vector<Mono::Class> GetComponents() const { return m_components; }
+		inline const std::vector<Mono::Class>& GetComponents() const { return m_components; }
 	private:
 		void InitMono();
 		void CreateAppDomain();

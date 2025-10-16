@@ -7,110 +7,44 @@ namespace StuluBindings {
 	public:	
 		static inline void addComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
 			Stulu::Mono::Type type = reftype.GetType();
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
 			if (type) {
-				const auto& manager = getManager();
-
-				auto& componentRegister = manager->GetComponentRegister_Add();
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
-				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
-				if (componentRegister.find(typeName) != componentRegister.end()) {
-					return componentRegister[typeName](gameObject);
-				}
-
-				// c# scripts
-				Stulu::Mono::Class desiredClass = type.GetClass();
-				if (!desiredClass)
-					return;
-
-				Stulu::Mono::Class parent = desiredClass.GetParent();
-				if (!parent)
-					return;
-
-				if (parent == manager->getComponentClass()) {
-					getManager()->ManagedAddComponent(gameObject, desiredClass);
-				}
+				comp.AddComponent(type);
 			}
 		}
 		static inline bool hasComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
 			Stulu::Mono::Type type = reftype.GetType();
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
 			if (type) {
-				const auto& manager = getManager();
-
-				auto& componentRegister = manager->GetComponentRegister_Has();
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
-				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
-				if (componentRegister.find(typeName) != componentRegister.end()) {
-					return componentRegister[typeName](gameObject);
-				}
-
-				// c# scripts
-				Stulu::Mono::Class desiredClass = type.GetClass();
-				if (!desiredClass)
-					return false;
-
-				Stulu::Mono::Class parent = desiredClass.GetParent();
-				if (!parent)
-					return false;
-
-				if (parent == manager->getComponentClass()) {
-					return getManager()->ManagedHasComponent(gameObject, desiredClass);
-				}
-			}
-			return false;
-		}
-		// only works for internal components registered inside the componentRegister
-		static inline bool hasComponentInternal(uint64_t go, const std::string& typeName) {
-			const auto& manager = getManager();
-			auto& componentRegister = manager->GetComponentRegister_Has();
-			Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
-			if (componentRegister.find(typeName) != componentRegister.end()) {
-				return componentRegister[typeName](gameObject);
+				return comp.HasComponent(type);
 			}
 			return false;
 		}
 		static inline bool removeComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
 			Stulu::Mono::Type type = reftype.GetType();
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
 			if (type) {
-				const auto& manager = getManager();
-
-				auto& componentRegister = manager->GetComponentRegister_Remove();
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
-				std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
-				if (componentRegister.find(typeName) != componentRegister.end()) {
-					return componentRegister[typeName](gameObject);
-				}
-
-				// c# scripts
-				Stulu::Mono::Class desiredClass = type.GetClass();
-				if (!desiredClass)
-					return false;
-
-				Stulu::Mono::Class parent = desiredClass.GetParent();
-				if (!parent)
-					return false;
-
-				if (parent == manager->getComponentClass()) {
-					return getManager()->ManagedRemoveComponent(gameObject, desiredClass);
-				}
+				return comp.RemoveComponent(type);
 			}
 			return false;
 		}
 		// only c# scripts
 		static inline MonoObject* getComponent(uint64_t go, Stulu::Mono::ReflectionType reftype) {
 			Stulu::Mono::Type type = reftype.GetType();
+			auto gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
+			auto& comp = gameObject.saveAddComponent<Stulu::ScriptingComponent>();
 			if (type) {
-				Stulu::GameObject gameObject = Stulu::GameObject((entt::entity)go, GetCurrentRegistry());
-				if (gameObject != Stulu::GameObject::null) {
-					Stulu::Mono::Class desired = type.GetClass();
-					Stulu::Mono::Object object = getManager()->ManagedGetComponent(gameObject, desired);
-					if (object)
-						return (MonoObject*)object;
-				}
-				
+				return (MonoObject*)comp.GetComponent(type);
 			}
 			CORE_ERROR("Invalid type");
 			return nullptr;
 		}
+
+
+
 		static inline uint64_t create(Stulu::Mono::String monoName, Stulu::Mono::String monoTag, Vector3 position, Quaternion rotation, Vector3 scale) {
 			Stulu::GameObject go = GetCurrentRegistry()->Create(monoName.ToUtf8());
 			auto& base = go.getComponent<Stulu::GameObjectBaseComponent>();

@@ -19,6 +19,7 @@ namespace Editor {
 
 		virtual bool HasComponent(uint64_t goID) const = 0;
 		virtual void RemoveComponent(uint64_t goID) const = 0;
+		virtual void AddComponent(uint64_t goID) const = 0;
 	};
 
 	class InspectorPanel : public Panel {
@@ -68,6 +69,9 @@ namespace Editor {
 		virtual void RemoveComponent(uint64_t goID) const override {
 			StuluBindings::GameObject::removeComponent(goID, m_refType);
 		}
+		virtual void AddComponent(uint64_t goID) const override {
+			StuluBindings::GameObject::addComponent(goID, m_refType);
+		}
 		virtual int32_t GetPriority() const override {
 			return m_prio;
 		}
@@ -98,10 +102,13 @@ namespace Editor {
 	class NativeInspectorRenderer : public InspectorRenderer {
 	public:
 		virtual bool HasComponent(uint64_t goID) const override {
-			return Stulu::GameObject((entt::entity)goID, GetActiveScene()).hasComponent<T>();
+			return GetActiveScene()->HasComponent<T>((entt::entity)goID);
 		}
 		virtual void RemoveComponent(uint64_t goID) const override {
-			Stulu::GameObject((entt::entity)goID, GetActiveScene()).removeComponent<T>();
+			GetActiveScene()->RemoveComponent<T>((entt::entity)goID);
+		}
+		virtual void AddComponent(uint64_t goID) const override {
+			GetActiveScene()->AddComponent<T>((entt::entity)goID);
 		}
 		virtual int32_t GetPriority() const override {
 			return 1;

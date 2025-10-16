@@ -5,4 +5,5 @@ RemoveRedundancies: true
 HandleInvalidData: true
 LoadMeshes: true
 LoadMaterials: true
-ScaleMod: 0.00999999978
+ScaleMod: 1
+ScaleVertices: false

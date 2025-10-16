@@ -61,4 +61,115 @@ namespace Stulu {
 			}
 		}
 	}
+	void ScriptingComponent::AddComponent(Stulu::Mono::Type type) {
+		const auto& manager = Stulu::Application::get().getAssemblyManager();
+		std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
+
+		auto& componentRegister = manager->GetComponentRegister_Add();
+		if (componentRegister.find(typeName) != componentRegister.end()) {
+			return componentRegister[typeName](this->gameObject);
+		}
+
+		// c# scripts
+		Stulu::Mono::Class desiredClass = type.GetClass();
+		if (!desiredClass)
+			return;
+
+		Stulu::Mono::Class parent = desiredClass.GetParent();
+		if (!parent)
+			return;
+
+		if (parent == manager->getComponentClass()) {
+			ManagedAddComponent(desiredClass);
+		}
+	}
+	bool ScriptingComponent::RemoveComponent(Stulu::Mono::Type type) {
+		const auto& manager = Stulu::Application::get().getAssemblyManager();
+		std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
+
+		auto& componentRegister = manager->GetComponentRegister_Remove();
+		if (componentRegister.find(typeName) != componentRegister.end()) {
+			return componentRegister[typeName](gameObject);
+		}
+
+		// c# scripts
+		Stulu::Mono::Class desiredClass = type.GetClass();
+		if (!desiredClass)
+			return false;
+
+		Stulu::Mono::Class parent = desiredClass.GetParent();
+		if (!parent)
+			return false;
+
+		if (parent == manager->getComponentClass()) {
+			return ManagedRemoveComponent(desiredClass);
+		}
+
+		return false;
+	}
+	bool ScriptingComponent::HasComponent(Stulu::Mono::Type type) {
+		const auto& manager = Stulu::Application::get().getAssemblyManager();
+		std::string typeName = type.GetNameFull(Stulu::Mono::TypeNameFormat::FULL_NAME);
+
+		auto& componentRegister = manager->GetComponentRegister_Has();
+		if (componentRegister.find(typeName) != componentRegister.end()) {
+			return componentRegister[typeName](gameObject);
+		}
+
+		// c# scripts
+		Stulu::Mono::Class desiredClass = type.GetClass();
+		if (!desiredClass)
+			return false;
+
+		Stulu::Mono::Class parent = desiredClass.GetParent();
+		if (!parent)
+			return false;
+
+		if (parent == manager->getComponentClass()) {
+			return ManagedHasComponent(desiredClass);
+		}
+		return false;
+	}
+	void* ScriptingComponent::GetComponent(Stulu::Mono::Type type) {
+		if (gameObject != Stulu::GameObject::null) {
+			Stulu::Mono::Class desired = type.GetClass();
+			Stulu::Mono::Object object = ManagedGetComponent(desired);
+			if (object)
+				return (void*)object;
+		}
+		return nullptr;
+	}
+
+
+	void ScriptingComponent::ManagedAddComponent(Mono::Class componentChildClass) {
+		auto appAssembly = Application::get().getAssemblyManager()->getAppAssembly().get();
+		auto object = createRef<MonoObjectInstance>(componentChildClass, appAssembly);
+		runtimeScripts.push_back(object);
+	}
+	bool ScriptingComponent::ManagedHasComponent(Mono::Class componentChildClass) const {
+		for (auto& script : runtimeScripts) {
+			if (script->getClass() == componentChildClass) {
+				return true;
+			}
+		}
+		return false;
+	}
+	bool ScriptingComponent::ManagedRemoveComponent(Mono::Class componentChildClass) {
+		for (uint32_t i = 0; i < runtimeScripts.size(); i++) {
+			if (runtimeScripts[i]->getClass() == componentChildClass) {
+				runtimeScripts.erase(runtimeScripts.begin() + i);
+				return true;
+			}
+		}
+		return false;
+	}
+	Mono::Object ScriptingComponent::ManagedGetComponent(Mono::Class componentChildClass) const {
+		for (auto& runtimeScripts : runtimeScripts) {
+			if (runtimeScripts->getClass() == componentChildClass) {
+				return runtimeScripts->getObject();
+			}
+		}
+		CORE_ERROR("GameObject does not have component");
+		return nullptr;
+	}
 }
