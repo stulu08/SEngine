@@ -195,6 +195,8 @@ namespace Editor {
 
 		Controls::ResolutionCombo("Resolution", resolution);
 
+		ImGui::Image(dynamic_cast<Texture2D*>(SkyBox::genrateBRDFLUT(resolution).get()), glm::vec2(100.0f));
+
 		if (ImGui::Button("Save")) {
 			if (!asset->IsMemoryLoaded()) {
 				const auto& manager = AssetsManager::GlobalInstance();

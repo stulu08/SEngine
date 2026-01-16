@@ -1,23 +1,12 @@
 #SShader "Renderer/CubeMap/BRDFLUT"
 
-#type vertex
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec2 texCoords;
+#include "Stulu/Default/Vertex-FullScreenQuad.glsl"
 
-
-layout (location = 0) out vec2 TexCoords;
-
-void main() {
-	TexCoords = texCoords;
-	gl_Position = vec4(position, 1.0);
-}
-
-#type fragment
-
+#type Fragment
 layout (location = 0) in vec2 TexCoords;
 layout (location = 0) out vec2 FragColor;
 
-const float PI = 3.14159265359;
+#define PI              3.14159265359
 
 // ----------------------------------------------------------------------------
 // http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html

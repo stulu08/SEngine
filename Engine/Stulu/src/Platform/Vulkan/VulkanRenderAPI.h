@@ -57,6 +57,7 @@ namespace Stulu {
 		virtual void setWireFrame(bool v) override;
 		virtual void setClearColor(const glm::vec4& color) override;
 		virtual void setDepthTesting(bool value) override;
+		virtual void setBlending(bool value) override;
 		virtual void StencilNotEqual(uint8_t val, uint8_t ref) override;
 		virtual void SetStencilValue(uint8_t value) override;
 		virtual void StencilAlways(uint8_t value, uint8_t ref) override;

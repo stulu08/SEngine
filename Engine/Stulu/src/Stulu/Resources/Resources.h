@@ -38,6 +38,7 @@ namespace Stulu {
 		static Shader* FullscreenShader();
 		static Shader* SkyBoxShader();
 		static Shader* PBRShader();
+		static Shader* GetBRDFLutShader();
 
 		static MaterialAsset DefaultMaterialAsset();
 		static MaterialAsset ReflectiveMaterialAsset();
@@ -76,6 +77,7 @@ namespace Stulu {
 		static inline const UUID UUIDSkyBoxShader = 7;
 		static inline const UUID UUIDQuadShader = 8;
 		static inline const UUID UUIDPBRShader = 9;
+		static inline const UUID UUIDBrdfLutShader = 3459;
 		
 		static inline const UUID UUIDDefaultSkyBox = 10;
 		static inline const UUID UUIDDefaultSkyBoxMaterial = 11;

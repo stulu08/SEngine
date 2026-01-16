@@ -23,6 +23,9 @@ namespace Stulu {
 	void VulkanRenderAPI::setDepthTesting(bool value) {
 
 	}
+	void VulkanRenderAPI::setBlending(bool value) {
+
+	}
 	void VulkanRenderAPI::StencilNotEqual(uint8_t val, uint8_t ref){
 	
 	}

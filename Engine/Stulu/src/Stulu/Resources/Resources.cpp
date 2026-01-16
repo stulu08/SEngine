@@ -21,6 +21,7 @@ namespace Stulu {
 		ShaderAsset FullScreenShader;
 		ShaderAsset SkyboxShader;
 		ShaderAsset PBRShader;
+		ShaderAsset BrdfLutShader;
 		MaterialAsset DefaultMaterial;
 		MaterialAsset ReflectiveMaterial;
 		MaterialAsset SkyBoxMaterial;
@@ -308,6 +309,17 @@ namespace Stulu {
 			s_storage.PBRShader = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDPBRShader);
 		}
 		return *s_storage.PBRShader;
+	}
+
+	Shader* Resources::GetBRDFLutShader() {
+		if (!s_storage.BrdfLutShader.IsLoaded()) {
+			SharedShaderAssetData* asset = new SharedShaderAssetData(UUIDBrdfLutShader, Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/BRDFLUT"));
+			if (!AssetsManager::GlobalInstance().Contains(UUIDBrdfLutShader)) {
+				AssetsManager::GlobalInstance().AddAsset(asset, UUIDBrdfLutShader, true);
+			}
+			s_storage.BrdfLutShader = AssetsManager::GlobalInstance().GetAsset<ShaderAsset>(UUIDBrdfLutShader);
+		}
+		return *s_storage.BrdfLutShader;
 	}
 
 	Ref<TestMaterial> Resources::CreateSkyBoxMaterial(const std::string& name, SkyBoxAsset skyBoxTexture) {

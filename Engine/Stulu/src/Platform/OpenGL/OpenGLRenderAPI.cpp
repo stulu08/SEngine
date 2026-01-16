@@ -73,9 +73,6 @@ namespace Stulu {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glLineWidth(1.0f);
-
-		
-
 	}
 
 	void OpenGLRenderAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
@@ -118,6 +115,15 @@ namespace Stulu {
 		}
 		else {
 			glDisable(GL_DEPTH_TEST);
+		}
+	}
+
+	void OpenGLRenderAPI::setBlending(bool v) {
+		if (v) {
+			glEnable(GL_BLEND);
+		}
+		else {
+			glDisable(GL_BLEND);
 		}
 	}
 

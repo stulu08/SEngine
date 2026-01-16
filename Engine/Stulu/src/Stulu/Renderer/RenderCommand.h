@@ -31,6 +31,9 @@ namespace Stulu{
 		inline static void setDepthTesting(bool value) {
 			s_renderAPI->setDepthTesting(value);
 		}
+		inline static void SetBlending(bool value) {
+			s_renderAPI->setBlending(value);
+		}
 		inline static void setClearColor(const glm::vec4& color) {
 			s_renderAPI->setClearColor(color);
 		}

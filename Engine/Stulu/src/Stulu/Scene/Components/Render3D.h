@@ -129,8 +129,11 @@ namespace Stulu {
 		void SetMesh(const MeshAsset& meshAsset) {
 			this->mesh = meshAsset;
 			if (mesh.IsLoaded()) {
-				TransformComponent& transform = gameObject.getComponent<TransformComponent>();
-				transform.SetBounds(&mesh->GetBoundingBox());
+				this->bounds = mesh->GetBoundingBoxCopy();
+				gameObject.getComponent<TransformComponent>().SetBounds(&this->bounds);
+			}
+			else {
+				this->bounds = BoundingBox();
 			}
 		}
 		const MeshAsset& GetMesh() const {
@@ -161,6 +164,7 @@ namespace Stulu {
 		};
 	private:
 		MeshAsset mesh;
+		BoundingBox bounds;
 	};
 
 	// internal usage

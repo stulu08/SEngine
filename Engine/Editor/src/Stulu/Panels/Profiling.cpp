@@ -108,14 +108,14 @@ namespace Editor {
 
 		ImGui::Separator();
 
-		for (auto& [name, timings] : m_timings) {
-			if (ImGui::TreeNodeEx(name.c_str())) {
-				for (const auto& [name, time] : timings) {
+		for (auto& [groupName, timings] : m_timings) {
+			if (ImGui::TreeNodeEx(groupName.c_str())) {
+				for (const auto& entry : timings) {
 					std::stringstream display;
-					display << name << ": " << std::fixed << std::setprecision(3) << time << "ms";
+					display << entry.name << ": " << std::fixed << std::setprecision(3) << entry.time << "ms";
 					ImGui::Indent();
 					ImGui::Indent();
-					ImGui::ProgressBar((float)time / m_lastFrameTime, ImVec2(0.0f, 0.0f), display.str().c_str());
+					ImGui::ProgressBar((float)entry.time / m_lastFrameTime, ImVec2(0.0f, 0.0f), display.str().c_str());
 					ImGui::Unindent();
 					ImGui::Unindent();
 				}

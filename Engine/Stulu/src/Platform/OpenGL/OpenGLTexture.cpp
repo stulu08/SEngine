@@ -58,7 +58,9 @@ namespace Stulu {
 
 			glTexParameteri(textureType, GL_TEXTURE_WRAP_S, wrap);
 			glTexParameteri(textureType, GL_TEXTURE_WRAP_T, wrap);
-			glTexParameteri(textureType, GL_TEXTURE_WRAP_R, wrap);
+			if (HasMips()) {
+				glTexParameteri(textureType, GL_TEXTURE_WRAP_R, wrap);
+			}
 			if (m_settings.wrap == TextureWrap::ClampToBorder) {
 				float borderColor[] = { m_settings.border.x,  m_settings.border.y,  m_settings.border.z,  m_settings.border.w };
 				glTextureParameterfv(m_rendererID, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -209,11 +211,11 @@ namespace Stulu {
 			break;
 		case Stulu::TextureFormat::RG16F:
 			internalFormat = GL_RG16F;
-			m_dataFormat = GL_RGB;
+			m_dataFormat = GL_RG;
 			break;
 		case Stulu::TextureFormat::R16F:
 			internalFormat = GL_R16F;
-			m_dataFormat = GL_RGB;
+			m_dataFormat = GL_R;
 			break;
 		case Stulu::TextureFormat::RGBA32F:
 			internalFormat = GL_RGBA32F;

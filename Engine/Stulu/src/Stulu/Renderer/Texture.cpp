@@ -44,7 +44,7 @@ namespace Stulu {
 	}
 
 
-	Ref<SkyBox> SkyBox::create(const std::vector<std::string>& faces, uint32_t resolution) {
+	Ref<SkyBox> SkyBox::CreateFromFacesList(const std::vector<std::string>& faces, uint32_t resolution) {
 		switch (Renderer::getRendererAPI())
 		{
 		case Renderer::API::OpenGL:
@@ -60,7 +60,7 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;
 	}
-	Ref<SkyBox> SkyBox::createYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
+	Ref<SkyBox> SkyBox::CreateFromYaml(const std::string& cubeMapYamlPath, uint32_t resolution) {
 		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
 		std::string right = AssetsManager::GlobalInstance().GetRaw(data["right"].as<UUID>())->GetPath();
 		std::string left = AssetsManager::GlobalInstance().GetRaw(data["left"].as<UUID>())->GetPath();
@@ -68,12 +68,18 @@ namespace Stulu {
 		std::string bottom = AssetsManager::GlobalInstance().GetRaw(data["bottom"].as<UUID>())->GetPath();
 		std::string front = AssetsManager::GlobalInstance().GetRaw(data["front"].as<UUID>())->GetPath();
 		std::string back = AssetsManager::GlobalInstance().GetRaw(data["back"].as<UUID>())->GetPath();
-		return create({ right,left,top,bottom,front,back }, resolution);
+		return SkyBox::CreateFromFacesList({ right,left,top,bottom,front,back }, resolution);
 	}
-	Ref<SkyBox> SkyBox::create(const std::string& path, uint32_t resolution) {
+	Ref<SkyBox> SkyBox::Create(const std::string& path, uint32_t resolution) {
 
 		if (path.substr(path.find_last_of('.'), path.npos) == ".skybox")
-			return SkyBox::createYAML(path, resolution);
+			return SkyBox::CreateFromYaml(path, resolution);
+		return SkyBox::CreateFromEquirectangularMap(path, resolution);
+	}
+	Ref<SkyBox> SkyBox::CreateFromEquirectangularMap(const std::string& path, uint32_t resolution) {
+
+		if (path.substr(path.find_last_of('.'), path.npos) == ".skybox")
+			return SkyBox::CreateFromYaml(path, resolution);
 
 		switch (Renderer::getRendererAPI())
 		{
@@ -89,23 +95,6 @@ namespace Stulu {
 
 		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;
-	}
-	void SkyBox::UpdateSkybox(const std::string& path, uint32_t resolution) {
-		if (path.substr(path.find_last_of('.'), path.npos) == ".hdr")
-			return UpdateSkyboxYAML(path, resolution);
-		else
-			return update(path, resolution);
-	}
-
-	void SkyBox::UpdateSkyboxYAML(const std::string& cubeMapYamlPath, uint32_t resolution) {
-		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
-		std::string right = AssetsManager::GlobalInstance().GetRaw(data["right"].as<UUID>())->GetPath();
-		std::string left = AssetsManager::GlobalInstance().GetRaw(data["left"].as<UUID>())->GetPath();
-		std::string top = AssetsManager::GlobalInstance().GetRaw(data["top"].as<UUID>())->GetPath();
-		std::string bottom = AssetsManager::GlobalInstance().GetRaw(data["bottom"].as<UUID>())->GetPath();
-		std::string front = AssetsManager::GlobalInstance().GetRaw(data["front"].as<UUID>())->GetPath();
-		std::string back = AssetsManager::GlobalInstance().GetRaw(data["back"].as<UUID>())->GetPath();
-		return update({ right,left,top,bottom,front,back }, resolution);
 	}
 
 	Ref<CubeMap> CubeMap::create(uint32_t resolution, TextureSettings settings) {
@@ -127,45 +116,40 @@ namespace Stulu {
 
 
 	Ref<Texture>& SkyBox::genrateBRDFLUT(uint32_t resolution) {
-		//resolution texture
 		static std::unordered_map<uint32_t, Ref<Texture>> textures;
+		static Shader* lastShader = nullptr;
+
+		// clear cache if something was reloaded
+		Shader* currentShader = Resources::GetBRDFLutShader();
+		if (lastShader != currentShader) {
+			textures.clear();
+			lastShader = currentShader;
+		}
+
 
 		if (textures.find(resolution) == textures.end() || textures.at(resolution) == nullptr) {
-			Ref<Texture> texture = nullptr;
-			switch (Renderer::getRendererAPI())
-			{
-			case Renderer::API::OpenGL:
-				texture = OpenGLSkyBox::genrateBRDFLUT(resolution);
-				break;
-			case Renderer::API::none:
-				CORE_ASSERT(false, "No renderAPI specified");
-				break;
-			default:
-				CORE_ASSERT(false, "RenderAPI not suported");
-				break;
-			}
-			textures[resolution] = texture;
+			auto specs = FrameBufferSpecs();
+			specs.width = resolution;
+			specs.height = resolution;
+
+			auto colorTexture = TextureSettings(TextureFormat::RG16F);
+			colorTexture.filtering = TextureFiltering::Linear;
+			colorTexture.wrap = TextureWrap::ClampToEdge;
+
+			auto depthTexture = TextureSettings(TextureFormat::Depth24);
+			depthTexture.filtering = TextureFiltering::Nearest;
+			depthTexture.wrap = TextureWrap::ClampToEdge;
+
+			auto framebuffer = FrameBuffer::create(specs, colorTexture, depthTexture);
+
+			RenderCommand::SetBlending(false);
+			RenderCommand::clear();
+			Renderer::ScreenQuad(framebuffer, currentShader);
+			RenderCommand::SetBlending(true);
+
+			textures[resolution] = framebuffer->getColorAttachment();
 		}
 
 		return textures.at(resolution);
 	}
-
-
-	Ref<ReflectionMap> ReflectionMap::create(uint32_t resolution, TextureSettings settings) {
-		switch (Renderer::getRendererAPI())
-		{
-		case Renderer::API::OpenGL:
-			return createRef<OpenGLReflectionMap>(resolution, settings);
-		case Renderer::API::none:
-			CORE_ASSERT(false, "No renderAPI specified");
-			return nullptr;
-		default:
-			CORE_ASSERT(false, "RenderAPI not suported");
-			return nullptr;
-		}
-
-		CORE_ASSERT(false, "Unknown error in CubeMap creation");
-		return nullptr;;
-	}
-
 }

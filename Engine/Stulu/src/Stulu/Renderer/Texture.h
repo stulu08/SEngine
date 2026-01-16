@@ -110,29 +110,18 @@ namespace Stulu {
 
 		virtual void genMips() const = 0;
 	};
-	class STULU_API ReflectionMap : public virtual CubeMap {
-	public:
-		static Ref<ReflectionMap> create(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB16F, TextureWrap::ClampToEdge, { 1,1 }, ST_MAX_REFLECTION_LOD + 1));
-		//6 for all sides
-		virtual void GenerateReflectionMips(uint32_t side) = 0;
-	};
+	
 	class STULU_API SkyBox : public virtual CubeMap {
 	public:
-		static Ref<SkyBox> create(const std::string& path, uint32_t resolution = 2048);
-		static Ref<SkyBox> create(const std::vector<std::string>& faces, uint32_t resolution);
-		static Ref<SkyBox> createYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
+		static Ref<SkyBox> Create(const std::string& path, uint32_t resolution = 2048);
+		static Ref<SkyBox> CreateFromEquirectangularMap(const std::string& path, uint32_t resolution = 2048);
+		static Ref<SkyBox> CreateFromFacesList(const std::vector<std::string>& faces, uint32_t resolution);
+		static Ref<SkyBox> CreateFromYaml(const std::string& cubeMapYamlPath, uint32_t resolution);
 
 		virtual void bindEnviromente(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_ENV) const = 0;
 		virtual void bindIrradiance(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_IRR) const = 0;
 		virtual void bindPrefilter(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_PRE) const = 0;
 		virtual void bindBRDFLUT(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_BRD) const = 0;
-
-		void UpdateSkybox(const std::string& path, uint32_t resolution = 2048);
-		void UpdateSkyboxYAML(const std::string& cubeMapYamlPath, uint32_t resolution);
-
-		virtual void update(uint32_t resolution, void* data) = 0;
-		virtual void update(const std::vector<std::string>& faces, uint32_t resolution) = 0;
-		virtual void update(const std::string& hdrTexturePath, uint32_t resolution) = 0;
 
 		virtual void* getEnviroment() const = 0;
 		virtual void* getIrradianceMap() const = 0;

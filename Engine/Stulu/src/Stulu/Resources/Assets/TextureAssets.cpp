@@ -52,10 +52,10 @@ namespace Stulu {
 		if (!IsMemoryLoaded()) {
 			MetaInfo info;
 			if (manager.ReadFileMeta(&info, GetPath())) {
-				m_texture = SkyBox::create(GetPath(), manager.GetMetaValue(info, "Resolution", 2048));
+				m_texture = SkyBox::Create(GetPath(), manager.GetMetaValue(info, "Resolution", 2048));
 			}
 			else {
-				m_texture = SkyBox::create(GetPath());
+				m_texture = SkyBox::Create(GetPath());
 			}
 		}
 		return m_texture != nullptr;

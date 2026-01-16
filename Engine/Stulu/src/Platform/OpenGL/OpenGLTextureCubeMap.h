@@ -26,34 +26,11 @@ namespace Stulu {
 		TextureSettings m_settings;
 		friend class OpenGLReflectionMap;
 	};
-	class STULU_API OpenGLReflectionMap : public virtual ReflectionMap {
+	
+	class STULU_API OpenGLSkyBox : public virtual SkyBox {
 	public:
-		OpenGLReflectionMap(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB16F, TextureWrap::ClampToEdge, {1,1}, ST_MAX_REFLECTION_LOD+1));
-		virtual ~OpenGLReflectionMap();
-
-		virtual void bind(uint32_t slot) const override { m_prefilterMap->bind(slot); }
-		virtual void genMips() const override { m_sourceMap->genMips(); }
-
-		virtual void GenerateReflectionMips(uint32_t) override;
-
-		virtual void* getNativeRendererObject() const override { return m_sourceMap->getNativeRendererObject(); }
-		virtual void* getMap() const override { return getNativeRendererObject(); }
-		virtual uint32_t getWidth() const override { return m_sourceMap->getWidth(); }
-		virtual uint32_t getHeight() const override { return m_sourceMap->getHeight(); }
-		virtual TextureSettings& getSettings() override { return m_sourceMap->getSettings(); }
-
-		virtual bool operator== (const Texture& other) const override;
-		virtual operator int() override { return m_sourceMap->m_map; }
-	private:
-		Scope<OpenGLCubeMap> m_sourceMap;
-		Ref<OpenGLCubeMap> m_prefilterMap;
-		uint32_t m_captureFBO, m_captureRBO;
-	};
-	class OpenGLSkyBox : public virtual SkyBox {
-	public:
-		OpenGLSkyBox(uint32_t resolution, void* data) { update(resolution, data); }
-		OpenGLSkyBox(const std::vector<std::string>& faces, uint32_t resolution) { update(faces, resolution); }
-		OpenGLSkyBox(const std::string& hdrTexturePath, uint32_t resolution) { update(hdrTexturePath, resolution); }
+		OpenGLSkyBox(const std::vector<std::string>& faces, uint32_t resolution);
+		OpenGLSkyBox(const std::string& hdrTexturePath, uint32_t resolution);
 
 		virtual ~OpenGLSkyBox();
 
@@ -80,10 +57,6 @@ namespace Stulu {
 		virtual bool operator == (const Texture& other) const override;
 		virtual operator int() override { return m_envCubemap; }
 
-		virtual void update(uint32_t resolution, void* data) override;
-		virtual void update(const std::vector<std::string>& faces, uint32_t resolution) override;
-		virtual void update(const std::string& hdrTexturePath, uint32_t resolution) override;
-
 		static Ref<Texture2D> genrateBRDFLUT(uint32_t resolution);
 	private:
 		TextureSettings m_settings = TextureFormat::RGB16F;
@@ -91,17 +64,13 @@ namespace Stulu {
 		uint32_t m_envCubemap;//need to be set in constructor
 		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
 		uint32_t m_brdfLUT = 0;
-		static uint32_t s_quadVAO, s_quadVBO;
 
 		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
-
-		static void renderQuad();
 
 		friend class OpenGLReflectionMap;
 
 		static Ref<Shader> getEquirectangularToCubemapShader();
 		static Ref<Shader> getIrradianceShader();
 		static Ref<Shader> getPrefilterShader();
-		static Ref<Shader> getBRDFLUTShader();
 	};
 }
