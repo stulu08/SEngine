@@ -32,6 +32,9 @@ namespace Stulu {
 		virtual void attachColorTexture(const TextureSettings& colorText) = 0;
 		virtual void attachColorTextureAt(uint32_t attachment, const TextureSettings& colorText) = 0;
 
+		// State will not be safed, calling inavalidate or resize will remove this from the framebuffer, texture cannot be trieved from the framebuffer
+		virtual void attactCubeMapRefrenceTexture(Ref<CubeMap> source, uint8_t faceIndex, uint32_t level = 0, uint32_t attachment = 0) = 0;
+
 		virtual void detachDepthTexture() = 0;
 		virtual void detachColorTexture(uint32_t attachment = 0) = 0;
 

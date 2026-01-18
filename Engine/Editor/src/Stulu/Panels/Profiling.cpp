@@ -150,8 +150,8 @@ namespace Editor {
 
 			if (ImGui::TreeNodeEx(name.c_str(), flags)) {
 				for (auto& prop : properies) {
-					ImGui::TreeNodeEx(prop->GetName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %s (offset: %d, size: %d)", 
-						prop->GetName().c_str(), 
+					ImGui::TreeNodeEx(prop->GetName().c_str(), ImGuiTreeNodeFlags_Leaf, "%s: %s (offset: %d, size: %d)",
+						prop->GetName().c_str(),
 						magic_enum::enum_name(prop->GetType()).data(),
 						(int)prop->GetOffset(),
 						(int)prop->GetSize());

@@ -299,7 +299,7 @@ namespace Stulu {
 	uint32_t TextureFilteringToGLenumMagnification(TextureFiltering filter) {
 		switch (filter)
 		{
-		case TextureFiltering::Bilinear:
+		case TextureFiltering::Linear:
 			return GL_LINEAR;
 		case TextureFiltering::Trilinear:
 			return GL_LINEAR;

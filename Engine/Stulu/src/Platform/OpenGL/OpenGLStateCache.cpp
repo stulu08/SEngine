@@ -26,10 +26,10 @@ namespace Stulu {
 	}
 
 	void OpenGLStateCache::BindTextureUnit(uint32_t slot, uint32_t id) {
-		if (s_cache.textures[slot] != id) {
-			s_cache.textures[slot] = id;
+		//if (s_cache.textures[slot] != id) {
+		//	s_cache.textures[slot] = id;
 			glBindTextureUnit(slot, id);
-		}
+		//}
 	}
 
 	void OpenGLStateCache::BindVertexArray(uint32_t id) {

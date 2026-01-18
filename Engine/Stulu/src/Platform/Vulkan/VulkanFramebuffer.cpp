@@ -103,6 +103,11 @@ namespace Stulu {
 			createRenderPass();
 		createFrameBuffer();
 	}
+
+	void VulkanFramebuffer::attactCubeMapRefrenceTexture(Ref<CubeMap> source, uint8_t faceIndex, uint32_t level, uint32_t attachment) {
+
+	}
+
 	void VulkanFramebuffer::detachDepthTexture()
 	{
 	}

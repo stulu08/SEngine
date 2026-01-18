@@ -28,24 +28,24 @@ if (premakeInstalled):
     #    print("\nRunning premake...")
     #    subprocess.call([os.path.abspath("./scripts/Win-GenProjects.bat"), "nopause"])
     print('\nSelect action')
-    print("   \"-vs22\" for Visual Studio 2022")
-    print("   \"-vs19\" for Visual Studio 2019")
-    print("   \"-make\" for GNU Makefiles")
-    inp = input()
-    if (inp == "-vs22" or inp == "vs22" or inp == "-vs2022" or inp == "vs2022"):
+    print("   0: Visual Studio 2022")
+    print("   1: Visual Studio 2026")
+    print("   2: GNU Makefiles")
+    inp = int(input())
+    if (inp == 0):
         projectGenPath = os.path.abspath("scripts/generateProjects - vs2022.bat")
         print("\nRunning " + projectGenPath)
         subprocess.call([projectGenPath, "nopause"])
-    elif (inp == "-vs19" or inp == "vs19" or inp == "-vs2019" or inp == "vs2019"):
-        projectGenPath = os.path.abspath("scripts/generateProjects - vs2019.bat")
+    elif (inp == 1):
+        projectGenPath = os.path.abspath("scripts/generateProjects - vs2026.bat")
         print("\nRunning " + projectGenPath)
         subprocess.call([projectGenPath, "nopause"])
-    elif (inp == "-make" or inp == "make" or inp == "-makefile" or inp == "makefile"):
+    elif (inp == 2):
         projectGenPath = os.path.abspath("scripts/generateProjects - makefile.bat")
         print("\nRunning " + projectGenPath)
         subprocess.call([projectGenPath, "nopause"])
     else:
-        print("Could not identify project file type")
+        print("Could not identify project file type, skipping step")
     print("Setup completed!")
 else:
     print("Stulu requires Premake to generate project files.")

@@ -26,44 +26,15 @@ namespace Stulu {
 	OpenGLSkyBox::OpenGLSkyBox(const std::vector<std::string>& faces, uint32_t resolution)
 		: m_resolution(resolution) {
 
-		uint32_t m_captureFBO = 0, m_captureRBO = 0;
+		auto mapSettings = TextureSettings(TextureFormat::Auto);
+		mapSettings.filtering = TextureFiltering::Trilinear;
+		mapSettings.wrap = TextureWrap::ClampToEdge;
 
-		glGenTextures(1, &m_envCubemap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
-		int32_t width, height, channels;
-		stbi_set_flip_vertically_on_load(false);
-		for (uint32_t i = 0; i < faces.size(); i++) {
-			GLenum type = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-			float* textureData;
-			textureData = stbi_loadf(faces[i].c_str(), &width, &height, &channels, 0);
+		m_environmentMap = CubeMap::create(resolution, faces, mapSettings);
+		m_environmentMap->GenerateMips();
+		m_envCubemap = NativeRenderObjectCast<uint32_t>(m_environmentMap->getNativeRendererObject());
+		generateMaps();
 
-			CORE_ASSERT(textureData, std::string("Texture failed to load: ") + faces[i]);
-			glTexImage2D(type, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, textureData);
-			stbi_image_free(textureData);
-		}
-		m_resolution = resolution;
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // enable pre-filter mipmap sampling (combatting visible dots artifact)
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glGenFramebuffers(1, &m_captureFBO);
-		glGenRenderbuffers(1, &m_captureRBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_resolution, m_resolution);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_captureRBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		glViewport(0, 0, m_resolution, m_resolution); // don't forget to configure the viewport to the capture dimensions.
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-		generateMaps(m_captureFBO, m_captureRBO);
-
-		glDeleteFramebuffers(1, &m_captureFBO);
-		glDeleteRenderbuffers(1, &m_captureRBO);
 	}
 
 	OpenGLSkyBox::OpenGLSkyBox(const std::string& hdrTexturePath, uint32_t resolution)
@@ -142,110 +113,103 @@ namespace Stulu {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-		generateMaps(m_captureFBO, m_captureRBO);
+		generateMaps();
 		glDeleteFramebuffers(1, &m_captureFBO);
 		glDeleteRenderbuffers(1, &m_captureRBO);
 	}
 
 	OpenGLSkyBox::~OpenGLSkyBox() {
 		glDeleteTextures(1, &m_envCubemap);
-		glDeleteTextures(1, &m_irradianceMap);
-		glDeleteTextures(1, &m_prefilterMap);
 
 	}
-	void OpenGLSkyBox::generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO) {
+	void OpenGLSkyBox::generateMaps() {
 		m_settings.wrap = TextureWrap::ClampToEdge;
 		m_settings.tiling = glm::vec2(1.0f);
 		m_settings.format = TextureFormat::RGB16F;
 		m_settings.filtering = TextureFiltering::Trilinear;
-		// pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
-		// --------------------------------------------------------------------------------
-		glGenTextures(1, &m_irradianceMap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_irradianceMap);
-		for (uint32_t i = 0; i < 6; i++)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, m_resolution / 16, m_resolution / 16, 0, GL_RGB, GL_FLOAT, nullptr);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_resolution / 16, m_resolution / 16);
+		auto depthSettings = TextureSettings(TextureFormat::Depth24);
+		depthSettings.wrap = TextureWrap::ClampToEdge;
+		depthSettings.filtering = TextureFiltering::Nearest;
+
+		auto captureFramebufferSpecs = FrameBufferSpecs();
+		captureFramebufferSpecs.height = m_resolution / 16;
+		captureFramebufferSpecs.width = m_resolution / 16;
+		auto captureFramebuffer = FrameBuffer::create(captureFramebufferSpecs, TextureFormat::None, depthSettings);
+
+
 
 		// pbr: solve diffuse integral by convolution to create an irradiance (cube)map.
 		// -----------------------------------------------------------------------------
-		auto irradianceShader = getIrradianceShader();
-		irradianceShader->bind();
-		irradianceShader->setMat("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
-
-		glViewport(0, 0, m_resolution / 16, m_resolution / 16); // don't forget to configure the viewport to the capture dimensions.
-		glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
-		for (uint32_t i = 0; i < 6; i++)
 		{
-			irradianceShader->setMat("view", captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_irradianceMap, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			auto irradianceSettings = TextureSettings(TextureFormat::RGB16F);
+			irradianceSettings.wrap = TextureWrap::ClampToEdge;
+			irradianceSettings.filtering = TextureFiltering::Linear;
 
-			Renderer::RenderSkyBoxCube();
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			auto irradianceMap = CubeMap::create(m_resolution / 16, irradianceSettings);
 
+			auto irradianceShader = getIrradianceShader();
+			irradianceShader->bind();
+			irradianceShader->setMat("projection", captureProjection);
+			OpenGLStateCache::BindTextureUnit(0, m_envCubemap);
 
-		// pbr: create a pre-filter cubemap, and re-scale capture FBO to pre-filter scale.
-		// --------------------------------------------------------------------------------
-		glGenTextures(1, &m_prefilterMap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_prefilterMap);
-		for (uint32_t i = 0; i < 6; i++)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, m_resolution / 4, m_resolution / 4, 0, GL_RGB, GL_FLOAT, nullptr);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-		// pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
-		// ----------------------------------------------------------------------------------------------------
-		auto prefilterShader = getPrefilterShader();
-		prefilterShader->bind();
-		prefilterShader->setMat("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, m_captureFBO);
-		for (uint32_t mip = 0; mip < ST_MAX_REFLECTION_LOD + 1; mip++)
-		{
-			// reisze framebuffer according to mip-level size.
-			uint32_t mipWidth = static_cast<uint32_t>((m_resolution / 4) * std::pow(0.5, mip));
-			uint32_t mipHeight = static_cast<uint32_t>((m_resolution / 4) * std::pow(0.5, mip));
-			glBindRenderbuffer(GL_RENDERBUFFER, m_captureRBO);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-			glViewport(0, 0, mipWidth, mipHeight);
-
-			float roughness = (float)mip / (float)(ST_MAX_REFLECTION_LOD);
-			prefilterShader->setFloat("roughness", roughness);
 			for (uint32_t i = 0; i < 6; i++)
 			{
-				prefilterShader->setMat("view", captureViews[i]);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_prefilterMap, mip);
+				irradianceShader->setMat("view", captureViews[i]);
+				captureFramebuffer->attactCubeMapRefrenceTexture(irradianceMap, i);
 
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				captureFramebuffer->bind();
+				RenderCommand::clear();
 				Renderer::RenderSkyBoxCube();
+				captureFramebuffer->unbind();
 			}
+
+			m_irradianceMap = irradianceMap;
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		{
+			const auto MAX_MIPS = ST_MAX_REFLECTION_LOD + 1;
 
-		m_brdfLUT = (uint32_t)*SkyBox::genrateBRDFLUT(m_resolution);
+			auto prefilterSettings = TextureSettings(TextureFormat::RGB16F);
+			prefilterSettings.wrap = TextureWrap::ClampToEdge;
+			prefilterSettings.filtering = TextureFiltering::Trilinear;
+			prefilterSettings.levels = MAX_MIPS;
+
+			auto prefilterMap = CubeMap::create(m_resolution / 4, prefilterSettings);
+
+			// pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
+			// ----------------------------------------------------------------------------------------------------
+			auto prefilterShader = getPrefilterShader();
+			prefilterShader->bind();
+			prefilterShader->setMat("projection", captureProjection);
+
+			OpenGLStateCache::BindTextureUnit(0, m_envCubemap);
+
+			for (uint32_t mip = 0; mip < ST_MAX_REFLECTION_LOD + 1; mip++)
+			{
+				// reisze framebuffer according to mip-level size.
+				uint32_t mipWidth = static_cast<uint32_t>((m_resolution / 4) * std::pow(0.5, mip));
+				uint32_t mipHeight = static_cast<uint32_t>((m_resolution / 4) * std::pow(0.5, mip));
+				captureFramebuffer->resize(mipWidth, mipHeight);
+
+				float roughness = (float)mip / (float)(ST_MAX_REFLECTION_LOD);
+				prefilterShader->setFloat("roughness", roughness);
+				for (uint32_t i = 0; i < 6; i++)
+				{
+					captureFramebuffer->attactCubeMapRefrenceTexture(prefilterMap, i, mip);
+
+					prefilterShader->setMat("view", captureViews[i]);
+
+					captureFramebuffer->bind();
+					RenderCommand::clear();
+					Renderer::RenderSkyBoxCube();
+					captureFramebuffer->unbind();
+				}
+			}
+
+			m_prefilterMap = prefilterMap;
+		}
+		m_brdfLUT = NativeRenderObjectCast<uint32_t>(SkyBox::genrateBRDFLUT(m_resolution)->getNativeRendererObject());
 
 		bind(0);
 	}
@@ -257,13 +221,18 @@ namespace Stulu {
 		bindBRDFLUT(slot + ST_SKYBOX_TEXTURE_BIND_BRD_OFF);
 	}
 	void OpenGLSkyBox::bindEnviromente(uint32_t slot) const {
-		OpenGLStateCache::BindTextureUnit(slot, m_envCubemap);
+		if (m_environmentMap) {
+			m_environmentMap->bind(slot);
+		}
+		else {
+			OpenGLStateCache::BindTextureUnit(slot, m_envCubemap);
+		}
 	}
 	void OpenGLSkyBox::bindIrradiance(uint32_t slot) const {
-		OpenGLStateCache::BindTextureUnit(slot, m_irradianceMap);
+		m_irradianceMap->bind(slot);
 	}
 	void OpenGLSkyBox::bindPrefilter(uint32_t slot) const {
-		OpenGLStateCache::BindTextureUnit(slot, m_prefilterMap);
+		m_prefilterMap->bind(slot);
 	}
 	void OpenGLSkyBox::bindBRDFLUT(uint32_t slot) const {
 		OpenGLStateCache::BindTextureUnit(slot, m_brdfLUT);
@@ -300,10 +269,7 @@ namespace Stulu {
 		glGenTextures(1, &m_map);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
 
-		bool hasMips = m_settings.filtering == TextureFiltering::Linear || m_settings.levels > 1;
-
 		auto [internalformat, dataformat] = TextureFormatToGLenum(m_settings.format);
-
 
 		for (uint32_t i = 0; i < 6; i++)
 		{
@@ -321,8 +287,58 @@ namespace Stulu {
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenumMinification(m_settings.filtering));
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenumMagnification(m_settings.filtering));
 
-		if (hasMips)
+		if (m_settings.levels > 1)
 			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	}
+
+	OpenGLCubeMap::OpenGLCubeMap(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings)
+		: m_resolution(resolution), m_settings(settings) {
+
+		glGenTextures(1, &m_map);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
+
+
+		stbi_set_flip_vertically_on_load(false);
+		for (uint32_t i = 0; i < faces.size(); i++) {
+			auto& path = faces[i];
+			void* textureData = nullptr;
+			bool isFloatData = false;
+			int32_t width, height, channels;
+			if (isTextureFileFloat(path.c_str())) {
+				textureData = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
+				isFloatData = true;
+			}
+			else {
+				textureData = stbi_load(path.c_str(), &width, &height, &channels, 0);
+			}
+
+			CORE_ASSERT(textureData, std::string("Texture failed to load: ") + faces[i]);
+
+			if (!isCorrectFormat(m_settings.format, channels, faces[i].c_str())) {
+				CORE_ERROR("Texture format not correct for texture {0}", faces[i]);
+			}
+			auto [internalformat, dataformat] = TextureFormatToGLenum(m_settings.format);
+
+			if (isFloatData)
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, width, height, 0, dataformat, GL_FLOAT, textureData);
+			else
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalformat, width, height, 0, dataformat, GL_UNSIGNED_BYTE, textureData);
+
+			stbi_image_free(textureData);
+		}
+
+		GLenum wrap = TextureWrapToGLenum(m_settings.wrap);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrap);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrap);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrap);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, TextureFilteringToGLenumMinification(m_settings.filtering));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, TextureFilteringToGLenumMagnification(m_settings.filtering));
+
+		if (m_settings.levels > 1)
+			glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	
 	}
 
 	OpenGLCubeMap::~OpenGLCubeMap() {
@@ -333,7 +349,7 @@ namespace Stulu {
 		OpenGLStateCache::BindTextureUnit(slot, m_map);
 	}
 
-	void OpenGLCubeMap::genMips() const {
+	void OpenGLCubeMap::GenerateMips() const {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_map);
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 	}

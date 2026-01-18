@@ -134,6 +134,7 @@ namespace Stulu {
 		m_depthAttachment = CreateTexture(depthText);
 		AttachToFrameBuffer(GL_DEPTH_ATTACHMENT, m_depthAttachment);
 
+		CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	void OpenGLFramebuffer::detachDepthTexture() {
@@ -145,6 +146,7 @@ namespace Stulu {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, getDepthAttachmentTypeByFormat(m_depthAttachment->getSettings().format), 0, 0, 0);
 		m_depthAttachment.reset();
 
+		CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	
@@ -170,8 +172,23 @@ namespace Stulu {
 
 		SetDrawBuffer();
 
+		CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
+	
+	void OpenGLFramebuffer::attactCubeMapRefrenceTexture(Ref<CubeMap> source, uint8_t faceIndex, uint32_t level, uint32_t attachment) {
+		uint32_t nativeHandle = NativeRenderObjectCast<uint32_t>(source->getNativeRendererObject());
+		uint32_t attachmentPosition = GL_COLOR_ATTACHMENT0 + attachment;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentPosition, GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, nativeHandle, level);
+		glDrawBuffer(attachmentPosition);
+
+		CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete");
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
 	void OpenGLFramebuffer::detachColorTexture(uint32_t attachment) {
 		glBindFramebuffer(GL_FRAMEBUFFER, m_rendererID);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachment, 0, 0, 0);
@@ -182,6 +199,7 @@ namespace Stulu {
 		}
 		SetDrawBuffer();
 
+		CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	

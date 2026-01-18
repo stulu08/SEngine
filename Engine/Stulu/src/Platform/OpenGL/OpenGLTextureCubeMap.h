@@ -6,14 +6,14 @@ namespace Stulu {
 	class STULU_API OpenGLCubeMap : public virtual CubeMap {
 	public:
 		OpenGLCubeMap(uint32_t resolution, TextureSettings settings);
+		OpenGLCubeMap(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings);
 
 		virtual ~OpenGLCubeMap();
 
 		virtual void bind(uint32_t slot) const override;
-		virtual void genMips() const override;
+		virtual void GenerateMips() const override;
 
 		virtual void* getNativeRendererObject() const override { return (void*)(&m_map); }
-		virtual void* getMap() const override { return getNativeRendererObject(); }
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }
 		virtual TextureSettings& getSettings() override { return m_settings; }
@@ -40,15 +40,14 @@ namespace Stulu {
 		virtual void bindPrefilter(uint32_t slot) const override;
 		virtual void bindBRDFLUT(uint32_t slot) const override;
 
-		virtual void genMips() const override { CORE_WARN("Not supported"); }
+		virtual void GenerateMips() const override { CORE_WARN("Not supported"); }
 
 		virtual void* getNativeRendererObject() const override { return (void*)(&m_envCubemap); }
 
-		virtual void* getMap() const override { return (void*)(&m_envCubemap);; }
-		virtual void* getEnviroment() const override { return (void*)(&m_envCubemap);; }
-		virtual void* getIrradianceMap() const override { return (void*)(&m_irradianceMap);; }
-		virtual void* getPrefilterMap() const override { return (void*)(&m_prefilterMap);; }
-		virtual void* getBRDFLUT() const override { return (void*)(&m_brdfLUT);; }
+		virtual void* getEnviroment() const override { return (void*)(&m_envCubemap); }
+		virtual void* getIrradianceMap() const override { return m_irradianceMap->getNativeRendererObject(); }
+		virtual void* getPrefilterMap() const override { return m_prefilterMap->getNativeRendererObject(); }
+		virtual void* getBRDFLUT() const override { return (void*)(&m_brdfLUT); }
 
 		virtual uint32_t getWidth() const override { return m_resolution; }
 		virtual uint32_t getHeight() const override { return m_resolution; }
@@ -56,16 +55,14 @@ namespace Stulu {
 
 		virtual bool operator == (const Texture& other) const override;
 		virtual operator int() override { return m_envCubemap; }
-
-		static Ref<Texture2D> genrateBRDFLUT(uint32_t resolution);
 	private:
 		TextureSettings m_settings = TextureFormat::RGB16F;
 		uint32_t m_resolution;//need to be set in constructor
 		uint32_t m_envCubemap;//need to be set in constructor
-		uint32_t m_irradianceMap = 0, m_prefilterMap = 0;
+		Ref<CubeMap> m_irradianceMap, m_prefilterMap, m_environmentMap;
 		uint32_t m_brdfLUT = 0;
 
-		void generateMaps(uint32_t m_captureFBO, uint32_t m_captureRBO);
+		void generateMaps();
 
 		friend class OpenGLReflectionMap;
 

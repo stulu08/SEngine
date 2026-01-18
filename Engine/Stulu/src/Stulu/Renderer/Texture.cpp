@@ -111,23 +111,32 @@ namespace Stulu {
 		}
 
 		CORE_ASSERT(false, "Unknown error in CubeMap creation");
-		return nullptr;;
+		return nullptr;
 	}
 
-
-	Ref<Texture>& SkyBox::genrateBRDFLUT(uint32_t resolution) {
-		static std::unordered_map<uint32_t, Ref<Texture>> textures;
-		static Shader* lastShader = nullptr;
-
-		// clear cache if something was reloaded
-		Shader* currentShader = Resources::GetBRDFLutShader();
-		if (lastShader != currentShader) {
-			textures.clear();
-			lastShader = currentShader;
+	Ref<CubeMap> Stulu::CubeMap::create(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings)
+	{
+		switch (Renderer::getRendererAPI())
+		{
+		case Renderer::API::OpenGL:
+			return createRef<OpenGLCubeMap>(resolution, faces, settings);
+		case Renderer::API::none:
+			CORE_ASSERT(false, "No renderAPI specified");
+			return nullptr;
+		default:
+			CORE_ASSERT(false, "RenderAPI not suported");
+			return nullptr;
 		}
 
+		CORE_ASSERT(false, "Unknown error in CubeMap creation");
+		return nullptr;
+	}
 
-		if (textures.find(resolution) == textures.end() || textures.at(resolution) == nullptr) {
+	Ref<Texture2D> SkyBox::genrateBRDFLUT(uint32_t resolution) {
+		auto& assetsManaer = AssetsManager::GlobalInstance();
+		UUID textureId = UUID("BRDFLUT_TEXTURE_" + std::to_string(resolution));
+
+		if (!assetsManaer.Contains(textureId)) {
 			auto specs = FrameBufferSpecs();
 			specs.width = resolution;
 			specs.height = resolution;
@@ -144,12 +153,13 @@ namespace Stulu {
 
 			RenderCommand::SetBlending(false);
 			RenderCommand::clear();
-			Renderer::ScreenQuad(framebuffer, currentShader);
+			Renderer::ScreenQuad(framebuffer, Resources::GetBRDFLutShader());
 			RenderCommand::SetBlending(true);
 
-			textures[resolution] = framebuffer->getColorAttachment();
+			SharedTexture2DAssetData* asset = new SharedTexture2DAssetData(textureId, framebuffer->getColorAttachment());
+			assetsManaer.AddAsset(asset, textureId, true);
 		}
 
-		return textures.at(resolution);
+		return assetsManaer.GetAsset<Texture2DAsset>(textureId).GetAsset()->GetTextureHandle();
 	}
 }

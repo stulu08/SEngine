@@ -28,6 +28,8 @@ namespace Stulu {
 		virtual void attachColorTexture(const TextureSettings& colorText) override;
 		virtual void attachColorTextureAt(uint32_t attachment, const TextureSettings& colorText) override;
 
+		virtual void attactCubeMapRefrenceTexture(Ref<CubeMap> source, uint8_t faceIndex, uint32_t level, uint32_t attachment);
+
 		virtual void detachDepthTexture() override;
 		virtual void detachColorTexture(uint32_t attachment) override;
 
