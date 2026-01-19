@@ -12,7 +12,7 @@ namespace Stulu {
 		BindProgram(0);
 		BindVertexArray(0);
 		for (uint32_t i = 0; i < 32; ++i) {
-			BindTextureUnit(i, 0);
+			//BindTextureUnit(i, 0);
 		}
 		SetCullFace(GL_BACK);
 		StencilMask(0x00);

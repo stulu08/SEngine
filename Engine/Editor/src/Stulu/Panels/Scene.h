@@ -27,7 +27,7 @@ namespace Editor {
 			return (Stulu::GizmoTransformEditMode)m_gizmoMode;
 		}
 
-		inline entt::entity GetHoveredObject() const { return m_hoveredObject; }
+		entt::entity GetHoveredObject() const;
 
 		void DrawMenuBars(ImVec2 startPos, bool showToolbar = true, float parentWindowWidth = -1.0f);
 
@@ -36,13 +36,13 @@ namespace Editor {
 	private:
 		ImVec2 m_windowPos = ImVec2(0, 0);
 		ImVec2 m_windowPadding = ImVec2(6.0f, 8.0f);
+		glm::uvec2 m_lastSceneMousePos = glm::uvec2(0u);
 		Stulu::SceneCamera m_sceneCamera;
 		uint32_t m_width = 1, m_height = 1;
 		uint32_t m_gizmoMode = (uint32_t)Stulu::GizmoTransformEditMode::None;
 		bool m_drawGrid = false, m_hovered = false, m_showBoundingBoxes = false;
-		entt::entity m_hoveredObject = entt::null;
 
-
+		
 		bool OnMouseDown(Stulu::MouseButtonDownEvent& e) const;
 	};
 }

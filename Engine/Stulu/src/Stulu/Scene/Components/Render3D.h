@@ -121,7 +121,10 @@ namespace Stulu {
 	public:
 
 		MeshFilterComponent() = default;
-		MeshFilterComponent(const MeshFilterComponent&) = default;
+		MeshFilterComponent(const MeshFilterComponent& other)
+			: Component(other) {
+			this->SetMesh(other.GetMesh());
+		}
 		MeshFilterComponent(MeshAsset& meshAsset) {
 			SetMesh(meshAsset);
 		}

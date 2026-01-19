@@ -31,7 +31,7 @@ Settings:
 Physics3D:
   m_gravity: [0, -9.81000042, 0]
 GameObjects:
-  - GameObject: 10
+  - GameObject: 3
     GameObjectBaseComponent:
       name: Perspective Camera
       tag: MainCam
@@ -88,7 +88,7 @@ GameObjects:
       Convex: false
       material: [0.600000024, 0.600000024, 0]
       Mesh: 402
-  - GameObject: 8589934603
+  - GameObject: 2
     GameObjectBaseComponent:
       name: Saber
       tag: Default

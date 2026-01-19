@@ -20,8 +20,8 @@ namespace Stulu {
 			this->children = other.children;
 			this->isStatic = other.isStatic;
 			this->updatePhysics = other.updatePhysics;
-			this->m_bounds = other.m_bounds;
 			this->dirty = true;
+			this->m_bounds = nullptr;
 		}
 
 		TransformComponent(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl)

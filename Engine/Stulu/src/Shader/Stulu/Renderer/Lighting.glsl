@@ -24,14 +24,12 @@ vec3 ComputeOutgoingLight(const Light light, const LightComputeData data){
 	vec3 lightDir     = normalize(-light.Direction.xyz); // forward direction
 	vec4 extra        = light.Data;
 
-	vec3 L, H;
-	float attenuation = 1.0;
+	vec3 lightViewDir;
 	vec3 radiance;
 
 	 // Directional Light
 	if (lightType == LIGHT_TYPE_DIR) {
-		L = lightDir;
-		H = normalize(data.view + L);
+		lightViewDir = lightDir;
 		radiance = lightColor * strength;
 	}
 
@@ -39,42 +37,46 @@ vec3 ComputeOutgoingLight(const Light light, const LightComputeData data){
 	else if (lightType == LIGHT_TYPE_POINT) {
 		vec3 delta = lightPos - data.worldPos;
 		float dist = length(delta);
-		L = normalize(delta);
-		H = normalize(data.view + L);
+		lightViewDir = normalize(delta);
 
 		float radius = extra.x;
 
-		attenuation = clamp(1.0 - dist / radius, 0.0, 1.0);
+		float attenuation = 1.0 / max(dist * dist, 0.01);
+		attenuation *= smoothstep(radius, 0.0, dist);
 		radiance = lightColor * strength * attenuation;
 	}
 	// Spot Light
 	else if (lightType == LIGHT_TYPE_SPOT) {
-		L = normalize(lightPos - data.worldPos);
-		H = normalize(data.view + L);
-
+		lightViewDir = normalize(lightPos - data.worldPos);
 		float inner = extra.x;
 		float outer = extra.y;
 
-		float theta = dot(L, lightDir);
+		float theta = dot(lightViewDir, lightDir);
 		float epsilon = max(inner - outer, 0.001);
 		float spotIntensity = clamp((theta - outer) / epsilon, 0.0, 1.0);
 
-		radiance = lightColor * strength * theta;
+		radiance = lightColor * strength * spotIntensity * theta;
 	} 
 
-	 // PBR Cook-Torrance BRDF
-	float NDF = DistributionGGX(data.normal, H, data.roughness);        
-	float G   = GeometrySmith(data.normal, data.view, L, data.roughness);      
-	vec3 F    = fresnelSchlick(max(dot(H, data.view), 0.0), data.F0); 
+	float validH	= when_gt(dot(data.view, lightViewDir), -0.999);
+	vec3 halfVector	= normalize(data.view + lightViewDir) * validH + data.normal * (1.0 - validH);
+	
+	float NdotL = max(dot(data.normal, lightViewDir), 0.001);
+	float NdotV = max(dot(data.normal, data.view), 0.001);
+	float HdotV = max(dot(halfVector, data.view), 0.0);
+
+	// PBR Cook-Torrance BRDF
+	float NDF = DistributionGGX(data.normal, halfVector, data.roughness);        
+	float G   = GeometrySmith(data.normal, data.view, lightViewDir, data.roughness);      
+	vec3 F    = fresnelSchlick(HdotV, data.F0); 
 
 	vec3 kS = F;
 	vec3 kD = (vec3(1.0) - kS) * (1.0 - data.metallic);	 
 
 	vec3 numerator    = NDF * G * F;
-	float denominator = 4.0 * max(dot(data.normal, data.view), 0.0) * max(dot(data.normal, L), 0.0);
+	float denominator = 4.0 * NdotV * NdotL;
 	vec3 specular     = numerator / max(denominator, 0.001);  
-
-	float NdotL = max(dot(data.normal, L), 0.0);                
+        
 	return (kD * data.albedo / PI + specular) * radiance * NdotL;
 }
 

@@ -128,25 +128,23 @@ namespace Stulu {
 		}
 
 	}
+
 	void Application::run() {
 		m_lastFrameTime = Platform::getTime();
 		m_runnig = true;
 		while (m_runnig) {
 			ST_PROFILING_SCOPE("Application - Loop");
-			// update input
-			Input::update();
-			m_window->onUpdate();
 
-			// begin render command buffer
+			{
+				ST_PROFILING_SCOPE("Application - System Events");
+				Input::update();
+				m_window->onUpdate();
+			}
+
+			float delta = ComputeTimings();
+
 			m_window->getContext()->beginBuffer();
 
-			// update timing
-			Time::applicationRuntime = Platform::getTime();
-			Timestep delta = Time::applicationRuntime - m_lastFrameTime;
-			Time::frameTime = delta;
-			Time::deltaTime = delta * Time::Scale;
-			m_lastFrameTime = Time::applicationRuntime;
-			
 			if (!m_minimized) {
 				ST_PROFILING_RENDERDATA_BEGIN();
 				{
@@ -181,7 +179,7 @@ namespace Stulu {
 				ST_PROFILING_RENDERDATA_END();
 			}
 
-			// update events, end render buffer and swap buffers
+			ST_PROFILING_SCOPE("Application - Swap Buffers");
 			m_window->getContext()->swapBuffers();
 		}
 	}
@@ -208,6 +206,15 @@ namespace Stulu {
 		m_minimized = e.getWidth() == 0 || e.getHeight() == 0;
 		m_minimized ? 0 : Renderer::onWindowResize(e);
 		return m_minimized;
+	}
+	Timestep Application::ComputeTimings()
+	{
+		Time::applicationRuntime = Platform::getTime();
+		Timestep delta = Time::applicationRuntime - m_lastFrameTime;
+		Time::frameTime = delta;
+		Time::deltaTime = delta * Time::Scale;
+		m_lastFrameTime = Time::applicationRuntime;
+		return delta;
 	}
 	std::string Application::getWorkingDirectory() const {
 		return CleanPath(Platform::getCurrentWorkingDirectory());

@@ -17,6 +17,7 @@ namespace Stulu {
 		void onResize(float width, float height);
 
 		inline Camera& getCamera() { return m_cam; }
+		inline const Camera& getCamera() const { return m_cam; }
 
 		inline float getAspectRatio() const { return m_aspectRatio; }
 		inline float getAspectRatioX() const { return m_aspectRatio; }

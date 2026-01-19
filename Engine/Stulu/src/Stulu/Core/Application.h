@@ -54,6 +54,7 @@ namespace Stulu {
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
+		Timestep ComputeTimings();
 
 		Scope<CpuDispatcher> m_cpuDispatcher;
 		Scope<Window> m_window;

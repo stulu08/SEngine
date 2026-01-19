@@ -43,3 +43,4 @@ HandleInvalidData: true
 LoadMeshes: true
 LoadMaterials: true
 ScaleMod: 1
+ScaleVertices: false

@@ -288,7 +288,7 @@ GameObjects:
     ScriptingComponent:
       Scripts:
         []
-  - GameObject: 12884901895
+  - GameObject: 15
     GameObjectBaseComponent:
       name: Static Mesh Map
       tag: Default

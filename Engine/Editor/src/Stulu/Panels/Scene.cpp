@@ -241,10 +241,7 @@ namespace Editor {
 		if (ImGui::IsWindowHovered()) {
 			const uint32_t clickX = (uint32_t)(ImGui::GetMousePos().x - m_windowPos.x);
 			const uint32_t clickY = m_height - (uint32_t)(ImGui::GetMousePos().y - m_windowPos.y);
-			entt::entity id = (entt::entity)frameBuffer->getColorAttachment(1)->getPixel(clickX, clickY);
-			if (layer.GetActiveScene()->IsObjectValid(id)) {
-				m_hoveredObject = id;
-			}
+			m_lastSceneMousePos = glm::uvec2(clickX, clickY);
 			m_hovered = true;
 		}
 
@@ -258,13 +255,16 @@ namespace Editor {
 		Gizmo::setCamData(m_sceneCamera.getCamera().getProjectionMatrix(), glm::inverse(m_sceneCamera.getTransform().GetWorldTransform()));
 		Gizmo::setWindow(GetID(), &OpenPtr());
 
-		if (m_hoveredObject != entt::null) {
+		if (m_hovered) {
 			Stulu::UUID materialUUID = Controls::ReceiveDragDopAsset(AssetsManager::GlobalInstance().GetTypeNameT<MaterialAsset>());
 			if (materialUUID != Stulu::UUID::null) {
-				MaterialAsset asset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(materialUUID);
-				GameObject go = { m_hoveredObject, layer.GetActiveScene().get() };
-				if (go.hasComponent<MeshRendererComponent>()) {
-					go.getComponent<MeshRendererComponent>().SetMaterial(asset);
+				entt::entity hovered = GetHoveredObject();
+				if (hovered != entt::null) {
+					MaterialAsset asset = AssetsManager::GlobalInstance().GetAsset<MaterialAsset>(materialUUID);
+					GameObject go = { hovered, layer.GetActiveScene().get() };
+					if (go.hasComponent<MeshRendererComponent>()) {
+						go.getComponent<MeshRendererComponent>().SetMaterial(asset);
+					}
 				}
 			}
 		}
@@ -414,7 +414,6 @@ namespace Editor {
 			layer.GetActiveScene()->onUpdateEditor(GetCamera(), false);
 		}
 
-		m_hoveredObject = entt::null;
 		m_hovered = false;
 	}
 
@@ -429,8 +428,9 @@ namespace Editor {
 	}
 	bool ScenePanel::OnMouseDown(Stulu::MouseButtonDownEvent& e) const {
 		if (e.getButton() == Mouse::ButtonLeft) {
-			if (m_hoveredObject != entt::null) {
-				App::get().GetLayer().GetPanel<HierarchyPanel>().SelectedLogicAdd(m_hoveredObject);
+			entt::entity hovered = GetHoveredObject();
+			if (hovered != entt::null) {
+				App::get().GetLayer().GetPanel<HierarchyPanel>().SelectedLogicAdd(hovered);
 				return true;
 			}
 		}
@@ -452,6 +452,19 @@ namespace Editor {
 	}
 
 	
+	entt::entity ScenePanel::GetHoveredObject() const {
+		if (!m_hovered) return entt::null;
+
+		auto& layer = App::get().GetLayer();
+		auto& frameBuffer = m_sceneCamera.getCamera().getResultFrameBuffer();
+
+		entt::entity id = (entt::entity)frameBuffer->getColorAttachment(1)->getPixel(m_lastSceneMousePos.x, m_lastSceneMousePos.y);
+		if (layer.GetActiveScene()->IsObjectValid(id)) {
+			return id;
+		}
+		return entt::null;
+	}
+
 	void ScenePanel::DrawMenuBars(ImVec2 startPos, bool showToolbar, float parentWindowWidth) {
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVarY(ImGuiStyleVar_WindowPadding, 3.0f);

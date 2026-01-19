@@ -15,7 +15,7 @@ namespace Stulu {
         return boundingBox->isOnFrustum(s_frustum);
     }
     bool VFC::isInView(const BoundingBox* boundingBox) {
-        if (!s_isEnabled)
+        if (!s_isEnabled || boundingBox == nullptr)
             return true;
         return boundingBox->isOnFrustum(s_frustum);
     }

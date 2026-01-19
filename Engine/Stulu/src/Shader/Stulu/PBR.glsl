@@ -31,7 +31,7 @@ PBRResult ComputePBR(const PBRData data) {
 
 	vec3 normal = normalize(data.normal);
 	vec3 view = normalize(cameraPosition.xyz - data.worldPos);
-	vec3 F0 = mix(vec3(0.04), albedo, data.metallic);; 
+	vec3 F0 = mix(vec3(0.04), albedo, data.metallic);
 
 	//lighting
 	LightComputeData lightData;
