@@ -58,11 +58,10 @@ vec3 ComputeOutgoingLight(const Light light, const LightComputeData data){
 		radiance = lightColor * strength * spotIntensity * theta;
 	} 
 
-	float validH	= when_gt(dot(data.view, lightViewDir), -0.999);
-	vec3 halfVector	= normalize(data.view + lightViewDir) * validH + data.normal * (1.0 - validH);
-	
-	float NdotL = max(dot(data.normal, lightViewDir), 0.001);
-	float NdotV = max(dot(data.normal, data.view), 0.001);
+	vec3 halfVector = normalize(data.view + lightViewDir);
+
+	float NdotL = max(dot(data.normal, lightViewDir), 0.0);
+	float NdotV = max(dot(data.normal, data.view), 0.0);
 	float HdotV = max(dot(halfVector, data.view), 0.0);
 
 	// PBR Cook-Torrance BRDF

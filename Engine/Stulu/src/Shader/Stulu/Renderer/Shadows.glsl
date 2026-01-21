@@ -66,8 +66,9 @@ float SampleCascadePoisonPCF(const vec3 shadowCoords, const int layer, const flo
 	return shadow / float(numSamples);
 }
 // Percatage Close Soft Shadows 
-vec2 FindCascadeOccluder(const vec3 shadowCoords, const int layer, const float bias) {
-	const float searchArea = CascadeLightSize * (shadowCoords.z - GetCascadeNearPlane()) / cameraPosition.z;
+vec2 FindCascadeOccluder(const vec3 shadowCoords, const int layer, const float bias, const vec4 world) {
+	float receiverDepthLS = -(lightSpaceMatrices[layer] * world).z;
+	const float searchArea = CascadeLightSize * receiverDepthLS / receiverDepthLS;
 
 	float occluder = 0.0;
 	float count = 0.0;
@@ -78,7 +79,7 @@ vec2 FindCascadeOccluder(const vec3 shadowCoords, const int layer, const float b
 	for(int i = 0; i < numSamples; i++) {
 		vec2 offset = GetPoissonValue(PCSSQuality, i) * searchArea;
 		float depth = texture(CascadedShadowMap, vec3(shadowCoords.xy + offset, float(layer))).r;
-		if(shadowCoords.z > depth) {
+		if(depth < (shadowCoords.z - bias)) {
 			occluder += depth;
 			count += 1.0;
 		}
@@ -87,10 +88,10 @@ vec2 FindCascadeOccluder(const vec3 shadowCoords, const int layer, const float b
 	return vec2(occluder / max(count, 1.0), count);
 }
 
-float SampleCascadePCSS(const vec3 shadowCoords, const int layer, const float bias) {
+float SampleCascadePCSS(const vec3 shadowCoords, const int layer, const float bias, const vec4 world) {
 	float zReceiver = shadowCoords.z;
 
-	vec2 occ = FindCascadeOccluder(shadowCoords, layer, bias);
+	vec2 occ = FindCascadeOccluder(shadowCoords, layer, bias, world);
     if (occ.y == 0.0) return 0.0;
 
     float avgBlocker = linearizeDepth(occ.x, GetCascadeNearPlane(), GetCascadeNearPlane(CascadeCount));
@@ -101,11 +102,11 @@ float SampleCascadePCSS(const vec3 shadowCoords, const int layer, const float bi
 	return SampleCascadePoisonPCF(shadowCoords, layer, bias, filterRadius);
 }
 
-float SampleCascadeMap(const vec3 shadowCoords, const int layer, const float bias) { 
+float SampleCascadeMap(const vec3 shadowCoords, const int layer, const float bias, const vec4 world) { 
 
 	float shadow = 0.0;
 	if(CascadeSoftShadows == 1.0)
-		shadow += SampleCascadePCSS(shadowCoords, layer, bias);
+		shadow += SampleCascadePCSS(shadowCoords, layer, bias, world);
 	else
 		shadow += SampleCascadeHardShadow(shadowCoords, layer, bias);
 
@@ -122,7 +123,7 @@ float ComputeCSMShadow(const vec4 world, const vec3 pixelNormal, const Light lig
 		return 0.0;
 
 	// outside light view
-	float shadow = SampleCascadeMap(shadowCoords, layer, bias);
+	float shadow = SampleCascadeMap(shadowCoords, layer, bias, world);
 
 	// no blending for last layer, or if next layer not availabe
 	const vec3 nextShadowCoords = GetProjectedCascedeShadowCoords(world, layer + 1);
@@ -130,7 +131,7 @@ float ComputeCSMShadow(const vec4 world, const vec3 pixelNormal, const Light lig
 		return shadow;
 
 	// blend with next layer
-	float nextShadow = SampleCascadeMap(nextShadowCoords, layer + 1, bias);
+	float nextShadow = SampleCascadeMap(nextShadowCoords, layer + 1, bias, world);
 	return BlendCascades(shadow, nextShadow, GetCascadeFarPlane(layer), fragDepth);
 }
 
