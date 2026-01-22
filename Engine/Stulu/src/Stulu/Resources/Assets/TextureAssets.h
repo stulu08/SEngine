@@ -2,6 +2,7 @@
 #include "Stulu/Resources/AssetData.h"
 #include "Stulu/Resources/AssetHandel.h"
 #include "Stulu/Renderer/Texture.h"
+#include "Stulu/Renderer/SkyBox.h"
 #include <magic_enum/magic_enum.hpp>
 
 namespace Stulu {

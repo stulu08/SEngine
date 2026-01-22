@@ -6,6 +6,7 @@
 #include "Stulu/Renderer/Renderer.h"
 #include "Stulu/Resources/AssetsManager.h"
 #include "Stulu/Serialization/YAML.h"
+#include "Stulu/Math/CaptureProjection.h"
 
 namespace Stulu {
 	Ref<Texture2D> Texture2D::create(const std::string& path, const TextureSettings& settings)
@@ -43,61 +44,8 @@ namespace Stulu {
 		return nullptr;
 	}
 
-
-	Ref<SkyBox> SkyBox::CreateFromFacesList(const std::vector<std::string>& faces, uint32_t resolution) {
-		switch (Renderer::getRendererAPI())
-		{
-		case Renderer::API::OpenGL:
-			return createRef<OpenGLSkyBox>(faces, resolution);
-		case Renderer::API::none:
-			CORE_ASSERT(false, "No renderAPI specified");
-			return nullptr;
-		default:
-			CORE_ASSERT(false, "RenderAPI not suported");
-			return nullptr;
-		}
-
-		CORE_ASSERT(false, "Unknown error in CubeMap creation");
-		return nullptr;
-	}
-	Ref<SkyBox> SkyBox::CreateFromYaml(const std::string& cubeMapYamlPath, uint32_t resolution) {
-		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
-		std::string right = AssetsManager::GlobalInstance().GetRaw(data["right"].as<UUID>())->GetPath();
-		std::string left = AssetsManager::GlobalInstance().GetRaw(data["left"].as<UUID>())->GetPath();
-		std::string top = AssetsManager::GlobalInstance().GetRaw(data["top"].as<UUID>())->GetPath();
-		std::string bottom = AssetsManager::GlobalInstance().GetRaw(data["bottom"].as<UUID>())->GetPath();
-		std::string front = AssetsManager::GlobalInstance().GetRaw(data["front"].as<UUID>())->GetPath();
-		std::string back = AssetsManager::GlobalInstance().GetRaw(data["back"].as<UUID>())->GetPath();
-		return SkyBox::CreateFromFacesList({ right,left,top,bottom,front,back }, resolution);
-	}
-	Ref<SkyBox> SkyBox::Create(const std::string& path, uint32_t resolution) {
-
-		if (path.substr(path.find_last_of('.'), path.npos) == ".skybox")
-			return SkyBox::CreateFromYaml(path, resolution);
-		return SkyBox::CreateFromEquirectangularMap(path, resolution);
-	}
-	Ref<SkyBox> SkyBox::CreateFromEquirectangularMap(const std::string& path, uint32_t resolution) {
-
-		if (path.substr(path.find_last_of('.'), path.npos) == ".skybox")
-			return SkyBox::CreateFromYaml(path, resolution);
-
-		switch (Renderer::getRendererAPI())
-		{
-		case Renderer::API::OpenGL:
-			return createRef<OpenGLSkyBox>(path, resolution);
-		case Renderer::API::none:
-			CORE_ASSERT(false, "No renderAPI specified");
-			return nullptr;
-		default:
-			CORE_ASSERT(false, "RenderAPI not suported");
-			return nullptr;
-		}
-
-		CORE_ASSERT(false, "Unknown error in CubeMap creation");
-		return nullptr;
-	}
-
-	Ref<CubeMap> CubeMap::create(uint32_t resolution, TextureSettings settings) {
+	Ref<CubeMap> CubeMap::Create(uint32_t resolution, TextureSettings settings)
+	{
 		switch (Renderer::getRendererAPI())
 		{
 		case Renderer::API::OpenGL:
@@ -114,7 +62,7 @@ namespace Stulu {
 		return nullptr;
 	}
 
-	Ref<CubeMap> Stulu::CubeMap::create(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings)
+	Ref<CubeMap> CubeMap::CreateFromFacesList(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings)
 	{
 		switch (Renderer::getRendererAPI())
 		{
@@ -131,35 +79,61 @@ namespace Stulu {
 		CORE_ASSERT(false, "Unknown error in CubeMap creation");
 		return nullptr;
 	}
+	Ref<CubeMap> CubeMap::CreateFromYaml(uint32_t resolution, const std::string& cubeMapYamlPath, TextureSettings settings)
+	{
+		YAML::Node data = YAML::LoadFile(cubeMapYamlPath);
+		std::string right = AssetsManager::GlobalInstance().GetRaw(data["right"].as<UUID>())->GetPath();
+		std::string left = AssetsManager::GlobalInstance().GetRaw(data["left"].as<UUID>())->GetPath();
+		std::string top = AssetsManager::GlobalInstance().GetRaw(data["top"].as<UUID>())->GetPath();
+		std::string bottom = AssetsManager::GlobalInstance().GetRaw(data["bottom"].as<UUID>())->GetPath();
+		std::string front = AssetsManager::GlobalInstance().GetRaw(data["front"].as<UUID>())->GetPath();
+		std::string back = AssetsManager::GlobalInstance().GetRaw(data["back"].as<UUID>())->GetPath();
+		return CubeMap::CreateFromFacesList(resolution, { right,left,top,bottom,front,back }, settings);
+	}
 
-	Ref<Texture2D> SkyBox::genrateBRDFLUT(uint32_t resolution) {
-		auto& assetsManaer = AssetsManager::GlobalInstance();
-		UUID textureId = UUID("BRDFLUT_TEXTURE_" + std::to_string(resolution));
+	Ref<CubeMap> CubeMap::CreateFromEquirectangularMap(uint32_t resolution, const std::string& hdrTexturePath, TextureSettings settings)
+	{
+		auto depthSettings = TextureSettings(TextureFormat::Depth24);
+		depthSettings.wrap = TextureWrap::ClampToEdge;
+		depthSettings.filtering = TextureFiltering::Nearest;
 
-		if (!assetsManaer.Contains(textureId)) {
-			auto specs = FrameBufferSpecs();
-			specs.width = resolution;
-			specs.height = resolution;
+		auto captureFramebufferSpecs = FrameBufferSpecs();
+		captureFramebufferSpecs.height = resolution;
+		captureFramebufferSpecs.width = resolution;
+		auto captureFramebuffer = FrameBuffer::create(captureFramebufferSpecs, TextureFormat::None, depthSettings);
 
-			auto colorTexture = TextureSettings(TextureFormat::RG16F);
-			colorTexture.filtering = TextureFiltering::Linear;
-			colorTexture.wrap = TextureWrap::ClampToEdge;
+		// load the HDR environment map
+		auto hdrTextureSettings = TextureSettings(settings.format);
+		hdrTextureSettings.wrap = TextureWrap::ClampToEdge;
+		hdrTextureSettings.filtering = TextureFiltering::Linear;
+		auto hdrTexture = Texture2D::create(hdrTexturePath, hdrTextureSettings);
 
-			auto depthTexture = TextureSettings(TextureFormat::Depth24);
-			depthTexture.filtering = TextureFiltering::Nearest;
-			depthTexture.wrap = TextureWrap::ClampToEdge;
+		if(settings.format == TextureFormat::Auto)
+			settings.format = hdrTexture->getSettings().format;
 
-			auto framebuffer = FrameBuffer::create(specs, colorTexture, depthTexture);
+		// setup cubemap to render to and attach to framebuffer
+		auto cubeMap = CubeMap::Create(resolution, settings);
 
-			RenderCommand::SetBlending(false);
+		// convert HDR equirectangular environment map to cubemap equivalent
+		auto equirectangularToCubemapShader = Renderer::getShaderSystem()->GetShader("Renderer/CubeMap/EquirectangularToCubemap");
+
+		hdrTexture->bind(0);
+		equirectangularToCubemapShader->bind();
+		equirectangularToCubemapShader->setMat("projection", CaptureProjection::Projection);
+		for (uint32_t i = 0; i < 6; i++)
+		{
+			captureFramebuffer->attactCubeMapRefrenceTexture(cubeMap, i);
+			equirectangularToCubemapShader->setMat("view", CaptureProjection::Views[i]);
+
+			captureFramebuffer->bind();
 			RenderCommand::clear();
-			Renderer::ScreenQuad(framebuffer, Resources::GetBRDFLutShader());
-			RenderCommand::SetBlending(true);
-
-			SharedTexture2DAssetData* asset = new SharedTexture2DAssetData(textureId, framebuffer->getColorAttachment());
-			assetsManaer.AddAsset(asset, textureId, true);
+			Renderer::RenderSkyBoxCube();
+			captureFramebuffer->unbind();
 		}
 
-		return assetsManaer.GetAsset<Texture2DAsset>(textureId).GetAsset()->GetTextureHandle();
+		captureFramebuffer.reset();
+		hdrTexture.reset();
+
+		return cubeMap;
 	}
 }

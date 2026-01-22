@@ -2,6 +2,7 @@
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Texture.h"
 #include "Stulu/Renderer/Shader.h"
+#include "Stulu/Renderer/SkyBox.h"
 
 namespace Stulu {
 	class STULU_API MaterialProperty;

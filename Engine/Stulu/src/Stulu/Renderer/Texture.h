@@ -54,6 +54,9 @@ namespace Stulu {
 			const glm::vec2& tiling = { 1.0f,1.0f }, uint32_t levels = 1, glm::vec4 border = glm::vec4(1.0f),
 			TextureFiltering filtering = TextureFiltering::Linear)
 			:format(format), wrap(wrap), tiling(tiling), levels(levels), border(border), filtering(filtering), arraySize(1) {}
+		TextureSettings(TextureFormat format, TextureWrap wrap, TextureFiltering filtering)
+			:format(format), wrap(wrap), tiling({1.0f, 1.0f}), levels(1), border(glm::vec4(1.0f)), filtering(filtering), arraySize(1) {
+		}
 	};
 
 	enum class MSAASamples : uint32_t {
@@ -105,30 +108,12 @@ namespace Stulu {
 
 	class STULU_API CubeMap : public virtual Texture {
 	public:
-		static Ref<CubeMap> create(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB));
-		static Ref<CubeMap> create(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings = TextureSettings(TextureFormat::RGB));
+		static Ref<CubeMap> Create(uint32_t resolution, TextureSettings settings = TextureSettings(TextureFormat::RGB));
+
+		static Ref<CubeMap> CreateFromEquirectangularMap(uint32_t resolution, const std::string& hdrPath, TextureSettings settings = TextureSettings(TextureFormat::Auto));
+		static Ref<CubeMap> CreateFromFacesList(uint32_t resolution, const std::vector<std::string>& faces, TextureSettings settings = TextureSettings(TextureFormat::Auto));
+		static Ref<CubeMap> CreateFromYaml(uint32_t resolution, const std::string& cubeMapYamlPath, TextureSettings settings = TextureSettings(TextureFormat::Auto));
 
 		virtual void GenerateMips() const = 0;
-	};
-	
-	class STULU_API SkyBox : public virtual CubeMap {
-	public:
-		static Ref<SkyBox> Create(const std::string& path, uint32_t resolution = 2048);
-		static Ref<SkyBox> CreateFromEquirectangularMap(const std::string& path, uint32_t resolution = 2048);
-		static Ref<SkyBox> CreateFromFacesList(const std::vector<std::string>& faces, uint32_t resolution);
-		static Ref<SkyBox> CreateFromYaml(const std::string& cubeMapYamlPath, uint32_t resolution);
-
-		virtual void bindEnviromente(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_ENV) const = 0;
-		virtual void bindIrradiance(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_IRR) const = 0;
-		virtual void bindPrefilter(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_PRE) const = 0;
-		virtual void bindBRDFLUT(uint32_t slot = ST_SKYBOX_TEXTURE_BIND_BRD) const = 0;
-
-		virtual void* getEnviroment() const = 0;
-		virtual void* getIrradianceMap() const = 0;
-		virtual void* getPrefilterMap() const = 0;
-		virtual void* getBRDFLUT() const = 0;
-
-		//generates a BRDFLUT or returns an already created one if one with the resolution was already created
-		static Ref<Texture2D> genrateBRDFLUT(uint32_t resolution);
 	};
 }

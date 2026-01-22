@@ -4,6 +4,7 @@
 #include "Stulu/Renderer/RenderCommand.h"
 #include "Stulu/Renderer/Camera.h"
 #include "Stulu/Renderer/ShaderSystem.h"
+#include "Stulu/Renderer/SkyBox.h"
 #include "Stulu/Events/ApplicationEvent.h"
 #include "Stulu/Renderer/Buffer.h"
 #include "Stulu/Renderer/Material/TestMaterial.h"
