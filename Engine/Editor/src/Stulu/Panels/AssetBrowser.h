@@ -81,7 +81,7 @@ namespace Editor {
 
 		void DrawBrowser();
 		void DrawDirectoryBrowser(const std::filesystem::path& path);
-		void DrawMenu();
+		void DrawFileContextMenu();
 		void DrawCreateFileModal();
 		void DrawPopUps();
 		// returns true when double pressed

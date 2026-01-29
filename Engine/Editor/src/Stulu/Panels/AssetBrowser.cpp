@@ -145,10 +145,20 @@ namespace Editor {
 			if (action == FileInteractAction::Open && directory.is_directory()) {
 				SetPath(path);
 			}
+			if (action == FileInteractAction::RightClick) {
+				m_selectedPopupFile = path;
+				ImGui::OpenPopup("SELECTED_ASSET_CONTEXT_MENU");
+			}
 
 			ImGui::NextColumn();
 		}
 		ImGui::EndColumns();
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && ImGui::IsWindowHovered()) {
+			ImGui::OpenPopup("NO_ASSET_CONTEXT_MENU", ImGuiPopupFlags_NoOpenOverItems);
+		}
+		
+		
+		DrawFileContextMenu();
 	}
 	void AssetBrowser::DrawDirectoryBrowser(const std::filesystem::path& path) {
 		for (auto& entry : std::filesystem::directory_iterator(path)) {
@@ -205,7 +215,23 @@ namespace Editor {
 		}
 	}
 
-	void AssetBrowser::DrawMenu() {
+	void AssetBrowser::DrawFileContextMenu() {
+		if (ImGui::BeginPopup("SELECTED_ASSET_CONTEXT_MENU")) {
+			if (ImGui::MenuItem("Rename")) {
+				m_assetRenameString = m_selectedPopupFile.filename().string();
+				ImGui::OpenPopup("Rename Asset");
+			}
+			if (ImGui::MenuItem("Delete")) {
+				ImGui::OpenPopup("Delete Asset");
+			}
+			ImGui::EndPopup();
+		}
+
+		if (ImGui::BeginPopup("NO_ASSET_CONTEXT_MENU")) {
+			if (ImGui::MenuItem("Create")) {
+			}
+			ImGui::EndPopup();
+		}
 	}
 
 	void AssetBrowser::DrawCreateFileModal() {
@@ -305,19 +331,6 @@ namespace Editor {
 				asset = AssetsManager::GlobalInstance().GetRaw(uuid);
 			}
 			Controls::DragDropAsset(asset->GetUUID(), asset->GetTypeName());
-		}
-		
-		// menu
-		if (ImGui::BeginPopupContextItem("ASSET_CONTEXT_MENU")) {
-			if (ImGui::MenuItem("Rename")) {
-				m_assetRenameString = path.filename().string();
-				ImGui::OpenPopup("Rename Asset");
-			}
-			if (ImGui::MenuItem("Delete")) {
-				ImGui::OpenPopup("Delete Asset");
-			}
-			ImGui::EndPopup();
-			m_selectedPopupFile = path;
 		}
 
 		// bg
